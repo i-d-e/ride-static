@@ -24,7 +24,7 @@ import markdown
 import yaml
 from jinja2 import Environment
 
-from src.render.html import REPO_ROOT, SiteConfig, _static_path_factory, make_env
+from src.render.html import REPO_ROOT, SiteConfig, make_env, static_path_factory
 
 CONTENT_DIR = REPO_ROOT / "content"
 
@@ -90,7 +90,7 @@ def render_editorial(
         page_description=None,
         og=None,
         json_ld=None,
-        static_path=_static_path_factory(site.base_url),
+        static_path=static_path_factory(site.base_url),
         page_html=body_html,
         last_updated=page.last_updated,
     )

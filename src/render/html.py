@@ -62,7 +62,7 @@ _SLUG_PATTERN = re.compile(r"[^\w\s-]", re.UNICODE)
 _DASH_RUN = re.compile(r"[-\s]+")
 
 
-def _slugify(value: str) -> str:
+def slugify(value: str) -> str:
     """URL-safe slug. Lossless given alphanumerics, hyphens and whitespace."""
     if not value:
         return ""
@@ -92,7 +92,7 @@ def _inlines_to_text(seq: Optional[Iterable]) -> str:
     return "".join(out).strip()
 
 
-def _static_path_factory(base_url: str):
+def static_path_factory(base_url: str):
     """Returns a function the template uses to resolve static asset URLs."""
     prefix = base_url.rstrip("/")
 
@@ -140,7 +140,7 @@ def _bibtex_escape(s: str) -> str:
     return out.replace("</", "<\\/")
 
 
-def _to_bibtex(review) -> str:
+def to_bibtex(review) -> str:
     """Render one Review as a single-entry BibTeX string.
 
     Author names go to the BibTeX-canonical ``Family, Given`` form joined by
@@ -167,7 +167,7 @@ def _to_bibtex(review) -> str:
     return f"@article{{{review.id or 'review'},\n{body},\n}}"
 
 
-def _to_csl_dict(review) -> dict:
+def to_csl_dict(review) -> dict:
     """Render one Review as a CSL-JSON object (dict — Jinja's tojson serialises).
 
     Outputs the schema.org-compatible subset most citation managers consume:
@@ -220,11 +220,11 @@ def make_env(templates_dir: Path = TEMPLATES_DIR) -> Environment:
         trim_blocks=False,
         lstrip_blocks=False,
     )
-    env.filters["slugify"] = _slugify
+    env.filters["slugify"] = slugify
     env.filters["obfuscate_mail"] = _obfuscate_mail
     env.filters["inlines_to_text"] = _inlines_to_text
-    env.filters["to_bibtex"] = _to_bibtex
-    env.filters["to_csl_dict"] = _to_csl_dict
+    env.filters["to_bibtex"] = to_bibtex
+    env.filters["to_csl_dict"] = to_csl_dict
     return env
 
 
@@ -277,7 +277,7 @@ def render_review(
         page_description=_inlines_to_text(_first_paragraph_inlines(review))[:200] or None,
         og=None,
         json_ld=None,
-        static_path=_static_path_factory(site.base_url),
+        static_path=static_path_factory(site.base_url),
     )
 
 

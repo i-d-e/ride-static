@@ -44,7 +44,7 @@ from src.render.aggregations import (
     reviewer_slug,
 )
 from src.render.editorial import discover_editorials, render_editorial
-from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, _slugify, make_env, render_review
+from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
     IssueConfigError,
     discover_issue_configs,
@@ -168,7 +168,7 @@ def _render_aggregations(
     )
     pages += 1
     for tag in aggregate_tags(reviews):
-        d = tags_dir / _slugify(tag.name)
+        d = tags_dir / slugify(tag.name)
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(
             render_tag(tag, reviews, site=site, env=env), encoding="utf-8"

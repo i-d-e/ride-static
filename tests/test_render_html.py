@@ -26,12 +26,12 @@ from src.render.html import (
     SiteConfig,
     _inlines_to_text,
     _obfuscate_mail,
-    _slugify,
-    _to_bibtex,
-    _to_csl_dict,
     make_env,
     render_review,
+    slugify,
     split_abstract,
+    to_bibtex,
+    to_csl_dict,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -97,9 +97,9 @@ def _minimal_review(**overrides) -> Review:
 
 
 def test_slugify_basic():
-    assert _slugify("Digital Editions") == "digital-editions"
-    assert _slugify("  Foo / Bar! ") == "foo-bar"
-    assert _slugify("") == ""
+    assert slugify("Digital Editions") == "digital-editions"
+    assert slugify("  Foo / Bar! ") == "foo-bar"
+    assert slugify("") == ""
 
 
 def test_obfuscate_mail():
@@ -278,7 +278,7 @@ def test_render_review_embeds_cite_data_blocks():
 
 
 def test_to_bibtex_canonical_shape():
-    text = _to_bibtex(_minimal_review())
+    text = to_bibtex(_minimal_review())
     assert text.startswith("@article{ride.13.7,")
     assert "  author    = {Reviewer, Jane}" in text
     assert "{{A Sample Review}}" in text  # double-brace title preserves case
@@ -290,7 +290,7 @@ def test_to_bibtex_canonical_shape():
 
 def test_to_bibtex_escapes_braces_in_title():
     review = _minimal_review(title="Title with {braces} and \\backslash")
-    text = _to_bibtex(review)
+    text = to_bibtex(review)
     assert r"\{" in text
     assert r"\}" in text
     assert "\\textbackslash{}" in text
@@ -298,19 +298,19 @@ def test_to_bibtex_escapes_braces_in_title():
 
 def test_to_bibtex_escapes_closing_script_sequence():
     review = _minimal_review(title="Title with </script> in it")
-    text = _to_bibtex(review)
+    text = to_bibtex(review)
     assert "</script>" not in text
     assert "<\\/script>" in text
 
 
 def test_to_bibtex_handles_authorless_review():
     review = _minimal_review(authors=())
-    text = _to_bibtex(review)
+    text = to_bibtex(review)
     assert "author    = {Anonymous}" in text
 
 
 def test_to_csl_dict_shape():
-    obj = _to_csl_dict(_minimal_review())
+    obj = to_csl_dict(_minimal_review())
     assert obj["id"] == "ride.13.7"
     assert obj["type"] == "article-journal"
     assert obj["title"] == "A Sample Review"
@@ -326,14 +326,14 @@ def test_to_csl_dict_handles_single_part_names():
     review = _minimal_review(
         authors=(Author(person=Person(full_name="Cher")),)
     )
-    obj = _to_csl_dict(review)
+    obj = to_csl_dict(review)
     # Single-name persons fall through name-pair extraction with empty given.
     assert obj["author"] == [{"family": "Cher"}]
 
 
 def test_to_csl_dict_handles_partial_dates():
     review = _minimal_review(publication_date="2026-04")
-    obj = _to_csl_dict(review)
+    obj = to_csl_dict(review)
     assert obj["issued"] == {"date-parts": [[2026, 4]]}
 
 

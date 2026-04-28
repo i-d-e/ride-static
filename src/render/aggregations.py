@@ -32,7 +32,7 @@ from src.parser.datasets import (
     aggregate_reviewers,
     aggregate_tags,
 )
-from src.render.html import SiteConfig, _slugify, _static_path_factory, make_env
+from src.render.html import SiteConfig, make_env, slugify, static_path_factory
 from src.render.issues_config import IssueConfig, order_reviews
 
 
@@ -43,7 +43,7 @@ def _common_ctx(site: SiteConfig) -> dict:
     """Variables every aggregation template needs in addition to its own."""
     return {
         "site": site,
-        "static_path": _static_path_factory(site.base_url),
+        "static_path": static_path_factory(site.base_url),
         "page_lang": site.default_language,
         "og": None,
         "json_ld": None,
@@ -81,9 +81,9 @@ def reviewer_slug(reviewer: ReviewerAggregate) -> str:
     """Stable URL slug for a reviewer page."""
     if reviewer.person.surname:
         if reviewer.person.forename:
-            return _slugify(f"{reviewer.person.surname} {reviewer.person.forename}")
-        return _slugify(reviewer.person.surname)
-    return _slugify(reviewer.person.full_name)
+            return slugify(f"{reviewer.person.surname} {reviewer.person.forename}")
+        return slugify(reviewer.person.surname)
+    return slugify(reviewer.person.full_name)
 
 
 # ── home + issues ──────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ def render_tag(tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig,
     return env.get_template("tag.html").render(
         **_common_ctx(site),
         page_title=f"Tag: {tag.display_name}",
-        page_url=_abs_url(site, f"/tags/{_slugify(tag.name)}/"),
+        page_url=_abs_url(site, f"/tags/{slugify(tag.name)}/"),
         tag=tag,
         reviews=matched,
     )
