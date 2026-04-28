@@ -177,7 +177,11 @@ def test_render_review_blocks_macro_handles_all_kinds():
                 ),
                 Citation(
                     quote_inlines=(Text(text="Ipsum dolor"),),
-                    bibl=(Text(text="Cicero"),),
+                    bibl=BibEntry(
+                        inlines=(Text(text="Cicero"),),
+                        xml_id=None,
+                        ref_target=None,
+                    ),
                 ),
             ),
         ),

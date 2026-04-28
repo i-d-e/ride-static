@@ -146,15 +146,20 @@
   </figure>
 {%- endmacro -%}
 
+{#- ``<cit>`` rendering. Citation.bibl is a BibEntry (same shape as
+    Review.bibliography entries) per the Stage-2.C unification — we render
+    its `inlines` and use `ref_target` (mirrored on Citation.bibl_target
+    for backwards compat) as the surrounding link. -#}
 {%- macro citation_block(c) -%}
   <blockquote class="ride-citation">
     <p>{{ inlines(c.quote_inlines) }}</p>
     {%- if c.bibl -%}
+      {%- set target = c.bibl.ref_target or c.bibl_target -%}
       <footer class="ride-citation__bibl">
-        {%- if c.bibl_target -%}
-          <cite><a href="{{ c.bibl_target }}">{{ inlines(c.bibl) }}</a></cite>
+        {%- if target -%}
+          <cite><a href="{{ target }}">{{ inlines(c.bibl.inlines) }}</a></cite>
         {%- else -%}
-          <cite>{{ inlines(c.bibl) }}</cite>
+          <cite>{{ inlines(c.bibl.inlines) }}</cite>
         {%- endif -%}
       </footer>
     {%- endif -%}
