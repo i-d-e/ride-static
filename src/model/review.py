@@ -14,6 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from src.model.block import Figure
+from src.model.inline import Note
 from src.model.section import Section
 
 
@@ -98,6 +100,18 @@ class Review:
     back: tuple[Section, ...] = field(default_factory=tuple)
     """Sections under <back> (bibliography, appendix). Empty for the seven
     no-back reviews listed in knowledge/data.md."""
+
+    figures: tuple[Figure, ...] = field(default_factory=tuple)
+    """All ``<figure>`` blocks reachable from front/body/back, in document
+    order. Materialised at parse time so the parallel apparate sub-block
+    (interface.md §6) and the figure-list aggregations get a stable
+    sequence without re-walking the section tree."""
+
+    notes: tuple[Note, ...] = field(default_factory=tuple)
+    """All ``<note>`` inlines reachable from front/body/back, in document
+    order. Footnote anchors live in ``Note.xml_id``; renderers use this
+    tuple for the apparate Notes sub-block and for build-time validation
+    that every ``<ref target="#ftnN">`` resolves to a known note."""
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""

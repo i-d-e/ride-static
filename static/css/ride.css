@@ -1,0 +1,300 @@
+/* ride.css — single stylesheet for the RIDE static site.
+ *
+ * Specification: knowledge/interface.md (visual + interaction).
+ * BEM class hooks: config/element-mapping.yaml.
+ * Phase 8 fills in component-level rules; this file is the foundation.
+ *
+ * Constraints (interface.md §12):
+ *   - one stylesheet, no preprocessor, no build step
+ *   - target ≤ 800 lines total when Phase 8 lands
+ *   - WCAG 2.2 AA per requirements.md N5
+ *
+ * Sections (in order):
+ *   1. Design tokens (custom properties)
+ *   2. Reset and base typography
+ *   3. Layout grid (1080 / 680 / 60 / 220)
+ *   4. Page chrome (header, search slot, footer)
+ *   5. Component class hooks (empty selectors that Phase 8 fills)
+ *   6. Responsive breakpoints (interface.md §10)
+ *   7. Accessibility helpers
+ *   8. Print stylesheet (Phase 14, placeholder)
+ */
+
+/* ─── 1. Design tokens ───────────────────────────────────────────────── */
+
+:root {
+  /* Layout — interface.md §4 */
+  --ride-page-max:       1080px;
+  --ride-content-width:   680px;
+  --ride-sidebar-width:   220px;
+  --ride-gutter:           60px;
+  --ride-page-padding:     20px;
+
+  /* Typography — interface.md §7 */
+  --ride-font-serif:    "Source Serif", "Source Serif Pro", "Crimson Pro", Georgia, serif;
+  --ride-font-sans:     "Inter", "Source Sans 3", "Source Sans Pro", -apple-system, system-ui, sans-serif;
+  --ride-font-mono:     ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+
+  --ride-text-base:     17px;
+  --ride-text-small:    14px;   /* sidebar, apparate */
+  --ride-text-tiny:     12px;   /* hard floor — never go smaller */
+  --ride-text-h1:       28px;
+  --ride-text-h2:       22px;
+  --ride-text-h3:       18px;
+
+  --ride-leading-prose: 1.6;
+  --ride-leading-ui:    1.4;
+
+  --ride-weight-regular: 400;
+  --ride-weight-medium:  500;
+
+  /* Colour — single accent, three greys, plus structural surfaces.
+     Targets WCAG 2.2 AA contrast against --ride-bg. */
+  --ride-fg-primary:    #111418;
+  --ride-fg-secondary:  #4b5560;
+  --ride-fg-tertiary:   #7a8694;
+  --ride-bg:            #ffffff;
+  --ride-bg-muted:      #f4f6f8;   /* abstract block, code background */
+  --ride-rule:          #d4d9df;   /* hairlines between sections */
+  --ride-accent:        #1d4f8c;   /* the single dampened blue */
+  --ride-accent-hover:  #15406f;
+
+  /* Focus ring — visible on every interactive element (interface.md §9) */
+  --ride-focus:         0 0 0 3px rgba(29, 79, 140, 0.45);
+
+  /* Spacing scale — multiples of 4px keep vertical rhythm honest */
+  --ride-space-1:  4px;
+  --ride-space-2:  8px;
+  --ride-space-3: 12px;
+  --ride-space-4: 16px;
+  --ride-space-6: 24px;
+  --ride-space-8: 32px;
+  --ride-space-12: 48px;
+}
+
+/* ─── 2. Reset and base typography ───────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ride-font-serif);
+  font-size: var(--ride-text-base);
+  line-height: var(--ride-leading-prose);
+  color: var(--ride-fg-primary);
+  background: var(--ride-bg);
+  /* Prevent horizontal scroll from wide tables/figures by default;
+     blocks that need overflow opt in via their own scroll container. */
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--ride-font-sans);
+  font-weight: var(--ride-weight-medium);
+  line-height: var(--ride-leading-ui);
+  margin: 0 0 var(--ride-space-4);
+}
+
+h1 { font-size: var(--ride-text-h1); }
+h2 { font-size: var(--ride-text-h2); margin-top: var(--ride-space-12); }
+h3 { font-size: var(--ride-text-h3); margin-top: var(--ride-space-8); }
+
+p {
+  margin: 0 0 var(--ride-space-4);
+}
+
+a {
+  color: var(--ride-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { color: var(--ride-accent-hover); }
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--ride-focus);
+  border-radius: 2px;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--ride-font-mono);
+  font-size: 0.92em;
+}
+
+pre {
+  background: var(--ride-bg-muted);
+  padding: var(--ride-space-4);
+  overflow-x: auto;
+}
+
+img { max-width: 100%; height: auto; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--ride-rule);
+  margin: var(--ride-space-8) 0;
+}
+
+/* ─── 3. Layout grid ─────────────────────────────────────────────────── */
+
+.ride-shell {
+  max-width: var(--ride-page-max);
+  margin: 0 auto;
+  padding: 0 var(--ride-page-padding);
+}
+
+/* Two-column layout for review and aggregation pages.
+   Single-column for editorial pages — toggled by adding .ride-page--solo. */
+.ride-page {
+  display: grid;
+  grid-template-columns: var(--ride-content-width) var(--ride-sidebar-width);
+  column-gap: var(--ride-gutter);
+  align-items: start;
+}
+
+.ride-page--solo { grid-template-columns: minmax(0, var(--ride-content-width)); }
+
+.ride-content   { grid-column: 1; min-width: 0; }
+.ride-sidebar   { grid-column: 2; font-family: var(--ride-font-sans); font-size: var(--ride-text-small); }
+
+/* ─── 4. Page chrome ─────────────────────────────────────────────────── */
+
+.ride-header {
+  border-bottom: 1px solid var(--ride-rule);
+  padding: var(--ride-space-4) 0;
+  font-family: var(--ride-font-sans);
+}
+
+/* Search bar gets its own dedicated slot per interface.md §4 — between header
+   and content, full width, on every page. Phase 11 wires Pagefind into it. */
+.ride-search-slot {
+  border-bottom: 1px solid var(--ride-rule);
+  padding: var(--ride-space-3) 0;
+  background: var(--ride-bg-muted);
+  font-family: var(--ride-font-sans);
+}
+
+.ride-footer {
+  border-top: 1px solid var(--ride-rule);
+  padding: var(--ride-space-6) 0;
+  margin-top: var(--ride-space-12);
+  color: var(--ride-fg-secondary);
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-small);
+}
+
+/* ─── 5. Component class hooks ───────────────────────────────────────── */
+
+/* These selectors mirror config/element-mapping.yaml. They are deliberately
+   empty (or near-empty) here — Phase 8 templates render with these classes,
+   and the rule bodies grow as the visual design solidifies against real
+   data. Keep this section in sync with the YAML, both ways.
+
+   Block kinds: Paragraph, List, Table, Figure, Citation. */
+
+.ride-paragraph                 { /* citation-anchor gutter is set by the template */ }
+.ride-paragraph__anchor         { /* @n marker, left margin, hover reveals copy-link */ }
+
+.ride-list                      { padding-left: var(--ride-space-6); }
+.ride-list--bulleted            { list-style: disc; }
+.ride-list--ordered             { list-style: decimal; }
+.ride-list--labeled             { list-style: none; padding-left: 0; }
+.ride-list--labeled > li        { display: grid; grid-template-columns: max-content 1fr; gap: var(--ride-space-3); }
+
+.ride-table                     { border-collapse: collapse; width: 100%; margin: var(--ride-space-6) 0; }
+.ride-table th, .ride-table td  { border: 1px solid var(--ride-rule); padding: var(--ride-space-2) var(--ride-space-3); text-align: left; }
+.ride-table th                  { background: var(--ride-bg-muted); font-weight: var(--ride-weight-medium); }
+
+.ride-figure                    { margin: var(--ride-space-8) 0; }
+.ride-figure__caption           { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-2); }
+.ride-figure--image img         { display: block; max-width: 100%; height: auto; }
+.ride-figure--code pre          { /* code_example variant; pre styles inherit from base */ }
+
+.ride-citation                  { border-left: 3px solid var(--ride-rule); padding-left: var(--ride-space-4); margin: var(--ride-space-6) 0; color: var(--ride-fg-secondary); }
+.ride-citation__bibl            { font-size: var(--ride-text-small); margin-top: var(--ride-space-2); }
+
+/* Inline kinds: Text, Emphasis, Highlight, Reference, Note, InlineCode.
+   Text has no class — it's bare text nodes. */
+
+.ride-emph                      { font-style: italic; }
+.ride-highlight                 { /* contextual rend variants land here */ }
+.ride-code                      { font-family: var(--ride-font-mono); background: var(--ride-bg-muted); padding: 1px 4px; border-radius: 2px; }
+
+.ride-ref                       { /* base anchor styling inherits from a {} */ }
+.ride-ref--local                { /* in-page anchor — same as default link */ }
+.ride-ref--criteria             { /* K-refs to external criteria document */ }
+.ride-ref--external             { /* http(s) link, optional external icon via ::after */ }
+.ride-ref--orphan               { color: var(--ride-fg-secondary); text-decoration: none; cursor: not-allowed; }
+
+.ride-note                      { /* footnote marker; superscript wrapper renders the @n value */ }
+
+/* Apparate-Block — three parallel sub-blocks under one rule (interface.md §6).
+   References | Figures | Notes, each with its own h3. Mobile stacks them. */
+.ride-apparate {
+  border-top: 1px solid var(--ride-rule);
+  margin-top: var(--ride-space-12);
+  padding-top: var(--ride-space-6);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ride-gutter);
+}
+.ride-apparate__panel h3        { margin-top: 0; font-size: var(--ride-text-h3); }
+.ride-apparate__list            { font-size: var(--ride-text-small); list-style: none; padding: 0; margin: 0; }
+.ride-apparate__list li         { margin-bottom: var(--ride-space-2); }
+
+/* ─── 6. Responsive breakpoints ──────────────────────────────────────── */
+
+/* < 720px — sidebar collapses below content; apparate stacks. */
+@media (max-width: 719px) {
+  .ride-page              { grid-template-columns: minmax(0, 1fr); }
+  .ride-sidebar           { grid-column: 1; margin-top: var(--ride-space-12); }
+  .ride-apparate          { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ≥ 720px and < 1080px — two-column with full sidebar, default rules apply. */
+
+/* ≥ 1080px — centred grid with symmetric outer space; default rules apply. */
+
+/* ─── 7. Accessibility helpers ───────────────────────────────────────── */
+
+/* Skip link — first focusable element on every page (WCAG 2.4.1). */
+.ride-skip {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  background: var(--ride-fg-primary);
+  color: var(--ride-bg);
+  padding: var(--ride-space-2) var(--ride-space-4);
+  z-index: 100;
+}
+.ride-skip:focus { left: 0; }
+
+/* Visually-hidden text for screen-reader-only labels. */
+.ride-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+/* Honour user motion preference (interface.md §11 — animations dezent). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ─── 8. Print stylesheet (Phase 14 placeholder) ─────────────────────── */
+
+/* Phase 14 (PDF via WeasyPrint) replaces this block with a full print style.
+   Until then a minimal fallback keeps the HTML-Druck halbwegs lesbar. */
+@media print {
+  .ride-sidebar, .ride-search-slot, .ride-skip { display: none; }
+  .ride-page { grid-template-columns: minmax(0, 1fr); }
+  a { color: inherit; text-decoration: none; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.9em; color: #555; }
+}

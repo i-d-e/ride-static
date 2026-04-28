@@ -106,12 +106,13 @@ def test_top_level_fields(fixture_path: Path) -> None:
     assert r.licence == "https://creativecommons.org/licenses/by/4.0/"
 
 
-def test_body_fields_default_to_empty_tuples(fixture_path: Path) -> None:
-    """Phase-1 stubs: front/body/back are tuple-typed defaults until Phase 5
-    integration wires the section parser into parse_review."""
+def test_body_fields_populated_via_section_parser(fixture_path: Path) -> None:
+    """Phase 5 wires parse_sections into parse_review; the synthetic fixture
+    exercises the full path. The fixture has at least one body section but
+    no <front> or <back>, so those stay empty."""
     r = parse_review(fixture_path)
     assert r.front == ()
-    assert r.body == ()
+    assert len(r.body) >= 1
     assert r.back == ()
 
 
