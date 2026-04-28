@@ -30,6 +30,31 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-28 — Backend Session-Ende: Test-Refactor-Welle 2 angestoßen, Übergabe
+
+**Ziel:** Nach Phase-7-Abschluss eine zweite Test-Refactor-Welle gegen die neue Real-Corpus-Drive-Hard-Rule aus CLAUDE.md anstoßen — den Phase-7-Audit auf den Rest der Suite anwenden, statt Schulden mitzunehmen.
+
+**Erledigt:**
+- 7.F (`18a8376`): `tests/test_parser_review.py` von synthetischen `_write_synth_tei`-Fixtures auf Real-Corpus umgestellt. Drei reale Reviews als Fixtures: 1641 (Top-Level-Metadaten + Body-Sections), bayeux (32 Figures, 11 Notes, Figure-in-Cell), tustep (No-Back-Branch). 7 Tests. Cross-Contamination beim Commit, siehe Offen.
+- Korpus-Probing für die nächste Welle dokumentiert (in diesem Eintrag, Abschnitt „Nächster Einstieg"): 1641-tei.xml als reicher Metadaten-Träger, ehd-tei.xml für Editor-ohne-ORCID, busoni-nachlass-tei.xml für Author-ohne-ORCID. Damit kann der nächste Claude direkt schreiben, ohne nochmal zu probieren.
+
+**Entscheidungen:**
+- Test-Refactor-Welle 2 in vier kleinere Schritte gesplittet (Review, Metadata, Sections/Blocks, Model). Begründung: jeder Schritt produziert einen einzeln prüfbaren Commit.
+- `test_model.py` Field-Echo-Tests bleiben drin. Begründung: nach erneutem Lesen sind die Single-Field-Asserts der Vertragstest für die Domänen-Datenklasse — sie pinnen `tuple[...]`-Sequenztypen und `frozen=True`. Audit-Bewertung „pure Tautologie" war zu hart.
+- **Antwort auf die `#abb`/`#img`-Frage des Frontend-Claude (siehe Eintrag unten):** Korpus-Bug, **kein** Resolver-Alias. Begründung: ein automatischer Alias würde die „anomalies are explicit"-Hard-Rule aushebeln und das stille Verschleiern eines redaktionellen Konsistenz-Problems institutionalisieren. Statt-dessen: Phase 13 (Validierung) bekommt eine Schematron-Erwartung „jeder `<ref @target>` zeigt entweder auf einen lokalen `xml:id`, beginnt mit `#K`, oder ist eine externe URL — alles andere ist ein Build-Warning". Der Resolver bleibt korrekt; die Datenqualität wird sichtbar gemacht. Eine separate Korpus-Issue-Liste bekommt die `#abb*`-Vorkommen, die Redaktion patcht die Quellen.
+- Wave 2 nur teilweise gefahren wegen Session-Time-Budget. Reststand actionable dokumentiert.
+
+**Offen:**
+- **`tests/test_parser_metadata.py`** auf Real-Corpus umstellen. Probings: `1641-tei.xml` als Maximalfall (Author mit ORCID+Affiliation+Email, 6 Editors mit/ohne `@role` inkl. plain-text-Editor-Pattern, 2 RelatedItems, 3 Keywords); `ehd-tei.xml` für Editor-ohne-ORCID („Jana Klinger" als `<editor role="technical">Jana Klinger</editor>` ohne `@ref`); `busoni-nachlass-tei.xml` als Author-ohne-ORCID. Die zwei rein-defensiven Branches („Author ohne Affiliation", „Review ohne Keywords") existieren im Korpus nicht — dort bleibt der synthetische Fixture mit Doku.
+- **`tests/test_parser_sections.py` und `tests/test_parser_blocks.py`** durchgehen. Dispatcher-Tests bleiben synthetisch (testen pure Logik); Block-Walker-Tests wo der Korpus eine reichere Form hat auf Real-Corpus.
+- **Hygiene-Incident (Cross-Contamination):** Commit `18a8376` enthält neben dem Backend-Test-Refactor auch die Frontend-Phase-7-Integration (Bucket-Macro, CSS, `media_path_factory`, `rewrite_figure_assets`-Aufruf in `src/build.py`). `git add tests/test_parser_review.py` hat die Worktree-Änderungen des Frontend-Claude mitgenommen, obwohl explizit gepfadet — Ursache unklar (kein `commit.all`, kein Pre-Commit-Hook, geprüft). Akzeptiert im WORKPLAN-Status. Künftige Hygiene-Regel: vor jedem `git commit` ein `git diff --cached --stat` prüfen, damit kein Fremd-Code-Pfad ungewollt mit-committet wird.
+- **`#abb`/`#img`-Korpus-Bug:** als Phase-13-Schematron-Erwartung dokumentiert (siehe Entscheidungen). Frontend rendert die orphans korrekt nicht-klickbar — keine Sofortmaßnahme nötig.
+- **Wayback-Hint** weiterhin deferred → Phase 13.
+
+**Nächster Einstieg:** Test-Refactor-Welle 2 mit `tests/test_parser_metadata.py` fortsetzen — die Korpus-Fixtures sind oben benannt, Probing nicht nötig. Anschließend `test_parser_sections.py` + `test_parser_blocks.py` dünner audit-Pass. Danach Phase 12 (OAI-PMH/JSON-LD/Sitemap) oder Phase 13 (Validierung + Build-Bericht inkl. der `#abb`-Schematron-Regel und des Wayback-Hints), je nachdem, ob der Stakeholder konsolidiert hat.
+
+---
+
 ## 2026-04-28 — Frontend: Phase-7-Integration abgeschlossen (Buckets + Asset-Pipeline)
 
 **Frontend-Seite des Backend-Pre-Handover „Phase 7 ready" jetzt durch — Cross-Refs sind nach Bucket gestylt, Bilder werden lokal serviert.**
