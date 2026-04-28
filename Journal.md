@@ -30,6 +30,25 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 2 abgeschlossen, Section-Parser steht
+
+**Ziel:** Rekursiver Section-Parser für `<front>`, `<body>`, `<back>`. Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>`- oder `<cit>`-Kind unter `<body>`.
+
+**Erledigt:**
+- Commit 2.1 (`52d4d7d`): `src/parser/sections.py` mit `parse_sections(host)` und rekursivem `_parse_div()`. Anomalien: fehlende `@xml:id` → positionsbasierter Fallback `sec-1.2.3`; fehlendes `<head>` → `heading=None`; unbekannte `@type`-Werte → `None`; Schachtelung > 3 → ValueError; `parse_sections(None)` → `()` für No-Back-Reviews. 11 Tests inkl. Real-Korpus-Smoke.
+- Commit 2.2 (`07b3e66`): Body-Wrap-Branch für die sieben anomalen Reviews. Verifiziert gegen Korpus: bdmp, commedia, whistler (cit-first); phi, ps, varitext, wba (p-first). Drei synthetische Tests plus zwei Real-Korpus-Smokes (bdmp gezielt, alle 107 Reviews fehlerfrei).
+
+**Entscheidungen:**
+- Section.blocks bleibt `()` in Phase 2; Phase 5 wird sie befüllen, sobald Phase 3 (Block-Parser) und Phase 4 (Inline-Parser) liegen. Heading wird vorerst als `(Text(text),)` ohne Mixed-Content-Walker abgelegt.
+- Wrap-Detection element-basiert über `etree.QName(child).localname`, mit Skip von Kommentaren und PIs. Das verhindert False Negatives bei stilistisch formatierten Quelldateien.
+- Synthese-ID-Format ist `sec-` plus Punkt-getrennter Position. Begründung: kollisionsfrei mit echten `xml:id`s der Form `divN.M.K`, weil das Präfix `sec-` im Korpus nirgends vergeben ist.
+
+**Offen:** Phase 3 — Block-Parser. Erfordert eine Funktion pro Block-Typ (Paragraph, List, Table, Figure, Citation), Normalisierung der List-Rends (`numbered→ordered`, `unordered→bulleted`), und einen `parse_block`-Dispatcher, der bei unbekannten Elementen mit klarem Kontext raises (gemäß CLAUDE.md hard rule).
+
+**Nächster Einstieg:** `src/parser/blocks.py` anlegen. Erste Funktion `_parse_p(p)` → `Paragraph` mit `inlines=()` (Phase 4 füllt mixed content) und `n=p.get('n')`. Synthetische Fixture, dann inkrementell weitere Block-Typen.
+
+---
+
 ## 2026-04-29 — Phase 1 abgeschlossen, Stage 2.B Modell steht
 
 **Ziel:** Datenmodell für Section, Block und Inline als frozen dataclasses anlegen, ohne Parser-Logik. Review-Klasse um die drei body-Felder erweitern.
