@@ -82,6 +82,8 @@ The parser handles the known anomalies named in `data.md` and `schema.md` explic
 | `<ref type="crosssref">` | normalise to `crossref` |
 | `<sourceDesc>` duplicated (1 review) | merge or pick first; warn |
 | `<body>` starting with `<p>` or `<cit>` (7 reviews) | wrap in implicit single section |
+| `<ref target="#K…">` — 5 209 refs (98.7 % of dangling internals) | resolve against the criteria document at the taxonomy's `@xml:base`, not as local anchors |
+| `<ref target="#abb…">` and ~10 other prefixes (~70 refs) | unresolved — emit a warning and render as plain text |
 
 Anything not yet listed but unknown should raise — silent coercion is forbidden.
 
@@ -114,9 +116,15 @@ templates/html/
 - **Search index** — `render/search_index.py` builds a JSON index from the
   domain objects (heading text, paragraph text, keywords, author names,
   taxonomy terms). Loaded by client-side JS (Lunr or stork — decision deferred).
-- **Internal `<ref @target="#xml-id">`** — resolved at build time so HTML
-  contains real anchor links, not raw IDs. The parser maintains a per-review
-  `xml_id → object` map.
+- **`<ref @target>` resolution** — three-step lookup at build time:
+  1. If `target` starts with `#` and the anchor exists in the per-review
+     `xml_id → object` map, render as a local HTML anchor.
+  2. If `target` starts with `#K…` (5 209 cases — see `inventory/refs.json`),
+     resolve against the criteria document at the matching taxonomy's
+     `@xml:base`. The parser fetches the relevant criteria URL once per
+     criteria set and maps each `K…` ID to the criterion description.
+  3. External `http(s)://` targets pass through unchanged. Anything else
+     emits a build-time warning and is rendered as plain text.
 
 ## Build vs. runtime
 
@@ -158,9 +166,9 @@ ride-static/
 
 | Stage | Status | Artifacts |
 |---|---|---|
-| 0 — Discovery | done | `inventory/*.json` |
-| 1 — Knowledge | in progress | `knowledge/data.md`, `schema.md`, `architecture.md`, `pipeline.md` |
-| 2 — Domain model | planned | `src/model/`, `src/parser/` |
+| 0 — Discovery | done | `inventory/*.json` (incl. `ids.json`, `refs.json`, `taxonomy.json`) |
+| 1 — Knowledge | done | `knowledge/data.md`, `schema.md`, `architecture.md`, `pipeline.md` |
+| 2 — Domain model | in progress | 2.A done (`src/model/review.py`, header parser); 2.B/2.C pending (sections, blocks, bibliography, questionnaire) |
 | 3 — HTML render | planned | `src/render/html.py`, `templates/html/`, `site/` |
 | 4 — Search index | planned | `src/render/search_index.py` |
 | 5 — PDF render | planned | `src/render/pdf.py` |

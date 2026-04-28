@@ -24,14 +24,18 @@ from typing import Any
 
 from lxml import etree
 
-from _tei import TEI_NS, XML_NS, is_tei_element, localname, normalize
+from _tei import (
+    TEI_NS,
+    XML_BASE_ATTR,
+    XML_ID_ATTR,
+    is_tei_element,
+    localname,
+    normalize,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 OUT_DIR = REPO_ROOT / "inventory"
-
-XML_ID_ATTR = f"{{{XML_NS}}}id"
-XML_BASE_ATTR = f"{{{XML_NS}}}base"
 
 
 def _extract_category(category_el: etree._Element) -> dict[str, Any]:

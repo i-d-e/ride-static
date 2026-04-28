@@ -1,9 +1,8 @@
-"""Shared TEI helpers for the Stage 0 discovery scripts.
+"""Shared TEI helpers for the Stage 0/1 discovery scripts.
 
-Centralises the namespace constants and the small utility functions that
-``inventory.py``, ``structure.py``, ``sections.py``, and ``p5_fetch.py``
-all need. Underscore prefix marks this as an internal module — it is not
-runnable on its own.
+Centralises the namespace constants, Clark-notation helpers, and the
+common attribute names every extractor needs. Underscore prefix marks
+this as an internal module — it is not runnable on its own.
 
 The Stage 2 parser under ``src/parser/`` walks XML differently
 (namespace-prefixed ``find()`` calls instead of ``iter()`` + Clark
@@ -21,6 +20,12 @@ XML_NS = "http://www.w3.org/XML/1998/namespace"
 
 _TEI_TAG_PREFIX = f"{{{TEI_NS}}}"
 _XML_TAG_PREFIX = f"{{{XML_NS}}}"
+
+# Frequently-fetched attributes in Clark notation. Lookup with
+# ``el.get(XML_ID_ATTR)`` instead of building the string per script.
+XML_ID_ATTR = f"{{{XML_NS}}}id"
+XML_BASE_ATTR = f"{{{XML_NS}}}base"
+XML_LANG_ATTR = f"{{{XML_NS}}}lang"
 
 _WS = re.compile(r"\s+")
 

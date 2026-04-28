@@ -156,6 +156,9 @@ def _build_pattern_rules(
     elements_by_name: dict[str, Any],
     structure: dict[str, Any],
     sections: dict[str, Any],
+    refs_data: dict[str, Any] | None = None,
+    taxonomy_data: dict[str, Any] | None = None,
+    ids_data: dict[str, Any] | None = None,
 ) -> list[str]:
     rules: list[str] = []
 
@@ -248,7 +251,128 @@ def _build_pattern_rules(
         "This chain encodes the structured part of every RIDE review."
     )
 
+    # K-prefixed refs are external criteria references, not broken local anchors.
+    if refs_data:
+        buckets = dict(refs_data.get("dangling_prefix_buckets") or [])
+        if buckets.get("K"):
+            rules.append(
+                "`<ref target=\"#K…\">` is **not** a local anchor — it points to a "
+                "RIDE criterion ID defined in the criteria document at the matching "
+                "taxonomy's `@xml:base`. Code must resolve K-prefixed refs externally, "
+                "not against the per-review file. See `inventory/refs.json`."
+            )
+
+    if taxonomy_data:
+        criteria_sets = taxonomy_data.get("criteria_sets") or {}
+        if criteria_sets:
+            count = len(criteria_sets)
+            rules.append(
+                f"Reviews use one of {count} criteria sets identified by "
+                "`<taxonomy/@xml:base>`. Per-review answers live as "
+                "`<num type=\"boolean\" value=\"0\"|\"1\">` inside each `<catDesc>`. "
+                "See \"Questionnaire criteria sets\" below."
+            )
+
+    if ids_data:
+        s = ids_data.get("summary", {})
+        if s.get("patterns_checked"):
+            rules.append(
+                "`xml:id` format constraints (Schematron) hold for the whole corpus. "
+                "Code can trust the patterns listed under \"ID format conformance\" "
+                "below; libxml2 also enforces within-file uniqueness at parse time."
+            )
+
     return rules
+
+
+
+# Reference resolution ------------------------------------------------------
+
+def _build_reference_resolution(refs_data: dict[str, Any]) -> list[str]:
+    s = refs_data.get("summary", {})
+    if not s.get("ref_total"):
+        return []
+    buckets = dict(refs_data.get("dangling_prefix_buckets") or [])
+    top_domains = [d for d, _ in (refs_data.get("external_top_domains") or [])[:5]]
+
+    out: list[str] = [
+        "`<ref @target>` falls into four buckets the build phase must distinguish:",
+        "",
+        "- **Local anchors.** `target` starts with `#` and the anchor exists in the same file. Resolve to an in-page HTML link.",
+        "- **Criteria references.** `target` starts with `#K` (e.g. `#K1.2`, `#K4.16`). These are *not* local anchors — they reference RIDE criterion IDs defined in the criteria document at the matching taxonomy's `@xml:base`. They show up as the dominant family of \"dangling\" internal refs because the IDs only exist externally. Resolve them against the criteria URL, not against the file.",
+        "- **External URLs.** `http://` or `https://`. Pass through. Most external targets archive reviewed resources at "
+        + ", ".join(f"`{d}`" for d in top_domains[:3]) + ".",
+        "- **Other.** A small number of `mailto:`, relative paths, and typos (e.g. `#http…`). Render as plain text and warn at build time.",
+    ]
+    other_prefixes = sorted(k for k in buckets if k != "K")
+    if other_prefixes:
+        out.append("")
+        out.append(
+            "Beyond `K`, dangling-prefix families to expect are: "
+            + ", ".join(f"`#{p}…`" for p in other_prefixes[:6])
+            + ". Most are individual edge cases; review case-by-case."
+        )
+    return out
+
+
+# Questionnaire criteria sets ----------------------------------------------
+
+def _build_criteria_sets(taxonomy_data: dict[str, Any]) -> list[str]:
+    cs = taxonomy_data.get("criteria_sets") or {}
+    if not cs:
+        return []
+    out: list[str] = [
+        "RIDE reviews fill a structured questionnaire driven by a shared `<taxonomy>` "
+        "embedded in `<encodingDesc>/<classDecl>`. Each taxonomy is identified by its "
+        "`@xml:base` (the canonical criteria URL on i-d-e.de). The corpus uses the "
+        "following criteria sets:",
+        "",
+    ]
+    for base, info in cs.items():
+        short = base if len(base) <= 80 else base[:77] + "…"
+        out.append(
+            f"- `{short}` — {info['category_count']} categories, "
+            f"depth {info['max_depth']}, used by {info['review_count']} taxonomy embedding(s)."
+        )
+    out.append("")
+    out.append(
+        "Inside each `<category>`, a `<num type=\"boolean\" value=\"0\"|\"1\">` records the "
+        "review's yes/no answer. Some reviews embed multiple `<taxonomy>` blocks. "
+        "The full structure plus per-review answers is in `inventory/taxonomy.json` — "
+        "Stage 2.C will hydrate a `Questionnaire` model directly from there."
+    )
+    return out
+
+
+# ID format conformance ----------------------------------------------------
+
+def _build_id_conformance(ids_data: dict[str, Any]) -> list[str]:
+    s = ids_data.get("summary", {})
+    patterns = s.get("patterns_checked") or {}
+    if not patterns:
+        return []
+    out: list[str] = [
+        "`ride.odd`'s Schematron mandates strict ID formats. The current corpus "
+        "respects each:",
+        "",
+    ]
+    for elem, regex in sorted(patterns.items()):
+        out.append(f"- `<{elem}/@xml:id>` must match `{regex}`")
+    out.append("")
+    if s.get("format_violations_total", 0) == 0:
+        out.append("Zero format violations across the corpus — code can rely on these patterns.")
+    else:
+        out.append(
+            f"Current corpus has {s['format_violations_total']} format violation(s) — "
+            f"see `inventory/ids.json`."
+        )
+    out.append("")
+    out.append(
+        "Within-file uniqueness of `xml:id` is enforced by libxml2 at parse time "
+        "(duplicate IDs raise `XMLSyntaxError`), so any file we successfully parse "
+        "is guaranteed unique on that axis."
+    )
+    return out
 
 
 # Findings ------------------------------------------------------------------
@@ -282,6 +406,9 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
     structure = _load(inventory_dir / "structure.json")["by_element"]
     sections = _load(inventory_dir / "sections.json")
     cross = _load(inventory_dir / "cross-reference.json")
+    ids_data = _load(inventory_dir / "ids.json")
+    refs_data = _load(inventory_dir / "refs.json")
+    taxonomy_data = _load(inventory_dir / "taxonomy.json")
 
     elements_by_name = {e["name"]: e for e in elements}
     today = today or dt.date.today().isoformat()
@@ -292,7 +419,8 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
     parts.append("source: scripts/render_data.py")
     parts.append("inputs:")
     for n in ("elements.json", "structure.json", "sections.json",
-              "cross-reference.json", "odd-summary.json", "tei-spec.json"):
+              "cross-reference.json", "odd-summary.json", "tei-spec.json",
+              "ids.json", "refs.json", "taxonomy.json"):
         parts.append(f"  - inventory/{n}")
     parts.append("---\n")
 
@@ -305,9 +433,30 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
 
     parts.append("## Document patterns\n")
     parts.append("Rules that hold for every RIDE TEI document, derived from the inventory:\n")
-    for r in _build_pattern_rules(elements_by_name, structure, sections):
+    for r in _build_pattern_rules(
+        elements_by_name, structure, sections,
+        refs_data=refs_data, taxonomy_data=taxonomy_data, ids_data=ids_data,
+    ):
         parts.append(f"- {r}")
     parts.append("")
+
+    ref_lines = _build_reference_resolution(refs_data)
+    if ref_lines:
+        parts.append("## Reference resolution\n")
+        parts.extend(ref_lines)
+        parts.append("")
+
+    crit_lines = _build_criteria_sets(taxonomy_data)
+    if crit_lines:
+        parts.append("## Questionnaire criteria sets\n")
+        parts.extend(crit_lines)
+        parts.append("")
+
+    id_lines = _build_id_conformance(ids_data)
+    if id_lines:
+        parts.append("## ID format conformance\n")
+        parts.extend(id_lines)
+        parts.append("")
 
     findings = _build_findings(cross)
     if findings:

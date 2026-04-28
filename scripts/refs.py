@@ -24,13 +24,12 @@ from urllib.parse import urlparse
 
 from lxml import etree
 
-from _tei import XML_NS, is_tei_element, localname
+from _tei import XML_ID_ATTR, is_tei_element, localname
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 OUT_DIR = REPO_ROOT / "inventory"
 
-XML_ID_ATTR = f"{{{XML_NS}}}id"
 DANGLING_SAMPLE_LIMIT = 50
 OTHER_SAMPLE_LIMIT = 15
 

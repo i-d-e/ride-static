@@ -6,18 +6,33 @@
 
 ### Discovery scripts (run when the corpus changes)
 
+The eleven Stage 0/1 scripts form a small DAG. Independent ones can run in
+parallel; the dependent ones must wait. Locally, running them in this order
+is safe and explicit:
+
 ```sh
-python scripts/inventory.py
-python scripts/odd_extract.py
-python scripts/structure.py
-python scripts/sections.py
-python scripts/p5_fetch.py          # downloads p5subset.xml on first run, then cached in inventory/_cache/
-python scripts/cross_reference.py
-python scripts/render_data.py       # writes knowledge/data.md
-python scripts/render_schema.py     # writes knowledge/schema.md
+# Tier 1 — independent extractors (parallel-safe)
+python scripts/inventory.py        # elements.json, attributes.json, corpus-stats.json
+python scripts/odd_extract.py      # odd-summary.json
+python scripts/structure.py        # structure.json
+python scripts/sections.py         # sections.json
+python scripts/ids.py              # ids.json (xml:id audit)
+python scripts/refs.py             # refs.json (link classification + dangling detection)
+python scripts/taxonomy.py         # taxonomy.json (criteria sets + per-review answers)
+
+# Tier 2 — needs Tier 1's elements.json + attributes.json
+python scripts/p5_fetch.py         # tei-spec.json (caches p5subset.xml in inventory/_cache/)
+
+# Tier 3 — needs elements.json, tei-spec.json, odd-summary.json
+python scripts/cross_reference.py  # cross-reference.json
+
+# Tier 4 — Markdown render, needs every JSON above
+python scripts/render_data.py      # knowledge/data.md
+python scripts/render_schema.py    # knowledge/schema.md
 ```
 
-Scripts are independent and can be parallelised in CI; locally just run them in order. Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes (committed).
+Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes
+(committed).
 
 ### Tests
 
@@ -86,7 +101,12 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 ## Cross-cutting concerns
 
 - **Asset handling.** Images referenced via `<graphic @url>` live next to the TEI in `../ride/issues/{n}/`. The build copies them into `site/issues/{n}/{review-id}/figures/` and rewrites URLs.
-- **Internal links.** `<ref @target="#xml-id">` is resolved at build time to the canonical anchor in the rendered HTML.
+- **Reference resolution.** `<ref @target>` follows three paths at build time:
+  - local anchor present in this review → render as in-page anchor link;
+  - looks like `#K…` (5 209 cases) → resolve against the criteria document
+    at the taxonomy's `@xml:base` (see `architecture.md`);
+  - external URL → pass through;
+  - anything else → log a build warning and render as plain text.
 - **Cross-review references.** Reviews citing one another (via `<relatedItem>`) become hyperlinks if the target is in the corpus; otherwise they stay as bibliographic citations.
 - **Schematron warnings.** Build prints (but does not fail on) Schematron violations from `inventory/cross-reference.json`. Hard failures are reserved for parsing errors.
 

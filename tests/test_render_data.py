@@ -169,6 +169,63 @@ def _seed(inventory: Path, *, no_back_files: int = 1) -> None:
         },
     }), encoding="utf-8")
 
+    # ids.json — corpus respects all known patterns, no parse errors
+    (inventory / "ids.json").write_text(json.dumps({
+        "summary": {
+            "files_total": 2,
+            "files_unparseable": 0,
+            "ids_total": 6,
+            "files_with_format_violations": 0,
+            "format_violations_total": 0,
+            "violations_by_element": {},
+            "patterns_checked": {
+                "TEI": r"^ride\.\d{1,2}\.\d{1,2}$",
+                "div": r"^div\d{1,2}(\.\d{1,2}){0,2}$",
+            },
+        },
+        "parse_errors": [],
+        "per_file": [],
+    }), encoding="utf-8")
+
+    # refs.json — exercises K-prefix bucketing + external domain reporting
+    (inventory / "refs.json").write_text(json.dumps({
+        "summary": {
+            "files_total": 2,
+            "ref_total": 100,
+            "internal_total": 80,
+            "external_url_total": 18,
+            "other_total": 2,
+            "dangling_internal_total": 65,
+            "external_distinct_targets": 18,
+        },
+        "external_top_domains": [["web.archive.org", 12], ["doi.org", 4], ["github.com", 2]],
+        "dangling_prefix_buckets": [["K", 60], ["abb", 4], ["fn", 1]],
+        "dangling_samples": [],
+        "other_samples": [],
+        "per_file": [],
+    }), encoding="utf-8")
+
+    # taxonomy.json — two criteria sets, one with multiple reviews
+    (inventory / "taxonomy.json").write_text(json.dumps({
+        "criteria_sets": {
+            "https://example.org/criteria-version-1-1": {
+                "category_count": 224,
+                "max_depth": 3,
+                "review_count": 73,
+                "structurally_deviating_reviews": [],
+                "tree": [],
+            },
+            "https://example.org/criteria-tools": {
+                "category_count": 245,
+                "max_depth": 3,
+                "review_count": 17,
+                "structurally_deviating_reviews": [],
+                "tree": [],
+            },
+        },
+        "review_to_criteria": [],
+    }), encoding="utf-8")
+
 
 @pytest.fixture
 def seeded(tmp_path: Path) -> tuple[Path, Path]:
@@ -300,6 +357,40 @@ def test_unassigned_section_appears_for_unknown_element(tmp_path: Path) -> None:
     text = render_data.render(inventory, out, today="2026-04-28")
     assert "### Unassigned elements" in text
     assert "- `<phantom>`" in text
+
+
+def test_reference_resolution_section_describes_K_pattern(seeded: tuple[Path, Path]) -> None:
+    """The reference-resolution section must explain that #K-refs are external,
+    so a script writer doesn't treat them as broken local anchors."""
+    inventory, out = seeded
+    text = render_data.render(inventory, out, today="2026-04-28")
+    assert "## Reference resolution" in text
+    assert "Criteria references" in text
+    assert "`#K`" in text or "#K1" in text or "`#K…`" in text
+    # The K-rule must also appear in Document patterns so it's hard to miss.
+    assert "is **not** a local anchor" in text
+
+
+def test_criteria_sets_section_lists_each_xml_base(seeded: tuple[Path, Path]) -> None:
+    """Each criteria URL plus its category count and review count must surface."""
+    inventory, out = seeded
+    text = render_data.render(inventory, out, today="2026-04-28")
+    assert "## Questionnaire criteria sets" in text
+    assert "criteria-version-1-1" in text
+    assert "criteria-tools" in text
+    # The category counts identify the criteria set categorically.
+    assert "224 categories" in text
+    assert "245 categories" in text
+
+
+def test_id_conformance_section_lists_patterns(seeded: tuple[Path, Path]) -> None:
+    """Patterns plus a clean-corpus statement so a script can rely on the format."""
+    inventory, out = seeded
+    text = render_data.render(inventory, out, today="2026-04-28")
+    assert "## ID format conformance" in text
+    assert "ride\\.\\d{1,2}" in text
+    assert "div\\d{1,2}" in text
+    assert "Zero format violations" in text
 
 
 def test_findings_section_omitted_when_no_mismatches(tmp_path: Path) -> None:

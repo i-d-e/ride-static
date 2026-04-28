@@ -19,7 +19,7 @@ from typing import Any
 
 from lxml import etree
 
-from _tei import TEI_NS, XML_NS, attr_localname, localname, normalize
+from _tei import TEI_NS, XML_LANG_ATTR, XML_NS, attr_localname, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -124,7 +124,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
             if ref:
                 editor_orcids.add(ref)
 
-        if (xml_lang := root.get(f"{{{XML_NS}}}lang")):
+        if (xml_lang := root.get(XML_LANG_ATTR)):
             root_langs[xml_lang] += 1
 
         max_depth = 0
@@ -152,7 +152,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
             if depth > max_depth:
                 max_depth = depth
 
-            el_lang = el.get(f"{{{XML_NS}}}lang")
+            el_lang = el.get(XML_LANG_ATTR)
             if el_lang:
                 rec["langs"][el_lang] += 1
 

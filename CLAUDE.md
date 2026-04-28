@@ -19,10 +19,11 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 ```
 ride-static/
   scripts/                Stage 0 / Stage 1 — discovery and knowledge generation
-    _tei.py               shared TEI helpers (namespace, localname, normalize)
-    inventory.py, structure.py, sections.py, odd_extract.py
-    p5_fetch.py, cross_reference.py
-    render_data.py, render_schema.py
+    _tei.py               shared TEI helpers (namespace constants, attribute names, localname, normalize)
+    inventory.py, structure.py, sections.py, odd_extract.py    (corpus inventory)
+    ids.py, refs.py, taxonomy.py                                (content audits)
+    p5_fetch.py, cross_reference.py                             (spec join)
+    render_data.py, render_schema.py                            (Markdown render)
   src/                    Stage 2+ — parser, model, render
     model/                domain types (Review, Person, Editor, …)
     parser/               TEI → domain

@@ -8,6 +8,9 @@ inputs:
   - inventory/cross-reference.json
   - inventory/odd-summary.json
   - inventory/tei-spec.json
+  - inventory/ids.json
+  - inventory/refs.json
+  - inventory/taxonomy.json
 ---
 
 # RIDE TEI Structure Reference
@@ -28,6 +31,42 @@ Rules that hold for every RIDE TEI document, derived from the inventory:
 - A non-trivial fraction of `<div>` elements lacks a `<head>` child. Code must derive a section title from `@xml:id` or position.
 - `<body>` usually starts with `<div>`, but in some reviews it starts with `<p>` or `<cit>` — these are flat-content reviews (no top-level `<div>` wrapping).
 - Classification chain: `<encodingDesc>` → `<classDecl>` → `<taxonomy>` → `<category>` (recursive) → `<catDesc>` → `<num>` | `<ref>` | `<gloss>`. This chain encodes the structured part of every RIDE review.
+- `<ref target="#K…">` is **not** a local anchor — it points to a RIDE criterion ID defined in the criteria document at the matching taxonomy's `@xml:base`. Code must resolve K-prefixed refs externally, not against the per-review file. See `inventory/refs.json`.
+- Reviews use one of 4 criteria sets identified by `<taxonomy/@xml:base>`. Per-review answers live as `<num type="boolean" value="0"|"1">` inside each `<catDesc>`. See "Questionnaire criteria sets" below.
+- `xml:id` format constraints (Schematron) hold for the whole corpus. Code can trust the patterns listed under "ID format conformance" below; libxml2 also enforces within-file uniqueness at parse time.
+
+## Reference resolution
+
+`<ref @target>` falls into four buckets the build phase must distinguish:
+
+- **Local anchors.** `target` starts with `#` and the anchor exists in the same file. Resolve to an in-page HTML link.
+- **Criteria references.** `target` starts with `#K` (e.g. `#K1.2`, `#K4.16`). These are *not* local anchors — they reference RIDE criterion IDs defined in the criteria document at the matching taxonomy's `@xml:base`. They show up as the dominant family of "dangling" internal refs because the IDs only exist externally. Resolve them against the criteria URL, not against the file.
+- **External URLs.** `http://` or `https://`. Pass through. Most external targets archive reviewed resources at `web.archive.org`, `doi.org`, `www.i-d-e.de`.
+- **Other.** A small number of `mailto:`, relative paths, and typos (e.g. `#http…`). Render as plain text and warn at build time.
+
+Beyond `K`, dangling-prefix families to expect are: `#abb…`, `#appendix…`, `#bbaw…`, `#bollmanndipper…`, `#giacomelli_settesoldi…`, `#haines…`. Most are individual edge cases; review case-by-case.
+
+## Questionnaire criteria sets
+
+RIDE reviews fill a structured questionnaire driven by a shared `<taxonomy>` embedded in `<encodingDesc>/<classDecl>`. Each taxonomy is identified by its `@xml:base` (the canonical criteria URL on i-d-e.de). The corpus uses the following criteria sets:
+
+- `http://www.i-d-e.de/criteria-text-collections-version-1-0` — 282 categories, depth 5, used by 10 taxonomy embedding(s).
+- `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1` — 224 categories, depth 3, used by 73 taxonomy embedding(s).
+- `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections…` — 282 categories, depth 5, used by 10 taxonomy embedding(s).
+- `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/` — 245 categories, depth 3, used by 17 taxonomy embedding(s).
+
+Inside each `<category>`, a `<num type="boolean" value="0"|"1">` records the review's yes/no answer. Some reviews embed multiple `<taxonomy>` blocks. The full structure plus per-review answers is in `inventory/taxonomy.json` — Stage 2.C will hydrate a `Questionnaire` model directly from there.
+
+## ID format conformance
+
+`ride.odd`'s Schematron mandates strict ID formats. The current corpus respects each:
+
+- `<TEI/@xml:id>` must match `^ride\.\d{1,2}\.\d{1,2}$`
+- `<div/@xml:id>` must match `^div\d{1,2}(\.\d{1,2}){0,2}$`
+
+Zero format violations across the corpus — code can rely on these patterns.
+
+Within-file uniqueness of `xml:id` is enforced by libxml2 at parse time (duplicate IDs raise `XMLSyntaxError`), so any file we successfully parse is guaranteed unique on that axis.
 
 ## Schema vs. corpus mismatches
 

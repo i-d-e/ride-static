@@ -22,13 +22,11 @@ from typing import Any
 
 from lxml import etree
 
-from _tei import XML_NS, is_tei_element, localname
+from _tei import XML_ID_ATTR, is_tei_element, localname
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 OUT_DIR = REPO_ROOT / "inventory"
-
-XML_ID_ATTR = f"{{{XML_NS}}}id"
 
 # Format patterns extracted from ride.odd's Schematron. Keys are element
 # names; values are compiled Python regexes. Add new patterns here as we

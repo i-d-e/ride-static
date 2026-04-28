@@ -19,7 +19,7 @@ from typing import Any
 
 from lxml import etree
 
-from _tei import TEI_NS, XML_NS, localname, normalize
+from _tei import TEI_NS, XML_ID_ATTR, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -53,7 +53,7 @@ def section_node(div: etree._Element, depth: int, type_counter: Counter, missing
     return {
         "type": div_type,
         "subtype": div.get("subtype"),
-        "xml_id": div.get(f"{{{XML_NS}}}id"),
+        "xml_id": div.get(XML_ID_ATTR),
         "head": head,
         "depth": depth,
         "children": [section_node(c, depth + 1, type_counter, missing_head) for c in child_divs(div)],
