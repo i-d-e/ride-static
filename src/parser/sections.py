@@ -24,6 +24,7 @@ from lxml import etree
 
 from src.model.inline import Inline
 from src.model.section import Section
+from src.parser.blocks import parse_block_sequence
 from src.parser.common import NS, TEI_NS, attr
 from src.parser.inlines import parse_inlines
 
@@ -78,17 +79,17 @@ def _is_body_wrap_case(host: etree._Element) -> bool:
 def _synthesise_wrap_section(host: etree._Element) -> Section:
     """Wrap all element children of ``host`` in one implicit top-level Section.
 
-    The wrapper carries ``xml_id="sec-1"``, ``type=None``, ``heading=None``
-    and ``level=1``. Block content remains empty in Phase 2 — Phase 5
-    integrates the block parser, at which point this wrapper will hold the
-    direct ``<p>``/``<cit>`` children as block instances.
+    The wrapper carries ``xml_id="sec-1"``, ``type=None``, ``heading=None``,
+    ``level=1``. Block content is parsed via :func:`parse_block_sequence`,
+    which handles the seven body-wrap reviews' direct ``<p>``/``<cit>``
+    children (and any embedded block-in-paragraph cases inside them).
     """
     return Section(
         xml_id="sec-1",
         type=None,
         heading=None,
         level=1,
-        blocks=(),
+        blocks=parse_block_sequence(host),
         subsections=(),
     )
 
@@ -118,7 +119,7 @@ def _parse_div(
         type=div_type,
         heading=heading,
         level=level,
-        blocks=(),  # Phase 5 will populate via the block parser
+        blocks=parse_block_sequence(div),
         subsections=subsections,
     )
 

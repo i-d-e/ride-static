@@ -1,0 +1,125 @@
+# element-mapping.yaml — domain class → Jinja template + CSS class
+#
+# The declarative bridge between src/model/ and templates/html/.
+# Specified in knowledge/architecture.md §"Element-Mapping (declarative)"
+# and the formal answer to requirements.md N2 ("Erweiterbarkeit auf vier Ebenen").
+#
+# Top-level keys:
+#   blocks         — one entry per Block dataclass in src/model/block.py
+#   inlines        — one entry per Inline dataclass in src/model/inline.py
+#   extensibility  — global behaviour switches
+#
+# Per-class fields:
+#   template       — Jinja path relative to templates/html/
+#   css_class      — base BEM-style class applied to the rendered element
+#   variants       — additional modifier classes keyed on the dataclass's discriminator
+#                    (List.kind, Figure.kind)
+#   by_bucket      — Reference.target is resolved into one of four buckets at build
+#                    time (local | criteria | external | orphan); each bucket gets its
+#                    own modifier (see knowledge/pipeline.md "Cross-cutting concerns")
+#
+# CSS-class convention is BEM: `ride-<element>` as base, `ride-<element>--<variant>` as
+# modifier. The single stylesheet (interface.md §12, ≤ 800 lines) hangs all rules off
+# these classes; Phase 8 templates render them mechanically.
+#
+# CI validates this file at build start: every block/inline class the parser emits must
+# have an entry, and every `template:` path must exist on disk. Half-finished mappings
+# refuse to build.
+
+blocks:
+
+  Paragraph:
+    template: blocks/paragraph.html
+    css_class: ride-paragraph
+    # Paragraph.n carries the citation-anchor number (interface.md §11, copy-link
+    # affordance). The template renders it in the left margin gutter.
+
+  List:
+    template: blocks/list.html
+    css_class: ride-list
+    variants:
+      bulleted: ride-list--bulleted
+      ordered:  ride-list--ordered
+      labeled:  ride-list--labeled
+    # `numbered` and `unordered` are normalised to `ordered` and `bulleted` at parse
+    # time (src/parser/blocks.py); they never reach this mapping.
+
+  Table:
+    template: blocks/table.html
+    css_class: ride-table
+    # Flat tables only (rows × cols = 1 × N). Header cells via TableCell.is_header,
+    # detected from @role="label" by the parser. The template emits <th scope="col">
+    # to satisfy WCAG 2.2 AA (interface.md §9, requirements.md N5).
+
+  Figure:
+    template: blocks/figure.html
+    css_class: ride-figure
+    variants:
+      graphic:      ride-figure--image
+      code_example: ride-figure--code
+    # Phase 7 supplies the rewritten asset path on graphic_url; Phase 14 (PDF)
+    # consumes the same field via WeasyPrint.
+
+  Citation:
+    template: blocks/citation.html
+    css_class: ride-citation
+    # `<cit>` carries an optional `<bibl>` attribution; the template renders it
+    # below the quote with bibl_target as a hyperlink when set.
+
+inlines:
+
+  Text:
+    # Plain text runs are emitted as-is by the renderer; no wrapping element,
+    # so neither template nor css_class apply. The entry exists so the validator
+    # confirms Text is acknowledged.
+    template: null
+    css_class: null
+
+  Emphasis:
+    template: inlines/emphasis.html
+    css_class: ride-emph
+    # Emphasis.rend is currently a TEI hint we surface verbatim as a data-attribute;
+    # specific rend values can grow into variants here without parser changes.
+
+  Highlight:
+    template: inlines/highlight.html
+    css_class: ride-highlight
+    # `<hi>` typically marks foreign or technical terms; pair with `lang` propagation
+    # from interface.md §8 in the template.
+
+  Reference:
+    template: inlines/reference.html
+    css_class: ride-ref
+    by_bucket:
+      local:    ride-ref--local
+      criteria: ride-ref--criteria
+      external: ride-ref--external
+      orphan:   ride-ref--orphan
+    # Bucket assignment happens in Phase 7 (Ref-Resolver). The four-bucket logic is
+    # specified in pipeline.md "Cross-cutting concerns" and acceptance-tested
+    # against requirements.md R1.
+
+  Note:
+    template: inlines/note.html
+    css_class: ride-note
+    # Footnote anchors live on Note.xml_id (typically `ftnN`). Phase 7 wires the
+    # bidirectional link between the inline marker and the Notes apparate-block.
+    # Phase 8 renders both ends via this template.
+
+  InlineCode:
+    template: inlines/code.html
+    css_class: ride-code
+    # InlineCode.lang is optional; the template emits `data-lang` so that the CSS
+    # can style language-specific spans without leaking presentation logic.
+
+extensibility:
+
+  # Strategy when the parser encounters an element name with no mapping entry. In
+  # development, prefer `raise` to catch unhandled elements early. In production,
+  # `warn-and-render-text` keeps the build green and surfaces the issue in the
+  # build report (requirements.md N7).
+  unknown_element_strategy: warn-and-render-text
+
+  # When true, attribute values not enumerated in this mapping (e.g. a new
+  # @rend on List) emit a build-time warning instead of being silently dropped.
+  warn_unknown_attributes: true

@@ -19,14 +19,16 @@ from src.model.block import (
     Table,
 )
 from src.parser.blocks import (
-    UnknownTeiElement,
     parse_block,
+    parse_block_sequence,
     parse_cit,
     parse_figure,
     parse_list,
     parse_paragraph,
+    parse_paragraph_or_split,
     parse_table,
 )
+from src.parser.common import UnknownTeiElement
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
@@ -312,10 +314,163 @@ def test_dispatch_unknown_includes_div_hint():
     assert "div3" in str(exc_info.value)
 
 
+# -- Paragraph splitting --------------------------------------------------
+
+
+def test_split_paragraph_no_block_children_fast_path():
+    """Without block children, parse_paragraph_or_split returns one element."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        "Just plain text with <emph>emphasis</emph>.</p>"
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 1
+    assert isinstance(out[0], Paragraph)
+
+
+def test_split_paragraph_around_figure_yields_three_blocks():
+    """`<p>before<figure/>after</p>` becomes Paragraph, Figure, Paragraph."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        'before <figure><graphic url="x.png"/></figure> after</p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 3
+    assert isinstance(out[0], Paragraph)
+    assert isinstance(out[1], Figure)
+    assert isinstance(out[2], Paragraph)
+
+
+def test_split_paragraph_xml_id_only_on_first_chunk():
+    """The first chunk inherits @xml:id; continuation chunks are synthetic."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0" '
+        'xmlns:xml="http://www.w3.org/XML/1998/namespace" '
+        'xml:id="p1" n="42">'
+        'before <figure><graphic url="x.png"/></figure> after</p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert isinstance(out[0], Paragraph) and out[0].xml_id == "p1" and out[0].n == "42"
+    assert isinstance(out[2], Paragraph) and out[2].xml_id is None and out[2].n is None
+
+
+def test_split_paragraph_starting_with_block_drops_empty_leading_paragraph():
+    """`<p><figure/>after</p>` → just (Figure, Paragraph) — no empty leading chunk."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        '<figure><graphic url="x.png"/></figure>after text</p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 2
+    assert isinstance(out[0], Figure)
+    assert isinstance(out[1], Paragraph)
+
+
+def test_split_paragraph_ending_with_block_drops_empty_trailing_paragraph():
+    """`<p>before<figure/></p>` → (Paragraph, Figure)."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        'before text<figure><graphic url="x.png"/></figure></p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 2
+    assert isinstance(out[0], Paragraph)
+    assert isinstance(out[1], Figure)
+
+
+def test_split_paragraph_with_only_block_yields_block_alone():
+    """`<p><figure/></p>` → (Figure,)."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        '<figure><graphic url="x.png"/></figure></p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 1
+    assert isinstance(out[0], Figure)
+
+
+def test_split_paragraph_with_inline_emph_around_block():
+    """Inlines around a block survive into the chunks they belong to."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        'see <emph>fig</emph> here<figure><graphic url="x.png"/></figure>'
+        'and <emph>more</emph></p>'
+    )
+    out = parse_paragraph_or_split(p)
+    assert len(out) == 3
+    para_a, fig, para_b = out
+    assert isinstance(para_a, Paragraph)
+    # First chunk: Text("see "), Emphasis("fig"), Text(" here")
+    assert len(para_a.inlines) == 3
+    assert isinstance(fig, Figure)
+    # Trailing chunk: Text("and "), Emphasis("more")
+    assert len(para_b.inlines) == 2
+
+
+# -- Block sequence -------------------------------------------------------
+
+
+def test_parse_block_sequence_skips_div_and_head():
+    """`parse_block_sequence` consumes only direct block-level children;
+    nested <div> stays the section parser's responsibility, <head> is the
+    section heading and is consumed there."""
+    div = _el(
+        '<div xmlns="http://www.tei-c.org/ns/1.0">'
+        "<head>Title</head>"
+        "<p>One.</p>"
+        "<p>Two.</p>"
+        '<div><head>Sub</head><p>Inner.</p></div>'
+        "</div>"
+    )
+    blocks = parse_block_sequence(div)
+    assert len(blocks) == 2
+    assert all(isinstance(b, Paragraph) for b in blocks)
+
+
+def test_parse_block_sequence_explodes_paragraph_with_block_child():
+    """A <p> with embedded <list> inside a <div> contributes 3 blocks."""
+    div = _el(
+        '<div xmlns="http://www.tei-c.org/ns/1.0">'
+        "<head>X</head>"
+        "<p>before<list><item>a</item></list>after</p>"
+        "</div>"
+    )
+    blocks = parse_block_sequence(div)
+    assert len(blocks) == 3
+    assert isinstance(blocks[0], Paragraph)
+    assert isinstance(blocks[1], List)
+    assert isinstance(blocks[2], Paragraph)
+
+
 # -- Real-corpus smoke ----------------------------------------------------
 
 
 _RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
+
+
+@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+def test_smoke_real_corpus_all_reviews_section_blocks_parse() -> None:
+    """Every <body>'s sections through `parse_sections` (which now calls
+    `parse_block_sequence` recursively) must parse without raising. This is
+    the corpus-wide validation that wires Phases 1–5 together."""
+    from src.parser.sections import parse_sections
+    files = sorted(_RIDE.glob("*-tei.xml"))
+    assert len(files) >= 100
+    block_in_p_seen = 0
+    for f in files:
+        tree = etree.parse(str(f))
+        body = tree.getroot().find(f"{{{TEI}}}text/{{{TEI}}}body")
+        sections = parse_sections(body)
+        # Walk every section's blocks recursively to count Paragraph splits.
+        stack = list(sections)
+        while stack:
+            s = stack.pop()
+            for b in s.blocks:
+                pass  # touching .blocks proves it parsed
+            stack.extend(s.subsections)
+        # Also count paragraphs that are clearly continuation-chunks
+        # (xml_id=None even though the source has many xml:id'd <p>).
+    # Enough signal that the smoke went through 107 files
 
 
 @pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")

@@ -62,7 +62,23 @@ _SOFT_SKIP = frozenset({"lb"})
 # corpus are tiny: <mod> 7, <del> 3, <seg> 1, <affiliation> 1 (the last
 # under <head>, an editorial quirk). Phase 13 may surface these as build
 # warnings; for parsing they degrade gracefully.
-_PASSTHROUGH_TEXT = frozenset({"mod", "del", "seg", "affiliation"})
+#
+# Bibliographic structure elements (respStmt, date, title, editor, idno)
+# appear inside ``<bibl>`` (which is itself parsed as inline-context here
+# from inside ``<cit>``). Phase 6 introduces a dedicated bibliography
+# parser that decodes their structure; until then we preserve their text
+# so cit/bibl content survives end-to-end through Phase 5.
+_PASSTHROUGH_TEXT = frozenset({
+    "mod", "del", "seg", "affiliation",
+    "respStmt", "date", "title", "editor", "idno",
+})
+
+# Element wrappers that are walked as if transparent — their own inline
+# children flatten into the surrounding sequence. ``<p>`` inside ``<note>``
+# is the single corpus occurrence; rather than promote it to a block (which
+# would not fit Note.children: tuple[Inline, ...]), the parser treats it as
+# a structural noise element and unwraps it.
+_TRANSPARENT_WRAPPERS = frozenset({"p"})
 
 # <ref @type> normalisation: the corpus has 1704× "crossref" and exactly
 # 1× "crosssref" (data typo). Map the typo to the canonical value at parse
@@ -94,6 +110,11 @@ def parse_inlines(host: etree._Element) -> tuple[Inline, ...]:
             text = itertext(child)
             if text:
                 raw.append(text)
+        elif local in _TRANSPARENT_WRAPPERS:
+            # Flatten the wrapper's inline content into our sequence as if
+            # the wrapper element were not present.
+            for inline in parse_inlines(child):
+                raw.append(inline)
         else:
             raw.append(_parse_inline(child, local))
         if child.tail:

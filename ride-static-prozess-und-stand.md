@@ -160,7 +160,11 @@ Die folgende Tabelle bildet jede heutige Komponente der RIDE-Site auf den geplan
 
 ## Stand der Implementierung
 
-Stage Discovery und Stage Knowledge sind abgeschlossen. Stage Domain-Model 2.A (Header-Parser) ist abgeschlossen. Aus dem Phasenplan sind Phasen 1 bis 4 abgeschlossen, mit 170 von 170 grünen Tests inklusive Real-Korpus-Smokes. Sonderfall-Branches sind im Code für Body-Wrap-Anomalie, List-Rend-Normalisierung, `crosssref`-Normalisierung und unbekannte Elemente vollständig umgesetzt; das duplizierte `<sourceDesc>` und der `<num value="3">`-Ausreißer sind in `data.md` benannt und werden in Phase 6 implementiert. Spezifiziert, aber noch nicht implementiert sind elf der fünfzehn Phasen, also Phase 5 bis Phase 15.
+Stage Discovery und Stage Knowledge sind abgeschlossen. Stage Domain-Model 2.A (Header-Parser) ist abgeschlossen. Aus dem Phasenplan sind Phasen 1 bis 4 abgeschlossen, mit 170 von 170 grünen Tests inklusive Real-Korpus-Smokes; jüngster Stand ist Commit `6d9f05e` (Inline-Parser, 2026-04-29).
+
+Konkret liegt im Repository ein gefrorenes Domänenmodell unter `src/model/` (`review.py`, `section.py`, `block.py`, `inline.py`, alle Subtypen als immutable `@dataclass(frozen=True)`) und die parsenden Module unter `src/parser/`: `metadata.py` für den Header (Stage 2.A), `sections.py` mit rekursivem `<div>`-Walk inklusive Body-Wrap-Anomalie, `blocks.py` mit fünf Per-Kind-Funktionen plus Dispatcher und einer dedizierten `UnknownTeiElement`-Exception, `inlines.py` mit dem Mixed-Content-Walker und sechs Inline-Kinds. Sonderfall-Branches sind im Code für Body-Wrap-Anomalie, List-Rend-Normalisierung, `crosssref`-Normalisierung, `<lb/>`-Soft-Skip und unbekannte Elemente vollständig umgesetzt; das duplizierte `<sourceDesc>` und die `<num value="3">`-Ausreißer sind in `data.md` benannt und werden in Phase 6 (Stage 2.C, Bibliography- und Questionnaire-Parser) implementiert.
+
+Phase 5 (Integration in `parse_review`) ist der nächste Einstieg: ein Pre-Pass über `<p>` muss Block-Kinder (figure, list, cit, table, in Summe ~1 000 Vorkommen unter `<p>`) aus dem Mixed-Content auslagern und als Sibling-Blöcke einreihen, bevor der Inline-Walker greift. Ist das geleistet, läuft der Real-Korpus-Smoke gegen alle 107 Reviews fehlerfrei und Stage 2.B ist abgeschlossen. Spezifiziert, aber noch nicht implementiert sind elf der fünfzehn Phasen, also Phase 5 bis Phase 15.
 
 ## Pflege nach Abschluss
 

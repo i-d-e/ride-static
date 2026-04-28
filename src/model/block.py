@@ -34,10 +34,17 @@ class Paragraph:
 
 @dataclass(frozen=True)
 class ListItem:
-    """``<item>``. ``label`` is set only when the parent list has ``rend="labeled"``."""
+    """``<item>``. ``label`` is set only when the parent list has ``rend="labeled"``.
+
+    ``blocks`` carries any block-level children of ``<item>`` (3 corpus
+    occurrences of nested ``<list>`` inside ``<item>``). Renderers emit
+    ``inlines`` first, then ``blocks`` — the conventional reading order
+    when the source intersperses them is preserved by this convention.
+    """
 
     inlines: tuple[Inline, ...]
     label: Optional[tuple[Inline, ...]] = None
+    blocks: tuple["Block", ...] = ()
 
 
 @dataclass(frozen=True)
@@ -55,10 +62,15 @@ class List:
 
 @dataclass(frozen=True)
 class TableCell:
-    """``<cell>``. The corpus has flat tables (``@rows="1"``, ``@cols="1"`` always)."""
+    """``<cell>``. The corpus has flat tables (``@rows="1"``, ``@cols="1"`` always).
+
+    ``blocks`` carries embedded block-level children (22 figures and 2 lists
+    in cells corpus-wide), rendered after the cell's inline content.
+    """
 
     inlines: tuple[Inline, ...]
     is_header: bool = False
+    blocks: tuple["Block", ...] = ()
 
 
 @dataclass(frozen=True)

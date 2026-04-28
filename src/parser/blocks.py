@@ -31,7 +31,22 @@ from src.parser.common import (
     itertext,
     locate_hint,
 )
-from src.parser.inlines import parse_inlines
+from src.parser.inlines import (
+    _PASSTHROUGH_TEXT,
+    _SOFT_SKIP,
+    _collapse,
+    _finalise,
+    _parse_inline,
+    parse_inlines,
+)
+
+# Block-level local names that may appear as direct children of <p> in the
+# RIDE corpus. ``parse_paragraph_or_split`` slices the paragraph at these
+# boundaries so each block becomes a sibling block in the section's block
+# sequence rather than disappearing inside an inline tree.
+# Counts in the corpus: figure 850, list 116, cit 81, table 7.
+_BLOCK_LOCALS_IN_P = frozenset({"figure", "list", "cit", "table"})
+
 
 # -- List rend normalisation ---------------------------------------------
 
@@ -72,7 +87,12 @@ def parse_list(lst: etree._Element) -> List:
 
 
 def _parse_list_item(item: etree._Element, kind: str) -> ListItem:
-    """Build a ListItem; for ``kind="labeled"`` extract the optional ``<label>``."""
+    """Build a ListItem; for ``kind="labeled"`` extract the optional ``<label>``.
+
+    ``<item>`` may contain nested ``<list>`` elements (3 corpus occurrences);
+    those are parsed via ``_walk_inline_with_blocks`` and surfaced on
+    ``ListItem.blocks`` rather than raised as unknown inline elements.
+    """
     label: Optional[tuple[Inline, ...]] = None
     if kind == "labeled":
         lab = item.find("t:label", NS)
@@ -81,12 +101,11 @@ def _parse_list_item(item: etree._Element, kind: str) -> ListItem:
             if label_inlines:
                 label = label_inlines
             # The <label> element is consumed; the item's remaining mixed content
-            # carries the definition. We re-parse the item with the label child
-            # detached so its text does not appear twice.
-            parent_item = lab.getparent()
-            if parent_item is not None:
-                parent_item.remove(lab)
-    return ListItem(inlines=parse_inlines(item), label=label)
+            # carries the definition. We detach the label child so its text
+            # does not appear twice in the inline walk.
+            item.remove(lab)
+    inlines, blocks = _walk_inline_with_blocks(item)
+    return ListItem(inlines=inlines, label=label, blocks=blocks)
 
 
 def parse_table(tbl: etree._Element) -> Table:
@@ -102,9 +121,14 @@ def _parse_table_row(row: etree._Element) -> TableRow:
 
 
 def _parse_table_cell(cell: etree._Element) -> TableCell:
-    """Header detection via ``@role="label"``; the corpus uses this convention."""
+    """Header detection via ``@role="label"``; the corpus uses this convention.
+
+    Cells may contain block-level children — 22 ``<figure>`` and 2 ``<list>``
+    occurrences corpus-wide — which surface on ``TableCell.blocks``.
+    """
     is_header = (attr(cell, "role") == "label")
-    return TableCell(inlines=parse_inlines(cell), is_header=is_header)
+    inlines, blocks = _walk_inline_with_blocks(cell)
+    return TableCell(inlines=inlines, is_header=is_header, blocks=blocks)
 
 
 def parse_figure(fig: etree._Element) -> Figure:
@@ -193,6 +217,155 @@ def parse_block(el: etree._Element) -> Block:
     if fn is None:
         raise UnknownTeiElement(local, hint=locate_hint(el))
     return fn(el)
+
+
+# -- Paragraph splitting --------------------------------------------------
+
+
+def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
+    """Parse a ``<p>`` that may contain block-level children.
+
+    The TEI corpus has 1054 cases where ``<figure>``, ``<list>``, ``<cit>``,
+    or ``<table>`` appear directly inside ``<p>``. Rather than embedding
+    blocks inside inlines (which the model rejects, the rendering rejects,
+    and the spec rejects), this function slices the paragraph at every
+    block boundary, emitting an alternating sequence of ``Paragraph``
+    chunks and the extracted blocks.
+
+    The first chunk inherits ``@xml:id`` and ``@n`` from the source ``<p>``;
+    continuation chunks have ``xml_id=None`` and ``n=None`` because they are
+    synthetic. Empty chunks (e.g. when the paragraph starts or ends with a
+    block) are dropped — there is no point in a Paragraph with no inlines.
+
+    The fast path (no block children) returns a single-element tuple
+    containing one ``Paragraph``, identical to ``parse_paragraph(p)``.
+    """
+    if not _has_block_children(p):
+        return (parse_paragraph(p),)
+
+    p_xml_id = attr(p, "xml:id")
+    p_n = attr(p, "n")
+    out: list[Block] = []
+    raw_inlines: list = []
+    is_first_chunk = True
+
+    if p.text:
+        raw_inlines.append(_collapse(p.text))
+
+    for child in p:
+        if not isinstance(child.tag, str):  # comment or PI
+            if child.tail:
+                raw_inlines.append(_collapse(child.tail))
+            continue
+        local = etree.QName(child).localname
+        if local in _BLOCK_LOCALS_IN_P:
+            # Flush accumulated inlines as a Paragraph chunk, then the block.
+            chunk = _finalise(raw_inlines)
+            if chunk:
+                out.append(Paragraph(
+                    inlines=chunk,
+                    xml_id=p_xml_id if is_first_chunk else None,
+                    n=p_n if is_first_chunk else None,
+                ))
+                is_first_chunk = False
+            out.append(parse_block(child))
+            raw_inlines = []
+        elif local in _SOFT_SKIP:
+            raw_inlines.append(" ")
+        elif local in _PASSTHROUGH_TEXT:
+            text = itertext(child)
+            if text:
+                raw_inlines.append(text)
+        else:
+            raw_inlines.append(_parse_inline(child, local))
+        if child.tail:
+            raw_inlines.append(_collapse(child.tail))
+
+    chunk = _finalise(raw_inlines)
+    if chunk:
+        out.append(Paragraph(
+            inlines=chunk,
+            xml_id=p_xml_id if is_first_chunk else None,
+            n=p_n if is_first_chunk else None,
+        ))
+
+    return tuple(out)
+
+
+def _has_block_children(p: etree._Element) -> bool:
+    """True iff ``p`` contains at least one block-level child element."""
+    for child in p:
+        if not isinstance(child.tag, str):
+            continue
+        if etree.QName(child).localname in _BLOCK_LOCALS_IN_P:
+            return True
+    return False
+
+
+def _walk_inline_with_blocks(
+    host: etree._Element,
+) -> tuple[tuple[Inline, ...], tuple[Block, ...]]:
+    """Walk ``host`` once, returning ``(inlines, blocks)`` separately.
+
+    Used by ``_parse_list_item`` and ``_parse_table_cell``: both have a
+    primary inline content payload but may carry a small number of nested
+    block-level children that the model surfaces on a sibling field rather
+    than embedding in the inline tree. Document-order interleaving between
+    text and blocks is intentionally collapsed — inlines first, blocks
+    second — because the renderer convention follows that order.
+    """
+    if not _has_block_children(host):
+        return (parse_inlines(host), ())
+
+    raw_inlines: list = []
+    blocks: list[Block] = []
+
+    if host.text:
+        raw_inlines.append(_collapse(host.text))
+
+    for child in host:
+        if not isinstance(child.tag, str):
+            if child.tail:
+                raw_inlines.append(_collapse(child.tail))
+            continue
+        local = etree.QName(child).localname
+        if local in _BLOCK_LOCALS_IN_P:
+            blocks.append(parse_block(child))
+        elif local in _SOFT_SKIP:
+            raw_inlines.append(" ")
+        elif local in _PASSTHROUGH_TEXT:
+            text = itertext(child)
+            if text:
+                raw_inlines.append(text)
+        else:
+            raw_inlines.append(_parse_inline(child, local))
+        if child.tail:
+            raw_inlines.append(_collapse(child.tail))
+
+    return (_finalise(raw_inlines), tuple(blocks))
+
+
+def parse_block_sequence(host: etree._Element) -> tuple[Block, ...]:
+    """Parse the direct block-level children of a section host (``<div>`` or
+    body-wrap ``<body>``).
+
+    Skips ``<div>`` (handled by the section parser's recursion) and
+    ``<head>`` (consumed as section heading). For ``<p>`` children, calls
+    :func:`parse_paragraph_or_split` to handle block-in-paragraph cases.
+    Everything else dispatches through :func:`parse_block`.
+    """
+    out: list[Block] = []
+    for child in host:
+        if not isinstance(child.tag, str):
+            continue
+        local = etree.QName(child).localname
+        if local in {"div", "head"}:
+            continue
+        if local == "p":
+            out.extend(parse_paragraph_or_split(child))
+        else:
+            out.append(parse_block(child))
+    return tuple(out)
 
 
 # -- Helpers --------------------------------------------------------------
