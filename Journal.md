@@ -30,6 +30,36 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-28 — Frontend: Phase-7-Integration abgeschlossen (Buckets + Asset-Pipeline)
+
+**Frontend-Seite des Backend-Pre-Handover „Phase 7 ready" jetzt durch — Cross-Refs sind nach Bucket gestylt, Bilder werden lokal serviert.**
+
+**Ziel:** Den Backend-Output von Phase 7 (Reference.bucket + rewrite_figure_assets) ans Rendering anschließen. Cross-Refs sollen je nach Bucket unterschiedlich erscheinen, eingebettete Bilder aus dem Korpus in `site/issues/.../figures/` landen, der HTML auf die deployte URL zeigen.
+
+**Erledigt:**
+- Reference-Bucket (`7d86fe5`): `reference()`-Macro liest `r.bucket`, emittiert `ride-ref--{local|criteria|external|orphan}` per `config/element-mapping.yaml`. Orphans rendern als nicht-klickbarer `<span>` (kein toter Link), Externe bekommen `rel="noopener noreferrer"`. CSS-Modifier in `static/css/ride.css`. 6 neue Tests, parametrisiert über die Buckets.
+- Asset-Pipeline (`18a8376`, **mit Backend-Test-Refactor in einem Commit gelandet — Cross-Contamination, siehe Offen**): `src.build._render_one` ruft `rewrite_figure_assets(review, ride_root, site_root)` und sammelt `AssetReport`. Build-Summary zeigt `copied / missing / unparseable`-Zähler, missing/unparseable an stderr.
+- `media_path_factory(base_url)` in `src/render/html.py`: prefixt root-absolute URLs mit `site.base_url` (für GH-Pages-Deploy unter `/ride-static`), lässt `http(s)://` und leere Werte unverändert. Aufgerufen via `media_path` im Template-Kontext aus `render_review`, `render_editorial`, allen Aggregationen. 4 Filter-Tests.
+- `figure_block`-Macro nutzt `media_path(f.graphic_url)`. Macro-Imports in `review.html`, `partials/section.html`, `partials/apparate.html` umgestellt auf `with context`, sonst sieht das Macro die Page-Variable nicht.
+- Smoke-Build über 5 Reviews: 38 Bilder kopiert, 11 missing (anemoskala-Review hat URLs ohne `.png`-Extension — Korpus-Quirk), 0 unparseable. URLs erscheinen als `/issues/17/ride.17.4/figures/picture-1.png`. 326 Tests grün.
+
+**Entscheidungen:**
+- `media_path` als per-render Closure (Factory-Pattern) statt Jinja-Filter — Filter sind env-global und können `base_url` nicht pro Build aufnehmen. Konsistent mit `static_path_factory`.
+- Macros via `import … with context`: minimaler Eingriff (drei Zeilen), keine Macro-Signatur-Änderung. Alternative wäre `media_path` als Macro-Argument, hätte aber jede Call-Site geändert.
+- Orphan-Rendering bleibt `<span class="ride-ref ride-ref--orphan">` mit `data-target="#…"` zur späteren Diagnose; **keine** klickbaren Anker auf nicht-existente Anker, damit Lesefluss und A11y nicht durch broken links gestört werden.
+- `rel="noopener noreferrer"` automatisch nur bei `bucket == "external"` — security default, kostet nichts.
+- Anemoskala-Bilder NICHT „repariert" — die Frontend-Seite tut das Richtige (verlinkt das, was im TEI steht); fehlende Extensions sind Korpus-Issue, gehört in Phase 13 als Validierung oder ins Backend-Patch-Set.
+
+**Offen:**
+- **Cross-Contamination:** Backend hat bei `Phase 7.F` (`18a8376`) wieder per `git add -A` committet und meine 8 Frontend-Dateien (asset pipeline) mit in seinen Test-Refactor-Commit gezogen. Code ist im Tree, aber Attribution stimmt nicht. WORKPLAN-Regel „Pfade explizit nennen" greift nur, wenn beide sie befolgen — Backend bitte beim nächsten Commit `git add <pfad>` statt `-A`.
+- **`#abb` → `#img` Orphan-Quirk:** in `ride.17.4` (und vermutlich anderen) referenziert der Body `<ref target="#abb1">figure 1</ref>`, die Figur trägt aber `xml:id="img1"`. Resolver markiert das als orphan (korrekt — der Anker existiert nicht). Frage an Backend: soll `refs_resolver` einen Alias `#abb{n}` ↔ `#img{n}` einbauen, oder ist das ein Korpus-Bug, der in Phase 13 (Validierung) gemeldet werden soll? Heute geht UX leer aus.
+- WCAG-Audit-Run, PDF-Pipeline (Phase 14), Matomo + Redirects (Phase 15) als nächste Frontend-Brocken.
+- Reviewer-Markdown-Profile, tooltip.js voll, Element-Mapping-Drift-Validator: nicht eingeplant, kein konkreter Bedarf.
+
+**Nächster Einstieg:** Stakeholder hat zum Sessionende konsolidiert; Phase 11 (Pagefind-Integration) oder Phase 12 (OAI-PMH/JSON-LD/Sitemap) sind die nächsten ungeöffneten Phasen. Vor der nächsten Session: pushen, GH-Pages-Deploy laufen lassen, im Live-Build die `ride-ref--*`-Klassen und die `/issues/.../figures/`-Bilder verifizieren.
+
+---
+
 ## 2026-04-29 — Phase 7 abgeschlossen, Reference-Resolver + Asset-Pipeline live
 
 **Phase 7 ready — Reference.bucket ∈ {local, criteria, external, orphan}.**

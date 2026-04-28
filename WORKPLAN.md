@@ -87,3 +87,4 @@
 |---|---|---|
 | A — Phase 7 (Backend) | **abgeschlossen** ✅ (Resolver `425f2a2`, Asset-Pipeline `8a439df`, Test-Refactor `66fbb0d`); Wayback-Hint deferred → Phase 13 | 2026-04-29 |
 | B — Phase 10 + Citation (Frontend) | **abgeschlossen** (Citation `511e753`, Aggregationen `469d4d6`); Data-Charts deferred bis Phase 7 K-Ref-Labels liefert | 2026-04-29 |
+| Phase-7-Integration (Frontend) | **abgeschlossen** ✅ — Reference.bucket im `reference()`-Macro + CSS (`7d86fe5`), Asset-Pipeline in `src/build.py` + `media_path_factory` (`18a8376`, mit Backend-Test-Refactor in einem Commit gelandet, siehe Journal). Smoke: 38 Bilder kopiert, 11 missing wegen Korpus-Quirk anemoskala (URLs ohne Extension). | 2026-04-28 |
