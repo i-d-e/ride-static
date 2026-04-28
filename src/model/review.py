@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from src.model.bibliography import BibEntry
 from src.model.block import Figure
 from src.model.inline import Note
 from src.model.section import Section
@@ -112,6 +113,13 @@ class Review:
     order. Footnote anchors live in ``Note.xml_id``; renderers use this
     tuple for the apparate Notes sub-block and for build-time validation
     that every ``<ref target="#ftnN">`` resolves to a known note."""
+
+    bibliography: tuple[BibEntry, ...] = field(default_factory=tuple)
+    """The back-bibliography as a flat sequence of ``BibEntry`` values.
+    Empty for the seven no-back reviews and any review that omits
+    ``<listBibl>``. Section ``<div type="bibliography">`` retains its
+    heading in ``back`` but its ``blocks`` are intentionally empty —
+    bibliography content lives here, not in the Section tree."""
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""

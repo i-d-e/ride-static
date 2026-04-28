@@ -47,13 +47,13 @@ from src.parser.inlines import (
 # Counts in the corpus: figure 850, list 116, cit 81, table 7.
 _BLOCK_LOCALS_IN_P = frozenset({"figure", "list", "cit", "table"})
 
-# Block-level elements whose dedicated parsers arrive in a later phase.
-# Phase 5 closes ``Review.body`` end-to-end by skipping them rather than
-# raising; Phase 6 will replace this branch with real parsing.
-#
-# - ``listBibl`` — bibliography list, 102 occurrences (one per back-bearing
-#   review). Phase 6 introduces ``BibEntry`` plus the bibliography parser.
-_DEFERRED_BLOCKS = frozenset({"listBibl"})
+# Block-level elements deliberately not parsed at the section block level.
+# ``<listBibl>`` carries the back-bibliography; rather than promote it to
+# a Block kind, the bibliography lives on ``Review.bibliography`` as its
+# own typed sequence (parsed by ``src.parser.bibliography``). The section
+# ``<div type="bibliography">`` retains its heading so the section tree
+# stays consistent, but its ``blocks`` are intentionally empty.
+_SKIPPED_BLOCKS = frozenset({"listBibl"})
 
 
 # -- List rend normalisation ---------------------------------------------
@@ -369,8 +369,8 @@ def parse_block_sequence(host: etree._Element) -> tuple[Block, ...]:
         local = etree.QName(child).localname
         if local in {"div", "head"}:
             continue
-        if local in _DEFERRED_BLOCKS:
-            # Phase 6 will replace this branch with proper parsing.
+        if local in _SKIPPED_BLOCKS:
+            # ``<listBibl>`` lives on Review.bibliography, not in section blocks.
             continue
         if local == "p":
             out.extend(parse_paragraph_or_split(child))

@@ -13,6 +13,7 @@ from lxml import etree
 
 from src.model.review import Review
 from src.parser.aggregate import collect_figures, collect_notes
+from src.parser.bibliography import parse_bibliography
 from src.parser.common import NS, attr, find, itertext
 from src.parser.metadata import (
     parse_authors,
@@ -48,6 +49,7 @@ def parse_review(path: Path) -> Review:
     all_sections = front + body + back
     figures = collect_figures(all_sections)
     notes = collect_notes(all_sections)
+    bibliography = parse_bibliography(text_el)
 
     return Review(
         id=attr(root, "xml:id") or "",
@@ -65,5 +67,6 @@ def parse_review(path: Path) -> Review:
         back=back,
         figures=figures,
         notes=notes,
+        bibliography=bibliography,
         source_file=path.name,
     )
