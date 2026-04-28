@@ -22,6 +22,7 @@ from src.parser.metadata import (
     parse_keywords,
     parse_related_items,
 )
+from src.parser.refs_resolver import resolve_references
 from src.parser.sections import parse_sections
 
 
@@ -53,7 +54,7 @@ def parse_review(path: Path) -> Review:
     bibliography = parse_bibliography(text_el)
     questionnaires = parse_questionnaires(root)
 
-    return Review(
+    review = Review(
         id=attr(root, "xml:id") or "",
         issue=attr(find(file_desc, "t:seriesStmt/t:biblScope"), "n") or "",
         title=itertext(find(file_desc, "t:titleStmt/t:title")),
@@ -73,3 +74,6 @@ def parse_review(path: Path) -> Review:
         questionnaires=questionnaires,
         source_file=path.name,
     )
+    # Phase-7 post-pass: classify every Reference.target into one of
+    # local / criteria / external / orphan against the review's xml:id index.
+    return resolve_references(review)

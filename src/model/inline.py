@@ -38,13 +38,20 @@ class Highlight:
 class Reference:
     """``<ref>`` — anchor or link.
 
-    ``target`` carries the raw ``@target`` value; resolution to one of the four buckets
-    (local / criteria / external / orphan) happens at render time, not at parse time.
+    ``target`` carries the raw ``@target`` value. ``bucket`` is filled by the
+    Phase-7 resolver (:func:`src.parser.refs_resolver.resolve_references`) and
+    classifies the reference into one of four kinds the renderer can dispatch
+    on: ``local`` (in-page anchor), ``criteria`` (``#K…`` against the
+    taxonomy's external criteria document), ``external`` (``http(s)://``
+    URL), or ``orphan`` (target set but unresolvable, for example
+    ``#abb…``-style dangling internals or bare bibkeys like ``werner2019``).
+    ``bucket`` is ``None`` when ``target`` itself is missing.
     """
 
     children: tuple["Inline", ...]
     target: Optional[str] = None
     type: Optional[str] = None
+    bucket: Optional[str] = None
 
 
 @dataclass(frozen=True)
