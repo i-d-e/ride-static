@@ -32,11 +32,11 @@ from src.parser.common import (
     locate_hint,
 )
 from src.parser.inlines import (
-    _PASSTHROUGH_TEXT,
-    _SOFT_SKIP,
-    _collapse,
-    _finalise,
-    _parse_inline,
+    PASSTHROUGH_TEXT,
+    SOFT_SKIP,
+    collapse_whitespace,
+    finalise_inlines,
+    parse_inline_element,
     parse_inlines,
 )
 
@@ -271,17 +271,17 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
     is_first_chunk = True
 
     if p.text:
-        raw_inlines.append(_collapse(p.text))
+        raw_inlines.append(collapse_whitespace(p.text))
 
     for child in p:
         if not isinstance(child.tag, str):  # comment or PI
             if child.tail:
-                raw_inlines.append(_collapse(child.tail))
+                raw_inlines.append(collapse_whitespace(child.tail))
             continue
         local = etree.QName(child).localname
         if local in _BLOCK_LOCALS_IN_P:
             # Flush accumulated inlines as a Paragraph chunk, then the block.
-            chunk = _finalise(raw_inlines)
+            chunk = finalise_inlines(raw_inlines)
             if chunk:
                 out.append(Paragraph(
                     inlines=chunk,
@@ -291,18 +291,18 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
                 is_first_chunk = False
             out.append(parse_block(child))
             raw_inlines = []
-        elif local in _SOFT_SKIP:
+        elif local in SOFT_SKIP:
             raw_inlines.append(" ")
-        elif local in _PASSTHROUGH_TEXT:
+        elif local in PASSTHROUGH_TEXT:
             text = itertext(child)
             if text:
                 raw_inlines.append(text)
         else:
-            raw_inlines.append(_parse_inline(child, local))
+            raw_inlines.append(parse_inline_element(child, local))
         if child.tail:
-            raw_inlines.append(_collapse(child.tail))
+            raw_inlines.append(collapse_whitespace(child.tail))
 
-    chunk = _finalise(raw_inlines)
+    chunk = finalise_inlines(raw_inlines)
     if chunk:
         out.append(Paragraph(
             inlines=chunk,
@@ -342,28 +342,28 @@ def _walk_inline_with_blocks(
     blocks: list[Block] = []
 
     if host.text:
-        raw_inlines.append(_collapse(host.text))
+        raw_inlines.append(collapse_whitespace(host.text))
 
     for child in host:
         if not isinstance(child.tag, str):
             if child.tail:
-                raw_inlines.append(_collapse(child.tail))
+                raw_inlines.append(collapse_whitespace(child.tail))
             continue
         local = etree.QName(child).localname
         if local in _BLOCK_LOCALS_IN_P:
             blocks.append(parse_block(child))
-        elif local in _SOFT_SKIP:
+        elif local in SOFT_SKIP:
             raw_inlines.append(" ")
-        elif local in _PASSTHROUGH_TEXT:
+        elif local in PASSTHROUGH_TEXT:
             text = itertext(child)
             if text:
                 raw_inlines.append(text)
         else:
-            raw_inlines.append(_parse_inline(child, local))
+            raw_inlines.append(parse_inline_element(child, local))
         if child.tail:
-            raw_inlines.append(_collapse(child.tail))
+            raw_inlines.append(collapse_whitespace(child.tail))
 
-    return (_finalise(raw_inlines), tuple(blocks))
+    return (finalise_inlines(raw_inlines), tuple(blocks))
 
 
 def parse_block_sequence(host: etree._Element) -> tuple[Block, ...]:

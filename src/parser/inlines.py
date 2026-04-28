@@ -50,11 +50,19 @@ from src.parser.common import (
 
 _WS_RUN = re.compile(r"\s+")
 
+# The four element-name sets and the three helper functions below are
+# exported (without leading underscore) because the block-level walkers
+# in ``src.parser.blocks`` reuse them when slicing ``<p>`` at block
+# boundaries and when partitioning items / cells into inline + block
+# content. The old underscore-prefixed names are retained as aliases so
+# callers in either module can refer to them through whichever name they
+# were bound to first.
+
 # Elements that appear in mixed content but are not modelled as separate
 # inlines. ``<lb/>`` (~30 occurrences corpus-wide, mostly inside <quote>) is
 # rendered as a single space so word boundaries survive while the surrounding
 # text remains one Text run.
-_SOFT_SKIP = frozenset({"lb"})
+SOFT_SKIP = frozenset({"lb"})
 
 # Long-tail mixed-content elements that the model deliberately does not
 # carry as inline kinds, but whose textual content must not be lost. The
@@ -68,7 +76,7 @@ _SOFT_SKIP = frozenset({"lb"})
 # from inside ``<cit>``). Phase 6 introduces a dedicated bibliography
 # parser that decodes their structure; until then we preserve their text
 # so cit/bibl content survives end-to-end through Phase 5.
-_PASSTHROUGH_TEXT = frozenset({
+PASSTHROUGH_TEXT = frozenset({
     "mod", "del", "seg", "affiliation",
     "respStmt", "date", "title", "editor", "idno",
 })
@@ -78,7 +86,7 @@ _PASSTHROUGH_TEXT = frozenset({
 # is the single corpus occurrence; rather than promote it to a block (which
 # would not fit Note.children: tuple[Inline, ...]), the parser treats it as
 # a structural noise element and unwraps it.
-_TRANSPARENT_WRAPPERS = frozenset({"p"})
+TRANSPARENT_WRAPPERS = frozenset({"p"})
 
 # <ref @type> normalisation: the corpus has 1704× "crossref" and exactly
 # 1× "crosssref" (data typo). Map the typo to the canonical value at parse
@@ -96,35 +104,40 @@ def parse_inlines(host: etree._Element) -> tuple[Inline, ...]:
     raw: list = []
 
     if host.text:
-        raw.append(_collapse(host.text))
+        raw.append(collapse_whitespace(host.text))
 
     for child in host:
         if isinstance(child, (etree._Comment, etree._ProcessingInstruction)):
             if child.tail:
-                raw.append(_collapse(child.tail))
+                raw.append(collapse_whitespace(child.tail))
             continue
         local = etree.QName(child).localname
-        if local in _SOFT_SKIP:
+        if local in SOFT_SKIP:
             raw.append(" ")
-        elif local in _PASSTHROUGH_TEXT:
+        elif local in PASSTHROUGH_TEXT:
             text = itertext(child)
             if text:
                 raw.append(text)
-        elif local in _TRANSPARENT_WRAPPERS:
+        elif local in TRANSPARENT_WRAPPERS:
             # Flatten the wrapper's inline content into our sequence as if
             # the wrapper element were not present.
             for inline in parse_inlines(child):
                 raw.append(inline)
         else:
-            raw.append(_parse_inline(child, local))
+            raw.append(parse_inline_element(child, local))
         if child.tail:
-            raw.append(_collapse(child.tail))
+            raw.append(collapse_whitespace(child.tail))
 
-    return _finalise(raw)
+    return finalise_inlines(raw)
 
 
-def _parse_inline(el: etree._Element, local: str) -> Inline:
-    """Dispatch one element child of a mixed-content host to the right kind."""
+def parse_inline_element(el: etree._Element, local: str) -> Inline:
+    """Dispatch one element child of a mixed-content host to the right kind.
+
+    Public — also used by the block-level walkers in
+    :mod:`src.parser.blocks` (paragraph splitting, item / cell partitioning)
+    when they encounter an inline child mid-walk.
+    """
     if local == "emph":
         return Emphasis(children=parse_inlines(el), rend=attr(el, "rend"))
     if local == "hi":
@@ -177,12 +190,12 @@ def _parse_code(el: etree._Element) -> InlineCode:
     return InlineCode(text="".join(parts), lang=attr(el, "lang"))
 
 
-def _collapse(text: str) -> str:
+def collapse_whitespace(text: str) -> str:
     """Collapse runs of whitespace to a single space; do not strip the edges."""
     return _WS_RUN.sub(" ", text)
 
 
-def _finalise(raw: list) -> tuple[Inline, ...]:
+def finalise_inlines(raw: list) -> tuple[Inline, ...]:
     """Coalesce adjacent text strings, strip the sequence's outer edges,
     drop empty text runs, and wrap remaining strings as ``Text`` inlines.
 
