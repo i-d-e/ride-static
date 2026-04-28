@@ -48,7 +48,7 @@ Die folgenden sechs Entscheidungen liegen allen Anforderungen zugrunde und sind 
 
 **A5 Maschinenschnittstellen.** Ein statischer OAI-PMH-Snapshot wird zusammen mit einem moderneren Pfad bereitgestellt — JSON-LD pro Seite, vollständiger Korpus-Dump als JSON, Sitemap mit `schema.org/ScholarlyArticle`-Markup.
 
-**A6 PDF-Pfad.** Phase 8 liefert HTML; das bestehende XSLT-PDF läuft als Übergangslösung weiter. Phase 14 implementiert PDF aus dem Domänenmodell über WeasyPrint mit eigenem Print-Stylesheet. Das Domänenmodell wird ab Phase 1 mit beiden Renderings im Blick entworfen — siehe [[architecture#Domain model]] und [[pipeline#Phasenplan]].
+**A6 PDF-Pfad.** Phase 8 liefert HTML; das bestehende PDF läuft als Übergangslösung weiter. Phase 14 implementiert PDF aus dem Domänenmodell über WeasyPrint mit eigenem Print-Stylesheet. Das Domänenmodell wird ab Phase 1 mit beiden Renderings im Blick entworfen — siehe [[architecture#Domain model]] und [[pipeline#Phasenplan]].
 
 ## 5. Funktionale Anforderungen
 
@@ -79,7 +79,7 @@ Akzeptanzkriterien
 Akzeptanzkriterien
 - TEI-XML-Datei ist die unveränderte Quelle, mit korrektem Content-Type-Header
 - PDF trägt DOI sichtbar auf der ersten Seite
-- Während der Übergangsphase wird das XSLT-PDF ausgeliefert; ab Phase 9 das aus dem Domänenmodell erzeugte PDF, gemäß A6
+- Während der Übergangsphase wird das bestehende PDF ausgeliefert; ab Phase 9 das aus dem Domänenmodell erzeugte PDF, gemäß A6
 - Beide Downloads sind über sichtbare Aktion in der Rezensionsansicht erreichbar
 
 **R4 Heftansicht.** Als Leserin will ich pro Heft eine Übersichtsseite mit Heftmetadaten und Beitragsliste.

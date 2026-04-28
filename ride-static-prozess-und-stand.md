@@ -281,7 +281,7 @@ Die Verortung der PDF-Phase ist absichtlich auf Phase 14 belassen. Beide
 Renderer hängen am gleichen Domänenmodell, eine frühere Implementierung
 wäre technisch möglich. Die Beibehaltung in Phase 14 ist eine
 Reihenfolge-Entscheidung zugunsten einer früher produktiv schaltbaren
-HTML-Schiene und einer XSLT-Übergangslösung für PDF. Die Entscheidung ist
+HTML-Schiene und einer Übergangslösung für PDF. Die Entscheidung ist
 in `requirements.md` A6 fixiert.
 
 ## Output und Schnittstellen
@@ -325,9 +325,9 @@ Fragen" formuliert.
 | Issues (Hefte) | Heft-Titel, Hrsg., Beiträge mit Autor, DOI | Heft-YAML als alleinige Quelle, Konsistenzcheck gegen TEI-Header bricht den Build | 9 | Welche Hefte erscheinen in der Hauptnavigation, alle, kuratiert oder die letzten N? |
 | Rolling Issue | implizit | Statusmarker in Heft-YAML, Zitiervorschlag mit Abrufdatum, optionales Versionssegment in URL reserviert | 8, 9 | Wann gilt ein Rolling Issue als fertig, welcher Statuswechsel im YAML markiert das? Welche zusätzlichen Felder gegenüber regulären Heften? |
 | Navigation | Manuell gepflegt | YAML-konfigurierte Hauptnavigation plus Aggregations-Links | 9, 10 | Speist sich die Navbar aus Content oder aus manueller YAML-Konfiguration? |
-| Beitrag (Rezensionsansicht) | XSLT-Layout | Jinja-HTML aus dem Domänenmodell, Apparate parallel, reduzierte Sidebar (TOC, Meta, Cite) | 8 | Soll „first / last updated"-Information neben dem reinen Build-Datum sichtbar werden? |
+| Beitrag (Rezensionsansicht) | Bestehendes Layout | Jinja-HTML aus dem Domänenmodell, Apparate parallel, reduzierte Sidebar (TOC, Meta, Cite) | 8 | Soll „first / last updated"-Information neben dem reinen Build-Datum sichtbar werden? |
 | Tags | TEI plus WordPress, teils divergent | Aus TEI generiert; einmalige Konsolidierung der WordPress-Tags vor erstem Produktiv-Build, danach WordPress als Tag-Quelle abgeschaltet (A2) | Vor 6 (redaktionell), 10 | — |
-| Factsheet | XSLT-organisiert | Aus Questionnaire-Datenmodell gerendert, separate Meta-Box entfällt | 8 | — |
+| Factsheet | Bestehende Anordnung | Aus Questionnaire-Datenmodell gerendert, separate Meta-Box entfällt | 8 | — |
 | Data | Intro plus iframe-Charts aus eXist via XQuery, Erfassung über LimeSurvey → HTML → TEI | Charts zur Build-Zeit aus Questionnaire-Daten, ohne Laufzeit-Backend; Anomaliewert `value=3` als nicht-bewertet ausgewiesen | 10 | — |
 | Reviewed Resources | Aus eXist generiert | Aus TEI generiert, ohne manuelle Pflege | 10 | — |
 | Reviewers | Statisch plus „project under review" | Liste alphabetisch aus TEI; optionale Markdown-Profildatei wird der Beitragsliste vorangestellt | 9, 10 | Wo wird „project under / for review" geführt, eigene Editorialseite oder Reviewer-Detailseite? |

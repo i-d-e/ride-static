@@ -8,7 +8,6 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 
 ## Hard rules
 
-- **No XSLT.** Python only.
 - **TDD.** Every script and parser module ships with a pytest using synthetic TEI fixtures (`tests/`). The parser also has one real-corpus smoke test that skips when `../ride/` is not present.
 - **`knowledge/` is a clean Obsidian-style vault — `.md` only.** Generated JSON belongs in `inventory/`. Cross-references inside the vault use `[[wikilink]]` notation. Hand-written filenames are lowercase.
 - **`inventory/` is gitignored** (visible, no leading dot). Always regeneratable from scripts.

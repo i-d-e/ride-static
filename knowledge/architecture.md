@@ -209,7 +209,6 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 
 ## Key design decisions
 
-- **No XSLT.** Python only. RIDE has no XSLT expertise to maintain; Python keeps the team unblocked.
 - **Domain model first.** Templates and renderers never see raw TEI.
 - **Inventory-driven.** Anything the parser does is informed by `inventory/`. New elements or attributes that appear in the corpus must show up in the inventory before they are handled.
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones raise.

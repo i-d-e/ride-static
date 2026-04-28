@@ -36,7 +36,6 @@ See `CLAUDE.md` for the layout reference. In short:
 
 These are the project's non-negotiables. Codified for clarity, not for ceremony.
 
-- **No XSLT.** Python only. RIDE has no XSLT expertise to maintain.
 - **TDD.** Every script and parser module ships with pytest using synthetic TEI fixtures. The parser also has one real-corpus smoke test that skips when `../ride/` is absent.
 - **`knowledge/` stays clean.** Hand-written and generated `.md` only. No JSON, no scripts, no notebooks. Cross-references between knowledge docs use `[[wikilink]]` notation.
 - **`inventory/` is gitignored.** Always regeneratable from scripts. Never edit by hand.

@@ -4,7 +4,7 @@ Static-site generator for [ride.i-d-e.de](https://ride.i-d-e.de) — *RIDE. A re
 
 The pipeline reads 107 TEI XML reviews under `../ride/tei_all/`, a small editorial Markdown layer under `content/`, and one YAML configuration per issue. From those inputs, a single GitHub Actions workflow produces a complete `site/` tree — per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, sitemap. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
 
-The project replaces the previous eXist-based dynamic site. It is written in Python with Jinja templates; XSLT is not used. Every script and parser module ships with pytest fixtures, plus one optional smoke test against the real corpus that skips when the sibling repository is absent.
+The project replaces the previous eXist-based dynamic site. It is written in Python with Jinja templates. Every script and parser module ships with pytest fixtures, plus one optional smoke test against the real corpus that skips when the sibling repository is absent.
 
 ## Where to look
 

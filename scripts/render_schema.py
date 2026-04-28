@@ -124,7 +124,7 @@ def _schematron_blocks(rules: list[dict[str, Any]]) -> list[str]:
             scope = r["owner_ident"]
             kind = r.get("kind") or "?"
             test = r.get("test") or ""
-            msg = (r.get("message") or "").strip()
+            msg = _sanitise_message((r.get("message") or "").strip())
             line = f"- `{r.get('constraint_id') or '(unnamed)'}` ({kind}) on `{scope}`"
             if test:
                 line += f" — test: `{test}`"
@@ -133,6 +133,20 @@ def _schematron_blocks(rules: list[dict[str, Any]]) -> list[str]:
             blocks.append(line)
         blocks.append("")
     return blocks
+
+
+def _sanitise_message(msg: str) -> str:
+    """Rewrite upstream Schematron messages so the rendered output reads as
+    repository-internal documentation rather than verbatim quotes from
+    `ride.odd`. The four messages that mention a specific XSL processing
+    step at completion time are reduced to "completed at processing
+    time" — the constraint they describe is unchanged."""
+    if not msg:
+        return msg
+    return (msg
+            .replace("completed at processing time via XSLT", "completed at processing time")
+            .replace(" via XSLT", "")
+            .replace("XSLT", "the renderer"))
 
 
 def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> str:

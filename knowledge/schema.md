@@ -313,7 +313,7 @@ Where `ride.odd` defines a closed list of values for an attribute, the two lines
 #### `<(unscoped)>`
 - `jtei.sch-localLinkTarget` (report) on `None` — test: `exists($orphan.pointers)` — message: "There's no local target for : . Please make sure you're referring to an existing @xml:id value."
 - `jtei.sch-renditionTarget` (report) on `None` — test: `exists($orphan.pointers)` — message: "point to a <rendition> target: ."
-- `jtei.sch-quoteDelim` (assert) on `None` — test: `not(matches(., concat('^', $double.quotes, '|', $double.quotes, '$')))` — message: "Quotation mark delimiters are not allowed for : they are completed at processing time via XSLT."
+- `jtei.sch-quoteDelim` (assert) on `None` — test: `not(matches(., concat('^', $double.quotes, '|', $double.quotes, '$')))` — message: "Quotation mark delimiters are not allowed for : they are completed at processing time."
 - `jtei.sch-crossref-id` (assert) on `None` — test: `@xml:id` — message: "You're strongly advised to add an @xml:id attribute to to ease formal cross-referencing with (ptr|ref)[@type='crossref']"
 - `jtei.sch-formalCrossref` (assert) on `None` — test: `not(matches(., '(table|figure|example|section) \d+([.,]\d+)* ((above)|(below))', 'i'))` — message: "Please replace literal references to tables, figures, examples, and sections with a formal crosslink: (ptr|ref)[@type="crossref"]"
 - `jtei.sch-crossrefTargetType` (report) on `None` — test: `exists($orphan.pointers)` — message: "Cross-links ( [@type="crossref"]) should be targeted at div, figure, table, or note elements. The target of doesn't satisfy this condition: ."
@@ -326,7 +326,7 @@ Where `ride.odd` defines a closed list of values for an attribute, the two lines
 - `ride.sch-add-context` (assert) on `add` — test: `ancestor::tei:mod` — message: "may only occur inside modifications."
 
 #### `<att>`
-- `jtei.sch-att` (assert) on `att` — test: `not(matches(., '^@'))` — message: "Attribute delimiters are not allowed for : they are completed at processing time via XSLT."
+- `jtei.sch-att` (assert) on `att` — test: `not(matches(., '^@'))` — message: "Attribute delimiters are not allowed for : they are completed at processing time."
 
 #### `<author>`
 - `jtei.sch-author` (assert) on `author` — test: `tei:name and tei:affiliation and tei:email` — message: "Author information in the <titleStmt> must include <name>, <affiliation> and <email>."
@@ -395,11 +395,11 @@ Where `ride.odd` defines a closed list of values for an attribute, the two lines
 - `jtei.sch-table` (assert) on `table` — test: `not(ancestor::tei:list)` — message: "No tables are are allowed inside lists."
 
 #### `<tag>`
-- `jtei.sch-tag` (assert) on `tag` — test: `not(matches(., '^[<!?-]|[>/?\-]$'))` — message: "Tag delimiters such as angle brackets and tag-closing slashes are not allowed for : they are completed at processing time via XSLT."
+- `jtei.sch-tag` (assert) on `tag` — test: `not(matches(., '^[<!?-]|[>/?\-]$'))` — message: "Tag delimiters such as angle brackets and tag-closing slashes are not allowed for : they are completed at processing time."
 
 #### `<text>`
 - `jtei.sch-article-keywords` (assert) on `text` — test: `parent::tei:TEI/tei:teiHeader/tei:profileDesc/tei:textClass/tei:keywords` — message: "An article must have a keyword list in the header."
 - `jtei.sch-article-abstract` (assert) on `text` — test: `tei:front/tei:div[@type='abstract']` — message: "An article must have a front section with an abstract."
 
 #### `<val>`
-- `jtei.sch-att` (assert) on `val` — test: `not(matches(., concat('^', $quotes, '|', $quotes, '$')))` — message: "Attribute value delimiters are not allowed for : they are completed at processing time via XSLT."
+- `jtei.sch-att` (assert) on `val` — test: `not(matches(., concat('^', $quotes, '|', $quotes, '$')))` — message: "Attribute value delimiters are not allowed for : they are completed at processing time."
