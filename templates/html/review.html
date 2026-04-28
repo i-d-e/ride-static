@@ -15,6 +15,7 @@
 {%- import "partials/section.html" as s -%}
 {%- import "partials/apparate.html" as a -%}
 {%- import "partials/render.html" as r -%}
+{%- import "partials/factsheet.html" as fs -%}
 
 {% block title %}{{ review.title }} — {{ site.title }}{% endblock %}
 
@@ -104,6 +105,8 @@
         {%- endfor -%}
       </ol>
     </section>
+
+    {{ fs.factsheet(review, site.strings) }}
 
     <section class="ride-sidebar__box ride-sidebar__box--meta" aria-labelledby="meta-heading">
       <h2 id="meta-heading">{{ site.strings.meta | default('Meta') }}</h2>

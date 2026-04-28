@@ -7,31 +7,43 @@
   every footnote back to its marker.
 
   Phase 5 contract delivers `Review.figures` and `Review.notes` as flat
-  document-order tuples. References apparate is wired in Phase 7 once
-  the resolver classifies inline `<ref>`s; the panel is omitted until
-  that data is available.
+  document-order tuples. Phase 6 adds `Review.bibliography` for the
+  References panel. Phase 7 will additionally surface inline-only refs
+  that point outside the bibliography (currently they render as raw
+  anchors at their inline position).
 
   Empty panels collapse — we don't render headers without content.
 -#}
 {%- import "partials/render.html" as r -%}
 
 {%- macro apparate(review, strings={}) -%}
-  {%- set has_figures = review.figures and (review.figures | length) > 0 -%}
-  {%- set has_notes   = review.notes   and (review.notes   | length) > 0 -%}
-  {%- if has_figures or has_notes -%}
-  <aside class="ride-apparate" aria-label="{{ strings.apparate or 'Apparate' }}">
+  {%- set has_refs    = review.bibliography and (review.bibliography | length) > 0 -%}
+  {%- set has_figures = review.figures      and (review.figures      | length) > 0 -%}
+  {%- set has_notes   = review.notes        and (review.notes        | length) > 0 -%}
+  {%- if has_refs or has_figures or has_notes -%}
+  <aside class="ride-apparate" aria-label="{{ strings.get('apparate', 'Apparate') }}">
+
+    {%- if has_refs -%}
+    <section class="ride-apparate__panel ride-apparate__panel--refs" aria-labelledby="apparate-refs">
+      <h3 id="apparate-refs">{{ strings.get('references', 'References') }}</h3>
+      <ol class="ride-apparate__list">
+        {%- for b in review.bibliography -%}{{ r.bib_entry(b) }}{%- endfor -%}
+      </ol>
+    </section>
+    {%- endif -%}
+
     {%- if has_figures -%}
     <section class="ride-apparate__panel ride-apparate__panel--figures" aria-labelledby="apparate-figures">
-      <h3 id="apparate-figures">{{ strings.figures or 'Figures' }}</h3>
+      <h3 id="apparate-figures">{{ strings.get('figures', 'Figures') }}</h3>
       <ol class="ride-apparate__list">
         {%- for f in review.figures -%}
           <li>
             {%- if f.xml_id -%}
               <a href="#{{ f.xml_id }}">
-                {%- if f.head -%}{{ r.inlines(f.head) }}{%- else -%}{{ strings.figure_default or 'Figure' }} {{ loop.index }}{%- endif -%}
+                {%- if f.head -%}{{ r.inlines(f.head) }}{%- else -%}{{ strings.get('figure_default', 'Figure') }} {{ loop.index }}{%- endif -%}
               </a>
             {%- else -%}
-              {%- if f.head -%}{{ r.inlines(f.head) }}{%- else -%}{{ strings.figure_default or 'Figure' }} {{ loop.index }}{%- endif -%}
+              {%- if f.head -%}{{ r.inlines(f.head) }}{%- else -%}{{ strings.get('figure_default', 'Figure') }} {{ loop.index }}{%- endif -%}
             {%- endif -%}
           </li>
         {%- endfor -%}
@@ -41,16 +53,13 @@
 
     {%- if has_notes -%}
     <section class="ride-apparate__panel ride-apparate__panel--notes" aria-labelledby="apparate-notes">
-      <h3 id="apparate-notes">{{ strings.notes or 'Notes' }}</h3>
+      <h3 id="apparate-notes">{{ strings.get('notes', 'Notes') }}</h3>
       <ol class="ride-apparate__list">
         {%- for n in review.notes -%}{{ r.apparate_note(n) }}{%- endfor -%}
       </ol>
     </section>
     {%- endif -%}
 
-    {#- References panel slot — Phase 7 fills this from the ref-resolver output.
-        Until then we leave an empty hook so the layout tested today doesn't
-        shift when the third column lights up. -#}
   </aside>
   {%- endif -%}
 {%- endmacro -%}

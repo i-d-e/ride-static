@@ -50,6 +50,18 @@
   <sup class="ride-note"><a href="#{{ anchor }}" id="{{ anchor }}-mark">{{ n.n or "*" }}</a></sup>
 {%- endmacro -%}
 
+{#- One bibliography entry as a list item. ref_target is the canonical URL
+    or DOI; if present we wrap the rendered text as a link. -#}
+{%- macro bib_entry(b) -%}
+  <li{% if b.xml_id %} id="{{ b.xml_id }}"{% endif %}>
+    {%- if b.ref_target -%}
+      <a href="{{ b.ref_target }}">{{ inlines(b.inlines) }}</a>
+    {%- else -%}
+      {{ inlines(b.inlines) }}
+    {%- endif -%}
+  </li>
+{%- endmacro -%}
+
 {#- Apparate version of a note: the full body, with a back-link to the
     inline marker. -#}
 {%- macro apparate_note(n) -%}

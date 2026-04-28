@@ -1,0 +1,54 @@
+{#-
+  factsheet.html — questionnaire summary in the sidebar.
+
+  interface.md §5: "Factsheet wird angezeigt und erklärt die Bewertung
+  knapp." Each Review carries one or more `Questionnaire` objects (most
+  carry one; three carry two), one per criteria set referenced via
+  `criteria_url`. Each questionnaire has a flat tuple of
+  `QuestionnaireAnswer(category_xml_id, value)` where `value` is "0",
+  "1", or — in one corpus anomaly — "3".
+
+  v0 rendering: per criteria URL, show count of "1" answers vs total
+  meaningful answers, plus a small bar. The criteria URLs link to the
+  external criteria document so readers can see what the categories
+  mean. Phase 7 will resolve K-refs from inline `<ref>`s into the same
+  external criteria document.
+
+  Anomaly handling: value="3" answers are excluded from both numerator
+  and denominator and are flagged with a small note. This matches
+  requirements.md R9 ("value=3 wird konsistent als nicht-bewertet
+  behandelt und in Charts ausgewiesen").
+-#}
+
+{%- macro factsheet(review, strings={}) -%}
+  {%- if review.questionnaires and (review.questionnaires | length) > 0 -%}
+  <section class="ride-sidebar__box ride-sidebar__box--factsheet" aria-labelledby="factsheet-heading">
+    <h2 id="factsheet-heading">{{ strings.get('factsheet', 'Factsheet') }}</h2>
+
+    {%- for q in review.questionnaires -%}
+      {%- set total       = q.answers | length -%}
+      {%- set yes_count   = q.answers | selectattr("value", "equalto", "1") | list | length -%}
+      {%- set anomaly_cnt = q.answers | rejectattr("value", "in", ["0", "1"]) | list | length -%}
+      {%- set valid       = total - anomaly_cnt -%}
+      {%- set pct         = (100 * yes_count / valid) | round | int if valid > 0 else 0 -%}
+
+      <dl class="ride-factsheet">
+        <dt class="ride-factsheet__criteria">
+          {%- if q.criteria_url -%}
+            <a href="{{ q.criteria_url }}">{{ strings.get('criteria', 'Criteria') }}</a>
+          {%- else -%}
+            {{ strings.get('criteria', 'Criteria') }}
+          {%- endif -%}
+        </dt>
+        <dd class="ride-factsheet__score">
+          <span class="ride-factsheet__count">{{ yes_count }} / {{ valid }}</span>
+          <progress class="ride-factsheet__bar" max="100" value="{{ pct }}" aria-label="{{ yes_count }} of {{ valid }} categories answered yes">{{ pct }}%</progress>
+          {%- if anomaly_cnt > 0 -%}
+            <span class="ride-factsheet__anomaly" title="{{ anomaly_cnt }} answers outside the 0/1 schema">⚠ {{ anomaly_cnt }}</span>
+          {%- endif -%}
+        </dd>
+      </dl>
+    {%- endfor -%}
+  </section>
+  {%- endif -%}
+{%- endmacro -%}

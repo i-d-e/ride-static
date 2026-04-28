@@ -16,8 +16,10 @@ from pathlib import Path
 
 import pytest
 
+from src.model.bibliography import BibEntry
 from src.model.block import Citation, Figure, List, ListItem, Paragraph
 from src.model.inline import Emphasis, Note, Reference, Text
+from src.model.questionnaire import Questionnaire, QuestionnaireAnswer
 from src.model.review import Author, Person, Review
 from src.model.section import Section
 from src.render.html import (
@@ -205,6 +207,57 @@ def test_render_review_apparate_renders_when_notes_present():
     assert "ride-apparate" in html
     assert "ride-apparate__panel--notes" in html
     assert 'id="ftn1"' in html
+
+
+def test_render_review_apparate_renders_bibliography():
+    bib = (
+        BibEntry(
+            inlines=(Text(text="Smith, "), Emphasis(children=(Text(text="Title"),)), Text(text=" 2024.")),
+            xml_id="bib1",
+            ref_target="https://doi.org/10.1234/x",
+        ),
+        BibEntry(
+            inlines=(Text(text="Doe, Other Title 2025."),),
+            xml_id="bib2",
+            ref_target=None,
+        ),
+    )
+    html = render_review(_minimal_review(bibliography=bib))
+    assert "ride-apparate__panel--refs" in html
+    assert 'id="bib1"' in html
+    assert 'href="https://doi.org/10.1234/x"' in html
+    # Entry without ref_target renders without surrounding anchor
+    assert 'id="bib2"' in html
+
+
+def test_render_review_factsheet_summary():
+    q = Questionnaire(
+        criteria_url="https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections/",
+        answers=(
+            QuestionnaireAnswer("se002", "1"),
+            QuestionnaireAnswer("se003", "0"),
+            QuestionnaireAnswer("se004", "1"),
+            QuestionnaireAnswer("se005", "1"),
+        ),
+    )
+    html = render_review(_minimal_review(questionnaires=(q,)))
+    assert "ride-sidebar__box--factsheet" in html
+    assert "3 / 4" in html  # three "1"s out of four valid answers
+    assert "https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections/" in html
+
+
+def test_render_review_factsheet_excludes_anomaly_value_3():
+    q = Questionnaire(
+        criteria_url="https://example.org/crit",
+        answers=(
+            QuestionnaireAnswer("a", "1"),
+            QuestionnaireAnswer("b", "0"),
+            QuestionnaireAnswer("c", "3"),  # anomaly — excluded
+        ),
+    )
+    html = render_review(_minimal_review(questionnaires=(q,)))
+    assert "1 / 2" in html  # value=3 excluded from both numerator and denominator
+    assert "⚠ 1" in html  # anomaly counter visible
 
 
 def test_render_review_with_ref_renders_anchor():

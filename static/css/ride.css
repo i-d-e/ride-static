@@ -246,6 +246,31 @@ hr {
 .ride-apparate__panel h3        { margin-top: 0; font-size: var(--ride-text-h3); }
 .ride-apparate__list            { font-size: var(--ride-text-small); list-style: none; padding: 0; margin: 0; }
 .ride-apparate__list li         { margin-bottom: var(--ride-space-2); }
+.ride-note__back                { margin-left: var(--ride-space-2); color: var(--ride-fg-tertiary); text-decoration: none; }
+.ride-note__back:hover          { color: var(--ride-accent); }
+
+/* Sidebar boxes — TOC, Factsheet, Meta, Cite. */
+.ride-sidebar__box              { margin-bottom: var(--ride-space-8); }
+.ride-sidebar__box h2           { font-size: var(--ride-text-h3); margin: 0 0 var(--ride-space-3); }
+
+.ride-toc                       { list-style: none; padding-left: 0; margin: 0; }
+.ride-toc li                    { margin-bottom: var(--ride-space-2); }
+
+.ride-factsheet                 { margin: 0; }
+.ride-factsheet__criteria       { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); }
+.ride-factsheet__score          { display: flex; align-items: center; gap: var(--ride-space-2); margin: 0 0 var(--ride-space-2); }
+.ride-factsheet__bar            { flex: 1; height: 6px; }
+.ride-factsheet__anomaly        { color: var(--ride-fg-secondary); font-size: var(--ride-text-tiny); }
+
+.ride-meta                      { margin: 0; }
+.ride-meta dt                   { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); }
+.ride-meta dd                   { margin: 0 0 var(--ride-space-2); }
+
+.ride-downloads                 { list-style: none; padding-left: 0; margin: var(--ride-space-3) 0 0; }
+.ride-downloads li              { margin-bottom: var(--ride-space-2); }
+
+.ride-cite__btn                 { display: block; width: 100%; padding: var(--ride-space-2) var(--ride-space-3); margin-top: var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; }
+.ride-cite__btn:hover           { background: var(--ride-rule); }
 
 /* ─── 6. Responsive breakpoints ──────────────────────────────────────── */
 
