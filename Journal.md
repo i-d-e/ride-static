@@ -30,6 +30,28 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 6 abgeschlossen, Stage 2.C steht
+
+**Ziel:** Bibliography- und Questionnaire-Modell plus Cross-Korpus-Aggregate (Tags, Reviewer, Reviewed Resources) — die ganze Phase 10-Vorbereitung in einem Schub. Damit ist der Datenvertrag für den Frontend-Claude breit genug, um Rezensionsseite (Bibliographie + Factsheet) und Aggregationsseiten zu bauen.
+
+**Erledigt:**
+- Commit 6.A (`70087b7`): `BibEntry`-Dataclass plus `parse_bibliography(text_el)`. `<listBibl>/<bibl>`-strukturierte Bibliographie aus dem `<back>`-Pfad, Filter gegen Inline-cit/bibl und Header-relatedItem. `Review.bibliography` als neues Feld; Section `<div type="bibliography">` behält ihren Heading, blocks bleiben leer (Architektur, kein Bug). 10 Tests, Korpus-Smoke ≥1300 Einträge gegen das Inventar von 1389.
+- Commit 6.B (`acdf66e`): `Questionnaire` plus `QuestionnaireAnswer`. Walker `parse_questionnaires(root)` über `teiHeader//taxonomy`, sammelt nur Leaf-Categories (keine geschachtelten `<category>`-Children) damit Sections und Questions nicht ihre Descendant-Nums erben. Korpus-Konvention zwei `<catDesc>` pro Leaf — der erste trägt das Label, der zweite den `<num>`; der Parser scant beide. `value="3"`-Anomalie bleibt als String erhalten. 8 Tests, Korpus-Smoke ≥19000 Antworten über 110 Taxonomien und 4 Kriterien-URLs. *(Anmerkung: dieser Commit hat versehentlich auch Frontend-Files mit-eingecheckt, weil zwischen meinem `git add` und `git commit` weitere Dateien gestaged waren. Hygiene-Lehre für die nächste Session.)*
+- Commit 6.C (`53530fe`): `src/parser/datasets.py` mit drei Cross-Korpus-Aggregaten — `aggregate_tags`, `aggregate_reviewers`, `aggregate_reviewed_resources`. Tags case-insensitive merged (TEI=tei), Reviewer per ORCID dedup mit Name-Fallback, Resources per Target-URL dedup. Alle drei sortiert für reproduzierbare URLs. 13 Tests; Korpus produziert 355 Tags, 106 Reviewer (107 Author-Attributionen, 1 deduped — Tobias Hodel mit 3 Reviews ist Top), 110 reviewed resources.
+
+**Entscheidungen:**
+- `<listBibl>` bleibt aus den Section-Blocks raus, lebt auf `Review.bibliography`. Begründung: Bibliographie ist strukturell separat, ein eigener Feld-Typ ist sauberer als ein `Bibliography`-Block-Kind im Section-Tree.
+- `BibEntry.inlines` ohne strukturierte Sub-Felder (kein eigener `title`/`date`/`editor`). Begründung: das Korpus benutzt `<bibl>` als annotiertes Freitext-Zitat, kein hochstrukturiertes biblStruct. Renderer kommen mit den Inlines aus; R2 (Citation Export) zielt auf die Rezension selbst, nicht ihre Bibliographie.
+- Questionnaire-Parser sammelt nur Leaves. Begründung: das Stage-0-Script `scripts/taxonomy.py` benutzt `cat.iter()` und over-attributiert dadurch jeden Num-Wert an alle Vorfahren. Für die Domänen-Schicht ist das semantisch falsch — Antworten gehören dem Leaf, nicht dem Section-Wrapper.
+- `value="3"`-Anomalie als String erhalten statt als sentinel-int. Begründung: ein Renderer kann verlässlich `value == "0"`/`"1"` matchen und „3" als Anomalie-Indikator separat behandeln, ohne dass der Parser inhaltlich entscheidet.
+- Aggregat-Datasets in `src/parser/datasets.py` (separate Datei vom per-review `src/parser/aggregate.py`). Begründung: Per-Review-Walks (Figures, Notes) und Cross-Korpus-Walks (Tags, Reviewer, Resources) sind unterschiedliche Konzern-Klassen; eine Datei wäre semantisch überfrachtet.
+
+**Offen:** Phase 7 — Ref-Resolver. Vier-Bucket-Logik für `<ref @target>`: lokal (`#xml-id` im selben Review), kriterien-extern (`#K…` gegen das Taxonomie-`@xml:base`), externe URL, sonstige. Asset-Pipeline für `<graphic @url>`-Bilder aus `../ride/issues/{n}/`. Wayback-Detector für Bibliographie-Refs. Sobald Phase 7 landet, kann der Frontend-Claude die Tooltip-Vorschau aus [[interface#11]] inhaltlich befüllen und Bilder korrekt referenzieren — heute rendern Figures noch mit den rohen TEI-`@url`-Werten.
+
+**Nächster Einstieg:** `src/parser/refs.py` (oder `src/resolver.py`) mit `resolve_ref(ref, review_context, criteria_index) -> ResolvedRef` als Vier-Bucket-Funktion. Dazu Asset-Pipeline-Vorbereitung: `src/build/assets.py` als Modul, das Bild-Pfade von `../ride/issues/{n}/figures/` nach `site/issues/{n}/{review_id}/figures/` umschreibt. Beides hat klare Test-Pfade (Synthetik + Korpus-Smoke). Der Frontend-Claude wartet darauf — frühe Auslieferung priorisieren.
+
+---
+
 ## 2026-04-29 — Phase 8 First Light, Frontend rendert 107 Reviews End-to-End
 
 **Ziel:** Aus dem Stage-2.B-Datenvertrag heraus den ersten lauffähigen Frontend-Strang aufsetzen — Jinja-Render-Macros für alle Block- und Inline-Kinds, Rezensionsseiten-Template gemäß [[interface#5]], Render-Layer plus Build-CLI, dazu der CI-Workflow für GitHub-Pages-Deploy. Ziel: ein `python -m src.build` baut alle 107 Reviews ohne Raise.

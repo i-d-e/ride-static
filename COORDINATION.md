@@ -22,7 +22,7 @@ Templates und Renderer sehen ausschließlich die Datenklassen aus
 Korpus-Zugriff. Eine Template, die `etree.parse(...)` ausführt, ist ein
 Bug — gleich beim Code-Review zurückweisen.
 
-**Stand Phase 5 (Stage 2.B abgeschlossen):**
+**Stand Phase 6 (Stage 2.C abgeschlossen):**
 
 ```python
 Review:
@@ -41,7 +41,22 @@ Review:
     back: tuple[Section, ...]            # Bibliographie heute leer (Phase 6)
     figures: tuple[Figure, ...]          # alle Figuren in Dokumentreihenfolge
     notes: tuple[Note, ...]              # alle Footnotes in Dokumentreihenfolge
+    bibliography: tuple[BibEntry, ...]   # back-Bibliographie (Phase 6.A)
+    questionnaires: tuple[Questionnaire, ...]  # Factsheet-Antworten (Phase 6.B)
     source_file: str
+
+BibEntry:
+    inlines: tuple[Inline, ...]
+    xml_id: Optional[str]                # Anker für <ref target="#bibX">
+    ref_target: Optional[str]            # canonical URL/DOI
+
+Questionnaire:
+    criteria_url: str                    # @xml:base — URL des Kriteriensets
+    answers: tuple[QuestionnaireAnswer, ...]
+
+QuestionnaireAnswer:
+    category_xml_id: str                 # Leaf-Category-ID, z.B. "se002" (=Yes)
+    value: str                           # "0" | "1" | "3" (Anomalie)
 
 Section:
     xml_id: str                          # echter @xml:id oder synthetisch (sec-1.2)
@@ -98,13 +113,31 @@ Note:
 
 Alle Klassen sind `frozen=True`-Dataclasses, alle Sequenzen sind `tuple[...]`.
 
-## Was vom Frontend NICHT angenommen werden darf (Phase 5 Stand)
+## Cross-Korpus-Aggregate (Phase 6.C)
 
-- `Review.bibliography` existiert noch nicht — Phase 6.
-- `Review.questionnaire` existiert noch nicht — Phase 6.
+Für Phase-10-Aggregationsseiten stehen drei Funktionen in
+`src/parser/datasets.py`:
+
+```python
+aggregate_tags(reviews)               -> tuple[TagAggregate, ...]
+aggregate_reviewers(reviews)          -> tuple[ReviewerAggregate, ...]
+aggregate_reviewed_resources(reviews) -> tuple[ReviewedResourceAggregate, ...]
+```
+
+Alle drei nehmen `tuple[Review, ...]` (das vollständig parsete Korpus)
+und liefern sortierte, deduplicate Aggregate. Tags sind
+case-insensitive merged; Reviewer per ORCID dedup mit Name-Fallback;
+Resources per erste Target-URL dedup. Der Frontend-Claude ruft sie
+einmal beim Build und reicht die Aggregate an die jeweiligen
+Templates.
+
+## Was vom Frontend NICHT angenommen werden darf (Phase 6 Stand)
+
 - `Reference.target` ist nicht aufgelöst — Phase 7. Render solange als rohes Attribut, ohne Tooltip-Vorschau und ohne Wayback-Branch.
 - `Figure.alt` ist im aktuellen Korpus immer `None`. Frontend muss Fallback liefern (`head`-Text oder `"Figure N"`); Phase 13 wird die Lücke als Build-Warnung aggregieren.
-- `Section.back` enthält den Bibliographie-`<div>`, aber dessen `blocks` sind heute `()` (Phase-6-Defer). Die Bibliographie selbst kommt in Phase 6 als eigenes `Review.bibliography`-Feld, nicht über `back.blocks`.
+- `Figure.graphic_url` zeigt aktuell auf den rohen TEI-`@url`-Wert (relative Pfade aus dem TEI). Asset-Pipeline aus Phase 7 schreibt sie auf `site/issues/{n}/{review_id}/figures/...` um. Bis dahin sind Bilder in den gerenderten Seiten broken.
+- `Section.back` enthält den Bibliographie-`<div>`, aber dessen `blocks` sind heute `()` (Architektur, kein Bug). Die Bibliographie lebt auf `Review.bibliography`, nicht über `back.blocks`.
+- Es gibt keine inline `xml:lang`-Markierung im Korpus. Section/Review-Lang reicht für Screenreader-Korrektheit.
 
 ## Wo darf wer Dateien anlegen?
 
@@ -138,14 +171,16 @@ dieses Dokument.** Memory ist privat, das Repo ist geteilt.
 
 ## Handover-Punkte (was wann fertig sein muss)
 
-- **Phase 6 abgeschlossen** → Frontend kann mit Bibliographie-Apparat,
-  Questionnaire/Factsheet und Tag-Aggregation beginnen.
-- **Phase 7 abgeschlossen** → Frontend kann Cross-Refs auflösen und die
-  Tooltip-Vorschau auf Inline-References (interface §11) wirklich
-  inhaltlich befüllen. Vorher: Refs als rohe Anker rendern.
-- **Phase 8 unter Frontend-Hoheit** → Backend liefert Domänenobjekte
-  und prüft den Datenvertrag, mischt sich in Templates / CSS / JS aber
-  nicht ein.
+- **Phase 6 abgeschlossen ✅** → Frontend kann Bibliographie-Apparat,
+  Questionnaire/Factsheet, Tag-Übersicht, Reviewer-Liste und
+  Reviewed-Resources-Tabelle bauen.
+- **Phase 7 in Arbeit (Backend nächster Sprint)** → schaltet Cross-Ref-
+  Tooltips, K-Ref-Auflösung und korrekte Bild-Pfade frei. Vorher: Refs
+  als rohe Anker, Bilder broken.
+- **Phase 8 unter Frontend-Hoheit, First Light geschippt ✅** —
+  `python -m src.build` rendert alle 107 Reviews. Backend liefert
+  Domänenobjekte und prüft den Datenvertrag, mischt sich in Templates /
+  CSS / JS aber nicht ein.
 
 ## Konflikt-Regeln
 
