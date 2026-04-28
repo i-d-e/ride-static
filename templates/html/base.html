@@ -53,6 +53,10 @@
 
   <link rel="stylesheet" href="{{ static_path('css/ride.css') }}">
 
+  {#- Empty favicon — silences the implicit /favicon.ico request the browser
+      makes on every page load. A real icon can replace this in static/. -#}
+  <link rel="icon" href="data:,">
+
   {#- Self-host fonts under static/fonts/ — interface.md §7 forbids external CDN. -#}
   {#- Concrete <link rel="preload"> entries land in Phase 8 once the WOFF2 files exist. -#}
 

@@ -39,30 +39,30 @@
       {%- endif -%}
 
       {#- Reviewer block: separate from the bibliographic one (§5). -#}
-      {%- if review.authors -%}
+      {%- if review.authors %}
       <div class="ride-review__authors">
         <h2 class="ride-sr-only">{{ site.strings.reviewers | default('Reviewers') }}</h2>
         <ul class="ride-review__author-list">
-          {%- for author in review.authors -%}
+          {%- for author in review.authors %}
             <li class="ride-review__author">
               <span class="ride-review__author-name">{{ author.person.full_name }}</span>
-              {%- if author.person.orcid -%}
+              {%- if author.person.orcid %}
                 <a class="ride-review__orcid" href="{{ author.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>
-              {%- endif -%}
-              {%- if author.affiliation -%}
+              {%- endif %}
+              {%- if author.affiliation %}
                 <span class="ride-review__affiliation">
-                  {%- if author.affiliation.org_name -%}{{ author.affiliation.org_name }}{%- endif -%}
+                  {%- if author.affiliation.org_name %}{{ author.affiliation.org_name }}{% endif -%}
                   {%- if author.affiliation.place_name %}, {{ author.affiliation.place_name }}{% endif -%}
                 </span>
-              {%- endif -%}
-              {%- if author.email -%}
+              {%- endif %}
+              {%- if author.email %}
                 <a class="ride-review__email" href="mailto:{{ author.email | obfuscate_mail }}">{{ author.email | obfuscate_mail }}</a>
-              {%- endif -%}
+              {%- endif %}
             </li>
-          {%- endfor -%}
+          {%- endfor %}
         </ul>
       </div>
-      {%- endif -%}
+      {%- endif %}
     </header>
 
     {%- if abstract_section -%}

@@ -276,6 +276,30 @@ hr {
 .ride-editorial                 { max-width: var(--ride-content-width); }
 .ride-editorial__updated        { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-12); }
 
+/* Review header — bibliographic block + reviewer block (interface.md §5). */
+.ride-review__header            { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-6); border-bottom: 1px solid var(--ride-rule); }
+.ride-review__title             { margin-top: 0; }
+.ride-review__reviewed          { margin-top: var(--ride-space-4); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
+.ride-review__bibl              { margin: 0 0 var(--ride-space-2); }
+
+.ride-review__authors           { margin-top: var(--ride-space-4); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); }
+.ride-review__author-list       { list-style: none; padding: 0; margin: 0; }
+.ride-review__author            { margin-bottom: var(--ride-space-3); }
+.ride-review__author-name       { font-weight: var(--ride-weight-medium); color: var(--ride-fg-primary); }
+.ride-review__orcid             { display: inline-block; margin-left: var(--ride-space-2); padding: 0 var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font-size: var(--ride-text-tiny); text-decoration: none; }
+.ride-review__affiliation       { display: block; color: var(--ride-fg-secondary); }
+.ride-review__email             { display: block; color: var(--ride-fg-secondary); }
+
+.ride-review__abstract          { background: var(--ride-bg-muted); padding: var(--ride-space-4) var(--ride-space-6); margin: var(--ride-space-6) 0; border-radius: 2px; }
+
+.ride-review__footer            { margin-top: var(--ride-space-12); padding-top: var(--ride-space-4); border-top: 1px solid var(--ride-rule); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
+.ride-review__footer p          { margin: 0 0 var(--ride-space-2); }
+
+/* Copy-link feedback popover — used by static/js/copy-link.js. */
+.ride-paragraph__anchor         { position: relative; }
+.ride-copy-feedback             { position: absolute; left: 100%; top: -2px; margin-left: var(--ride-space-3); padding: 2px 6px; background: var(--ride-fg-primary); color: var(--ride-bg); font-size: var(--ride-text-tiny); border-radius: 2px; white-space: nowrap; opacity: 0; transition: opacity 120ms ease-out; pointer-events: none; }
+.ride-copy-feedback--visible    { opacity: 1; }
+
 /* ─── 6. Responsive breakpoints ──────────────────────────────────────── */
 
 /* < 720px — sidebar collapses below content; apparate stacks. */

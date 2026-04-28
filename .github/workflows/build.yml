@@ -109,12 +109,17 @@ jobs:
       #   working-directory: ride-static
       #   run: python -m src.validate
 
-      # Phase 8+ — the actual site build. Skeleton until src/build.py exists.
+      # Phase 8+ — the actual site build.
+      # base-url is the path prefix under which Pages serves the site. For
+      # https://<owner>.github.io/<repo>/ this is "/<repo>" (the implicit
+      # GitHub-Pages-project-page convention). When a custom domain is
+      # configured (e.g. https://ride.i-d-e.de/), drop the flag so paths
+      # resolve from the root instead.
       - name: Build site (Phase 8+)
         working-directory: ride-static
         run: |
           if [ -f src/build.py ] || python -c "import src.build" 2>/dev/null; then
-            python -m src.build
+            python -m src.build --base-url=/${{ github.event.repository.name }}
           else
             echo "::warning::src.build is not implemented yet (Phase 8). Emitting placeholder site/."
             mkdir -p site
