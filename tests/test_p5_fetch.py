@@ -124,3 +124,61 @@ def test_fetch_p5_uses_cache(tmp_path: Path) -> None:
     # If the cache is honored, the URL is irrelevant — passing nonsense must not raise.
     result = p5_fetch.fetch_p5(url="http://invalid.invalid/never-fetched", dest=cache)
     assert result == cache
+
+
+# Fixture that chains classSpecs via <classes><memberOf/></classes> so the
+# transitive-closure logic in p5_fetch.run is actually exercised. Without
+# this, the existing fixture only walks one level of class membership.
+P5_STUB_TRANSITIVE = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <elementSpec ident="div" module="textstructure">
+    <classes>
+      <memberOf key="att.global"/>
+    </classes>
+    <attList/>
+  </elementSpec>
+  <classSpec ident="att.global" type="atts" module="tei">
+    <classes>
+      <memberOf key="att.global.linking"/>
+    </classes>
+    <attList><attDef ident="xml:id" usage="opt"/></attList>
+  </classSpec>
+  <classSpec ident="att.global.linking" type="atts" module="linking">
+    <classes>
+      <memberOf key="att.global.responsibility"/>
+    </classes>
+    <attList><attDef ident="corresp" usage="opt"/></attList>
+  </classSpec>
+  <classSpec ident="att.global.responsibility" type="atts" module="core">
+    <attList><attDef ident="resp" usage="opt"/></attList>
+  </classSpec>
+  <classSpec ident="att.unreached" type="atts" module="other">
+    <attList><attDef ident="ignored" usage="opt"/></attList>
+  </classSpec>
+</TEI>
+"""
+
+
+def test_transitive_class_membership(tmp_path: Path) -> None:
+    """A class transitively reachable via memberOf must end up in attribute_classes."""
+    p5 = tmp_path / "p5stub.xml"
+    p5.write_text(P5_STUB_TRANSITIVE, encoding="utf-8")
+    elements = tmp_path / "elements.json"
+    elements.write_text(json.dumps([{"name": "div", "count": 1}]), encoding="utf-8")
+    attributes = tmp_path / "attributes.json"
+    attributes.write_text(json.dumps([]), encoding="utf-8")
+    out = tmp_path / "tei-spec.json"
+
+    payload = p5_fetch.run(p5, elements, attributes, out)
+
+    # All three classes in the chain must be reached; the unrelated one must not.
+    assert set(payload["attribute_classes"].keys()) == {
+        "att.global",
+        "att.global.linking",
+        "att.global.responsibility",
+    }
+    # Each class records its own onward memberships so the cross-reference
+    # script can repeat the closure walk later.
+    assert payload["attribute_classes"]["att.global"]["classes"] == ["att.global.linking"]
+    assert payload["attribute_classes"]["att.global.linking"]["classes"] == ["att.global.responsibility"]
+    assert payload["attribute_classes"]["att.global.responsibility"]["classes"] == []

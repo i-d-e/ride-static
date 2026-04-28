@@ -20,7 +20,8 @@ from typing import Any
 
 from lxml import etree
 
-TEI_NS = "http://www.tei-c.org/ns/1.0"
+from _tei import TEI_NS, normalize
+
 P5_URL = "https://tei-c.org/release/xml/tei/odd/p5subset.xml"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -43,12 +44,8 @@ def fetch_p5(url: str = P5_URL, dest: Path = P5_CACHE) -> Path:
     return dest
 
 
-def _normalize(s: str | None) -> str:
-    return re.sub(r"\s+", " ", s or "").strip()
-
-
 def _first_sentence(s: str) -> str:
-    s = _normalize(s)
+    s = normalize(s)
     m = re.match(r"^(.*?[.!?])(\s|$)", s)
     return m.group(1) if m else s
 
@@ -78,7 +75,7 @@ def _extract_elementspec(spec: etree._Element, nsmap: dict[str, str]) -> dict[st
     return {
         "ident": spec.get("ident"),
         "module": spec.get("module"),
-        "gloss": _normalize(_itertext(gloss_el)) or None,
+        "gloss": normalize(_itertext(gloss_el)) or None,
         "desc": _first_sentence(_itertext(desc_el)) or None,
         "classes": classes,
         "attributes_direct": _extract_attdefs(spec, nsmap),

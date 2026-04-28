@@ -19,7 +19,7 @@ from typing import Any
 
 from lxml import etree
 
-TEI_NS = "http://www.tei-c.org/ns/1.0"
+from _tei import is_tei_element, localname
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -28,14 +28,6 @@ OUT_DIR = REPO_ROOT / "inventory"
 TOP_CHILD_SEQUENCES = 20
 TOP_ANCESTOR_PATHS = 10
 TOP_CHILDREN = 30
-
-
-def localname(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
-
-
-def is_tei_element(node: etree._Element) -> bool:
-    return isinstance(node.tag, str) and node.tag.startswith(f"{{{TEI_NS}}}")
 
 
 def child_element_names(node: etree._Element) -> list[str]:

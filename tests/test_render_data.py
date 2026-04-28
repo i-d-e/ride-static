@@ -283,3 +283,42 @@ def test_unassigned_section_only_when_needed(seeded: tuple[Path, Path]) -> None:
     text = render_data.render(inventory, out, today="2026-04-28")
     # The seed fixture's elements are all in groups; no unassigned section expected.
     assert "Unassigned elements" not in text
+
+
+def test_unassigned_section_appears_for_unknown_element(tmp_path: Path) -> None:
+    """An element that is in elements.json but not in any FUNCTIONAL_GROUP
+    must surface in the catch-all 'Unassigned elements' section so it cannot
+    silently drop off the document."""
+    inventory = tmp_path / "inventory"
+    out = tmp_path / "knowledge" / "data.md"
+    _seed(inventory)
+    # Append a fake element that no group claims.
+    elems = json.loads((inventory / "elements.json").read_text(encoding="utf-8"))
+    elems.append({"name": "phantom", "count": 1, "file_count": 1, "attributes": {}})
+    (inventory / "elements.json").write_text(json.dumps(elems), encoding="utf-8")
+
+    text = render_data.render(inventory, out, today="2026-04-28")
+    assert "### Unassigned elements" in text
+    assert "- `<phantom>`" in text
+
+
+def test_findings_section_omitted_when_no_mismatches(tmp_path: Path) -> None:
+    """If cross-reference reports no violations and no attrs-outside-P5,
+    the entire 'Schema vs. corpus mismatches' section is dropped (we don't
+    want a section that says '_None._')."""
+    inventory = tmp_path / "inventory"
+    out = tmp_path / "knowledge" / "data.md"
+    _seed(inventory)
+    # Override cross-reference.json to report a clean corpus.
+    (inventory / "cross-reference.json").write_text(json.dumps({
+        "summary": {
+            "elements_total": 0,
+            "elements_absent_from_p5": [],
+            "elements_with_attrs_outside_p5": [],
+            "elements_with_value_violations": [],
+        },
+        "elements": {},
+    }), encoding="utf-8")
+
+    text = render_data.render(inventory, out, today="2026-04-28")
+    assert "Schema vs. corpus mismatches" not in text

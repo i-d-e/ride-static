@@ -13,31 +13,19 @@ Output (in inventory/ at repo root):
 from __future__ import annotations
 
 import json
-import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 from lxml import etree
 
-TEI_NS = "http://www.tei-c.org/ns/1.0"
-XML_NS = "http://www.w3.org/XML/1998/namespace"
+from _tei import TEI_NS, XML_NS, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 OUT_DIR = REPO_ROOT / "inventory"
 
 HEAD_TEXT_LEN = 200
-
-
-def localname(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
-
-
-def normalize(s: str | None) -> str:
-    if not s:
-        return ""
-    return re.sub(r"\s+", " ", s).strip()
 
 
 def head_text(div: etree._Element) -> str | None:

@@ -141,13 +141,22 @@ def test_attrs_outside_p5_detected(fixture_paths: tuple[Path, Path, Path, Path])
     assert "head" not in payload["summary"]["elements_with_attrs_outside_p5"]
 
 
-def test_value_list_violations(fixture_paths: tuple[Path, Path, Path, Path]) -> None:
+def test_no_violation_when_empirical_values_match_odd(
+    fixture_paths: tuple[Path, Path, Path, Path],
+) -> None:
+    """ODD allows [abstract, bibliography]; corpus uses both -> no violations."""
     e, t, o, out = fixture_paths
-    # ODD allows ["abstract","bibliography"]; empirical has those (no violation).
     payload = cross_reference.run(e, t, o, out)
     div = payload["elements"]["div"]
     assert div["diff"]["value_list_violations"] == {}
-    # Now inject an empirical value not in ODD list.
+    assert "div" not in payload["summary"]["elements_with_value_violations"]
+
+
+def test_violation_reported_when_value_outside_odd(
+    fixture_paths: tuple[Path, Path, Path, Path],
+) -> None:
+    """Adding an out-of-list value to elements.json triggers a violation."""
+    e, t, o, out = fixture_paths
     elements_with_bad = json.loads(e.read_text(encoding="utf-8"))
     elements_with_bad[0]["attributes"]["type"]["values"].append(["appendix", 1])
     e.write_text(json.dumps(elements_with_bad), encoding="utf-8")

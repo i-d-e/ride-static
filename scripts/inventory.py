@@ -13,15 +13,13 @@ Run from repo root or anywhere; paths are derived from this file's location.
 from __future__ import annotations
 
 import json
-import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
 from lxml import etree
 
-TEI_NS = "http://www.tei-c.org/ns/1.0"
-XML_NS = "http://www.w3.org/XML/1998/namespace"
+from _tei import TEI_NS, XML_NS, attr_localname, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -38,26 +36,8 @@ SAMPLE_TEXT_LEN = 120
 STRUCTURING_ATTRS = frozenset({"type", "subtype", "role", "cert", "n"})
 
 
-def localname(tag: str) -> str:
-    """Strip namespace from a Clark-notation tag."""
-    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
-
-
-def attr_localname(name: str) -> str:
-    """Render attribute name with `xml:` prefix preserved, others stripped."""
-    if name.startswith(f"{{{XML_NS}}}"):
-        return "xml:" + name[len(XML_NS) + 2 :]
-    return localname(name)
-
-
-def normalize_text(s: str | None) -> str:
-    if not s:
-        return ""
-    return re.sub(r"\s+", " ", s).strip()
-
-
 def text_sample(el: etree._Element) -> str:
-    text = normalize_text("".join(el.itertext()))
+    text = normalize("".join(el.itertext()))
     if len(text) > SAMPLE_TEXT_LEN:
         text = text[:SAMPLE_TEXT_LEN].rstrip() + "…"
     return text
@@ -125,7 +105,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
             review_languages[lang_el.get("ident")] += 1
 
         for date_el in root.findall(".//t:publicationStmt/t:date", nsmap):
-            when = date_el.get("when") or normalize_text(date_el.text)
+            when = date_el.get("when") or normalize(date_el.text)
             if when:
                 publication_dates.append(when)
 

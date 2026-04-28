@@ -94,14 +94,10 @@ def fixture_path(tmp_path: Path) -> Path:
     return p
 
 
-def test_returns_review_instance(fixture_path: Path) -> None:
-    review = parse_review(fixture_path)
-    assert isinstance(review, Review)
-    assert review.source_file == "sample-tei.xml"
-
-
 def test_top_level_fields(fixture_path: Path) -> None:
     r = parse_review(fixture_path)
+    assert isinstance(r, Review)
+    assert r.source_file == "sample-tei.xml"
     assert r.id == "ride.99.42"
     assert r.issue == "99"
     assert r.title.startswith("A review of a digital edition")
@@ -172,3 +168,71 @@ def test_smoke_real_corpus_smallest_file() -> None:
     assert r.authors  # every review has at least one author per Schematron
     assert r.editors  # every review has editors
     assert any(ri.type == "reviewed_resource" for ri in r.related_items)
+
+
+# Minimal review with optional fields stripped — covers what the parser must
+# tolerate when reality differs from the maximal fixture used above.
+MINIMAL_FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="ride.0.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Bare-bones review</title>
+        <author>
+          <name>Solo Author</name>
+        </author>
+      </titleStmt>
+      <publicationStmt>
+        <date when="2020-01-01">January 2020</date>
+        <availability><licence target="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</licence></availability>
+      </publicationStmt>
+      <seriesStmt>
+        <editor>Lone Editor</editor>
+        <biblScope n="1"/>
+      </seriesStmt>
+      <sourceDesc><p>x</p></sourceDesc>
+    </fileDesc>
+    <profileDesc>
+      <langUsage><language ident="en">English</language></langUsage>
+    </profileDesc>
+  </teiHeader>
+  <text><body><div><p>x</p></div></body></text>
+</TEI>
+"""
+
+
+@pytest.fixture
+def minimal_path(tmp_path: Path) -> Path:
+    p = tmp_path / "minimal-tei.xml"
+    p.write_text(MINIMAL_FIXTURE, encoding="utf-8")
+    return p
+
+
+def test_author_without_affiliation_or_email(minimal_path: Path) -> None:
+    """Authors with only a <name>, no <affiliation>/<email>/@ref, must produce
+    a valid Author with optional fields set to None."""
+    r = parse_review(minimal_path)
+    assert len(r.authors) == 1
+    a = r.authors[0]
+    assert a.person.full_name == "Solo Author"
+    assert a.person.orcid is None
+    assert a.affiliation is None
+    assert a.email is None
+
+
+def test_editor_with_plain_text_no_name_child(minimal_path: Path) -> None:
+    """Editors written as <editor>Plain text</editor> (no <name> child, no
+    @ref, no @role) must still produce a usable Editor."""
+    r = parse_review(minimal_path)
+    assert len(r.editors) == 1
+    e = r.editors[0]
+    assert e.person.full_name == "Lone Editor"
+    assert e.person.forename is None and e.person.surname is None
+    assert e.person.orcid is None
+    assert e.role is None
+
+
+def test_review_without_keywords(minimal_path: Path) -> None:
+    """A review whose <profileDesc> has no <keywords> must yield an empty tuple."""
+    r = parse_review(minimal_path)
+    assert r.keywords == ()
