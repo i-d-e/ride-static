@@ -3,471 +3,472 @@ generated: 2026-04-28
 source: scripts/render_data.py
 inputs:
   - inventory/elements.json
-  - inventory/attributes.json
-  - inventory/corpus-stats.json
-  - inventory/sections.json
   - inventory/structure.json
+  - inventory/sections.json
   - inventory/cross-reference.json
+  - inventory/odd-summary.json
+  - inventory/tei-spec.json
 ---
 
-# RIDE Corpus Data
-
-> Generated from `inventory/*.json`. Re-run `python scripts/render_data.py` whenever the corpus or extractor scripts change.
-
-## Overview
-
-- **Reviews:** 107
-- **Total elements:** 134,951
-- **Distinct elements:** 77
-- **Distinct attributes:** 24
-- **Publication dates:** 2014-06 – 2026-03
-- **Issues:** 22 (no. 1 – 22)
-- **Languages:** English (70), German (34), French (2), Italian (1)
-- **Distinct editors (ORCID):** 28
-- **Licence:** http://creativecommons.org/licenses/by/4.0/ (107/107)
-
-## Section types (`<div type>`)
-
-| Type | Count | Coverage |
-| --- | --- | --- |
-| abstract | 107 | 100% |
-| bibliography | 100 | 93% |
-| appendix | 1 | 1% |
-
-- **Sections without `<head>`:** 215
-- **Reviews without a bibliography section (7):** `berliner-intellektuelle-tei.xml`, `busoni-nachlass-tei.xml`, `tustep-tei.xml`, `twain-tei.xml`, `victorians-tei.xml`, `wba_upgrade-tei.xml`, `wega-tei.xml`
-
-## Most-used elements (top 20)
-
-| Element | Occurrences | Files |
-| --- | --- | --- |
-| `catDesc` | 47,755 | 107 |
-| `category` | 26,085 | 107 |
-| `num` | 20,053 | 107 |
-| `ref` | 9,916 | 107 |
-| `emph` | 5,055 | 104 |
-| `p` | 3,809 | 107 |
-| `note` | 1,926 | 98 |
-| `head` | 1,917 | 107 |
-| `bibl` | 1,670 | 107 |
-| `div` | 1,249 | 107 |
-| `respStmt` | 1,049 | 95 |
-| `resp` | 1,049 | 95 |
-| `persName` | 1,049 | 95 |
-| `figure` | 874 | 106 |
-| `term` | 846 | 107 |
-| `gloss` | 844 | 87 |
-| `graphic` | 833 | 104 |
-| `code` | 727 | 50 |
-| `editor` | 712 | 107 |
-| `idno` | 645 | 107 |
-
-## Most-used attributes (top 15)
-
-| Attribute | Occurrences | Distinct values |
-| --- | --- | --- |
-| `@xml:id` | 32,665 | 2788 |
-| `@type` | 23,924 | 15 |
-| `@value` | 20,053 | 3 |
-| `@target` | 10,023 | 3219 |
-| `@corresp` | 1,112 | 5 |
-| `@url` | 833 | 832 |
-| `@ref` | 810 | 161 |
-| `@role` | 681 | 6 |
-| `@rows` | 251 | 1 |
-| `@cols` | 251 | 1 |
-| `@rend` | 192 | 18 |
-| `@unit` | 164 | 2 |
-| `@n` | 124 | 31 |
-| `@when` | 114 | 29 |
-| `@xml:base` | 110 | 4 |
-
-## Findings
-
-### Attributes outside the P5 spec
-
-- `<taxonomy>`: `@m`
-
-### Closed value-list violations (vs. `ride.odd`)
-
-- `<num>/@type`: corpus uses `boolean`×20053; ODD allows [`cardinal`, `ordinal`, `fraction`, `percentage`]
-- `<ref>/@type`: corpus uses `crosssref`×1; ODD allows [`crossref`, `bibl`]
-- `<list>/@rend`: corpus uses `numbered`×8, `unordered`×2; ODD allows [`bulleted`, `ordered`, `labeled`]
-
-### Sections without a `<head>`
-
-215 of all `<div>` sections have no immediate `<head>`. Templates must provide a fallback (e.g. derived from `xml:id` or position).
-
-## Element index
-
-Compact reference for every element used in the corpus.
-
-### `<TEI>`
-- Occurrences: **107** in 107 review(s)
-- Attributes: `@xml:id` (107, 100%)
-- Top children: `teiHeader`×107, `text`×107
-- Frequent child sequences: `[teiHeader, text]` (107)
-
-### `<add>`
-- Occurrences: **5** in 1 review(s)
-- Top children: `ref`×2
-- Frequent child sequences: `[ref]` (2)
-
-### `<affiliation>`
-- Occurrences: **120** in 107 review(s)
-- Top children: `orgName`×119, `placeName`×119
-- Frequent child sequences: `[orgName, placeName]` (117); `[orgName, placeName, placeName]` (1)
-
-### `<author>`
-- Occurrences: **119** in 107 review(s)
-- Attributes: `@ref` (105, 88%)
-- Top children: `name`×119, `affiliation`×119, `email`×119
-- Frequent child sequences: `[name, affiliation, email]` (119)
-
-### `<availability>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `licence`×107
-- Frequent child sequences: `[licence]` (107)
-
-### `<back>`
-- Occurrences: **100** in 100 review(s)
-- Top children: `div`×100
-- Frequent child sequences: `[div]` (100)
-
-### `<bibl>`
-- Occurrences: **1,670** in 107 review(s)
-- Attributes: `@xml:id` (588, 35%)
-- Top children: `emph`×1078, `respStmt`×1049, `ref`×1016, `date`×220, `title`×110
-- Frequent child sequences: `[emph, ref]` (518); `[emph]` (417)
-
-### `<biblScope>`
-- Occurrences: **107** in 107 review(s)
-- Attributes: `@unit` (107, 100%), `@n` (107, 100%)
-
-### `<body>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `div`×622, `p`×40, `cit`×3
-- Frequent child sequences: `[div, div, div, div, div, div]` (27); `[div, div, div, div, div]` (16)
-
-### `<catDesc>`
-- Occurrences: **47,755** in 107 review(s)
-- Top children: `num`×20053, `ref`×5209, `gloss`×844
-- Frequent child sequences: `[num]` (20053); `[ref]` (5209)
-
-### `<category>`
-- Occurrences: **26,085** in 107 review(s)
-- Attributes: `@xml:id` (24526, 94%), `@corresp` (1112, 4%)
-- Top children: `catDesc`×47755, `category`×25458, `desc`×416
-- Frequent child sequences: `[catDesc, catDesc]` (14881); `[catDesc]` (3420)
-
-### `<cell>`
-- Occurrences: **349** in 8 review(s)
-- Attributes: `@role` (241, 69%), `@rows` (213, 61%), `@cols` (213, 61%)
-- Top children: `ref`×22, `figure`×22, `hi`×10, `note`×8, `emph`×3
-- Frequent child sequences: `[ref]` (22); `[figure]` (22)
-
-### `<change>`
-- Occurrences: **7** in 2 review(s)
-- Attributes: `@when` (7, 100%), `@resp` (7, 100%), `@xml:id` (7, 100%)
-
-### `<cit>`
-- Occurrences: **84** in 34 review(s)
-- Top children: `quote`×84, `bibl`×64
-- Frequent child sequences: `[quote, bibl]` (64); `[quote]` (20)
-
-### `<classDecl>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `taxonomy`×110
-- Frequent child sequences: `[taxonomy]` (105); `[taxonomy, taxonomy]` (1)
-
-### `<code>`
-- Occurrences: **727** in 50 review(s)
-
-### `<date>`
-- Occurrences: **327** in 107 review(s)
-- Attributes: `@type` (220, 67%), `@when` (107, 33%)
-
-### `<del>`
-- Occurrences: **9** in 3 review(s)
-- Top children: `ref`×2, `emph`×1
-- Frequent child sequences: `[ref]` (2); `[emph]` (1)
-
-### `<desc>`
-- Occurrences: **417** in 20 review(s)
-
-### `<div>`
-- Occurrences: **1,249** in 107 review(s)
-- Attributes: `@xml:id` (1040, 83%), `@type` (208, 17%)
-- Top children: `p`×3660, `head`×1034, `div`×420, `listBibl`×102, `table`×5
-- Frequent child sequences: `[head, p, p]` (190); `[head, p, p, p]` (167)
-
-### `<editor>`
-- Occurrences: **712** in 107 review(s)
-- Attributes: `@ref` (597, 84%), `@role` (374, 52%)
-
-### `<eg>`
-- Occurrences: **41** in 14 review(s)
-- Attributes: `@xml:space` (14, 34%)
-- Top children: `lb`×362, `space`×57
-- Frequent child sequences: `[lb, lb, lb, lb, lb]` (5); `[lb, lb, lb, lb, lb, lb, lb, lb, lb]` (3)
-
-### `<email>`
-- Occurrences: **119** in 107 review(s)
-
-### `<emph>`
-- Occurrences: **5,055** in 104 review(s)
-- Top children: `ref`×16, `emph`×1
-- Frequent child sequences: `[ref]` (16); `[emph]` (1)
-
-### `<encodingDesc>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `classDecl`×107
-- Frequent child sequences: `[classDecl]` (107)
-
-### `<figure>`
-- Occurrences: **874** in 106 review(s)
-- Attributes: `@xml:id` (874, 100%)
-- Top children: `head`×874, `graphic`×833, `eg`×41
-- Frequent child sequences: `[graphic, head]` (833); `[eg, head]` (41)
-
-### `<fileDesc>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `sourceDesc`×108, `titleStmt`×107, `publicationStmt`×107, `seriesStmt`×107, `notesStmt`×107
-- Frequent child sequences: `[titleStmt, publicationStmt, seriesStmt, notesStmt, sourceDesc]` (106); `[titleStmt, publicationStmt, seriesStmt, notesStmt, sourceDesc, sourceDesc]` (1)
-
-### `<forename>`
-- Occurrences: **119** in 107 review(s)
-
-### `<front>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `div`×107
-- Frequent child sequences: `[div]` (107)
-
-### `<gloss>`
-- Occurrences: **844** in 87 review(s)
-
-### `<graphic>`
-- Occurrences: **833** in 104 review(s)
-- Attributes: `@url` (833, 100%)
-
-### `<head>`
-- Occurrences: **1,917** in 107 review(s)
-- Attributes: `@type` (874, 46%)
-- Top children: `emph`×131, `ref`×84, `note`×16, `code`×13, `hi`×1
-- Frequent child sequences: `[emph]` (77); `[ref]` (64)
-
-### `<hi>`
-- Occurrences: **71** in 25 review(s)
-- Attributes: `@rend` (70, 99%), `@xml:space` (1, 1%), `@style` (1, 1%)
-
-### `<idno>`
-- Occurrences: **645** in 107 review(s)
-- Attributes: `@type` (645, 100%)
-
-### `<item>`
-- Occurrences: **496** in 45 review(s)
-- Attributes: `@n` (6, 1%)
-- Top children: `emph`×110, `code`×92, `ref`×45, `note`×36, `label`×6
-- Frequent child sequences: `[emph]` (38); `[code]` (32)
-
-### `<keywords>`
-- Occurrences: **107** in 107 review(s)
-- Attributes: `@xml:lang` (107, 100%)
-- Top children: `term`×846
-- Frequent child sequences: `[term, term, term, term, term]` (24); `[term, term, term, term, term, term]` (18)
-
-### `<label>`
-- Occurrences: **6** in 1 review(s)
-
-### `<langUsage>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `language`×107
-- Frequent child sequences: `[language]` (107)
-
-### `<language>`
-- Occurrences: **107** in 107 review(s)
-- Attributes: `@ident` (107, 100%)
-
-### `<lb>`
-- Occurrences: **396** in 18 review(s)
-
-### `<licence>`
-- Occurrences: **107** in 107 review(s)
-- Attributes: `@target` (107, 100%)
-
-### `<list>`
-- Occurrences: **121** in 45 review(s)
-- Attributes: `@rend` (121, 100%)
-- Top children: `item`×496, `figure`×1
-- Frequent child sequences: `[item, item, item]` (37); `[item, item, item, item]` (22)
-
-### `<listBibl>`
-- Occurrences: **102** in 99 review(s)
-- Top children: `bibl`×1389, `head`×4
-- Frequent child sequences: `[bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl]` (9); `[bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl, bibl]` (8)
-
-### `<listChange>`
-- Occurrences: **2** in 2 review(s)
-- Attributes: `@type` (2, 100%)
-- Top children: `change`×7
-- Frequent child sequences: `[change, change, change, change, change, change]` (1); `[change]` (1)
-
-### `<mod>`
-- Occurrences: **7** in 2 review(s)
-- Attributes: `@change` (7, 100%), `@xml:id` (7, 100%), `@n` (7, 100%)
-- Top children: `note`×7, `subst`×5, `del`×1
-- Frequent child sequences: `[subst, note]` (5); `[del, note]` (1)
-
-### `<name>`
-- Occurrences: **274** in 107 review(s)
-- Top children: `forename`×119, `surname`×119
-- Frequent child sequences: `[forename, surname]` (119)
-
-### `<note>`
-- Occurrences: **1,926** in 98 review(s)
-- Attributes: `@xml:id` (1919, 100%)
-- Top children: `ref`×1675, `emph`×453, `code`×51, `hi`×5, `p`×1
-- Frequent child sequences: `[ref]` (1017); `[ref, ref]` (122)
-
-### `<notesStmt>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `relatedItem`×217
-- Frequent child sequences: `[relatedItem, relatedItem]` (105); `[relatedItem, relatedItem, relatedItem]` (1)
-
-### `<num>`
-- Occurrences: **20,053** in 107 review(s)
-- Attributes: `@type` (20053, 100%), `@value` (20053, 100%)
-
-### `<orgName>`
-- Occurrences: **119** in 107 review(s)
-
-### `<p>`
-- Occurrences: **3,809** in 107 review(s)
-- Attributes: `@xml:id` (3590, 94%), `@rend` (1, 0%), `@style` (1, 0%)
-- Top children: `emph`×3250, `note`×1843, `ref`×1838, `figure`×850, `code`×525
-- Frequent child sequences: `[emph]` (266); `[note]` (206)
-
-### `<persName>`
-- Occurrences: **1,049** in 95 review(s)
-- Top children: `name`×155
-- Frequent child sequences: `[name]` (155)
-
-### `<placeName>`
-- Occurrences: **119** in 106 review(s)
-- Attributes: `@ref` (108, 91%)
-
-### `<profileDesc>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `langUsage`×107, `textClass`×107
-- Frequent child sequences: `[langUsage, textClass]` (107)
-
-### `<publicationStmt>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `idno`×321, `publisher`×107, `date`×107, `availability`×107
-- Frequent child sequences: `[publisher, date, idno, idno, idno, availability]` (107)
-
-### `<publisher>`
-- Occurrences: **107** in 107 review(s)
-
-### `<quote>`
-- Occurrences: **84** in 34 review(s)
-- Top children: `lb`×25, `emph`×16, `note`×11, `code`×10, `ref`×7
-- Frequent child sequences: `[note]` (8); `[emph]` (7)
-
-### `<ref>`
-- Occurrences: **9,916** in 107 review(s)
-- Attributes: `@target` (9916, 100%), `@type` (1705, 17%)
-- Top children: `emph`×11
-- Frequent child sequences: `[emph]` (11)
-
-### `<relatedItem>`
-- Occurrences: **217** in 107 review(s)
-- Attributes: `@type` (217, 100%), `@xml:id` (5, 2%)
-- Top children: `bibl`×217
-- Frequent child sequences: `[bibl]` (217)
-
-### `<resp>`
-- Occurrences: **1,049** in 95 review(s)
-
-### `<respStmt>`
-- Occurrences: **1,049** in 95 review(s)
-- Top children: `resp`×1049, `persName`×1049
-- Frequent child sequences: `[resp, persName]` (1049)
-
-### `<revisionDesc>`
-- Occurrences: **2** in 2 review(s)
-- Top children: `listChange`×2
-- Frequent child sequences: `[listChange]` (2)
-
-### `<row>`
-- Occurrences: **73** in 8 review(s)
-- Attributes: `@role` (66, 90%), `@rows` (38, 52%), `@cols` (38, 52%)
-- Top children: `cell`×349
-- Frequent child sequences: `[cell, cell, cell, cell]` (23); `[cell, cell]` (17)
-
-### `<seg>`
-- Occurrences: **1** in 1 review(s)
-- Attributes: `@xml:space` (1, 100%)
-
-### `<seriesStmt>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `editor`×602, `idno`×214, `title`×107, `biblScope`×107
-- Frequent child sequences: `[title, editor, editor, editor, editor, editor, editor, biblScope, idno, idno]` (36); `[title, editor, editor, editor, editor, editor, editor, editor, biblScope, idno, idno]` (23)
-
-### `<sourceDesc>`
-- Occurrences: **108** in 107 review(s)
-- Top children: `p`×108
-- Frequent child sequences: `[p]` (108)
-
-### `<space>`
-- Occurrences: **57** in 2 review(s)
-- Attributes: `@unit` (57, 100%), `@quantity` (57, 100%)
-
-### `<subst>`
-- Occurrences: **5** in 1 review(s)
-- Top children: `del`×5, `add`×5
-- Frequent child sequences: `[del, add]` (5)
-
-### `<surname>`
-- Occurrences: **119** in 107 review(s)
-
-### `<table>`
-- Occurrences: **12** in 8 review(s)
-- Attributes: `@xml:id` (2, 17%)
-- Top children: `row`×73, `head`×5
-- Frequent child sequences: `[row, row]` (2); `[row, row, row]` (2)
-
-### `<taxonomy>`
-- Occurrences: **110** in 107 review(s)
-- Attributes: `@xml:base` (110, 100%), `@n` (4, 4%), `@m` (1, 1%)
-- Top children: `category`×627, `desc`×1
-- Frequent child sequences: `[category, category, category, category, category]` (73); `[category, category, category, category, category, category, category, category]` (19)
-
-### `<teiHeader>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `fileDesc`×107, `encodingDesc`×107, `profileDesc`×107, `revisionDesc`×2
-- Frequent child sequences: `[fileDesc, encodingDesc, profileDesc]` (104); `[fileDesc, encodingDesc, profileDesc, revisionDesc]` (2)
-
-### `<term>`
-- Occurrences: **846** in 107 review(s)
-
-### `<text>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `front`×107, `body`×107, `back`×100
-- Frequent child sequences: `[front, body, back]` (100); `[front, body]` (7)
-
-### `<textClass>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `keywords`×107
-- Frequent child sequences: `[keywords]` (107)
-
-### `<title>`
-- Occurrences: **324** in 107 review(s)
-- Attributes: `@level` (107, 33%)
-- Top children: `emph`×1
-- Frequent child sequences: `[emph]` (1)
-
-### `<titleStmt>`
-- Occurrences: **107** in 107 review(s)
-- Top children: `author`×119, `title`×107
-- Frequent child sequences: `[title, author]` (97); `[title, author, author]` (8)
+# RIDE TEI Structure Reference
+
+> Structural knowledge for code that walks the RIDE corpus. Lists what each element contains, what attributes it carries, and the rules a script can rely on. Re-run `python scripts/render_data.py` after the inventory changes.
+
+## Document patterns
+
+Rules that hold for every RIDE TEI document, derived from the inventory:
+
+- Document root is `<TEI>` with children `[teiHeader, text]` (always).
+- `<text>` children appear in two shapes: `[front, body, back]`, `[front, body]`. The shorter shape is reviews without back-matter. Code must accept both.
+- 7 reviews omit `<back>` entirely (no bibliography, no appendix): `berliner-intellektuelle-tei.xml`, `busoni-nachlass-tei.xml`, `tustep-tei.xml`, `twain-tei.xml`, `victorians-tei.xml`, `wba_upgrade-tei.xml`, `wega-tei.xml`.
+- `<fileDesc>` children are `[titleStmt, publicationStmt, seriesStmt, notesStmt, sourceDesc]` in fixed order. Anomaly: one review duplicates `<sourceDesc>`.
+- `<publicationStmt>` children are `[publisher, date, idno, idno, idno, availability]` in every review.
+- `<num>` carries the RIDE questionnaire payload (the dominant element by occurrence). It always sits inside `<catDesc>` and always has `@type` ∈ {`boolean`} with `@value` ∈ {`0`, `1`, `3`}. `@value` outside `0` / `1` should be treated as a data anomaly.
+- `<row>` and `<cell>` always carry `@rows="1"` and `@cols="1"`. No merged cells exist in this corpus; the attributes are redundant noise.
+- A non-trivial fraction of `<div>` elements lacks a `<head>` child. Code must derive a section title from `@xml:id` or position.
+- `<body>` usually starts with `<div>`, but in some reviews it starts with `<p>` or `<cit>` — these are flat-content reviews (no top-level `<div>` wrapping).
+- Classification chain: `<encodingDesc>` → `<classDecl>` → `<taxonomy>` → `<category>` (recursive) → `<catDesc>` → `<num>` | `<ref>` | `<gloss>`. This chain encodes the structured part of every RIDE review.
+
+## Schema vs. corpus mismatches
+
+Cases where the empirical corpus does not match `ride.odd`. Each item is either a stale schema rule or a real data anomaly:
+
+- `<taxonomy>/@m` is not documented in TEI P5 — likely a custom or stale attribute. Code should not rely on it.
+- `<num>/@type`: corpus uses `boolean` which are not in the `ride.odd` closed list [`cardinal`, `ordinal`, `fraction`, `percentage`]. Either the schema is stale or the data has typos.
+- `<ref>/@type`: corpus uses `crosssref` which are not in the `ride.odd` closed list [`crossref`, `bibl`]. Either the schema is stale or the data has typos.
+- `<list>/@rend`: corpus uses `numbered`, `unordered` which are not in the `ride.odd` closed list [`bulleted`, `ordered`, `labeled`]. Either the schema is stale or the data has typos.
+
+## Functional element reference
+
+### Document skeleton
+
+#### `<TEI>`
+- Appears at document root.
+- Children: `[teiHeader, text]` (always).
+- Attributes:
+  - `@xml:id` — always; open (free identifier or URL)
+
+#### `<teiHeader>`
+- Appears under `TEI`.
+- Children: `[fileDesc, encodingDesc, profileDesc]` (always).
+
+#### `<text>`
+- Appears under `TEI`.
+- Children: typically `[front, body, back]`; sometimes `[front, body]`.
+
+
+### Header — file description
+
+#### `<fileDesc>`
+- Appears under `TEI/teiHeader`.
+- Children: `[titleStmt, publicationStmt, seriesStmt, notesStmt, sourceDesc]` (always).
+
+#### `<titleStmt>`
+- Appears under `TEI/teiHeader/fileDesc`.
+- Children: typically `[title, author]`; sometimes `[title, author, author]`.
+
+#### `<publicationStmt>`
+- Appears under `TEI/teiHeader/fileDesc`.
+- Children: `[publisher, date, idno, idno, idno, availability]` (always).
+
+#### `<seriesStmt>`
+- Appears under `TEI/teiHeader/fileDesc`.
+- Common children: `editor`, `idno`, `title`, `biblScope`.
+
+#### `<notesStmt>`
+- Appears under `TEI/teiHeader/fileDesc`.
+- Children: `[relatedItem, relatedItem]` (always).
+
+#### `<sourceDesc>`
+- Appears under `TEI/teiHeader/fileDesc`.
+- Children: `[p]` (always).
+
+
+### Header — encoding & classification
+
+#### `<encodingDesc>`
+- Appears under `TEI/teiHeader`.
+- Children: `[classDecl]` (always).
+
+#### `<classDecl>`
+- Appears under `TEI/teiHeader/encodingDesc`.
+- Children: `[taxonomy]` (always).
+
+#### `<taxonomy>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl`.
+- Common children: `category`, `desc`.
+- Attributes:
+  - `@xml:base` — always; values: `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/`, `http://www.i-d-e.de/criteria-text-collections-version-1-0`
+  - `@n` — rare; values seen: `rev2` | `rev1` | `rev3`
+  - `@m` — rare; always `rev1`
+
+#### `<category>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category`.
+- Common children: `catDesc`, `category`, `desc`.
+- Attributes:
+  - `@xml:id` — usually; open (free identifier or URL)
+  - `@corresp` — rare; values: `#free`, `#other`, `#none`, `#unknown`, `#not_applicable`
+
+#### `<catDesc>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/category`.
+- Common children: `num`, `ref`, `gloss`.
+
+#### `<num>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/catDesc`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/category/catDesc`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/catDesc`.
+- Leaf — text content only.
+- Attributes:
+  - `@type` — always; always `boolean`
+  - `@value` — always; values: `0`, `1`, `3`
+
+
+### Header — profile
+
+#### `<profileDesc>`
+- Appears under `TEI/teiHeader`.
+- Children: `[langUsage, textClass]` (always).
+
+#### `<langUsage>`
+- Appears under `TEI/teiHeader/profileDesc`.
+- Children: `[language]` (always).
+
+#### `<language>`
+- Appears under `TEI/teiHeader/profileDesc/langUsage`.
+- Leaf — text content only.
+- Attributes:
+  - `@ident` — always; values: `en`, `de`, `fr`, `it`
+
+#### `<textClass>`
+- Appears under `TEI/teiHeader/profileDesc`.
+- Children: `[keywords]` (always).
+
+#### `<keywords>`
+- Appears under `TEI/teiHeader/profileDesc/textClass`.
+- Common children: `term`.
+- Attributes:
+  - `@xml:lang` — always; always `en`
+
+#### `<term>`
+- Appears under `TEI/teiHeader/profileDesc/textClass/keywords`.
+- Leaf — text content only.
+
+#### `<gloss>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/catDesc`.
+- Leaf — text content only.
+
+
+### Header — revision
+
+#### `<revisionDesc>`
+- Appears under `TEI/teiHeader`.
+- Children: `[listChange]` (always).
+
+#### `<listChange>`
+- Appears under `TEI/teiHeader/revisionDesc`.
+- Common children: `change`.
+- Attributes:
+  - `@type` — always; always `post-publication`
+
+#### `<change>`
+- Appears under `TEI/teiHeader/revisionDesc/listChange`.
+- Leaf — text content only.
+- Attributes:
+  - `@resp` — always; always `author`
+  - `@when` — always; values: `2016-01-01`, `2014-11-22`
+  - `@xml:id` — always; values: `revision1`, `revision2`, `revision3`, `revision4`, `revision5` (and others)
+
+
+### Sections
+
+#### `<front>`
+- Appears under `TEI/text`.
+- Children: `[div]` (always).
+
+#### `<body>`
+- Appears under `TEI/text`.
+- Common children: `div`, `p`, `cit`.
+
+#### `<back>`
+- Appears under `TEI/text`.
+- Children: `[div]` (always).
+
+#### `<div>`
+- Appears under `TEI/text/body`, `TEI/text/body/div`, `TEI/text/front`.
+- Common children: `p`, `head`, `div`, `listBibl`, `table`, `figure`.
+- Attributes:
+  - `@xml:id` — usually; open (free identifier or URL)
+  - `@type` — occasionally; values seen: `abstract` | `bibliography` | `appendix`
+
+#### `<head>`
+- Appears under `TEI/text/body/div`, `TEI/text/body/div/p/figure`, `TEI/text/body/div/div`.
+- Common children: `emph`, `ref`, `note`, `code`, `hi`, `mod`.
+- Attributes:
+  - `@type` — often; always `legend`
+
+
+### Block content
+
+#### `<p>`
+- Appears under `TEI/text/body/div`, `TEI/text/body/div/div`, `TEI/teiHeader/fileDesc/sourceDesc`.
+- Common children: `emph`, `note`, `ref`, `figure`, `code`, `list`.
+- Attributes:
+  - `@xml:id` — usually; open (free identifier or URL)
+  - `@rend` — rare; always `Metadata-Categories`
+  - `@style` — rare; always `text-align: justify;`
+
+#### `<list>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/p`.
+- Common children: `item`, `figure`.
+- Attributes:
+  - `@rend` — always; values: `bulleted`, `ordered`, `numbered`, `unordered`, `labeled`
+
+#### `<item>`
+- Appears under `TEI/text/body/div/p/list`, `TEI/text/body/div/div/p/list`, `TEI/text/body/div/div/p/table/row/cell/list`.
+- Common children: `emph`, `code`, `ref`, `note`, `label`, `hi`.
+- Attributes:
+  - `@n` — rare; values seen: `1` | `2` | `3` | `4`
+
+#### `<table>`
+- Appears under `TEI/text/body/div/div/div`, `TEI/text/body/div/p`, `TEI/text/body/div/div/p`.
+- Common children: `row`, `head`.
+- Attributes:
+  - `@xml:id` — occasionally; always `table1`
+
+#### `<row>`
+- Appears under `TEI/text/body/div/p/table`, `TEI/text/body/div/div/p/table`, `TEI/text/body/div/div/div/table`.
+- Common children: `cell`.
+- Attributes:
+  - `@role` — usually; values seen: `data` | `label`
+  - `@cols` — often; always `1`
+  - `@rows` — often; always `1`
+
+#### `<cell>`
+- Appears under `TEI/text/body/div/p/table/row`, `TEI/text/body/div/div/div/table/row`, `TEI/text/body/div/div/p/table/row`.
+- Common children: `ref`, `figure`, `hi`, `note`, `emph`, `lb`.
+- Attributes:
+  - `@role` — often; always `data`
+  - `@cols` — often; always `1`
+  - `@rows` — often; always `1`
+
+#### `<figure>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/p`.
+- Children: `[graphic, head]` (always).
+- Attributes:
+  - `@xml:id` — always; values: `img1`, `img2`, `img3`, `img4`, `img5` (and others)
+
+#### `<graphic>`
+- Appears under `TEI/text/body/div/p/figure`, `TEI/text/body/div/div/p/figure`, `TEI/text/body/div/div/div/p/figure`.
+- Leaf — text content only.
+- Attributes:
+  - `@url` — always; open (free identifier or URL)
+
+#### `<cit>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body`.
+- Children: typically `[quote, bibl]`; sometimes `[quote]`.
+
+#### `<quote>`
+- Appears under `TEI/text/body/div/p/cit`, `TEI/text/body/div/div/p/cit`, `TEI/text/body/cit`.
+- Common children: `lb`, `emph`, `note`, `code`, `ref`.
+
+#### `<code>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/p/list/item`.
+- Leaf — text content only.
+
+#### `<lb>`
+- Appears under `TEI/text/body/div/div/p/figure/eg`, `TEI/text/body/div/p/figure/eg`, `TEI/text/body/div/div/p/cit/quote`.
+- Leaf — text content only.
+
+#### `<space>`
+- Appears under `TEI/text/body/div/div/p/figure/eg`, `TEI/text/body/div/p/figure/eg`.
+- Leaf — text content only.
+- Attributes:
+  - `@quantity` — always; values: `2`, `4`, `6`
+  - `@unit` — always; always `chars`
+
+#### `<eg>`
+- Appears under `TEI/text/body/div/p/figure`, `TEI/text/body/div/div/p/figure`.
+- Common children: `lb`, `space`.
+- Attributes:
+  - `@xml:space` — often; always `preserve`
+
+
+### Inline content
+
+#### `<emph>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/back/div/listBibl/bibl`, `TEI/text/body/div/div/p`.
+- Common children: `ref`, `emph`.
+
+#### `<ref>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/catDesc`, `TEI/text/body/div/p`, `TEI/text/body/div/p/note`.
+- Common children: `emph`.
+- Attributes:
+  - `@target` — always; open (free identifier or URL)
+  - `@type` — occasionally; values seen: `crossref` | `crosssref`
+
+#### `<hi>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/table/row/cell`.
+- Leaf — text content only.
+- Attributes:
+  - `@rend` — always; values: `sup`, `bold`, `subscript`, `underline superscript`, `underline subscript` (and others)
+  - `@style` — rare; always `font-family:EB Garamond;font-size:9pt`
+  - `@xml:space` — rare; always `preserve`
+
+#### `<note>`
+- Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/p`.
+- Common children: `ref`, `emph`, `code`, `hi`, `p`, `lb`.
+- Attributes:
+  - `@xml:id` — always; open (free identifier or URL)
+
+#### `<label>`
+- Appears under `TEI/text/body/p/list/item`.
+- Leaf — text content only.
+
+
+### Bibliography apparatus
+
+#### `<listBibl>`
+- Appears under `TEI/text/back/div`.
+- Common children: `bibl`, `head`.
+
+#### `<bibl>`
+- Appears under `TEI/text/back/div/listBibl`, `TEI/teiHeader/fileDesc/notesStmt/relatedItem`, `TEI/text/body/div/p/cit`.
+- Common children: `emph`, `respStmt`, `ref`, `date`, `title`, `editor`.
+- Attributes:
+  - `@xml:id` — often; open (free identifier or URL)
+
+#### `<title>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl`, `TEI/teiHeader/fileDesc/titleStmt`, `TEI/teiHeader/fileDesc/seriesStmt`.
+- Common children: `emph`.
+- Attributes:
+  - `@level` — often; always `j`
+
+#### `<biblScope>`
+- Appears under `TEI/teiHeader/fileDesc/seriesStmt`.
+- Leaf — text content only.
+- Attributes:
+  - `@n` — always; values seen: `6` | `15` | `5` | `8` | `20` | `17` | `14` | `2` | `16` | `12` | `18` | `1` | `7` | `11` | `3` | `9` | `4` | `13` | `10` | `19` | `22` | `21`
+  - `@unit` — always; always `issue`
+
+#### `<idno>`
+- Appears under `TEI/teiHeader/fileDesc/publicationStmt`, `TEI/teiHeader/fileDesc/seriesStmt`, `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl`.
+- Leaf — text content only.
+- Attributes:
+  - `@type` — always; values seen: `URI` | `DOI` | `archive`
+
+#### `<date>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl`, `TEI/teiHeader/fileDesc/publicationStmt`.
+- Leaf — text content only.
+- Attributes:
+  - `@type` — often; values seen: `publication` | `accessed`
+  - `@when` — often; values: `2017-09`, `2022-12`, `2017-02`, `2018-02`, `2014-12` (and others)
+
+#### `<publisher>`
+- Appears under `TEI/teiHeader/fileDesc/publicationStmt`.
+- Leaf — text content only.
+
+#### `<availability>`
+- Appears under `TEI/teiHeader/fileDesc/publicationStmt`.
+- Children: `[licence]` (always).
+
+#### `<licence>`
+- Appears under `TEI/teiHeader/fileDesc/publicationStmt/availability`.
+- Leaf — text content only.
+- Attributes:
+  - `@target` — always; always `http://creativecommons.org/licenses/by/4.0/`
+
+#### `<editor>`
+- Appears under `TEI/teiHeader/fileDesc/seriesStmt`, `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl`.
+- Leaf — text content only.
+- Attributes:
+  - `@ref` — usually; values: `https://orcid.org/0000-0003-2852-065X`, `https://orcid.org/0000-0001-8279-9298`, `https://orcid.org/0000-0002-6457-0913`, `http://viaf.org/viaf/80243768`, `https://orcid.org/0000-0003-1438-3236` (and others)
+  - `@role` — often; values seen: `managing` | `technical` | `assistant` | `chief`
+
+#### `<author>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt`.
+- Children: `[name, affiliation, email]` (always).
+- Attributes:
+  - `@ref` — usually; open (free identifier or URL)
+
+#### `<respStmt>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl`.
+- Children: `[resp, persName]` (always).
+
+#### `<resp>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl/respStmt`.
+- Leaf — text content only.
+
+#### `<relatedItem>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt`.
+- Children: `[bibl]` (always).
+- Attributes:
+  - `@type` — always; values seen: `reviewed_resource` | `reviewing_criteria`
+  - `@xml:id` — rare; values: `rev1`, `rev2`, `rev3`
+
+
+### People & affiliation
+
+#### `<persName>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl/respStmt`.
+- Common children: `name`.
+
+#### `<forename>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author/name`.
+- Leaf — text content only.
+
+#### `<surname>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author/name`.
+- Leaf — text content only.
+
+#### `<name>`
+- Appears under `TEI/teiHeader/fileDesc/notesStmt/relatedItem/bibl/respStmt/persName`, `TEI/teiHeader/fileDesc/titleStmt/author`.
+- Common children: `forename`, `surname`.
+
+#### `<orgName>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author/affiliation`.
+- Leaf — text content only.
+
+#### `<placeName>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author/affiliation`.
+- Leaf — text content only.
+- Attributes:
+  - `@ref` — usually; open (free identifier or URL)
+
+#### `<affiliation>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author`, `TEI/text/body/div/head`.
+- Children: `[orgName, placeName]` (always).
+
+#### `<email>`
+- Appears under `TEI/teiHeader/fileDesc/titleStmt/author`.
+- Leaf — text content only.
+
+
+### Editorial markup
+
+#### `<mod>`
+- Appears under `TEI/text/body/div/div/p`, `TEI/text/body/div/div/p/figure/head`, `TEI/text/body/div/p`.
+- Children: typically `[subst, note]`; sometimes `[del, note]`.
+- Attributes:
+  - `@change` — always; values: `#revision1`, `#revision2`, `#revision3`, `#revision4`, `#revision5` (and others)
+  - `@n` — always; values seen: `i` | `ii` | `iii` | `iv` | `v` | `vi`
+  - `@xml:id` — always; values: `ftn-i`, `ftn-ii`, `ftn-iii`, `ftn-iv`, `ftn-v` (and others)
+
+#### `<subst>`
+- Appears under `TEI/text/body/div/div/p/mod`, `TEI/text/body/div/div/p/figure/head/mod`, `TEI/text/body/div/p/mod`.
+- Children: `[del, add]` (always).
+
+#### `<add>`
+- Appears under `TEI/text/body/div/div/p/mod/subst`, `TEI/text/body/div/div/p/figure/head/mod/subst`, `TEI/text/body/div/p/mod/subst`.
+- Common children: `ref`.
+
+#### `<del>`
+- Appears under `TEI/text/body/div/div/p/mod/subst`, `TEI/text/body/div/p`, `TEI/text/body/div/p/list/item`.
+- Common children: `ref`, `emph`.
+
+#### `<seg>`
+- Appears under `TEI/text/body/div/div/p/note`.
+- Leaf — text content only.
+- Attributes:
+  - `@xml:space` — always; always `preserve`
+
+#### `<desc>`
+- Appears under `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category/category/category`, `TEI/teiHeader/encodingDesc/classDecl/taxonomy/category/category/category`.
+- Leaf — text content only.
