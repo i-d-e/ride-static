@@ -58,32 +58,34 @@ PDF via WeasyPrint (Phase 13) — per [[requirements#A6 PDF-Pfad]]. No
 HTML-specific assumption may leak into the dataclasses; presentation
 concerns belong in the renderers.
 
+All sequence-typed fields use `tuple[...]` for immutability and hashability, per the convention in `CLAUDE.md`.
+
 - **`Review`** — one per file
   - `id`, `issue`, `language`, `publication_date`, `licence`
-  - `editors: list[Editor]`, `authors: list[Author]`
-  - `keywords: list[str]`
-  - `questionnaire: Questionnaire` — the `<num>`-based classification payload (see `data.md`, `<num>` rule)
-  - `front: list[Section]`, `body: list[Section]`, `back: list[Section]`
-  - `bibliography: list[BibEntry]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
-  - `relatedItems: list[RelatedItem]`
+  - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
+  - `keywords: tuple[str, ...]`
+  - `questionnaire: Questionnaire` — the `<num>`-based classification payload (see [[data]], `<num>` rule)
+  - `front: tuple[Section, ...]`, `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
+  - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
+  - `related_items: tuple[RelatedItem, ...]`
 
 - **`Section`** — recursive
-  - `xml_id` (synthesised from position when missing — see `data.md` "div without head" rule)
+  - `xml_id` (synthesised from position when missing — see [[data]] "div without head" rule)
   - `type` — one of {`abstract`, `bibliography`, `appendix`, `None`}
-  - `heading: str | None` (may be missing — fallback derived from `xml:id` or position)
+  - `heading: tuple[Inline, ...] | None` (may be missing — fallback derived from `xml:id` or position)
   - `level` (1–3 max, per Schematron `ride.div-nesting`)
-  - `blocks: list[Block]`
-  - `subsections: list[Section]`
+  - `blocks: tuple[Block, ...]`
+  - `subsections: tuple[Section, ...]`
 
-- **`Block`** types: `Paragraph`, `Heading`, `List`, `Table`, `Figure`, `Citation`, `CodeBlock`, `Note`.
+- **`Block`** types: `Paragraph`, `List`, `Table`, `Figure`, `Citation`. Empirically verified against the corpus: `<note>` is always inline (1900+ occurrences, all under `<p>`/`<head>`/`<quote>`/`<item>`), `<code>` is always inline (727 occurrences, no children), `<head>` is consumed by the section parser as section heading, `<eg>` lives only inside `<figure>` (modelled as `Figure(kind="code_example")`).
 
-- **`Inline`** types: `Text`, `Emphasis`, `Reference`, `Highlight`, `Note`.
+- **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`.
 
 The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[requirements#R1 Rezension lesen]]:
 
 | Anomaly | Parser branch |
 |---|---|
-| 7 reviews without `<back>` | `Review.bibliography = []`, `Review.back = []` |
+| 7 reviews without `<back>` | `Review.bibliography = ()`, `Review.back = ()` |
 | `<num value="3">` | warn, treat as boolean unknown |
 | `<list rend="numbered"`>, `"unordered">` | normalise to `ordered` / `bulleted` |
 | `<ref type="crosssref">` | normalise to `crossref` |
@@ -105,33 +107,36 @@ Templates are dumb: they format `Review`/`Section`/`Block` instances and never r
 
 ```
 templates/html/
-  base.html               page chrome
-  index.html              corpus front page
-  issue.html              issue TOC
-  review.html             single review
+  base.html               page chrome, OG metadata, lang propagation
+  index.html              home page (current issue + selected reviews)
+  issues.html             issues overview
+  issue.html              single issue with TOC and contributor cards
+  review.html             single review (header split, abstract, body, sidebar)
+  tags.html, tag.html     tag overview and per-tag aggregation
+  reviewers.html, reviewer.html
+  resources.html          reviewed resources table
+  data.html               questionnaire-derived charts
+  editorial.html          about / imprint / criteria (content-only column)
   partials/
-    section.html          recursive
+    apparate.html         parallel block: references | figures | notes
     questionnaire.html    the <num> matrix
-    bibliography.html
+    section.html          recursive
     blocks/
-      paragraph.html, list.html, table.html, figure.html,
-      citation.html, code.html, note.html
+      paragraph.html, list.html, table.html, figure.html, citation.html
+    inlines/
+      reference.html, emphasis.html, highlight.html, note.html, code.html
 ```
+
+The page-type set follows [[interface#4 Layout-Architektur]]; the parallel apparate block follows [[interface#6 Apparate als parallele Blöcke]].
 
 ## Search and cross-references
 
-- **Search index** — `render/search_index.py` builds a JSON index from the
-  domain objects (heading text, paragraph text, keywords, author names,
-  taxonomy terms). Loaded by client-side JS (Lunr or stork — decision deferred).
-- **`<ref @target>` resolution** — three-step lookup at build time:
-  1. If `target` starts with `#` and the anchor exists in the per-review
-     `xml_id → object` map, render as a local HTML anchor.
-  2. If `target` starts with `#K…` (5 209 cases — see `inventory/refs.json`),
-     resolve against the criteria document at the matching taxonomy's
-     `@xml:base`. The parser fetches the relevant criteria URL once per
-     criteria set and maps each `K…` ID to the criterion description.
-  3. External `http(s)://` targets pass through unchanged. Anything else
-     emits a build-time warning and is rendered as plain text.
+- **Search index** — Pagefind, per [[requirements#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/search.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
+- **`<ref @target>` resolution** — four-bucket lookup at build time, fully specified in [[pipeline#Cross-cutting concerns]] and acceptance-tested against [[requirements#R1 Rezension lesen]]:
+  1. Local anchor present in the per-review `xml_id → object` map → in-page HTML anchor.
+  2. `#K…` prefix (5 209 cases — see `inventory/refs.json`) → external link to `{xml:base}#K…` on the criteria document. v1 does not resolve K-IDs to category titles; that is a possible later enhancement.
+  3. External `http(s)://` → pass through.
+  4. Anything else → build-time warning, rendered as plain text.
 
 ## Element-Mapping (declarative)
 
@@ -205,32 +210,42 @@ ride-static/
   src/
     parser/                 TEI → domain
     model/                  domain types
-    render/                 html, pdf, search_index
-  templates/html/           Jinja templates
+    render/                 html, pdf, refs, assets, citation, corpus_dump
+    build.py                Phase 8 build CLI: python -m src.build
+  templates/html/           Jinja templates (Phase 8+)
+  static/                   css/, js/, fonts/ (Phase 8+)
+  config/
+    element-mapping.yaml    domain class → template + CSS class (Phase 8+)
+  content/                  editorial Markdown + per-issue YAML (Phase 9+)
+    about.md, imprint.md, criteria.md
+    issues/{n}.yaml
+    reviewers/{slug}.md     optional
   inventory/                Generated, gitignored
-  knowledge/                Obsidian vault, .md only
-    data.md                 corpus structure reference
-    schema.md               ride.odd reference
+  knowledge/                Obsidian-style vault, .md only
+    data.md                 corpus structure reference (generated)
+    schema.md               ride.odd reference (generated)
     architecture.md         this file
-    pipeline.md             build & deploy
+    pipeline.md             build & deploy plan with 15-phase plan
+    requirements.md         product spec, R/N/A clauses
+    interface.md            visual & interaction design
+  docs/
+    extending.md            how to add a new TEI element
+    url-scheme.md           versioned URL contract
   tests/                    pytest
   site/                     Build output, gitignored
-  CLAUDE.md
+  README.md
+  CONTRIBUTING.md
+  Journal.md                session-by-session record
+  CLAUDE.md                 project conventions
 ```
 
 ## Stages
 
-The high-level stage view kept for orientation. The detailed phase-by-phase
-build plan lives in [[pipeline#Phasenplan]] and is anchored to the seventeen
-R- and ten N-clauses in [[requirements]].
+A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phasenplan]] and is the single source of truth for ordering, scope per phase, and requirement mapping. The four stages below group those phases.
 
-| Stage | Status | Artifacts |
+| Stage | Phases | Status |
 |---|---|---|
-| 0 — Discovery | done | `inventory/*.json` (incl. `ids.json`, `refs.json`, `taxonomy.json`) |
-| 1 — Knowledge | done | `knowledge/data.md`, `schema.md`, `architecture.md`, `pipeline.md`, `requirements.md`, `interface.md` |
-| 2 — Domain model | in progress | 2.A done (`src/model/review.py`, header parser); 2.B/2.C pending |
-| 3 — Inhaltsbereich (HTML) | planned | `src/render/html.py`, `templates/html/`, rezensionsbezogene Seiten |
-| 4 — Aggregations- und Editorialschicht | planned | Hefte, Tags, Reviewer, Resources, redaktionelle Markdown-Inhalte |
-| 5 — Funktions- und Infrastrukturschicht | planned | Pagefind, OAI-PMH, JSON-LD, Validierung, Build-Bericht |
-| 6 — PDF aus Domänenmodell | planned | WeasyPrint, gemäß [[requirements#A6 PDF-Pfad]] |
-| 7 — Deploy und Ops | planned | GitHub-Actions-Workflow, Tracking, Accessibility-Audit |
+| Discovery + Knowledge | scripts/, knowledge/ | done |
+| Domain model | 1–6 | 2.A done, 2.B–2.C pending |
+| Site rendering | 7–10 | planned |
+| Search, APIs, validation, PDF, deploy | 11–15 | planned |

@@ -20,7 +20,7 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 ```
 ride-static/
   scripts/                Stage 0 / Stage 1 — discovery and knowledge generation
-    _tei.py               shared TEI helpers (namespace constants, attribute names, localname, normalize)
+    _tei.py               shared TEI helpers (namespace constants, localname, normalize)
     inventory.py, structure.py, sections.py, odd_extract.py    (corpus inventory)
     ids.py, refs.py, taxonomy.py                                (content audits)
     p5_fetch.py, cross_reference.py                             (spec join)
@@ -28,6 +28,11 @@ ride-static/
   src/                    Stage 2+ — parser, model, render
     model/                domain types (Review, Person, Editor, …)
     parser/               TEI → domain
+    render/, build.py     html, pdf, refs, assets, build CLI (Phase 8+, planned)
+  templates/html/         Jinja templates (Phase 8+, planned)
+  static/                 css/, js/, fonts/ (Phase 8+, planned)
+  config/                 element-mapping.yaml + per-issue YAML configs (Phase 8+, planned)
+  content/                editorial Markdown: about, imprint, criteria, reviewers (Phase 9+, planned)
   inventory/              Generated JSON artifacts — gitignored
     _cache/               Cached upstream downloads (e.g. p5subset.xml)
   knowledge/              Obsidian-style vault, .md only, wikilinks for cross-refs
@@ -35,9 +40,16 @@ ride-static/
     schema.md             ride.odd reference (generated)
     architecture.md       design intent — data flow, domain model (hand-written)
     pipeline.md           build & deploy plan with 15-phase plan (hand-written)
-    requirements.md       product requirements, user stories, fixed design decisions (hand-written)
-    interface.md          visual & interaction design, layout, typography, a11y (hand-written)
+    requirements.md       product requirements, user stories, fixed design decisions
+    interface.md          visual & interaction design, layout, typography, a11y
+  docs/
+    extending.md          how to add a new TEI element or render variant
+    url-scheme.md         versioned URL contract
   tests/                  pytest, run from repo root
+  site/                   build output, gitignored
+  README.md               short orientation for new visitors
+  CONTRIBUTING.md         setup, conventions, hard rules
+  Journal.md              session-by-session narrative
   CLAUDE.md               this file
 ```
 
