@@ -16,7 +16,9 @@ Most extensions are the first two — pure YAML. The remainder require Python wo
 
 ## Path 1 — YAML-only extension
 
-The file `config/element-mapping.yaml` maps domain classes to Jinja templates and CSS classes. Edit it, run `python -m pytest tests/test_mapping.py`, run the build. No Python touched.
+The file `config/element-mapping.yaml` (introduced in Phase 8) maps domain classes to Jinja templates and CSS classes. Edit it, run `python -m pytest tests/test_mapping.py`, run the build. No Python touched.
+
+Until Phase 8 lands, the file does not yet exist; the schema is specified in [[architecture#Element-Mapping (declarative)]] and frozen for implementation.
 
 ### Example: rewire the Figure template
 
@@ -101,11 +103,10 @@ Most YAML-only extensions do not affect any pipeline phase boundary. Python exte
 
 ## Validation
 
-After any extension, run the full test suite plus the real-corpus smoke test:
+After any extension, run the full test suite. The real-corpus smoke test in `tests/test_parser_metadata.py` exercises all 107 reviews when `../ride/` is present.
 
 ```sh
 python -m pytest tests/ -v
-python -m src.build --dry-run        # planned in Phase 8: parses everything, renders nothing
 ```
 
-A clean run means no element raised, the mapping is consistent, and all 107 reviews parse end-to-end.
+A clean run means no element raised, the mapping is consistent (once Phase 8 has introduced it), and all 107 reviews parse end-to-end.

@@ -28,7 +28,7 @@ If a field is genuinely empty for a given session, write "—" rather than omitt
 
 Three persistence layers run in parallel for this project: `CLAUDE.md` for project conventions, the auto-memory under `~/.claude/projects/.../memory/` for facts that Claude carries across sessions, and git commits for code changes. None of these capture the **narrative** of a session: why did we choose this order, what was almost decided differently, what is left undone. The journal fills that gap. It is human-readable, in-repo, and visible to all contributors — including future Claude sessions that read it on startup.
 
-## Entries
+---
 
 ## 2026-04-29 — Konsolidierung K1-K4 vor Phase 1
 

@@ -26,8 +26,8 @@ See `CLAUDE.md` for the layout reference. In short:
 - `src/parser/` and `src/model/` — Stage 2 TEI-to-domain parsing, immutable dataclasses.
 - `src/render/` — Stage 3 onwards, HTML and PDF.
 - `templates/html/` — Jinja templates, dumb (consume domain objects, never XML).
-- `config/element-mapping.yaml` — declarative binding of domain classes to templates and CSS classes; see `docs/extending.md`.
-- `content/` — editorial Markdown with frontmatter; per-issue YAML configs.
+- `config/element-mapping.yaml` — declarative binding of domain classes to templates and CSS classes (introduced in Phase 8; see `docs/extending.md` for the schema).
+- `content/` — editorial Markdown with frontmatter; per-issue YAML configs (introduced in Phase 9).
 - `tests/` — pytest, run from repo root with `python -m pytest tests/`.
 - `knowledge/` — Obsidian-style vault, `.md` only, internal links use `[[wikilink]]`.
 - `inventory/` — generated JSON artifacts, gitignored, regeneratable from `scripts/`.

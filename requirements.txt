@@ -1,0 +1,22 @@
+# ride-static — Python dependencies
+#
+# Pinned to current usage. Phase-specific additions noted inline so that a
+# fresh install today succeeds, and the file grows transparently as phases land.
+
+# Discovery + parser (Stages 0–2, present)
+lxml>=5.0
+requests>=2.31
+
+# Tests (always)
+pytest>=8.0
+
+# Render + build (Phase 8+, planned but harmless to install early)
+jinja2>=3.1
+pyyaml>=6.0
+markdown>=3.5
+
+# PDF (Phase 14)
+# weasyprint>=60.0          # uncomment when Phase 14 starts
+
+# Search (Phase 11)
+# pagefind is a binary fetched by the build script, not a Python package.
