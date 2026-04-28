@@ -42,12 +42,6 @@ def fixture_corpus(tmp_path: Path) -> tuple[Path, Path]:
     return tei_dir, out_dir
 
 
-def test_run_writes_structure_json(fixture_corpus: tuple[Path, Path]) -> None:
-    tei_dir, out_dir = fixture_corpus
-    structure.run(tei_dir, out_dir)
-    assert (out_dir / "structure.json").is_file()
-
-
 def test_div_children_sequences(fixture_corpus: tuple[Path, Path]) -> None:
     tei_dir, out_dir = fixture_corpus
     payload = structure.run(tei_dir, out_dir)

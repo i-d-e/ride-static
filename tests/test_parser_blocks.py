@@ -317,6 +317,55 @@ def test_dispatch_unknown_includes_div_hint():
     assert "div3" in str(exc_info.value)
 
 
+# -- Real-corpus anomaly: <list> inside <item> ----------------------------
+
+
+_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
+_ANEMOSKALA = _RIDE / "anemoskala-tei.xml"
+
+
+@pytest.mark.skipif(not _ANEMOSKALA.exists(), reason="anemoskala-tei.xml not present")
+def test_real_corpus_list_inside_item() -> None:
+    """The corpus has 3 occurrences of ``<list>`` nested inside ``<item>``;
+    anemoskala-tei.xml is one of them. The parser must surface them as
+    ``ListItem.blocks`` rather than dropping or raising.
+
+    This is a documented anomaly per ``knowledge/data.md``; the test pins
+    the named branch end-to-end against the real corpus (no synthetic
+    fixture — the structure is delicate enough that we want the empirical
+    shape exercised).
+    """
+    from src.parser.review import parse_review
+    from src.model.block import List as ListBlock, ListItem
+
+    review = parse_review(_ANEMOSKALA)
+
+    found_nested = False
+
+    def walk_block(b):
+        nonlocal found_nested
+        if isinstance(b, ListBlock):
+            for item in b.items:
+                for nested in item.blocks:
+                    if isinstance(nested, ListBlock):
+                        found_nested = True
+                    walk_block(nested)
+
+    def walk_section(s):
+        for b in s.blocks:
+            walk_block(b)
+        for sub in s.subsections:
+            walk_section(sub)
+
+    for s in review.front + review.body + review.back:
+        walk_section(s)
+    assert found_nested, (
+        "anemoskala-tei.xml is supposed to carry a <list> inside <item> — "
+        "if this fails, either the corpus has drifted or the parser "
+        "regressed on the ListItem.blocks branch."
+    )
+
+
 # -- Paragraph splitting --------------------------------------------------
 
 

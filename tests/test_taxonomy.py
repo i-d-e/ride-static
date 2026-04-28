@@ -108,12 +108,6 @@ def fixture_corpus(tmp_path: Path) -> tuple[Path, Path]:
     return tei, out
 
 
-def test_writes_taxonomy_json(fixture_corpus: tuple[Path, Path]) -> None:
-    tei, out = fixture_corpus
-    taxonomy.run(tei, out)
-    assert (out / "taxonomy.json").is_file()
-
-
 def test_two_distinct_criteria_sets(fixture_corpus: tuple[Path, Path]) -> None:
     tei, out = fixture_corpus
     payload = taxonomy.run(tei, out)

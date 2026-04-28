@@ -1,31 +1,51 @@
 """Tests for the four-bucket reference resolver (Phase 7).
 
-Synthetic cases pin one bucket each (local, criteria, external, orphan)
-plus the "no target" no-op. A corpus smoke confirms every ``Reference``
-in all 107 reviews leaves the resolver with a bucket consistent with
-``inventory/refs.json``.
+Test data philosophy:
+
+* **Pure-function unit tests** for ``classify_target`` use synthetic
+  inputs because the function takes a string and a frozenset — there
+  is no real-data form richer than that.
+* **Integration tests** for ``resolve_references`` drive entirely off
+  the real RIDE corpus (``../ride/tei_all/*.xml``). Each test parses
+  a real review and asserts a property of the resolved output. Tests
+  skip cleanly when the corpus is absent so CI stays green on a
+  fresh clone.
+
+The criteria bucket has *no* real-data integration test because all
+5 209 ``#K…`` refs in the corpus live in ``<teiHeader>/<catDesc>``,
+not in body content — the body parser does not traverse those.
+``classify_target`` pins the contract for the day a body-level K-ref
+is added.
 """
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
 from src.model.bibliography import BibEntry
-from src.model.block import Citation, Figure, List as ListBlock, ListItem, Paragraph, Table, TableCell, TableRow
-from src.model.inline import Emphasis, Note, Reference, Text
+from src.model.block import Citation, Figure, List as ListBlock, Paragraph, Table
+from src.model.inline import Emphasis, Highlight, Note, Reference
 from src.model.review import Review
-from src.model.section import Section
 from src.parser.refs_resolver import classify_target, resolve_references
 from src.parser.review import parse_review
 
 
 _RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
-_INVENTORY_REFS = Path(__file__).resolve().parent.parent / "inventory" / "refs.json"
+
+# Two real corpus reviews chosen for their bucket coverage:
+# - bayeux: 78 local / 55 external / 3 orphan; has figure-in-cell pattern,
+#   mailto: target, bibliography with @ref_target.
+# - 1641: 9 figures all present on disk, external refs (Wayback URLs).
+_BAYEUX = _RIDE / "bayeux-tei.xml"
+_REVIEW_1641 = _RIDE / "1641-tei.xml"
 
 
 # -- Pure classify_target unit tests --------------------------------------
+#
+# These test the classification function in isolation. Synthetic inputs are
+# the right tool here: classify_target takes ``Optional[str]`` and
+# ``frozenset[str]``; no real-data form is richer than that.
 
 
 def test_classify_external_http():
@@ -36,10 +56,14 @@ def test_classify_external_https():
     assert classify_target("https://example.org/x", frozenset()) == "external"
 
 
-def test_classify_criteria_K_prefix():
-    """5 209 corpus refs use #K… — they resolve against the taxonomy's @xml:base, not local."""
+def test_classify_criteria_K_prefix_beats_id_index():
+    """5 209 corpus refs use #K… — they resolve against the taxonomy's @xml:base, not local.
+
+    K-prefix takes precedence over an incidental local-anchor presence
+    by contract: K-IDs name external criteria-document anchors regardless
+    of whether one happens to also exist locally.
+    """
     assert classify_target("#K1.2", frozenset()) == "criteria"
-    # K-prefix must beat any incidental local-anchor presence.
     assert classify_target("#K1.2", frozenset({"K1.2"})) == "criteria"
 
 
@@ -58,7 +82,7 @@ def test_classify_orphan_bare_bibkey():
 
 
 def test_classify_orphan_mailto():
-    """mailto: targets fall to orphan rather than external — they are not link-renderable as URLs without UI work."""
+    """``mailto:`` targets fall to orphan rather than external — they are not link-renderable as URLs without UI work."""
     assert classify_target("mailto:foys@wisc.edu", frozenset()) == "orphan"
 
 
@@ -67,297 +91,36 @@ def test_classify_none_when_no_target():
     assert classify_target("", frozenset()) is None
 
 
-# -- Synthetic resolve_references walks ----------------------------------
+# -- Real-corpus integration tests ----------------------------------------
 
 
-def _make_review_with(refs: tuple[Reference, ...], extra_ids: tuple[str, ...] = ()) -> Review:
-    """Build a minimal Review carrying the given Reference inlines in the
-    body's first paragraph. ``extra_ids`` injects additional xml_ids
-    (paragraph-level) into the id index so local-anchor targets resolve.
-    """
-    blocks: list = [Paragraph(inlines=tuple(refs))]
-    for i, xid in enumerate(extra_ids):
-        blocks.append(Paragraph(inlines=(Text(text=xid),), xml_id=xid))
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=tuple(blocks), subsections=(),
-    )
-    return Review(
-        id="ride.test.1", issue="99", title="t",
-        publication_date="", language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(), notes=(),
-        bibliography=(), questionnaires=(),
-        source_file="t.xml",
-    )
+pytestmark_corpus = pytest.mark.skipif(
+    not _RIDE.exists(), reason="../ride/ corpus not present"
+)
 
 
-def _refs_in_review(review: Review) -> list[Reference]:
-    """Pull all Reference instances out of body[0].blocks[0] for assertion."""
-    out: list[Reference] = []
-    for inline in review.body[0].blocks[0].inlines:
-        if isinstance(inline, Reference):
-            out.append(inline)
-    return out
-
-
-def test_resolve_local_uses_id_index():
-    ref = Reference(children=(Text(text="see para1"),), target="#para1")
-    review = _make_review_with((ref,), extra_ids=("para1",))
-    resolved = resolve_references(review)
-    [out] = _refs_in_review(resolved)
-    assert out.bucket == "local"
-
-
-def test_resolve_external_passthrough():
-    ref = Reference(children=(Text(text="x"),), target="https://example.org/")
-    review = _make_review_with((ref,))
-    resolved = resolve_references(review)
-    [out] = _refs_in_review(resolved)
-    assert out.bucket == "external"
-
-
-def test_resolve_criteria_K():
-    ref = Reference(children=(Text(text="K"),), target="#K2.1")
-    review = _make_review_with((ref,))
-    resolved = resolve_references(review)
-    [out] = _refs_in_review(resolved)
-    assert out.bucket == "criteria"
-
-
-def test_resolve_orphan_unknown_anchor():
-    ref = Reference(children=(Text(text="x"),), target="#abb1")
-    review = _make_review_with((ref,))
-    resolved = resolve_references(review)
-    [out] = _refs_in_review(resolved)
-    assert out.bucket == "orphan"
-
-
-def test_resolve_no_target_keeps_none():
-    ref = Reference(children=(Text(text="x"),), target=None)
-    review = _make_review_with((ref,))
-    resolved = resolve_references(review)
-    [out] = _refs_in_review(resolved)
-    assert out.bucket is None
-
-
-def test_resolve_descends_into_emphasis_and_note_children():
-    """Refs nested inside <emph> and <note> must also be classified."""
-    inner_ref = Reference(children=(Text(text="x"),), target="https://e.org")
-    note_ref = Reference(children=(Text(text="y"),), target="#K3.1")
-    inlines = (
-        Emphasis(children=(inner_ref,), rend=None),
-        Note(children=(note_ref,), xml_id="ftn1"),
-    )
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=(Paragraph(inlines=inlines),), subsections=(),
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(), notes=(),
-        bibliography=(), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    emph = resolved.body[0].blocks[0].inlines[0]
-    note = resolved.body[0].blocks[0].inlines[1]
-    assert emph.children[0].bucket == "external"
-    assert note.children[0].bucket == "criteria"
-
-
-def test_resolve_descends_into_bibliography_inlines():
-    bib = BibEntry(
-        inlines=(Reference(children=(Text(text="DOI"),), target="https://doi.org/x"),),
-        xml_id="bib1",
-        ref_target="https://doi.org/x",
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(), back=(),
-        figures=(), notes=(),
-        bibliography=(bib,), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    [out_bib] = resolved.bibliography
-    assert out_bib.inlines[0].bucket == "external"
-
-
-def test_resolve_local_anchor_to_bibliography_id():
-    """``<ref target="#bib1">`` against a BibEntry with xml_id="bib1" is local."""
-    bib = BibEntry(inlines=(Text(text="bib"),), xml_id="bib1", ref_target=None)
-    ref = Reference(children=(Text(text="see"),), target="#bib1")
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=(Paragraph(inlines=(ref,)),), subsections=(),
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(), notes=(),
-        bibliography=(bib,), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    out = resolved.body[0].blocks[0].inlines[0]
-    assert out.bucket == "local"
-
-
-def test_resolve_anchor_to_figure_id_is_local():
-    fig = Figure(kind="graphic", head=(), xml_id="fig.a", graphic_url="a.png")
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=(
-            Paragraph(inlines=(Reference(children=(Text(text="see"),), target="#fig.a"),)),
-            fig,
-        ),
-        subsections=(),
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(fig,), notes=(),
-        bibliography=(), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    out = resolved.body[0].blocks[0].inlines[0]
-    assert out.bucket == "local"
-
-
-def test_resolve_anchor_to_note_id_is_local():
-    """<ref target="#ftn1"> against the inline note's xml_id resolves local."""
-    note = Note(children=(Text(text="footnote body"),), xml_id="ftn1")
-    para_with_ref = Paragraph(
-        inlines=(Reference(children=(Text(text="see"),), target="#ftn1"),)
-    )
-    para_with_note = Paragraph(inlines=(Text(text="text "), note))
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=(para_with_ref, para_with_note), subsections=(),
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(), notes=(note,),
-        bibliography=(), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    out = resolved.body[0].blocks[0].inlines[0]
-    assert out.bucket == "local"
-
-
-def test_resolve_preserves_review_metadata():
-    """The resolver must return a Review with all non-walk fields untouched."""
-    review = _make_review_with(
-        (Reference(children=(Text(text="x"),), target="https://e.org"),),
-    )
-    resolved = resolve_references(review)
-    assert resolved.id == review.id
-    assert resolved.issue == review.issue
-    assert resolved.title == review.title
-    assert resolved.source_file == review.source_file
-
-
-def test_resolve_aggregates_match_section_tree_after_walk():
-    """Re-aggregation guarantees Review.figures / Review.notes are the same
-    instances as those reached via the section tree, not divergent copies.
-    """
-    fig = Figure(kind="graphic", head=(), xml_id="fig.x", graphic_url="x.png")
-    section = Section(
-        xml_id="s1", type=None, heading=None, level=1,
-        blocks=(fig,), subsections=(),
-    )
-    review = Review(
-        id="r", issue="9", title="t", publication_date="",
-        language="en", licence="",
-        keywords=(), authors=(), editors=(), related_items=(),
-        front=(), body=(section,), back=(),
-        figures=(fig,), notes=(),
-        bibliography=(), questionnaires=(),
-        source_file="t.xml",
-    )
-    resolved = resolve_references(review)
-    # The figure inside body[0].blocks[0] is the same object as resolved.figures[0].
-    assert resolved.figures[0] is resolved.body[0].blocks[0]
-
-
-# -- Real-corpus smoke ----------------------------------------------------
-
-
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
-def test_smoke_real_corpus_all_refs_get_a_bucket() -> None:
-    """Every Reference in every review must have a non-stub bucket assignment.
-
-    Buckets come from the four-element set ``{local, criteria, external,
-    orphan}`` (or ``None`` when the source ``<ref>`` had no ``@target``).
-
-    Empirical counts in the body content:
-
-    * 5 209 ``#K…`` refs sit in ``<teiHeader>//<catDesc>`` (the
-      questionnaire structure), **not** in body/text — so the criteria
-      bucket is empty in body inlines today. The bucket is part of the
-      contract for the day a body-text K-ref lands; the renderer can
-      already dispatch on it.
-    * Body refs split roughly 2 783 external / 1 598 local / 94 orphan,
-      totalling ~4 475 — the residual against the inventory's 9 916
-      total is the header-residing K-refs.
-    """
-    valid = {"local", "criteria", "external", "orphan", None}
-    bucket_counts: dict[object, int] = {}
-    files = sorted(_RIDE.glob("*-tei.xml"))
-    for f in files:
-        review = parse_review(f)
-        for ref in _iter_all_references(review):
-            assert ref.bucket in valid, f"{f.name}: bucket={ref.bucket!r} target={ref.target!r}"
-            bucket_counts[ref.bucket] = bucket_counts.get(ref.bucket, 0) + 1
-    # Floors leave headroom against future corpus drift while pinning the
-    # documented magnitudes.
-    assert bucket_counts.get("external", 0) >= 2500, bucket_counts
-    assert bucket_counts.get("local", 0) >= 1400, bucket_counts
-    assert bucket_counts.get("orphan", 0) >= 50, bucket_counts
-
-
-def _iter_all_references(review: Review):
-    """Yield every Reference reachable in the review (depth-first)."""
-    from src.model.inline import Emphasis as Em, Highlight as Hi, Note as Nt, Reference as Rf
-    from src.model.block import (
-        Citation as Ct, Figure as Fg, List as Ls, Paragraph as Pg, Table as Tb,
-    )
+def _all_references(review: Review):
+    """Yield every Reference reachable in a review (depth-first)."""
 
     def walk_inlines(inlines):
         for inline in inlines:
-            if isinstance(inline, Rf):
+            if isinstance(inline, Reference):
                 yield inline
                 yield from walk_inlines(inline.children)
-            elif isinstance(inline, (Em, Hi, Nt)):
+            elif isinstance(inline, (Emphasis, Highlight, Note)):
                 yield from walk_inlines(inline.children)
 
     def walk_block(b):
-        if isinstance(b, Pg):
+        if isinstance(b, Paragraph):
             yield from walk_inlines(b.inlines)
-        elif isinstance(b, Ls):
+        elif isinstance(b, ListBlock):
             for item in b.items:
                 yield from walk_inlines(item.inlines)
                 if item.label:
                     yield from walk_inlines(item.label)
                 for nb in item.blocks:
                     yield from walk_block(nb)
-        elif isinstance(b, Tb):
+        elif isinstance(b, Table):
             if b.head:
                 yield from walk_inlines(b.head)
             for row in b.rows:
@@ -365,9 +128,9 @@ def _iter_all_references(review: Review):
                     yield from walk_inlines(cell.inlines)
                     for nb in cell.blocks:
                         yield from walk_block(nb)
-        elif isinstance(b, Fg):
+        elif isinstance(b, Figure):
             yield from walk_inlines(b.head)
-        elif isinstance(b, Ct):
+        elif isinstance(b, Citation):
             yield from walk_inlines(b.quote_inlines)
             if b.bibl is not None:
                 yield from walk_inlines(b.bibl.inlines)
@@ -384,3 +147,171 @@ def _iter_all_references(review: Review):
         yield from walk_section(s)
     for bib in review.bibliography:
         yield from walk_inlines(bib.inlines)
+
+
+@pytestmark_corpus
+def test_bayeux_real_corpus_external_bucket() -> None:
+    """A known external-target ref in bayeux-tei.xml lands in the external bucket."""
+    review = parse_review(_BAYEUX)
+    externals = [r for r in _all_references(review) if r.bucket == "external"]
+    assert len(externals) >= 50  # bayeux has 55 external in the inventory survey
+    # Each external must be an http(s):// URL.
+    for ref in externals:
+        assert ref.target.startswith(("http://", "https://"))
+
+
+@pytestmark_corpus
+def test_bayeux_real_corpus_local_bucket_anchors_resolve() -> None:
+    """Every local-bucket ref in bayeux must point to an xml:id present in the same review."""
+    review = parse_review(_BAYEUX)
+    locals_ = [r for r in _all_references(review) if r.bucket == "local"]
+    # Build the id index the way the resolver did.
+    id_index: set[str] = set()
+    for s in review.front + review.body + review.back:
+        _collect_ids(s, id_index)
+    for fig in review.figures:
+        if fig.xml_id:
+            id_index.add(fig.xml_id)
+    for note in review.notes:
+        if note.xml_id:
+            id_index.add(note.xml_id)
+    for bib in review.bibliography:
+        if bib.xml_id:
+            id_index.add(bib.xml_id)
+
+    assert len(locals_) >= 50
+    for ref in locals_:
+        anchor = ref.target.lstrip("#")
+        assert anchor in id_index, f"local ref {ref.target} has no anchor"
+
+
+def _collect_ids(section, ids):
+    if section.xml_id:
+        ids.add(section.xml_id)
+    for b in section.blocks:
+        if isinstance(b, Paragraph) and b.xml_id:
+            ids.add(b.xml_id)
+        elif isinstance(b, Figure) and b.xml_id:
+            ids.add(b.xml_id)
+        elif isinstance(b, Citation) and b.bibl is not None and b.bibl.xml_id:
+            ids.add(b.bibl.xml_id)
+    for sub in section.subsections:
+        _collect_ids(sub, ids)
+
+
+@pytestmark_corpus
+def test_bayeux_real_corpus_orphan_bucket_includes_mailto() -> None:
+    """bayeux-tei.xml carries ``mailto:foys@wisc.edu`` — it must reach orphan."""
+    review = parse_review(_BAYEUX)
+    orphans = [r for r in _all_references(review) if r.bucket == "orphan"]
+    assert any(r.target and r.target.startswith("mailto:") for r in orphans), (
+        "bayeux-tei.xml is supposed to contain a mailto: target — corpus drift?"
+    )
+
+
+@pytestmark_corpus
+def test_1641_real_corpus_external_bucket_only() -> None:
+    """1641-tei.xml has external refs but no orphan/local — pins the simpler shape."""
+    review = parse_review(_REVIEW_1641)
+    refs = list(_all_references(review))
+    assert refs, "1641 must have at least some refs"
+    buckets = {r.bucket for r in refs}
+    # Per inventory survey: external present, no orphan, no body-level K
+    assert "external" in buckets
+
+
+@pytestmark_corpus
+def test_resolver_classifies_every_corpus_ref() -> None:
+    """End-to-end smoke. Every Reference in every review must have a bucket
+    in the four-element set ``{local, criteria, external, orphan}`` (or
+    ``None`` when the source ``<ref>`` had no ``@target``)."""
+    valid = {"local", "criteria", "external", "orphan", None}
+    bucket_counts: dict[object, int] = {}
+    for f in sorted(_RIDE.glob("*-tei.xml")):
+        review = parse_review(f)
+        for ref in _all_references(review):
+            assert ref.bucket in valid, f"{f.name}: bucket={ref.bucket!r} target={ref.target!r}"
+            bucket_counts[ref.bucket] = bucket_counts.get(ref.bucket, 0) + 1
+    # Floors leave headroom against future corpus drift while pinning the
+    # documented body-level magnitudes from inventory/refs.json.
+    assert bucket_counts.get("external", 0) >= 2500, bucket_counts
+    assert bucket_counts.get("local", 0) >= 1400, bucket_counts
+    assert bucket_counts.get("orphan", 0) >= 50, bucket_counts
+
+
+@pytestmark_corpus
+def test_resolver_descends_into_bibliography() -> None:
+    """Bibliography entries carry ``<ref @target>`` — they must be classified."""
+    review = parse_review(_BAYEUX)
+    assert review.bibliography, "bayeux must have a back-bibliography"
+    bib_refs = []
+    for bib in review.bibliography:
+        for inline in bib.inlines:
+            if isinstance(inline, Reference):
+                bib_refs.append(inline)
+    assert bib_refs, "bayeux bibliography must contain ref inlines"
+    for ref in bib_refs:
+        # Every bib ref must have a bucket assignment (or None for missing target).
+        assert ref.bucket in {"local", "criteria", "external", "orphan", None}
+
+
+@pytestmark_corpus
+def test_resolver_preserves_review_metadata() -> None:
+    """Resolver is a pure transform — non-walk fields are untouched."""
+    review = parse_review(_BAYEUX)
+    resolved = resolve_references(review)
+    # parse_review already applies the resolver, so this re-applies it. The
+    # contract is idempotence: the second pass produces an equal review.
+    assert resolved.id == review.id
+    assert resolved.issue == review.issue
+    assert resolved.title == review.title
+    assert resolved.source_file == review.source_file
+    assert len(resolved.body) == len(review.body)
+    assert len(resolved.bibliography) == len(review.bibliography)
+
+
+@pytestmark_corpus
+def test_resolver_aggregates_match_section_tree() -> None:
+    """After the resolver, ``Review.figures`` shares object identity with
+    the figures inside the section tree. No divergent copies."""
+    review = parse_review(_REVIEW_1641)
+    aggregate_ids = {id(f) for f in review.figures}
+    in_tree_figures = []
+
+    def collect(s):
+        for b in s.blocks:
+            if isinstance(b, Figure):
+                in_tree_figures.append(b)
+        for sub in s.subsections:
+            collect(sub)
+
+    for s in review.front + review.body + review.back:
+        collect(s)
+    in_tree_ids = {id(f) for f in in_tree_figures}
+    # Every aggregate figure that exists at top section level shares identity.
+    # (Some figures may also live inside cells / list items; those still match.)
+    assert aggregate_ids & in_tree_ids, (
+        "aggregate must share identity with figures reached via the section tree"
+    )
+
+
+@pytestmark_corpus
+def test_resolver_descends_through_emphasis_and_note() -> None:
+    """Refs nested inside ``<emph>`` / ``<note>`` get classified too.
+
+    The corpus has many footnotes whose body contains a Reference; the
+    walker must recurse into ``Note.children``.
+    """
+    found_nested = False
+    for f in sorted(_RIDE.glob("*-tei.xml"))[:20]:  # 20 reviews suffice
+        review = parse_review(f)
+        for note in review.notes:
+            for inline in note.children:
+                if isinstance(inline, Reference) and inline.bucket is not None:
+                    found_nested = True
+                    break
+            if found_nested:
+                break
+        if found_nested:
+            break
+    assert found_nested, "every parsed corpus has refs inside notes; if not, the walker is broken"

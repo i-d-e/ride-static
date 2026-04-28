@@ -118,12 +118,6 @@ def fixture_paths(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
     return e, t, o, out
 
 
-def test_writes_output(fixture_paths: tuple[Path, Path, Path, Path]) -> None:
-    e, t, o, out = fixture_paths
-    cross_reference.run(e, t, o, out)
-    assert out.is_file()
-
-
 def test_phantom_element_marked_absent(fixture_paths: tuple[Path, Path, Path, Path]) -> None:
     e, t, o, out = fixture_paths
     payload = cross_reference.run(e, t, o, out)

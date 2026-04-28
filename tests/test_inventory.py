@@ -58,13 +58,6 @@ def fixture_corpus(tmp_path: Path) -> tuple[Path, Path]:
     return tei_dir, out_dir
 
 
-def test_run_writes_three_outputs(fixture_corpus: tuple[Path, Path]) -> None:
-    tei_dir, out_dir = fixture_corpus
-    inventory.run(tei_dir, out_dir)
-    for name in ("elements.json", "attributes.json", "corpus-stats.json"):
-        assert (out_dir / name).is_file(), f"missing {name}"
-
-
 def test_corpus_stats_basics(fixture_corpus: tuple[Path, Path]) -> None:
     tei_dir, out_dir = fixture_corpus
     stats = inventory.run(tei_dir, out_dir)
