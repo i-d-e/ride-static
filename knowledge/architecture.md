@@ -133,6 +133,55 @@ templates/html/
   3. External `http(s)://` targets pass through unchanged. Anything else
      emits a build-time warning and is rendered as plain text.
 
+## Element-Mapping (declarative)
+
+The bridge between the domain model and the rendered output is configured in `config/element-mapping.yaml`, not in Python. This makes the most common extension — wiring a new TEI element or variant to a template and CSS class — a YAML-only change. Implementing genuinely new behaviour still requires a Python dataclass and parser function, but ninety percent of presentation changes do not.
+
+The mapping is a single YAML file with three top-level keys: `blocks`, `inlines`, `extensibility`. Each block or inline entry names the Jinja template, the CSS class, and optional variants for sub-kinds (e.g. list `bulleted` versus `ordered` versus `labeled`). The file is loaded once at the start of the build and consulted by every renderer.
+
+```yaml
+blocks:
+  Paragraph:
+    template: blocks/paragraph.html
+    css_class: ride-paragraph
+  List:
+    template: blocks/list.html
+    css_class: ride-list
+    variants:
+      bulleted: ride-list--bulleted
+      ordered:  ride-list--ordered
+      labeled:  ride-list--labeled
+  Figure:
+    template: blocks/figure.html
+    css_class: ride-figure
+    variants:
+      graphic:      ride-figure--image
+      code_example: ride-figure--code
+
+inlines:
+  Reference:
+    template: inlines/reference.html
+    css_class: ride-ref
+    by_bucket:
+      local:    ride-ref--local
+      criteria: ride-ref--criteria
+      external: ride-ref--external
+      orphan:   ride-ref--orphan
+  Emphasis:
+    template: inlines/emphasis.html
+    css_class: ride-emph
+
+extensibility:
+  unknown_element_strategy: warn-and-render-text   # or: raise
+  warn_unknown_attributes: true
+```
+
+**What this covers and what it does not.** The mapping resolves the binding `domain class → template + CSS`. It does not encode parsing rules, anomaly handling, or business logic. Adding a new block kind that has new structural semantics still requires a dataclass in `src/model/` and a parser function in `src/parser/`. Adding a new visual variant of an existing kind, or rewiring a template path, is YAML-only.
+
+This separation is the formal answer to [[requirements#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — map onto two action paths: the YAML for presentation, Python for semantics. The mechanics of each path live in `docs/extending.md`.
+
+The mapping file is loaded in Phase 8 ([[pipeline#Phasenplan]]) and is the single source for all template-class associations from then on. CI fails if the mapping references a template path that does not exist or a domain class that the parser does not produce.
+
 ## Build vs. runtime
 
 The site is fully static. Everything is computed at build time. No server,
