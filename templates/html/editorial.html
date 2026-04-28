@@ -1,0 +1,28 @@
+{#-
+  editorial.html — single-column editorial pages.
+
+  Used for About, Imprint, Review Criteria and any other Markdown-driven
+  page under content/. Per interface.md §4 these pages have no sidebar —
+  one column, content only.
+
+  Variables:
+    page_title       — from frontmatter title
+    page_lang        — from frontmatter language
+    page_html        — Markdown rendered to HTML, marked safe
+    last_updated     — frontmatter field, optional
+-#}
+{% extends "base.html" %}
+
+{% block content %}
+<article class="ride-page ride-page--solo" lang="{{ page_lang }}">
+  <div class="ride-content ride-editorial">
+    {{ page_html | safe }}
+
+    {%- if last_updated -%}
+    <p class="ride-editorial__updated">
+      <em>{{ site.strings.last_updated | default('Last updated') }}: {{ last_updated }}</em>
+    </p>
+    {%- endif -%}
+  </div>
+</article>
+{% endblock %}

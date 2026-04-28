@@ -272,6 +272,10 @@ hr {
 .ride-cite__btn                 { display: block; width: 100%; padding: var(--ride-space-2) var(--ride-space-3); margin-top: var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; }
 .ride-cite__btn:hover           { background: var(--ride-rule); }
 
+/* Editorial pages — single column, generous reading width. */
+.ride-editorial                 { max-width: var(--ride-content-width); }
+.ride-editorial__updated        { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-12); }
+
 /* ─── 6. Responsive breakpoints ──────────────────────────────────────── */
 
 /* < 720px — sidebar collapses below content; apparate stacks. */

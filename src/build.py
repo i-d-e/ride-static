@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 from src.parser.review import parse_review
+from src.render.editorial import discover_editorials, render_editorial
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -73,6 +74,18 @@ def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Path:
     shutil.copyfile(path, target_xml)
 
     return page_dir
+
+
+def _render_editorials(env, site: SiteConfig, out_root: Path) -> int:
+    """Render every ``content/*.md`` page to ``site/{slug}/index.html``."""
+    written = 0
+    for page in discover_editorials():
+        page_dir = out_root / page.slug
+        page_dir.mkdir(parents=True, exist_ok=True)
+        html = render_editorial(page, site=site, env=env)
+        (page_dir / "index.html").write_text(html, encoding="utf-8")
+        written += 1
+    return written
 
 
 def _copy_static(out_root: Path) -> None:
@@ -127,11 +140,16 @@ def build(
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
+    editorials = _render_editorials(env, site, out_root)
+
     _copy_static(out_root)
     _placeholder_index(out_root, written)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
+
+    if editorials:
+        print(f"Wrote {editorials} editorial pages")
 
     return written
 
