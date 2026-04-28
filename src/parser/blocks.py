@@ -1,14 +1,10 @@
 """Block-level parsing — one function per kind, plus a dispatcher.
 
-Phase 3 scope: structural skeleton. Inlines remain ``()`` until Phase 4 wires
-in the mixed-content walker; ``Paragraph.inlines`` is therefore empty even
-when the source ``<p>`` contains text. This is by design — the contract here
-is "the right block kind with the right structural metadata", and Phase 5
-re-runs every parsed block through the inline parser before integration.
-
-The dispatcher ``parse_block`` raises :class:`UnknownTeiElement` on anything
-not in the verified-present set (Paragraph, List, Table, Figure, Citation),
-per the hard rule in CLAUDE.md: anomalies are explicit, unknowns must raise.
+Phase 5 wires the inline parser into every per-kind function so block
+content carries real ``Inline`` sequences (Phase 3 left them as ``()``).
+The dispatcher ``parse_block`` raises :class:`UnknownTeiElement` on
+anything not in the verified-present set (Paragraph, List, Table,
+Figure, Citation), per the hard rule in CLAUDE.md.
 """
 from __future__ import annotations
 
@@ -27,7 +23,15 @@ from src.model.block import (
     TableCell,
     TableRow,
 )
-from src.parser.common import NS, attr, itertext
+from src.model.inline import Inline
+from src.parser.common import (
+    NS,
+    UnknownTeiElement,
+    attr,
+    itertext,
+    locate_hint,
+)
+from src.parser.inlines import parse_inlines
 
 # -- List rend normalisation ---------------------------------------------
 
@@ -38,24 +42,16 @@ _LIST_REND_NORMALISE = {
 }
 
 
-class UnknownTeiElement(ValueError):
-    """Raised when ``parse_block`` sees an element it has no branch for."""
-
-    def __init__(self, localname: str, hint: Optional[str] = None) -> None:
-        msg = f"unknown block-level element: <{localname}>"
-        if hint:
-            msg += f" ({hint})"
-        super().__init__(msg)
-        self.localname = localname
-        self.hint = hint
-
-
 # -- Per-kind parsers -----------------------------------------------------
 
 
 def parse_paragraph(p: etree._Element) -> Paragraph:
-    """``<p>`` — paragraph. ``@n`` carries the citation-anchor number."""
-    return Paragraph(inlines=(), n=attr(p, "n"))
+    """``<p>`` — paragraph. ``@xml:id`` is the citation anchor, ``@n`` the visible number."""
+    return Paragraph(
+        inlines=parse_inlines(p),
+        xml_id=attr(p, "xml:id"),
+        n=attr(p, "n"),
+    )
 
 
 def parse_list(lst: etree._Element) -> List:
@@ -77,22 +73,27 @@ def parse_list(lst: etree._Element) -> List:
 
 def _parse_list_item(item: etree._Element, kind: str) -> ListItem:
     """Build a ListItem; for ``kind="labeled"`` extract the optional ``<label>``."""
-    label: Optional[tuple] = None
+    label: Optional[tuple[Inline, ...]] = None
     if kind == "labeled":
         lab = item.find("t:label", NS)
         if lab is not None:
-            text = itertext(lab)
-            if text:
-                from src.model.inline import Text
-                label = (Text(text=text),)
-    return ListItem(inlines=(), label=label)
+            label_inlines = parse_inlines(lab)
+            if label_inlines:
+                label = label_inlines
+            # The <label> element is consumed; the item's remaining mixed content
+            # carries the definition. We re-parse the item with the label child
+            # detached so its text does not appear twice.
+            parent_item = lab.getparent()
+            if parent_item is not None:
+                parent_item.remove(lab)
+    return ListItem(inlines=parse_inlines(item), label=label)
 
 
 def parse_table(tbl: etree._Element) -> Table:
     """``<table>`` — flat in the RIDE corpus (``@rows="1"``, ``@cols="1"`` always)."""
-    head_text = _head_inlines_or_none(tbl)
+    head_inlines = _head_inlines_or_none(tbl)
     rows = tuple(_parse_table_row(r) for r in tbl.findall("t:row", NS))
-    return Table(rows=rows, head=head_text)
+    return Table(rows=rows, head=head_inlines)
 
 
 def _parse_table_row(row: etree._Element) -> TableRow:
@@ -103,7 +104,7 @@ def _parse_table_row(row: etree._Element) -> TableRow:
 def _parse_table_cell(cell: etree._Element) -> TableCell:
     """Header detection via ``@role="label"``; the corpus uses this convention."""
     is_header = (attr(cell, "role") == "label")
-    return TableCell(inlines=(), is_header=is_header)
+    return TableCell(inlines=parse_inlines(cell), is_header=is_header)
 
 
 def parse_figure(fig: etree._Element) -> Figure:
@@ -111,45 +112,59 @@ def parse_figure(fig: etree._Element) -> Figure:
 
     The corpus has 833 figures with ``<graphic>`` (kind=graphic) and 41 with
     ``<eg>`` instead (kind=code_example, typically TEI-markup samples).
+    ``<figDesc>`` does not occur in the corpus; ``alt`` is therefore always
+    ``None`` today, but the field is set up for the build-bericht in Phase 13.
     """
     head = _head_inlines_or_none(fig) or ()
+    xml_id = attr(fig, "xml:id")
+    alt = _figdesc_text(fig)
     graphic = fig.find("t:graphic", NS)
     if graphic is not None:
         return Figure(
             kind="graphic",
             head=head,
+            xml_id=xml_id,
             graphic_url=attr(graphic, "url"),
+            alt=alt,
         )
     eg = fig.find("t:eg", NS)
     if eg is not None:
         return Figure(
             kind="code_example",
             head=head,
+            xml_id=xml_id,
             code=itertext(eg) or None,
             code_lang=attr(eg, "lang"),
+            alt=alt,
         )
     # Neither <graphic> nor <eg> — empty figure. Render as headed placeholder.
-    return Figure(kind="graphic", head=head)
+    return Figure(kind="graphic", head=head, xml_id=xml_id, alt=alt)
 
 
 def parse_cit(cit: etree._Element) -> Citation:
     """``<cit>`` — quotation with optional ``<bibl>`` attribution.
 
     ``<quote>`` is always present (84/84 in the corpus); ``<bibl>`` in 64
-    of those. The bibl child is captured as an empty inline tuple in Phase 3
-    and filled with mixed-content inlines in Phase 4.
+    of those. The first ``<ref>`` descendant of ``<bibl>`` (if any) carries
+    the canonical citation target; we surface its ``@target`` separately so
+    the renderer can build the citation link without re-walking the inline
+    tree.
     """
+    quote_el = cit.find("t:quote", NS)
+    quote_inlines = parse_inlines(quote_el) if quote_el is not None else ()
+
     bibl_el = cit.find("t:bibl", NS)
-    bibl: Optional[tuple] = () if bibl_el is not None else None
-    bibl_target = attr(find_first_ref(bibl_el), "target") if bibl_el is not None else None
+    bibl: Optional[tuple[Inline, ...]] = parse_inlines(bibl_el) if bibl_el is not None else None
+    bibl_target = attr(_first_ref(bibl_el), "target") if bibl_el is not None else None
+
     return Citation(
-        quote_inlines=(),
+        quote_inlines=quote_inlines,
         bibl=bibl,
         bibl_target=bibl_target,
     )
 
 
-def find_first_ref(el: Optional[etree._Element]) -> Optional[etree._Element]:
+def _first_ref(el: Optional[etree._Element]) -> Optional[etree._Element]:
     """Helper: first ``<ref>`` descendant of ``el``, or None."""
     if el is None:
         return None
@@ -172,43 +187,34 @@ def parse_block(el: etree._Element) -> Block:
     """Dispatch to the right per-kind parser based on local name.
 
     Raises :class:`UnknownTeiElement` for anything outside the verified set.
-    The error message carries the element's local name and an optional hint
-    (the nearest ancestor ``<div>``'s ``@xml:id``) so the offending element is
-    locatable in the source.
     """
     local = etree.QName(el).localname
     fn = _DISPATCH.get(local)
     if fn is None:
-        raise UnknownTeiElement(local, hint=_locate_hint(el))
+        raise UnknownTeiElement(local, hint=locate_hint(el))
     return fn(el)
-
-
-def _locate_hint(el: etree._Element) -> Optional[str]:
-    """Walk up to the nearest ``<div>`` and report its ``@xml:id``, if any."""
-    cur: Optional[etree._Element] = el.getparent()
-    while cur is not None:
-        if etree.QName(cur).localname == "div":
-            xid = attr(cur, "xml:id")
-            if xid:
-                return f"inside <div xml:id={xid!r}>"
-            return "inside <div> (no xml:id)"
-        cur = cur.getparent()
-    return None
 
 
 # -- Helpers --------------------------------------------------------------
 
 
-def _head_inlines_or_none(parent: etree._Element) -> Optional[tuple]:
-    """First ``<head>`` child as a single Text inline, or None.
-
-    Phase 4 will replace the placeholder with the real mixed-content walker.
-    """
+def _head_inlines_or_none(parent: etree._Element) -> Optional[tuple[Inline, ...]]:
+    """First ``<head>`` child as a tuple of inlines, or None."""
     head = parent.find("t:head", NS)
     if head is None:
         return None
-    text = itertext(head)
-    if not text:
+    inlines = parse_inlines(head)
+    return inlines or None
+
+
+def _figdesc_text(fig: etree._Element) -> Optional[str]:
+    """Text of the optional ``<figDesc>`` child for accessibility (alt text).
+
+    Zero occurrences in the corpus today — Phase 13 will surface this as a
+    build warning aggregated at corpus level rather than once per figure.
+    """
+    desc = fig.find("t:figDesc", NS)
+    if desc is None:
         return None
-    from src.model.inline import Text
-    return (Text(text=text),)
+    text = itertext(desc)
+    return text or None

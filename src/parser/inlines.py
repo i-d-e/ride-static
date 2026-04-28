@@ -41,16 +41,28 @@ from src.model.inline import (
     Reference,
     Text,
 )
-from src.parser.blocks import UnknownTeiElement, _locate_hint
-from src.parser.common import attr
+from src.parser.common import (
+    UnknownTeiElement,
+    attr,
+    itertext,
+    locate_hint,
+)
 
 _WS_RUN = re.compile(r"\s+")
 
 # Elements that appear in mixed content but are not modelled as separate
-# inlines. Currently only <lb/> qualifies (~30 occurrences corpus-wide,
-# mostly inside <quote>). We render them as a single space so that word
-# boundaries survive but the surrounding text remains a single Text run.
+# inlines. ``<lb/>`` (~30 occurrences corpus-wide, mostly inside <quote>) is
+# rendered as a single space so word boundaries survive while the surrounding
+# text remains one Text run.
 _SOFT_SKIP = frozenset({"lb"})
+
+# Long-tail mixed-content elements that the model deliberately does not
+# carry as inline kinds, but whose textual content must not be lost. The
+# walker captures their normalised itertext as a Text inline. Counts in the
+# corpus are tiny: <mod> 7, <del> 3, <seg> 1, <affiliation> 1 (the last
+# under <head>, an editorial quirk). Phase 13 may surface these as build
+# warnings; for parsing they degrade gracefully.
+_PASSTHROUGH_TEXT = frozenset({"mod", "del", "seg", "affiliation"})
 
 # <ref @type> normalisation: the corpus has 1704× "crossref" and exactly
 # 1× "crosssref" (data typo). Map the typo to the canonical value at parse
@@ -78,6 +90,10 @@ def parse_inlines(host: etree._Element) -> tuple[Inline, ...]:
         local = etree.QName(child).localname
         if local in _SOFT_SKIP:
             raw.append(" ")
+        elif local in _PASSTHROUGH_TEXT:
+            text = itertext(child)
+            if text:
+                raw.append(text)
         else:
             raw.append(_parse_inline(child, local))
         if child.tail:
@@ -103,7 +119,7 @@ def _parse_inline(el: etree._Element, local: str) -> Inline:
         )
     if local == "code":
         return _parse_code(el)
-    raise UnknownTeiElement(local, hint=_locate_hint(el))
+    raise UnknownTeiElement(local, hint=locate_hint(el))
 
 
 def _parse_ref(el: etree._Element) -> Reference:

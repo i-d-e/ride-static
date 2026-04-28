@@ -22,9 +22,10 @@ from typing import Optional
 
 from lxml import etree
 
-from src.model.inline import Inline, Text
+from src.model.inline import Inline
 from src.model.section import Section
-from src.parser.common import NS, TEI_NS, attr, itertext
+from src.parser.common import NS, TEI_NS, attr
+from src.parser.inlines import parse_inlines
 
 _KNOWN_DIV_TYPES = frozenset({"abstract", "bibliography", "appendix"})
 _MAX_DIV_DEPTH = 3
@@ -135,16 +136,14 @@ def _classify_type(raw: Optional[str]) -> Optional[str]:
 
 
 def _heading_inlines(div: etree._Element) -> Optional[tuple[Inline, ...]]:
-    """First ``<head>`` child of ``div`` as a single-Text inline tuple, or None.
+    """First ``<head>`` child of ``div`` parsed via the mixed-content walker.
 
-    Phase 4 replaces this with a real mixed-content walker. For now we keep
-    only the normalised text — sufficient for Phase 2 round-tripping and for
-    rendering plain headings in the smoke tests.
+    Returns None when the heading is absent or empty. Headings carry inline
+    content (emph, ref, note, code, hi) in 245 of 1917 cases corpus-wide;
+    Phase 5 wires the walker so that survives instead of being flattened.
     """
     head = div.find("t:head", NS)
     if head is None:
         return None
-    text = itertext(head)
-    if not text:
-        return None
-    return (Text(text=text),)
+    inlines = parse_inlines(head)
+    return inlines or None

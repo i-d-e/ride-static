@@ -1,8 +1,10 @@
 """Shared TEI parsing helpers.
 
 Centralises namespace handling, attribute fetches with the ``xml:`` prefix,
-and whitespace-normalised text extraction so the per-region parsers stay
-declarative.
+whitespace-normalised text extraction, and the cross-module
+``UnknownTeiElement`` exception so the per-region parsers stay declarative
+and the inline / block parsers can both use the same diagnostic without
+forming an import cycle.
 """
 from __future__ import annotations
 
@@ -10,6 +12,36 @@ import re
 from typing import Optional
 
 from lxml import etree
+
+
+class UnknownTeiElement(ValueError):
+    """Raised when a parser sees an element it has no branch for.
+
+    Carries the offending local name plus an optional locator hint
+    (typically the nearest ``<div xml:id=...>`` ancestor) so the
+    misplaced element is findable in the source.
+    """
+
+    def __init__(self, localname: str, hint: Optional[str] = None) -> None:
+        msg = f"unknown TEI element: <{localname}>"
+        if hint:
+            msg += f" ({hint})"
+        super().__init__(msg)
+        self.localname = localname
+        self.hint = hint
+
+
+def locate_hint(el: etree._Element) -> Optional[str]:
+    """Walk up to the nearest ``<div>`` and report its ``@xml:id``, if any."""
+    cur: Optional[etree._Element] = el.getparent()
+    while cur is not None:
+        if etree.QName(cur).localname == "div":
+            xid = cur.get(f"{{{XML_NS}}}id")
+            if xid:
+                return f"inside <div xml:id={xid!r}>"
+            return "inside <div> (no xml:id)"
+        cur = cur.getparent()
+    return None
 
 TEI_NS = "http://www.tei-c.org/ns/1.0"
 XML_NS = "http://www.w3.org/XML/1998/namespace"

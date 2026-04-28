@@ -45,12 +45,31 @@ def test_parse_paragraph_carries_n_for_citation_anchor():
     out = parse_paragraph(p)
     assert isinstance(out, Paragraph)
     assert out.n == "12"
-    assert out.inlines == ()  # Phase 4 fills this
+    # Phase 5 wired the inline walker; @n captures the visible margin number.
+    from src.model.inline import Text
+    assert out.inlines == (Text(text="Body text."),)
 
 
 def test_parse_paragraph_without_n():
     p = _el('<p xmlns="http://www.tei-c.org/ns/1.0">No number.</p>')
     assert parse_paragraph(p).n is None
+
+
+def test_parse_paragraph_xml_id_carried_for_copy_link():
+    """`@xml:id` is the citation-anchor target referenced by the §11
+    copy-link affordance. Capture it on the Paragraph dataclass."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0" '
+        'xmlns:xml="http://www.w3.org/XML/1998/namespace" '
+        'xml:id="div2.p3">Anchored.</p>'
+    )
+    assert parse_paragraph(p).xml_id == "div2.p3"
+
+
+def test_parse_paragraph_without_xml_id_yields_none():
+    """219 of 3809 paragraphs in the corpus have no xml:id; field stays None."""
+    p = _el('<p xmlns="http://www.tei-c.org/ns/1.0">Plain.</p>')
+    assert parse_paragraph(p).xml_id is None
 
 
 # -- List -----------------------------------------------------------------
@@ -172,6 +191,38 @@ def test_parse_figure_without_graphic_or_eg_falls_back_to_graphic_kind():
     assert out.graphic_url is None
 
 
+def test_parse_figure_xml_id_for_apparate_backlink():
+    """Figures need a stable id for the parallel apparate sub-block (§6)."""
+    fig = _el(
+        '<figure xmlns="http://www.tei-c.org/ns/1.0" '
+        'xmlns:xml="http://www.w3.org/XML/1998/namespace" '
+        'xml:id="fig.intro"><head>I</head><graphic url="x.png"/></figure>'
+    )
+    assert parse_figure(fig).xml_id == "fig.intro"
+
+
+def test_parse_figure_alt_from_figdesc():
+    """`<figDesc>` is empty in the current corpus, but the parser captures it
+    when present so Phase 13's build report can act on missing values."""
+    fig = _el(
+        '<figure xmlns="http://www.tei-c.org/ns/1.0">'
+        "<head>F</head>"
+        '<graphic url="x.png"/>'
+        "<figDesc>A diagram of the workflow.</figDesc>"
+        "</figure>"
+    )
+    assert parse_figure(fig).alt == "A diagram of the workflow."
+
+
+def test_parse_figure_alt_none_when_figdesc_absent():
+    """The corpus today: 874 figures, 0 figDesc — the dominant case."""
+    fig = _el(
+        '<figure xmlns="http://www.tei-c.org/ns/1.0">'
+        '<head>F</head><graphic url="x.png"/></figure>'
+    )
+    assert parse_figure(fig).alt is None
+
+
 # -- Citation -------------------------------------------------------------
 
 
@@ -184,7 +235,14 @@ def test_parse_cit_with_bibl_and_target():
     )
     out = parse_cit(cit)
     assert isinstance(out, Citation)
-    assert out.bibl == ()  # Phase 4 fills with mixed-content inlines
+    # Phase 5 wired the inline walker; bibl now carries inlines, and
+    # bibl_target surfaces the first <ref>'s @target separately.
+    from src.model.inline import Reference, Text
+    assert out.quote_inlines == (Text(text="Famous line."),)
+    assert out.bibl is not None
+    assert out.bibl[0] == Text(text="Smith ")
+    assert isinstance(out.bibl[1], Reference)
+    assert out.bibl[1].target == "#s2010"
     assert out.bibl_target == "#s2010"
 
 

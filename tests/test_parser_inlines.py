@@ -262,6 +262,27 @@ def test_lb_becomes_single_space():
     assert out == (Text(text="line one line two"),)
 
 
+def test_passthrough_text_for_mod_preserves_content():
+    """``<mod>`` (7 corpus occurrences) is not modelled but its text must
+    survive — captured as a Text inline rather than silently dropped."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        "before <mod>amended phrase</mod> after</p>"
+    )
+    out = parse_inlines(p)
+    assert out == (Text(text="before amended phrase after"),)
+
+
+def test_passthrough_text_for_affiliation_in_head():
+    """One head in the corpus carries `<affiliation>` — handled as text."""
+    head = _el(
+        '<head xmlns="http://www.tei-c.org/ns/1.0">'
+        "Reviewed by <affiliation>Dr Foo (Univ.)</affiliation></head>"
+    )
+    out = parse_inlines(head)
+    assert out == (Text(text="Reviewed by Dr Foo (Univ.)"),)
+
+
 # -- Comments and PIs -----------------------------------------------------
 
 
