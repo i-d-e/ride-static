@@ -36,9 +36,13 @@ Review:
     authors: tuple[Author, ...]          # Person + Affiliation + Email
     editors: tuple[Editor, ...]          # Person + Role
     related_items: tuple[RelatedItem, ...]
-    front: tuple[Section, ...]           # meist leer
+    front: tuple[Section, ...]           # **immer** das Abstract; 107/107 Reviews tragen
+                                         # genau eine Section mit type='abstract' hier.
+                                         # Renderer muss `front` zuerst nach abstract
+                                         # absuchen, body ist *kein* Abstract-Träger.
     body: tuple[Section, ...]            # Hauptinhalt, rekursiv
-    back: tuple[Section, ...]            # Bibliographie heute leer (Phase 6)
+    back: tuple[Section, ...]            # Bibliographie-Heading-Träger (Inhalt in
+                                         # Review.bibliography)
     figures: tuple[Figure, ...]          # alle Figuren in Dokumentreihenfolge
     notes: tuple[Note, ...]              # alle Footnotes in Dokumentreihenfolge
     bibliography: tuple[BibEntry, ...]   # back-Bibliographie (Phase 6.A)

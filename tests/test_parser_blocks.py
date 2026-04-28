@@ -237,14 +237,17 @@ def test_parse_cit_with_bibl_and_target():
     )
     out = parse_cit(cit)
     assert isinstance(out, Citation)
-    # Phase 5 wired the inline walker; bibl now carries inlines, and
-    # bibl_target surfaces the first <ref>'s @target separately.
+    # Phase 6 unified the bibl shape: Citation.bibl is now a BibEntry that
+    # mirrors the back-bibliography form. bibl_target stays as a top-level
+    # convenience for renderers (it equals bibl.ref_target).
+    from src.model.bibliography import BibEntry
     from src.model.inline import Reference, Text
     assert out.quote_inlines == (Text(text="Famous line."),)
-    assert out.bibl is not None
-    assert out.bibl[0] == Text(text="Smith ")
-    assert isinstance(out.bibl[1], Reference)
-    assert out.bibl[1].target == "#s2010"
+    assert isinstance(out.bibl, BibEntry)
+    assert out.bibl.inlines[0] == Text(text="Smith ")
+    assert isinstance(out.bibl.inlines[1], Reference)
+    assert out.bibl.inlines[1].target == "#s2010"
+    assert out.bibl.ref_target == "#s2010"
     assert out.bibl_target == "#s2010"
 
 

@@ -9,9 +9,12 @@ and is never a block on its own. ``<note>`` and ``<code>`` are inline-only.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from src.model.inline import Inline
+
+if TYPE_CHECKING:
+    from src.model.bibliography import BibEntry
 
 
 @dataclass(frozen=True)
@@ -119,12 +122,15 @@ class Figure:
 class Citation:
     """``<cit>`` — a quotation with optional bibliographic attribution.
 
-    ``bibl`` keeps the inline children of ``<bibl>`` (emph, ref, date, …) rather
-    than flattening to a string, so the renderer preserves emphasis and links.
+    ``bibl`` is a :class:`~src.model.bibliography.BibEntry` (the same shape
+    used by ``Review.bibliography``), so the rendering of inline citations
+    and the back-bibliography share one path. ``bibl_target`` mirrors
+    ``bibl.ref_target`` for renderer convenience and stays for backwards
+    compatibility with the Phase-3 contract.
     """
 
     quote_inlines: tuple[Inline, ...]
-    bibl: Optional[tuple[Inline, ...]] = None
+    bibl: "Optional[BibEntry]" = None
     bibl_target: Optional[str] = None
 
 

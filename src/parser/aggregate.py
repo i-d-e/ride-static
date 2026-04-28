@@ -82,8 +82,8 @@ def _figures_in_block(b: Block) -> Iterator[Figure]:
                     yield from _figures_in_block(nested)
     elif isinstance(b, Citation):
         yield from _figures_in_inlines(b.quote_inlines)
-        if b.bibl:
-            yield from _figures_in_inlines(b.bibl)
+        if b.bibl is not None:
+            yield from _figures_in_inlines(b.bibl.inlines)
 
 
 def _notes_in_block(b: Block) -> Iterator[Note]:
@@ -108,8 +108,8 @@ def _notes_in_block(b: Block) -> Iterator[Note]:
                     yield from _notes_in_block(nested)
     elif isinstance(b, Citation):
         yield from _notes_in_inlines(b.quote_inlines)
-        if b.bibl:
-            yield from _notes_in_inlines(b.bibl)
+        if b.bibl is not None:
+            yield from _notes_in_inlines(b.bibl.inlines)
 
 
 def _figures_in_inlines(inlines: tuple[Inline, ...]) -> Iterator[Figure]:

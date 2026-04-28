@@ -177,23 +177,36 @@ def parse_cit(cit: etree._Element) -> Citation:
     """``<cit>`` — quotation with optional ``<bibl>`` attribution.
 
     ``<quote>`` is always present (84/84 in the corpus); ``<bibl>`` in 64
-    of those. The first ``<ref>`` descendant of ``<bibl>`` (if any) carries
-    the canonical citation target; we surface its ``@target`` separately so
-    the renderer can build the citation link without re-walking the inline
-    tree.
+    of those. Inline citation bibls share the :class:`BibEntry` shape with
+    the back-bibliography so renderers can reuse the same per-bibl partial.
+    ``Citation.bibl_target`` mirrors ``BibEntry.ref_target`` for
+    backwards-compatible callers.
     """
     quote_el = cit.find("t:quote", NS)
     quote_inlines = parse_inlines(quote_el) if quote_el is not None else ()
 
     bibl_el = cit.find("t:bibl", NS)
-    bibl: Optional[tuple[Inline, ...]] = parse_inlines(bibl_el) if bibl_el is not None else None
-    bibl_target = attr(_first_ref(bibl_el), "target") if bibl_el is not None else None
+    bibl: Optional[BibEntry] = None
+    bibl_target: Optional[str] = None
+    if bibl_el is not None:
+        from src.parser.bibliography import parse_bibl
+        bibl = parse_bibl(bibl_el)
+        bibl_target = bibl.ref_target
 
     return Citation(
         quote_inlines=quote_inlines,
         bibl=bibl,
         bibl_target=bibl_target,
     )
+
+
+def _first_ref(el: Optional[etree._Element]) -> Optional[etree._Element]:
+    """Helper kept for backwards compatibility; new callers should use
+    :func:`src.parser.bibliography.parse_bibl` which captures the target
+    via :class:`BibEntry`. Retained for any extant references."""
+    if el is None:
+        return None
+    return el.find(".//t:ref", NS)
 
 
 def _first_ref(el: Optional[etree._Element]) -> Optional[etree._Element]:

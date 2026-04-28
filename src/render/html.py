@@ -10,6 +10,7 @@ templates auto-escape HTML by default.
 """
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -124,8 +125,19 @@ def make_env(templates_dir: Path = TEMPLATES_DIR) -> Environment:
 
 
 def split_abstract(review: Review) -> tuple[Optional[Section], tuple[Section, ...]]:
-    """Pull the abstract Section (type='abstract') out of body, return (abstract, body_rest)."""
-    abstract = None
+    """Pull the abstract Section out of the review, return (abstract, body_rest).
+
+    The corpus convention places the abstract under ``<front>``: 107 of 107
+    reviews carry exactly one front section with ``type="abstract"`` and
+    zero body abstracts. ``review.front`` is therefore the primary source.
+    The body is checked as a defensive fallback in case a future review
+    deviates from the convention (none do today). ``body`` is returned
+    unchanged when the abstract is in front.
+    """
+    for sec in review.front:
+        if sec.type == "abstract":
+            return sec, review.body
+    abstract: Optional[Section] = None
     rest: list[Section] = []
     for sec in review.body:
         if sec.type == "abstract" and abstract is None:
