@@ -146,6 +146,12 @@
       </p>
       <button type="button" class="ride-cite__btn" data-cite-format="bibtex" data-review-id="{{ review.id }}">{{ site.strings.copy_bibtex | default('Copy BibTeX') }}</button>
       <button type="button" class="ride-cite__btn" data-cite-format="csl-json" data-review-id="{{ review.id }}">{{ site.strings.copy_csl | default('Copy CSL-JSON') }}</button>
+
+      {#- Citation payload — read by static/js/cite-copy.js. Both blocks use a
+          script-MIME-type the browser does not execute. The to_bibtex helper
+          escapes "</" sequences; tojson does the same for the CSL-JSON. -#}
+      <script class="ride-cite-data" data-format="bibtex" type="application/x-bibtex">{{ review | to_bibtex | safe }}</script>
+      <script class="ride-cite-data" data-format="csl-json" type="application/json">{{ review | to_csl_dict | tojson(indent=2) }}</script>
     </section>
   </aside>
 

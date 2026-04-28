@@ -103,6 +103,111 @@ def _static_path_factory(base_url: str):
     return static_path
 
 
+# ── Citation export ──────────────────────────────────────────────────
+
+
+_JOURNAL_TITLE = "RIDE — Reviews in Digital Editions"
+
+
+def _author_name_pair(person) -> tuple[str, str]:
+    """(family, given) — falls back to splitting full_name when fields are absent."""
+    if person.surname or person.forename:
+        return person.surname or "", person.forename or ""
+    name = person.full_name or ""
+    if "," in name:
+        family, _, given = name.partition(",")
+        return family.strip(), given.strip()
+    parts = name.rsplit(" ", 1)
+    if len(parts) == 2:
+        return parts[1], parts[0]
+    return name, ""
+
+
+def _bibtex_escape(s: str) -> str:
+    """Escape backslash and braces; keep ASCII, leave the rest verbatim.
+
+    The closing-script defence (``</`` → ``<\\/``) protects the embedded
+    <script class="ride-cite-data"> block from premature termination.
+    """
+    if not s:
+        return ""
+    # Sentinel pass: replace backslash with a placeholder so the brace-escape
+    # step does not touch the braces inside ``\textbackslash{}``.
+    sentinel = "\x00BIBSLASH\x00"
+    out = s.replace("\\", sentinel)
+    out = out.replace("{", r"\{").replace("}", r"\}")
+    out = out.replace(sentinel, "\\textbackslash{}")
+    return out.replace("</", "<\\/")
+
+
+def _to_bibtex(review) -> str:
+    """Render one Review as a single-entry BibTeX string.
+
+    Author names go to the BibTeX-canonical ``Family, Given`` form joined by
+    ``and``. The title is wrapped in double braces to preserve case in
+    BibTeX styles that lower-case titles. Year is sliced from
+    ``publication_date`` when ISO-shaped; otherwise omitted.
+    """
+    authors = " and ".join(
+        ", ".join(part for part in _author_name_pair(a.person) if part)
+        for a in review.authors
+    ) or "Anonymous"
+    year = review.publication_date[:4] if review.publication_date and review.publication_date[:4].isdigit() else ""
+    title = _bibtex_escape(review.title or "")
+    fields = [
+        f"  author    = {{{authors}}}",
+        f"  title     = {{{{{title}}}}}",
+        f"  journal   = {{{_JOURNAL_TITLE}}}",
+    ]
+    if review.issue:
+        fields.append(f"  number    = {{{review.issue}}}")
+    if year:
+        fields.append(f"  year      = {{{year}}}")
+    body = ",\n".join(fields)
+    return f"@article{{{review.id or 'review'},\n{body},\n}}"
+
+
+def _to_csl_dict(review) -> dict:
+    """Render one Review as a CSL-JSON object (dict — Jinja's tojson serialises).
+
+    Outputs the schema.org-compatible subset most citation managers consume:
+    id, type, title, author, container-title, issue, issued.
+    """
+    authors_csl: list[dict] = []
+    for a in review.authors:
+        family, given = _author_name_pair(a.person)
+        if family or given:
+            entry: dict = {}
+            if family:
+                entry["family"] = family
+            if given:
+                entry["given"] = given
+            authors_csl.append(entry)
+        elif a.person.full_name:
+            authors_csl.append({"literal": a.person.full_name})
+
+    obj: dict = {
+        "id": review.id or "",
+        "type": "article-journal",
+        "title": review.title or "",
+        "container-title": _JOURNAL_TITLE,
+    }
+    if authors_csl:
+        obj["author"] = authors_csl
+    if review.issue:
+        obj["issue"] = review.issue
+    if review.publication_date:
+        date_parts = []
+        for chunk in review.publication_date[:10].split("-"):
+            if chunk.isdigit():
+                date_parts.append(int(chunk))
+            else:
+                break
+        if date_parts:
+            obj["issued"] = {"date-parts": [date_parts]}
+    return obj
+
+
 # ── Environment ───────────────────────────────────────────────────────
 
 
@@ -118,6 +223,8 @@ def make_env(templates_dir: Path = TEMPLATES_DIR) -> Environment:
     env.filters["slugify"] = _slugify
     env.filters["obfuscate_mail"] = _obfuscate_mail
     env.filters["inlines_to_text"] = _inlines_to_text
+    env.filters["to_bibtex"] = _to_bibtex
+    env.filters["to_csl_dict"] = _to_csl_dict
     return env
 
 
