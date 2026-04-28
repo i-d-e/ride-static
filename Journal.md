@@ -30,6 +30,24 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 4 abgeschlossen, Inline-Parser steht
+
+**Ziel:** Mixed-Content-Walker `parse_inlines(host)` für die sechs verifizierten Inline-Kinds (Text, Emphasis, Highlight, Reference, Note, InlineCode), inklusive Whitespace-Strategie an Sequenz-Rändern und Normalisierung der `crosssref`-Typo.
+
+**Erledigt:** Commit `6d9f05e` — `src/parser/inlines.py` mit Walker, Per-Kind-Helfern, Whitespace-Logik (internal collapse, edge strip, drop empties, coalesce adjacent text). 26 Tests in `tests/test_parser_inlines.py`: Walker-Basics, Whitespace, jeder Kind einzeln, Nesting (Emph-in-Ref und Ref-in-Emph), Soft-Skip von `<lb/>`, Comment-Tail-Erhalt, Unknown-Raise. Zwei Real-Korpus-Smokes: zehn `<head>`-Parse-ohne-Raise und die eine `crosssref`-Stelle wird zu `crossref` normalisiert. Modell-Erweiterung: `Note.xml_id: Optional[str] = None` als Footnote-Anker für Phase 7. 170/170 Tests.
+
+**Entscheidungen:**
+- `<lb/>` soft-skip als Single-Space statt eigener Inline-Klasse. Begründung: 30 Vorkommen, fast ausschließlich in `<quote>`; das Modell hält an sechs Kinds fest, der Walker dokumentiert die Ausnahme. Phase 8/14 können bei Bedarf Whitespace-pre-line setzen.
+- `Note.xml_id` ergänzt, nicht in Phase 1 vorausgenommen. Begründung: Korpus zeigt 1919/1926 Notes mit `xml:id="ftnN"`, ohne den Wert kann Phase 7 (Ref-Resolver) das `<ref target="#ftnN">`/`<note xml:id="ftnN">`-Paar nicht verbinden. Additiv, default `None`.
+- Block-Elemente in `<p>` (figure, list, cit, table mit zusammen ~1000 Vorkommen unter `<p>`) raisen sauber via `UnknownTeiElement`. Phase 5 muss diese Pre-Extraction als Integrations-Concern lösen — das ist nicht Sache des Inline-Walkers.
+- `crosssref→crossref`-Map als Daten, nicht als Code-Branch. Falls künftige RIDE-Submissions neue Typen einführen, passieren die unverändert durch — kein Whitelist-Raise an dieser Stelle.
+
+**Offen:** Phase 5 — Integration in `parse_review`. `parse_sections` und `parse_block` füllen ihre `inlines=()`-Felder via `parse_inlines`. Block-in-Paragraph-Anomalie (figure/list/cit/table inline-in-p) muss vor dem Inline-Walker abgegriffen werden, sonst raised der gesamte Korpus. Strategie: Pre-Pass über `<p>`, der Block-Children herauslöst und als Sibling-Blöcke einreiht; der inlines-Anteil bleibt rein. Anschließend Real-Korpus-Smoke gegen alle 107 Reviews.
+
+**Nächster Einstieg:** `src/parser/integration.py` (oder Erweiterung in `blocks.py`) mit `_split_paragraph(p)` → `(Paragraph, list[Block])`, das Block-Kinder aus dem Mixed-Content auslagert. Dann `parse_review` so erweitern, dass `Review.body` für alle 107 Reviews vollständig befüllt ist. Stage 2.B abgeschlossen, sobald der Korpus-Smoke ohne Anomalien durchläuft.
+
+---
+
 ## 2026-04-29 — Phase 3 abgeschlossen, Block-Parser steht
 
 **Ziel:** Block-Parser für die fünf verifiziert vorkommenden Block-Kinds (Paragraph, List, Table, Figure, Citation), inklusive List-Rend-Normalisierung, Figure-Kind-Detection und Dispatcher mit klarer Fehlermeldung bei Unbekanntem.
