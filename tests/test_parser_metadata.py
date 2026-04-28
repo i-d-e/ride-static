@@ -106,6 +106,15 @@ def test_top_level_fields(fixture_path: Path) -> None:
     assert r.licence == "https://creativecommons.org/licenses/by/4.0/"
 
 
+def test_body_fields_default_to_empty_tuples(fixture_path: Path) -> None:
+    """Phase-1 stubs: front/body/back are tuple-typed defaults until Phase 5
+    integration wires the section parser into parse_review."""
+    r = parse_review(fixture_path)
+    assert r.front == ()
+    assert r.body == ()
+    assert r.back == ()
+
+
 def test_keywords(fixture_path: Path) -> None:
     r = parse_review(fixture_path)
     assert r.keywords == ("digital edition", "review", "methodology")

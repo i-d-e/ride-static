@@ -1,7 +1,10 @@
 """Domain types for a RIDE review.
 
-Header-layer types only (Stage 2.A). Body-layer types — Section, Block,
-Inline, BibEntry, Questionnaire — arrive in Stage 2.B and beyond.
+Header-layer types from Stage 2.A and body-layer Section sequences from
+Stage 2.B Phase 1. ``BibEntry`` and ``Questionnaire`` arrive in Phase 6
+(Stage 2.C); their fields are present here as empty defaults so that
+existing call-sites never need to reach into the dataclass to construct
+a Review.
 
 All types are immutable so a parsed Review can be passed around and
 cached without surprises. Use ``dataclasses.replace`` to derive variants.
@@ -10,6 +13,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Optional
+
+from src.model.section import Section
 
 
 @dataclass(frozen=True)
@@ -82,6 +87,17 @@ class Review:
     authors: tuple[Author, ...] = field(default_factory=tuple)
     editors: tuple[Editor, ...] = field(default_factory=tuple)
     related_items: tuple[RelatedItem, ...] = field(default_factory=tuple)
+
+    front: tuple[Section, ...] = field(default_factory=tuple)
+    """Sections under <front> (often empty in RIDE)."""
+
+    body: tuple[Section, ...] = field(default_factory=tuple)
+    """Sections under <body>. The seven body-wraps-direct-p reviews collapse to
+    a single implicit Section here; see knowledge/architecture.md anomaly table."""
+
+    back: tuple[Section, ...] = field(default_factory=tuple)
+    """Sections under <back> (bibliography, appendix). Empty for the seven
+    no-back reviews listed in knowledge/data.md."""
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""
