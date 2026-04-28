@@ -33,6 +33,7 @@ from src.parser.datasets import (
     aggregate_tags,
 )
 from src.render.html import SiteConfig, _slugify, _static_path_factory, make_env
+from src.render.issues_config import IssueConfig, order_reviews
 
 
 # ── helpers ────────────────────────────────────────────────────────────
@@ -106,28 +107,43 @@ def render_index(reviews: tuple[Review, ...], site: SiteConfig, env: Environment
     )
 
 
-def render_issues_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
+def render_issues_overview(
+    reviews: tuple[Review, ...],
+    site: SiteConfig,
+    env: Environment,
+    issue_configs: Optional[dict[str, IssueConfig]] = None,
+) -> str:
     by_issue = group_reviews_by_issue(reviews)
     issues = sorted(by_issue.items(), key=_issue_sort_key, reverse=True)
+    configs = issue_configs or {}
+    issues_with_cfg = [(no, revs, configs.get(no)) for no, revs in issues]
     return env.get_template("issues.html").render(
         **_common_ctx(site),
         page_title="Issues",
         page_url=_abs_url(site, "/issues/"),
-        issues=issues,
+        issues=issues_with_cfg,
     )
 
 
-def render_issue(issue_no: str, reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
+def render_issue(
+    issue_no: str,
+    reviews: tuple[Review, ...],
+    site: SiteConfig,
+    env: Environment,
+    config: Optional[IssueConfig] = None,
+) -> str:
     issue_reviews = [r for r in reviews if r.issue == issue_no]
-    issue_reviews.sort(key=lambda r: r.id)
+    issue_reviews = order_reviews(issue_no, issue_reviews, config)
     latest = max((r.publication_date or "" for r in issue_reviews), default="")
+    title = (config.title if config and config.title else f"Issue {issue_no}")
     return env.get_template("issue.html").render(
         **_common_ctx(site),
-        page_title=f"Issue {issue_no}",
+        page_title=title,
         page_url=_abs_url(site, f"/issues/{issue_no}/"),
         issue_no=issue_no,
         reviews=issue_reviews,
         latest_date=latest,
+        config=config,
     )
 
 

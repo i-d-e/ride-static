@@ -323,6 +323,17 @@ hr {
   .ride-tag-list                { column-count: 1; }
 }
 
+/* Issue header & rolling-issue badge. */
+.ride-issue__header             { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-4); border-bottom: 1px solid var(--ride-rule); }
+.ride-issue__status             { margin: 0 0 var(--ride-space-3); }
+.ride-issue__meta               { font-family: var(--ride-font-sans); font-size: var(--ride-text-small); margin: var(--ride-space-3) 0; }
+.ride-issue__meta dt            { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); color: var(--ride-fg-secondary); }
+.ride-issue__meta dd            { margin: 0; }
+.ride-issue__description        { font-style: italic; color: var(--ride-fg-secondary); }
+
+.ride-badge                     { display: inline-block; padding: 1px 6px; font-family: var(--ride-font-sans); font-size: var(--ride-text-tiny); font-weight: var(--ride-weight-medium); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 2px; margin-left: var(--ride-space-2); }
+.ride-badge--rolling            { background: var(--ride-accent); color: var(--ride-bg); }
+
 /* Review header — bibliographic block + reviewer block (interface.md §5). */
 .ride-review__header            { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-6); border-bottom: 1px solid var(--ride-rule); }
 .ride-review__title             { margin-top: 0; }

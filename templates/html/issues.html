@@ -1,6 +1,7 @@
 {#-
   issues.html — Heftübersicht (R5).
   Liste aller Hefte, sortiert nach jüngstem Beitrag, mit Beitragszahl.
+  Rolling-Issues sind über config.is_rolling markiert (R5 acceptance).
 -#}
 {% extends "base.html" %}
 
@@ -11,11 +12,14 @@
     <p class="ride-lede">All RIDE issues in reverse chronological order.</p>
 
     <ol class="ride-issue-list">
-      {%- for issue_no, issue_reviews in issues -%}
+      {%- for issue_no, issue_reviews, cfg in issues -%}
         {%- set latest = issue_reviews | map(attribute="publication_date") | reject("equalto", "") | list -%}
-        <li class="ride-issue-list__entry">
+        <li class="ride-issue-list__entry{% if cfg and cfg.is_rolling %} ride-issue-list__entry--rolling{% endif %}">
           <a href="{{ site.base_url }}/issues/{{ issue_no }}/" class="ride-issue-list__link">
-            <span class="ride-issue-list__no">Issue {{ issue_no }}</span>
+            <span class="ride-issue-list__no">
+              {%- if cfg and cfg.title -%}{{ cfg.title }}{%- else -%}Issue {{ issue_no }}{%- endif -%}
+            </span>
+            {%- if cfg and cfg.is_rolling %}<span class="ride-badge ride-badge--rolling">rolling</span>{% endif -%}
             {%- if latest %}<span class="ride-issue-list__date"> · {{ latest | max }}</span>{% endif -%}
             <span class="ride-issue-list__count"> · {{ issue_reviews | length }} reviews</span>
           </a>

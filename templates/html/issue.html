@@ -1,8 +1,8 @@
 {#-
   issue.html — Heftansicht (R4).
-  Heftmetadaten oben + Beitragskarten. Konsistenz gegen TEI-Header
-  (Phase 11 Heft-YAML) ist offen — heute werden die Header-Werte aus
-  den enthaltenen Reviews verwendet.
+  Heftmetadaten oben + Beitragskarten. Die yaml-konfigurierten Felder
+  (DOI, Editors, Description, Status, Publication-Date) werden
+  bevorzugt; ohne YAML wird auf TEI-Header-Aggregat zurückgefallen.
 -#}
 {% extends "base.html" %}
 {%- import "partials/review_card.html" as rc -%}
@@ -12,9 +12,43 @@
   <div class="ride-content">
 
     <header class="ride-issue__header">
-      <h1>Issue {{ issue_no }}</h1>
-      {%- if latest_date %}<p class="ride-issue__date">Latest contribution: {{ latest_date }}</p>{% endif -%}
-      <p class="ride-issue__count">{{ reviews | length }} reviews</p>
+      <h1>
+        {%- if config and config.title %}{{ config.title }}
+        {%- else %}Issue {{ issue_no }}{% endif -%}
+      </h1>
+
+      {%- if config and config.is_rolling -%}
+        <p class="ride-issue__status"><span class="ride-badge ride-badge--rolling">rolling issue</span></p>
+      {%- endif -%}
+
+      <dl class="ride-issue__meta">
+        {%- set effective_date = (config.publication_date if config and config.publication_date else latest_date) -%}
+        {%- if effective_date -%}
+          <dt>{% if config and config.is_rolling %}Latest update{% else %}Published{% endif %}</dt>
+          <dd>{{ effective_date }}</dd>
+        {%- endif -%}
+        {%- if config and config.doi -%}
+          <dt>DOI</dt>
+          <dd><a href="https://doi.org/{{ config.doi }}">{{ config.doi }}</a></dd>
+        {%- endif -%}
+        {%- if config and config.editors -%}
+          <dt>Editor{% if config.editors | length > 1 %}s{% endif %}</dt>
+          <dd>
+            {%- for ed in config.editors -%}
+              {%- if ed.orcid %}<a href="{{ ed.orcid }}">{{ ed.name }}</a>
+              {%- else %}{{ ed.name }}{% endif -%}
+              {%- if ed.affiliation %} ({{ ed.affiliation }}){% endif -%}
+              {%- if not loop.last %}, {% endif -%}
+            {%- endfor -%}
+          </dd>
+        {%- endif -%}
+        <dt>Reviews</dt>
+        <dd>{{ reviews | length }}</dd>
+      </dl>
+
+      {%- if config and config.description -%}
+        <p class="ride-issue__description">{{ config.description }}</p>
+      {%- endif -%}
     </header>
 
     <section class="ride-issue__contributions">

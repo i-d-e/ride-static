@@ -45,6 +45,11 @@ from src.render.aggregations import (
 )
 from src.render.editorial import discover_editorials, render_editorial
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, _slugify, make_env, render_review
+from src.render.issues_config import (
+    IssueConfigError,
+    discover_issue_configs,
+    validate_issue_configs,
+)
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 SITE_DIR = REPO_ROOT / "site"
@@ -119,6 +124,7 @@ def _render_aggregations(
     env,
     site: SiteConfig,
     out_root: Path,
+    issue_configs: Optional[dict] = None,
 ) -> int:
     """Build every aggregation page — home, issues, tags, reviewers, resources.
 
@@ -135,10 +141,12 @@ def _render_aggregations(
     pages += 1
 
     # Heftübersicht and per-issue.
+    configs = issue_configs or {}
     issues_dir = out_root / "issues"
     issues_dir.mkdir(parents=True, exist_ok=True)
     (issues_dir / "index.html").write_text(
-        render_issues_overview(reviews, site=site, env=env), encoding="utf-8"
+        render_issues_overview(reviews, site=site, env=env, issue_configs=configs),
+        encoding="utf-8",
     )
     pages += 1
 
@@ -147,7 +155,8 @@ def _render_aggregations(
         d = issues_dir / issue_no
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(
-            render_issue(issue_no, reviews, site=site, env=env), encoding="utf-8"
+            render_issue(issue_no, reviews, site=site, env=env, config=configs.get(issue_no)),
+            encoding="utf-8",
         )
         pages += 1
 
@@ -223,8 +232,20 @@ def build(
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
+    # Issue YAML configs — loaded once, validated against the parsed corpus.
+    # R11: inconsistencies break the build with a clear error.
+    issue_configs = discover_issue_configs()
+    issue_errors = validate_issue_configs(issue_configs, tuple(rendered))
+    if issue_errors:
+        raise IssueConfigError(
+            "issue YAML and TEI corpus disagree:\n  - "
+            + "\n  - ".join(issue_errors)
+        )
+
     editorials = _render_editorials(env, site, out_root)
-    aggregations = _render_aggregations(tuple(rendered), env, site, out_root)
+    aggregations = _render_aggregations(
+        tuple(rendered), env, site, out_root, issue_configs=issue_configs
+    )
 
     _copy_static(out_root)
 
