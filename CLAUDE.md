@@ -10,9 +10,10 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 
 - **No XSLT.** Python only.
 - **TDD.** Every script and parser module ships with a pytest using synthetic TEI fixtures (`tests/`). The parser also has one real-corpus smoke test that skips when `../ride/` is not present.
-- **`knowledge/` is a clean Obsidian vault — `.md` only.** Generated JSON belongs in `inventory/`.
+- **`knowledge/` is a clean Obsidian-style vault — `.md` only.** Generated JSON belongs in `inventory/`. Cross-references inside the vault use `[[wikilink]]` notation. Hand-written filenames are lowercase.
 - **`inventory/` is gitignored** (visible, no leading dot). Always regeneratable from scripts.
 - **Anomalies are explicit.** Known data quirks (no `<back>`, `<num value="3">`, `<list rend="numbered">`, etc. — see `knowledge/data.md`) become named branches in the parser. Unknown ones must raise.
+- **Journal at the end of every session.** Append a new dated entry to `Journal.md` (top of the entries section, five fixed fields) before closing a working session. Format documented at the top of `Journal.md`. The journal complements memory and git: it captures *why* and *next-step*, not just *what changed*.
 
 ## Layout
 
