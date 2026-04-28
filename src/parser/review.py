@@ -15,6 +15,7 @@ from src.model.review import Review
 from src.parser.aggregate import collect_figures, collect_notes
 from src.parser.bibliography import parse_bibliography
 from src.parser.common import NS, attr, find, itertext
+from src.parser.questionnaire import parse_questionnaires
 from src.parser.metadata import (
     parse_authors,
     parse_editors,
@@ -50,6 +51,7 @@ def parse_review(path: Path) -> Review:
     figures = collect_figures(all_sections)
     notes = collect_notes(all_sections)
     bibliography = parse_bibliography(text_el)
+    questionnaires = parse_questionnaires(root)
 
     return Review(
         id=attr(root, "xml:id") or "",
@@ -68,5 +70,6 @@ def parse_review(path: Path) -> Review:
         figures=figures,
         notes=notes,
         bibliography=bibliography,
+        questionnaires=questionnaires,
         source_file=path.name,
     )

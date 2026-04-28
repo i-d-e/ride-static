@@ -1,6 +1,9 @@
 # Generated build artifacts (regenerate via scripts/*.py).
 inventory/
 
+# Build output (regenerate via python -m src.build).
+site/
+
 # Python
 __pycache__/
 *.py[cod]

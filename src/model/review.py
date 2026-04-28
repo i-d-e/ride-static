@@ -17,6 +17,7 @@ from typing import Optional
 from src.model.bibliography import BibEntry
 from src.model.block import Figure
 from src.model.inline import Note
+from src.model.questionnaire import Questionnaire
 from src.model.section import Section
 
 
@@ -120,6 +121,12 @@ class Review:
     ``<listBibl>``. Section ``<div type="bibliography">`` retains its
     heading in ``back`` but its ``blocks`` are intentionally empty —
     bibliography content lives here, not in the Section tree."""
+
+    questionnaires: tuple[Questionnaire, ...] = field(default_factory=tuple)
+    """One Questionnaire per ``<taxonomy>`` element in the review's
+    classDecl. Most reviews carry exactly one; three carry two. Feeds
+    the Factsheet (``interface.md`` §5) and the cross-corpus Data page
+    (``requirements.md`` R9)."""
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""

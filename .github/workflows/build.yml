@@ -1,0 +1,138 @@
+# Single-workflow build and deploy for ride.i-d-e.de — per
+# requirements.md N10 (one workflow file) and pipeline.md "GitHub Actions
+# workflow (Phase 15)".
+#
+# Status: SKELETON. Steps marked "Phase 8+" are placeholders that fail
+# loudly until the corresponding pipeline phase lands. The deploy chain
+# (upload-pages-artifact + deploy-pages) is the modern Actions-based
+# Pages flow — no /docs folder, no committed build output.
+#
+# Triggers:
+#   - push to main on changes that affect TEI sources, content, or pipeline
+#   - manual dispatch from the Actions tab
+#
+# The ride corpus is checked out as a sibling at ../ride so that the
+# REPO_ROOT.parent / "ride" pattern in scripts/*.py works unchanged in CI.
+
+name: build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "src/**"
+      - "templates/**"
+      - "static/**"
+      - "config/**"
+      - "content/**"
+      - "tests/**"
+      - "requirements.txt"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+# Pages deploys need exactly these permissions; nothing else.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Don't queue overlapping deploys; the latest push always wins.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ride-static
+        uses: actions/checkout@v4
+        with:
+          path: ride-static
+
+      - name: Checkout ride corpus (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: i-d-e/ride
+          path: ride
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ride-static/requirements.txt
+
+      - name: Install dependencies
+        working-directory: ride-static
+        run: pip install -r requirements.txt
+
+      # Cache the 4 MB TEI P5 subset between runs; pipeline.md "Re-deployment flow".
+      - name: Cache TEI P5 subset
+        uses: actions/cache@v4
+        with:
+          path: ride-static/inventory/_cache
+          key: p5subset-${{ hashFiles('ride-static/scripts/p5_fetch.py') }}
+
+      - name: Run tests
+        working-directory: ride-static
+        run: python -m pytest -q
+
+      # Tier 1 — independent extractors. Could parallelise; sequential is cheap and ordered.
+      - name: Discovery scripts (Tier 1)
+        working-directory: ride-static
+        run: |
+          python scripts/inventory.py
+          python scripts/odd_extract.py
+          python scripts/structure.py
+          python scripts/sections.py
+          python scripts/ids.py
+          python scripts/refs.py
+          python scripts/taxonomy.py
+
+      - name: Discovery scripts (Tier 2 + 3)
+        working-directory: ride-static
+        run: |
+          python scripts/p5_fetch.py
+          python scripts/cross_reference.py
+
+      - name: Render knowledge docs (Tier 4)
+        working-directory: ride-static
+        run: |
+          python scripts/render_data.py
+          python scripts/render_schema.py
+
+      # Phase 13 lives here once it lands: pre-build RelaxNG + Schematron validation
+      # against ../ride/schema/ride.odd, with a per-file report.
+      # - name: Pre-build validation (Phase 13)
+      #   working-directory: ride-static
+      #   run: python -m src.validate
+
+      # Phase 8+ — the actual site build. Skeleton until src/build.py exists.
+      - name: Build site (Phase 8+)
+        working-directory: ride-static
+        run: |
+          if [ -f src/build.py ] || python -c "import src.build" 2>/dev/null; then
+            python -m src.build
+          else
+            echo "::warning::src.build is not implemented yet (Phase 8). Emitting placeholder site/."
+            mkdir -p site
+            echo "<!doctype html><title>ride-static</title><h1>build pending</h1>" > site/index.html
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ride-static/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

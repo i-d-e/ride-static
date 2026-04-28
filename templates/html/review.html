@@ -1,0 +1,150 @@
+{#-
+  review.html — single review page.
+
+  Layout per interface.md §5: split header (title / reviewed-edition /
+  reviewer block), abstract as a slightly-recessed block, body sections
+  with numbered-paragraph anchors, parallel apparate, sidebar with
+  TOC + Meta + Cite, footer with licence.
+
+  Variables in render context (in addition to base.html's set):
+    review          — Review domain object (data contract in COORDINATION.md)
+    abstract_section — Section with type="abstract" if present, else None
+    body_sections    — Review.body sections excluding the abstract
+-#}
+{% extends "base.html" %}
+{%- import "partials/section.html" as s -%}
+{%- import "partials/apparate.html" as a -%}
+{%- import "partials/render.html" as r -%}
+
+{% block title %}{{ review.title }} — {{ site.title }}{% endblock %}
+
+{% block content %}
+<article class="ride-page" lang="{{ review.language }}">
+  <div class="ride-content">
+
+    <header class="ride-review__header">
+      <h1 class="ride-review__title">{{ review.title }}</h1>
+
+      {#- Reviewed-edition block: derived from <relatedItem type="reviewed">. The
+          parser surfaces these as Review.related_items; the template renders
+          every entry whose type indicates the reviewed work. -#}
+      {%- set reviewed = review.related_items | selectattr("type", "in", ["reviewed", "review"]) | list -%}
+      {%- if reviewed -%}
+      <div class="ride-review__reviewed">
+        {%- for item in reviewed -%}
+          <p class="ride-review__bibl">{{ item.bibl_text }}</p>
+        {%- endfor -%}
+      </div>
+      {%- endif -%}
+
+      {#- Reviewer block: separate from the bibliographic one (§5). -#}
+      {%- if review.authors -%}
+      <div class="ride-review__authors">
+        <h2 class="ride-sr-only">{{ site.strings.reviewers | default('Reviewers') }}</h2>
+        <ul class="ride-review__author-list">
+          {%- for author in review.authors -%}
+            <li class="ride-review__author">
+              <span class="ride-review__author-name">{{ author.person.full_name }}</span>
+              {%- if author.person.orcid -%}
+                <a class="ride-review__orcid" href="{{ author.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>
+              {%- endif -%}
+              {%- if author.affiliation -%}
+                <span class="ride-review__affiliation">
+                  {%- if author.affiliation.org_name -%}{{ author.affiliation.org_name }}{%- endif -%}
+                  {%- if author.affiliation.place_name %}, {{ author.affiliation.place_name }}{% endif -%}
+                </span>
+              {%- endif -%}
+              {%- if author.email -%}
+                <a class="ride-review__email" href="mailto:{{ author.email | obfuscate_mail }}">{{ author.email | obfuscate_mail }}</a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+      {%- endif -%}
+    </header>
+
+    {%- if abstract_section -%}
+    <section class="ride-review__abstract" aria-label="{{ site.strings.abstract | default('Abstract') }}">
+      {{ r.blocks(abstract_section.blocks) }}
+    </section>
+    {%- endif -%}
+
+    <div class="ride-review__body">
+      {{ s.sections(body_sections) }}
+    </div>
+
+    {{ a.apparate(review, site.strings) }}
+
+    <footer class="ride-review__footer">
+      <p class="ride-review__licence">
+        {%- if review.licence -%}
+          {{ site.strings.licence | default('Licence') }}:
+          <a href="{{ review.licence }}">{{ review.licence }}</a>
+        {%- endif -%}
+      </p>
+      <p class="ride-review__provenance">
+        {%- if review.publication_date %}{{ site.strings.published | default('Published') }}: {{ review.publication_date }}{% endif -%}
+        {%- if site.build_info %} · build {{ site.build_info.commit_short }} ({{ site.build_info.date }}){% endif -%}
+      </p>
+    </footer>
+
+  </div>{# /ride-content #}
+
+  <aside class="ride-sidebar" aria-label="{{ site.strings.sidebar | default('Sidebar') }}">
+    {#- Three sidebar boxes per interface.md §5. TOC always; Meta with download
+        actions and DOI/factsheet; Cite with copy buttons. Phase 8 wires the
+        copy-link and cite-copy JS modules to the buttons here. -#}
+
+    <section class="ride-sidebar__box ride-sidebar__box--toc" aria-labelledby="toc-heading">
+      <h2 id="toc-heading">{{ site.strings.toc | default('Contents') }}</h2>
+      <ol class="ride-toc">
+        {%- for sec in body_sections -%}
+          <li><a href="#{{ sec.xml_id }}">{% if sec.heading %}{{ r.inlines(sec.heading) }}{% else %}§ {{ loop.index }}{% endif %}</a></li>
+        {%- endfor -%}
+      </ol>
+    </section>
+
+    <section class="ride-sidebar__box ride-sidebar__box--meta" aria-labelledby="meta-heading">
+      <h2 id="meta-heading">{{ site.strings.meta | default('Meta') }}</h2>
+      <dl class="ride-meta">
+        {%- if review.publication_date -%}
+          <dt>{{ site.strings.published | default('Published') }}</dt>
+          <dd>{{ review.publication_date }}</dd>
+        {%- endif -%}
+        {%- if review.issue -%}
+          <dt>{{ site.strings.issue | default('Issue') }}</dt>
+          <dd>{{ review.issue }}</dd>
+        {%- endif -%}
+        {%- if review.keywords -%}
+          <dt>{{ site.strings.tags | default('Tags') }}</dt>
+          <dd>
+            {%- for kw in review.keywords -%}
+              <a href="{{ site.base_url }}/tags/{{ kw | slugify }}/">{{ kw }}</a>{% if not loop.last %}, {% endif %}
+            {%- endfor -%}
+          </dd>
+        {%- endif -%}
+      </dl>
+
+      <ul class="ride-downloads">
+        <li><a href="{{ review.id }}.xml" type="application/tei+xml">{{ site.strings.download_tei | default('TEI XML') }}</a></li>
+        <li><a href="{{ review.id }}.pdf" type="application/pdf">{{ site.strings.download_pdf | default('PDF') }}</a></li>
+      </ul>
+    </section>
+
+    <section class="ride-sidebar__box ride-sidebar__box--cite" aria-labelledby="cite-heading">
+      <h2 id="cite-heading">{{ site.strings.cite | default('Cite') }}</h2>
+      <p class="ride-cite__suggestion">
+        {%- if review.authors -%}
+          {%- for a in review.authors -%}{{ a.person.full_name }}{% if not loop.last %}, {% endif %}{%- endfor -%}.
+        {%- endif -%}
+        “{{ review.title }}.”
+        {%- if review.publication_date %} {{ review.publication_date }}.{% endif -%}
+      </p>
+      <button type="button" class="ride-cite__btn" data-cite-format="bibtex" data-review-id="{{ review.id }}">{{ site.strings.copy_bibtex | default('Copy BibTeX') }}</button>
+      <button type="button" class="ride-cite__btn" data-cite-format="csl-json" data-review-id="{{ review.id }}">{{ site.strings.copy_csl | default('Copy CSL-JSON') }}</button>
+    </section>
+  </aside>
+
+</article>
+{% endblock %}

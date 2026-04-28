@@ -1,0 +1,150 @@
+{#-
+  render.html — recursive Jinja macros for Block and Inline domain types.
+
+  The macros dispatch on the dataclass's class name. They are the only
+  place in the template tree that knows how each domain type maps to HTML;
+  every other template calls into these.
+
+  CSS classes follow the BEM convention pinned in config/element-mapping.yaml:
+  ride-<kind> as base, ride-<kind>--<variant> as modifier.
+
+  Recursion safety: List items, table cells and labelled-list labels can
+  themselves contain inlines (and ListItem/TableCell can contain nested
+  blocks per the Stage 2.B contract). The macros are intentionally
+  mutually recursive — Jinja resolves them via the local scope inside
+  this file, so any caller `{% import %}`-ing `render.html` gets the
+  full set in one go.
+-#}
+
+{%- macro inline(i) -%}
+  {%- set kind = i.__class__.__name__ -%}
+  {%- if kind == "Text" -%}{{ i.text }}
+  {%- elif kind == "Emphasis" -%}<em class="ride-emph"{% if i.rend %} data-rend="{{ i.rend }}"{% endif %}>{{ inlines(i.children) }}</em>
+  {%- elif kind == "Highlight" -%}<span class="ride-highlight"{% if i.rend %} data-rend="{{ i.rend }}"{% endif %}>{{ inlines(i.children) }}</span>
+  {%- elif kind == "Reference" -%}{{ reference(i) }}
+  {%- elif kind == "Note" -%}{{ note_marker(i) }}
+  {%- elif kind == "InlineCode" -%}<code class="ride-code"{% if i.lang %} data-lang="{{ i.lang }}"{% endif %}>{{ i.text }}</code>
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro inlines(seq) -%}
+  {%- if seq -%}{%- for i in seq -%}{{ inline(i) }}{%- endfor -%}{%- endif -%}
+{%- endmacro -%}
+
+{#- Reference rendering. Phase 7 will resolve `target` into a four-bucket
+    classification; for now we render as a raw anchor with a CSS hook for
+    later refinement. -#}
+{%- macro reference(r) -%}
+  {%- if r.target -%}
+    <a class="ride-ref" href="{{ r.target }}"{% if r.type %} data-ref-type="{{ r.type }}"{% endif %}>{{ inlines(r.children) }}</a>
+  {%- else -%}
+    <span class="ride-ref ride-ref--orphan">{{ inlines(r.children) }}</span>
+  {%- endif -%}
+{%- endmacro -%}
+
+{#- Inline note marker — points to the matching <li> in the Notes apparate.
+    The marker is a small superscript link; the full footnote body is
+    rendered once in the apparate panel via `apparate_note(n)`. -#}
+{%- macro note_marker(n) -%}
+  {%- set anchor = n.xml_id or "" -%}
+  <sup class="ride-note"><a href="#{{ anchor }}" id="{{ anchor }}-mark">{{ n.n or "*" }}</a></sup>
+{%- endmacro -%}
+
+{#- Apparate version of a note: the full body, with a back-link to the
+    inline marker. -#}
+{%- macro apparate_note(n) -%}
+  {%- set anchor = n.xml_id or "" -%}
+  <li id="{{ anchor }}">
+    {%- if n.n %}<span class="ride-note__n">{{ n.n }}</span> {% endif -%}
+    {{ inlines(n.children) }}
+    {%- if anchor %} <a class="ride-note__back" href="#{{ anchor }}-mark" aria-label="Back to text">↩</a>{% endif -%}
+  </li>
+{%- endmacro -%}
+
+{#- Block dispatch. Calls itself recursively for nested blocks inside
+    list items and table cells (Stage 2.B contract). -#}
+{%- macro block(b) -%}
+  {%- set kind = b.__class__.__name__ -%}
+  {%- if kind == "Paragraph" -%}{{ paragraph(b) }}
+  {%- elif kind == "List" -%}{{ list_block(b) }}
+  {%- elif kind == "Table" -%}{{ table_block(b) }}
+  {%- elif kind == "Figure" -%}{{ figure_block(b) }}
+  {%- elif kind == "Citation" -%}{{ citation_block(b) }}
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro blocks(seq) -%}
+  {%- if seq -%}{%- for b in seq -%}{{ block(b) }}{%- endfor -%}{%- endif -%}
+{%- endmacro -%}
+
+{#- Paragraph. The optional @n value renders as a left-margin gutter number;
+    interface.md §11 calls for hover-revealed copy-link. The id makes the
+    paragraph itself the anchor target for that link (url-scheme.md). -#}
+{%- macro paragraph(p) -%}
+  <p class="ride-paragraph"{% if p.xml_id %} id="{{ p.xml_id }}"{% endif %}>
+    {%- if p.n -%}
+      <a class="ride-paragraph__anchor" href="#{{ p.xml_id or '' }}" aria-label="Permalink to paragraph {{ p.n }}">{{ p.n }}</a>
+    {%- endif -%}
+    {{ inlines(p.inlines) }}
+  </p>
+{%- endmacro -%}
+
+{%- macro list_block(l) -%}
+  {%- set tag = "ol" if l.kind == "ordered" else "ul" -%}
+  <{{ tag }} class="ride-list ride-list--{{ l.kind }}">
+    {%- for it in l.items -%}
+      <li>
+        {%- if it.label %}<span class="ride-list__label">{{ inlines(it.label) }}</span>{% endif -%}
+        {{ inlines(it.inlines) }}
+        {{ blocks(it.blocks) }}
+      </li>
+    {%- endfor -%}
+  </{{ tag }}>
+{%- endmacro -%}
+
+{#- Tables in the corpus are flat (1×N), per data.md. is_header is decided
+    by the parser from @role="label". WCAG: th carries scope="col". -#}
+{%- macro table_block(t) -%}
+  <table class="ride-table">
+    {%- if t.head %}<caption class="ride-table__caption">{{ inlines(t.head) }}</caption>{% endif -%}
+    {%- for row in t.rows -%}
+      <tr>
+        {%- for cell in row.cells -%}
+          {%- if cell.is_header -%}
+            <th scope="col">{{ inlines(cell.inlines) }}{{ blocks(cell.blocks) }}</th>
+          {%- else -%}
+            <td>{{ inlines(cell.inlines) }}{{ blocks(cell.blocks) }}</td>
+          {%- endif -%}
+        {%- endfor -%}
+      </tr>
+    {%- endfor -%}
+  </table>
+{%- endmacro -%}
+
+{#- Figure has two kinds. graphic_url is rewritten by the asset pipeline
+    in Phase 7; until then the path is whatever the TEI carries. -#}
+{%- macro figure_block(f) -%}
+  <figure class="ride-figure ride-figure--{% if f.kind == 'graphic' %}image{% else %}code{% endif %}"{% if f.xml_id %} id="{{ f.xml_id }}"{% endif %}>
+    {%- if f.kind == "graphic" and f.graphic_url -%}
+      <img src="{{ f.graphic_url }}" alt="{{ f.alt or (f.head | inlines_to_text) or '' }}">
+    {%- elif f.kind == "code_example" and f.code -%}
+      <pre><code{% if f.code_lang %} data-lang="{{ f.code_lang }}"{% endif %}>{{ f.code }}</code></pre>
+    {%- endif -%}
+    {%- if f.head %}<figcaption class="ride-figure__caption">{{ inlines(f.head) }}</figcaption>{% endif -%}
+  </figure>
+{%- endmacro -%}
+
+{%- macro citation_block(c) -%}
+  <blockquote class="ride-citation">
+    <p>{{ inlines(c.quote_inlines) }}</p>
+    {%- if c.bibl -%}
+      <footer class="ride-citation__bibl">
+        {%- if c.bibl_target -%}
+          <cite><a href="{{ c.bibl_target }}">{{ inlines(c.bibl) }}</a></cite>
+        {%- else -%}
+          <cite>{{ inlines(c.bibl) }}</cite>
+        {%- endif -%}
+      </footer>
+    {%- endif -%}
+  </blockquote>
+{%- endmacro -%}

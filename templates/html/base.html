@@ -1,0 +1,124 @@
+{#-
+  base.html — page chrome shared by every rendered page.
+
+  Spec anchors:
+    - knowledge/interface.md §4 (layout architecture, six page types)
+    - knowledge/interface.md §8 (lang propagation down to inline level)
+    - knowledge/interface.md §9 (skip link, focus, sprache, kontrast)
+    - knowledge/interface.md §12 (CSS one file, JS four small modules)
+    - knowledge/requirements.md R13 (Open-Graph), R15 (JSON-LD), N5 (a11y)
+    - knowledge/architecture.md §Renderers (templates see only domain objects)
+
+  Variables expected in render context (Phase 8 wires them):
+    site            — global site config: title, base_url, languages, build_info
+    page_lang       — ISO code for <html lang>; defaults to site default
+    page_title      — already-localised title for <title> and og:title
+    page_url        — canonical URL for og:url and link rel="canonical"
+    page_description — meta description and og:description (≤ 200 chars)
+    og              — optional dict overriding type/image/locale
+    json_ld         — pre-serialised JSON-LD string for the {% block schema %};
+                      review pages set this to schema.org/ScholarlyArticle
+    static_path     — function or filter producing site-rooted asset URLs
+
+  Child templates override the four named blocks: title, head_extra, content,
+  schema. Everything else is fixed page chrome.
+-#}
+<!doctype html>
+<html lang="{{ page_lang or site.default_language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% block title %}{{ page_title }} — {{ site.title }}{% endblock %}</title>
+
+  {%- if page_description %}
+  <meta name="description" content="{{ page_description }}">
+  {%- endif %}
+
+  {#- Open-Graph: per requirements.md R13 (Sharing) so social previews look sensible. -#}
+  <meta property="og:type" content="{{ og.type if og and og.type else 'article' }}">
+  <meta property="og:title" content="{{ page_title }}">
+  {%- if page_description %}
+  <meta property="og:description" content="{{ page_description }}">
+  {%- endif %}
+  {%- if page_url %}
+  <meta property="og:url" content="{{ page_url }}">
+  <link rel="canonical" href="{{ page_url }}">
+  {%- endif %}
+  {%- if og and og.image %}
+  <meta property="og:image" content="{{ og.image }}">
+  {%- endif %}
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="{{ (og.locale if og and og.locale else page_lang) | default(site.default_language) }}">
+
+  <link rel="stylesheet" href="{{ static_path('css/ride.css') }}">
+
+  {#- Self-host fonts under static/fonts/ — interface.md §7 forbids external CDN. -#}
+  {#- Concrete <link rel="preload"> entries land in Phase 8 once the WOFF2 files exist. -#}
+
+  {% block head_extra %}{% endblock %}
+
+  {#- JSON-LD per requirements.md R15. Per-review pages emit ScholarlyArticle;
+      other pages may leave this block empty or emit WebSite/Organization. -#}
+  {% block schema %}
+  {%- if json_ld %}
+  <script type="application/ld+json">{{ json_ld | safe }}</script>
+  {%- endif %}
+  {% endblock %}
+</head>
+<body>
+  {#- Skip link is the first focusable element on every page (WCAG 2.4.1). -#}
+  <a class="ride-skip" href="#ride-main">{{ site.strings.skip_to_content | default('Skip to content') }}</a>
+
+  <header class="ride-header" role="banner">
+    <div class="ride-shell">
+      {% block header %}
+      <a href="{{ site.base_url }}/" class="ride-header__brand">{{ site.title }}</a>
+      <nav aria-label="{{ site.strings.primary_nav | default('Primary') }}">
+        {#- Navbar source is still an open stakeholder question per
+            ride-static-prozess-und-stand.md §"Komponenten der heutigen Site".
+            Phase 9/10 wires it from a single YAML/Markdown source. -#}
+      </nav>
+      {% endblock %}
+    </div>
+  </header>
+
+  {#- Search slot lives between header and content per interface.md §4 — small,
+      always visible. Phase 11 mounts the Pagefind UI inside this container. -#}
+  <div class="ride-search-slot" role="search">
+    <div class="ride-shell">
+      <div id="ride-search" data-pagefind-ui></div>
+    </div>
+  </div>
+
+  <main id="ride-main" class="ride-shell" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="ride-footer" role="contentinfo">
+    <div class="ride-shell">
+      {% block footer %}
+      <p>
+        {#- Build-info lands here via site.build_info (requirements.md N4). -#}
+        {{ site.title }}
+        {%- if site.build_info %} · build {{ site.build_info.commit_short }} ({{ site.build_info.date }}){% endif %}
+      </p>
+      <p>
+        {#- Licence per N6 — the per-review licence renders inside the review,
+            this footer carries the site/code licence. -#}
+        {{ site.strings.licence_footer | default('Texts licensed under their respective Creative Commons terms; pipeline code MIT.') }}
+      </p>
+      {% endblock %}
+    </div>
+  </footer>
+
+  {#- Four small JS modules (interface.md §12). Each is loaded as a plain ES module,
+      no bundler. Phase 8 ships copy-link, tooltip, cite-copy; Phase 11 adds pagefind. -#}
+  {% block scripts %}
+  <script type="module" src="{{ static_path('js/copy-link.js') }}"></script>
+  <script type="module" src="{{ static_path('js/tooltip.js') }}"></script>
+  <script type="module" src="{{ static_path('js/cite-copy.js') }}"></script>
+  <script type="module" src="{{ static_path('js/pagefind.js') }}"></script>
+  {% endblock %}
+</body>
+</html>

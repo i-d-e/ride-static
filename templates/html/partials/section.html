@@ -1,0 +1,28 @@
+{#-
+  section.html — recursive section renderer.
+
+  A Section carries its own level (1..3 per Schematron ride.div-nesting).
+  We render headings as h2/h3/h4 because h1 is reserved for the page title.
+  Subsections recurse with their stored level; we never compute heading
+  level from depth, the parser is authoritative.
+
+  Imports the shared inline/block macros from render.html.
+-#}
+{%- import "partials/render.html" as r -%}
+
+{%- macro section(s) -%}
+  <section class="ride-section{% if s.type %} ride-section--{{ s.type }}{% endif %}"{% if s.xml_id %} id="{{ s.xml_id }}"{% endif %}>
+    {%- if s.heading -%}
+      {%- set hl = s.level + 1 -%}{# level 1 → h2, level 2 → h3, level 3 → h4 #}
+      <h{{ hl }} class="ride-section__heading">{{ r.inlines(s.heading) }}</h{{ hl }}>
+    {%- endif -%}
+    {{ r.blocks(s.blocks) }}
+    {%- for sub in s.subsections -%}
+      {{ section(sub) }}
+    {%- endfor -%}
+  </section>
+{%- endmacro -%}
+
+{%- macro sections(seq) -%}
+  {%- if seq -%}{%- for s in seq -%}{{ section(s) }}{%- endfor -%}{%- endif -%}
+{%- endmacro -%}
