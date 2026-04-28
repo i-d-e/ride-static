@@ -30,6 +30,26 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 1 abgeschlossen, Stage 2.B Modell steht
+
+**Ziel:** Datenmodell für Section, Block und Inline als frozen dataclasses anlegen, ohne Parser-Logik. Review-Klasse um die drei body-Felder erweitern.
+
+**Erledigt:**
+- Commit 1.1 (`e9a0be9`): `src/model/{section,block,inline}.py` plus `tests/test_model.py` mit 18 Cases. Block-Liste auf fünf verifizierte Kinds reduziert (Paragraph, List, Table, Figure, Citation); Note und InlineCode in Inline.
+- Commit 1.2 (`5060990`): Review erweitert um `front`, `body`, `back` als `tuple[Section, ...]` mit Default `()`. Additive Änderung, keine Breaking Changes für Stage-2.A-Aufrufer. Ein neuer Test pinnt das Default-Verhalten.
+- Refactoring-Vorlauf (Commits `e944ba1`, `2bff731`, `93b957d`): Architecture-Doc auf verifizierten Block-Stand gebracht, README auf akademisch-nüchtern, requirements.txt angelegt, Forward-References explizit markiert.
+
+**Entscheidungen:**
+- `List` als Klassennamen behalten trotz Konflikt mit `typing.List` — kein Konflikt im Code, da typing nicht importiert wird; `typing.List` ist seit Python 3.9 ohnehin deprecated zugunsten von `list[]`.
+- `Paragraph.n` als optionales Feld für die Citation-Anchor-Nummern aus interface.md §11.
+- `Figure.kind` ∈ {graphic, code_example} statt zwei separater Klassen — die Felder `graphic_url` und `code` sind je nach kind gesetzt; einfacher zu rendern als Polymorphie.
+
+**Offen:** Phase 2 — Section-Parser. Erfordert die Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>` oder `<cit>` unter `<body>`.
+
+**Nächster Einstieg:** `src/parser/sections.py` mit `parse_sections(host)` und `_parse_div(div, level, position)`. Synthetische Fixtures plus ein Real-Korpus-Smoke-Test gegen ein Wrap-Review (z. B. `tustep-tei.xml`).
+
+---
+
 ## 2026-04-29 — Konsolidierung K1-K4 vor Phase 1
 
 **Ziel:** Vor dem Start der eigentlichen Implementierungsphasen den Knowledge-Vault vereinheitlichen, das Repo selbsterklärend machen, das YAML-Mapping als Architekturentscheidung verankern und eine Journal-Konvention etablieren.
