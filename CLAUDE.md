@@ -57,6 +57,9 @@ Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` th
 | `sections.py` | `sections.json` | `<div type>` + `<head>`-tree per review |
 | `p5_fetch.py` | `tei-spec.json` | TEI P5 spec slice for elements actually used (cached at `inventory/_cache/p5subset.xml`) |
 | `cross_reference.py` | `cross-reference.json` | empirical × P5 × ODD diff |
+| `ids.py` | `ids.json` | per-file `xml:id` audit (parse errors, format violations against Schematron patterns) |
+| `refs.py` | `refs.json` | classifies `<ref @target>` as internal / external_url / other; flags dangling internal anchors and bucket them by prefix |
+| `taxonomy.py` | `taxonomy.json` | RIDE criteria taxonomies grouped by `@xml:base`, plus per-review category answers (`@value` 0/1) |
 | `render_data.py` | `knowledge/data.md` | structure-and-knowledge reference for code that walks the corpus |
 | `render_schema.py` | `knowledge/schema.md` | RIDE-specific schema reference, including ODD-vs-corpus diffs |
 
