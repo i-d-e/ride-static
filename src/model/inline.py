@@ -49,9 +49,16 @@ class Reference:
 
 @dataclass(frozen=True)
 class Note:
-    """``<note>`` — footnote, always inline in the RIDE corpus."""
+    """``<note>`` — footnote, always inline in the RIDE corpus.
+
+    ``xml_id`` carries the ``@xml:id`` of the note (typically ``ftnN``); it is
+    the anchor that footnote-style ``<ref target="#ftnN">`` resolves to in
+    Phase 7. ``n`` is the optional ordinal label, ``place`` an optional
+    rendering hint.
+    """
 
     children: tuple["Inline", ...]
+    xml_id: Optional[str] = None
     n: Optional[str] = None
     place: Optional[str] = None
 
