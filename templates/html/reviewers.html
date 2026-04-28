@@ -1,0 +1,25 @@
+{#-
+  reviewers.html — Reviewer-Liste (R8). Alphabetisch nach Nachname.
+  Optional Markdown-Profile gemäß A3 — heute leer, kommen in einer
+  Erweiterung. Affiliation-Hint ist die zuerst gesehene Org.
+-#}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <h1>Reviewers</h1>
+    <p class="ride-lede">{{ reviewers | length }} reviewers across the corpus.</p>
+
+    <ol class="ride-reviewer-list">
+      {%- for slug, r in reviewers -%}
+        <li class="ride-reviewer-list__entry">
+          <a href="{{ site.base_url }}/reviewers/{{ slug }}/" class="ride-reviewer-list__name">{{ r.person.full_name }}</a>
+          {%- if r.affiliation_hint %}<span class="ride-reviewer-list__aff"> · {{ r.affiliation_hint }}</span>{% endif -%}
+          <span class="ride-reviewer-list__count"> · {{ r.count }} {% if r.count == 1 %}review{% else %}reviews{% endif %}</span>
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</div>
+{% endblock %}

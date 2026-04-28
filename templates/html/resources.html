@@ -1,0 +1,42 @@
+{#-
+  resources.html — Reviewed-Resources-Tabelle (R7).
+  Spalten: Titel der Edition, Verantwortliche/Hinweise, Anzahl Reviews,
+  Verweis(e) auf die Rezensionsseiten. Generierung vollständig aus TEI
+  ohne manuelle Pflege.
+-#}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <h1>Reviewed resources</h1>
+    <p class="ride-lede">{{ resources | length }} digital editions reviewed in the corpus.</p>
+
+    <table class="ride-resources">
+      <thead>
+        <tr>
+          <th scope="col">Resource</th>
+          <th scope="col">Reviews</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for r in resources -%}
+        <tr>
+          <td class="ride-resources__title">
+            {%- if r.targets %}<a href="{{ r.targets[0] }}">{{ r.title }}</a>
+            {%- else %}{{ r.title }}{% endif -%}
+          </td>
+          <td class="ride-resources__reviews">
+            {%- for rid in r.review_ids -%}
+              {%- set rev = review_index.get(rid) -%}
+              {%- if rev -%}<a href="{{ site.base_url }}/issues/{{ rev.issue }}/{{ rev.id }}/">{{ rev.title }}</a>
+              {%- else -%}{{ rid }}{%- endif -%}{% if not loop.last %}; {% endif %}
+            {%- endfor -%}
+          </td>
+        </tr>
+        {%- endfor -%}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

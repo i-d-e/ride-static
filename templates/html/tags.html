@@ -1,0 +1,25 @@
+{#-
+  tags.html — Tag-Übersicht (R6).
+  Alphabetisch, mit Beitragszahl pro Tag. v0 als flache Liste statt
+  Cloud — eine echte Word-Cloud-Visualisierung wäre Designer-Arbeit;
+  flache Liste ist barrierefrei und scannbar.
+-#}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <h1>Tags</h1>
+    <p class="ride-lede">{{ tags | length }} keywords across the corpus.</p>
+
+    <ul class="ride-tag-list">
+      {%- for t in tags -%}
+        <li class="ride-tag-list__entry">
+          <a href="{{ site.base_url }}/tags/{{ t.name | slugify }}/">{{ t.display_name }}</a>
+          <span class="ride-tag-list__count">{{ t.count }}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</div>
+{% endblock %}

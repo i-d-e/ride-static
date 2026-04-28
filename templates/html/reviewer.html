@@ -1,0 +1,31 @@
+{#-
+  reviewer.html — Einzel-Reviewer-Seite mit Beitragsliste.
+  Optionale Markdown-Profildatei aus content/reviewers/{slug}.md wäre
+  hier vorzulegen (A3); dieser Slot kommt in einer Erweiterung.
+-#}
+{% extends "base.html" %}
+{%- import "partials/review_card.html" as rc -%}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <header class="ride-reviewer__header">
+      <h1>{{ reviewer.person.full_name }}</h1>
+      {%- if reviewer.person.orcid -%}
+        <p><a class="ride-reviewer__orcid" href="{{ reviewer.person.orcid }}" rel="me">ORCID</a></p>
+      {%- endif -%}
+      {%- if reviewer.affiliation_hint %}<p class="ride-reviewer__aff">{{ reviewer.affiliation_hint }}</p>{% endif -%}
+      <p class="ride-reviewer__count">{{ reviewer.count }} {% if reviewer.count == 1 %}review{% else %}reviews{% endif %}.</p>
+    </header>
+
+    <section class="ride-reviewer__contributions">
+      <h2 class="ride-sr-only">Contributions</h2>
+      <div class="ride-reviewer__cards">
+        {%- for r in reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
+      </div>
+    </section>
+
+    <p><a href="{{ site.base_url }}/reviewers/">← All reviewers</a></p>
+  </div>
+</div>
+{% endblock %}

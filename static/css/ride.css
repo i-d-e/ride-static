@@ -276,6 +276,53 @@ hr {
 .ride-editorial                 { max-width: var(--ride-content-width); }
 .ride-editorial__updated        { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-12); }
 
+/* Aggregation pages — Heftübersicht, Tags, Reviewer, Resources, Home. */
+.ride-lede                      { color: var(--ride-fg-secondary); font-size: 1.05em; margin: 0 0 var(--ride-space-8); }
+
+.ride-home__hero                { margin-bottom: var(--ride-space-12); }
+.ride-home__lede                { color: var(--ride-fg-secondary); }
+.ride-home__cards               { display: grid; gap: var(--ride-space-6); margin: var(--ride-space-6) 0 var(--ride-space-12); }
+.ride-home__browse-list         { list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: var(--ride-space-4); }
+.ride-home__browse-list a       { display: inline-block; padding: var(--ride-space-2) var(--ride-space-4); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; }
+
+.ride-review-card               { padding: var(--ride-space-4); border: 1px solid var(--ride-rule); border-radius: 2px; }
+.ride-review-card__title        { margin: 0 0 var(--ride-space-2); font-size: var(--ride-text-h3); }
+.ride-review-card__title a      { text-decoration: none; }
+.ride-review-card__authors      { margin: 0 0 var(--ride-space-2); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
+.ride-review-card__meta         { margin: 0; font-family: var(--ride-font-sans); font-size: var(--ride-text-tiny); color: var(--ride-fg-tertiary); }
+
+.ride-issue-list                { list-style: none; padding-left: 0; }
+.ride-issue-list__entry         { margin-bottom: var(--ride-space-3); }
+.ride-issue-list__link          { text-decoration: none; }
+.ride-issue-list__no            { font-weight: var(--ride-weight-medium); }
+.ride-issue-list__date,
+.ride-issue-list__count         { color: var(--ride-fg-secondary); font-size: var(--ride-text-small); }
+
+.ride-issue__cards              { display: grid; gap: var(--ride-space-4); }
+
+.ride-tag-list                  { list-style: none; padding-left: 0; column-count: 2; column-gap: var(--ride-space-8); }
+.ride-tag-list__entry           { break-inside: avoid; margin-bottom: var(--ride-space-2); }
+.ride-tag-list__count           { color: var(--ride-fg-tertiary); font-size: var(--ride-text-small); margin-left: var(--ride-space-2); }
+.ride-tag__cards                { display: grid; gap: var(--ride-space-4); margin-top: var(--ride-space-6); }
+
+.ride-reviewer-list             { list-style: decimal; padding-left: var(--ride-space-6); }
+.ride-reviewer-list__entry      { margin-bottom: var(--ride-space-2); }
+.ride-reviewer-list__name       { text-decoration: none; font-weight: var(--ride-weight-medium); }
+.ride-reviewer-list__aff,
+.ride-reviewer-list__count      { color: var(--ride-fg-secondary); font-size: var(--ride-text-small); }
+
+.ride-reviewer__header          { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-4); border-bottom: 1px solid var(--ride-rule); }
+.ride-reviewer__cards           { display: grid; gap: var(--ride-space-4); }
+
+.ride-resources                 { width: 100%; border-collapse: collapse; font-size: var(--ride-text-small); }
+.ride-resources th              { text-align: left; border-bottom: 1px solid var(--ride-rule); padding: var(--ride-space-2); font-family: var(--ride-font-sans); }
+.ride-resources td              { border-bottom: 1px solid var(--ride-rule); padding: var(--ride-space-3) var(--ride-space-2); vertical-align: top; }
+.ride-resources__title          { font-weight: var(--ride-weight-medium); }
+
+@media (max-width: 719px) {
+  .ride-tag-list                { column-count: 1; }
+}
+
 /* Review header — bibliographic block + reviewer block (interface.md §5). */
 .ride-review__header            { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-6); border-bottom: 1px solid var(--ride-rule); }
 .ride-review__title             { margin-top: 0; }

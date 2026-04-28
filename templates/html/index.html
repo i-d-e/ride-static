@@ -1,0 +1,45 @@
+{#-
+  index.html — Startseite per interface.md §4.
+
+  v0 layout: aktuelles Heft prominent als erste Sektion, eine Auswahl der
+  Beiträge als Karten, Browse-Shortcuts darunter. News/Call-for-Reviews-
+  Slot kommt aus content/news.md (Phase 9 Erweiterung), bis dahin nicht
+  gerendert.
+-#}
+{% extends "base.html" %}
+{%- import "partials/review_card.html" as rc -%}
+
+{% block content %}
+<div class="ride-page ride-page--solo" lang="{{ page_lang }}">
+  <div class="ride-content ride-home">
+
+    <header class="ride-home__hero">
+      <h1>{{ site.title }}</h1>
+      <p class="ride-home__lede">
+        Peer-reviewed reviews of scholarly digital editions.
+        {{ total_reviews }} reviews across {{ total_issues }} issues.
+      </p>
+    </header>
+
+    {%- if current_reviews -%}
+    <section class="ride-home__current" aria-labelledby="current-issue-heading">
+      <h2 id="current-issue-heading">Current issue · {{ current_issue }}</h2>
+      <div class="ride-home__cards">
+        {%- for r in current_reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
+      </div>
+    </section>
+    {%- endif -%}
+
+    <section class="ride-home__browse" aria-labelledby="browse-heading">
+      <h2 id="browse-heading">Browse</h2>
+      <ul class="ride-home__browse-list">
+        <li><a href="{{ site.base_url }}/issues/">All issues</a></li>
+        <li><a href="{{ site.base_url }}/tags/">Tags</a></li>
+        <li><a href="{{ site.base_url }}/reviewers/">Reviewers</a></li>
+        <li><a href="{{ site.base_url }}/resources/">Reviewed resources</a></li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

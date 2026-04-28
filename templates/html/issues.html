@@ -1,0 +1,27 @@
+{#-
+  issues.html — Heftübersicht (R5).
+  Liste aller Hefte, sortiert nach jüngstem Beitrag, mit Beitragszahl.
+-#}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <h1>Issues</h1>
+    <p class="ride-lede">All RIDE issues in reverse chronological order.</p>
+
+    <ol class="ride-issue-list">
+      {%- for issue_no, issue_reviews in issues -%}
+        {%- set latest = issue_reviews | map(attribute="publication_date") | reject("equalto", "") | list -%}
+        <li class="ride-issue-list__entry">
+          <a href="{{ site.base_url }}/issues/{{ issue_no }}/" class="ride-issue-list__link">
+            <span class="ride-issue-list__no">Issue {{ issue_no }}</span>
+            {%- if latest %}<span class="ride-issue-list__date"> · {{ latest | max }}</span>{% endif -%}
+            <span class="ride-issue-list__count"> · {{ issue_reviews | length }} reviews</span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{#-
+  tag.html — eine Tag-Detailseite mit allen Reviews, die diesen Tag tragen.
+-#}
+{% extends "base.html" %}
+{%- import "partials/review_card.html" as rc -%}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <h1>Tag: {{ tag.display_name }}</h1>
+    <p class="ride-lede">{{ tag.count }} reviews tagged "{{ tag.display_name }}".</p>
+
+    <div class="ride-tag__cards">
+      {%- for r in reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
+    </div>
+
+    <p><a href="{{ site.base_url }}/tags/">← All tags</a></p>
+  </div>
+</div>
+{% endblock %}

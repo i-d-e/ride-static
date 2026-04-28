@@ -1,0 +1,30 @@
+{#-
+  issue.html — Heftansicht (R4).
+  Heftmetadaten oben + Beitragskarten. Konsistenz gegen TEI-Header
+  (Phase 11 Heft-YAML) ist offen — heute werden die Header-Werte aus
+  den enthaltenen Reviews verwendet.
+-#}
+{% extends "base.html" %}
+{%- import "partials/review_card.html" as rc -%}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+
+    <header class="ride-issue__header">
+      <h1>Issue {{ issue_no }}</h1>
+      {%- if latest_date %}<p class="ride-issue__date">Latest contribution: {{ latest_date }}</p>{% endif -%}
+      <p class="ride-issue__count">{{ reviews | length }} reviews</p>
+    </header>
+
+    <section class="ride-issue__contributions">
+      <h2 class="ride-sr-only">Contributions</h2>
+      <div class="ride-issue__cards">
+        {%- for r in reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
+      </div>
+    </section>
+
+    <p><a href="{{ site.base_url }}/issues/">← All issues</a></p>
+  </div>
+</div>
+{% endblock %}

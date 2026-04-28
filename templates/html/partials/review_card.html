@@ -1,0 +1,20 @@
+{#-
+  review_card.html — compact summary card used in aggregation listings.
+  Imported by: index.html, issue.html, tag.html, reviewer.html.
+-#}
+{%- macro review_card(review, site) -%}
+<article class="ride-review-card">
+  <h3 class="ride-review-card__title">
+    <a href="{{ site.base_url }}/issues/{{ review.issue }}/{{ review.id }}/">{{ review.title }}</a>
+  </h3>
+  {%- if review.authors %}
+  <p class="ride-review-card__authors">
+    {%- for a in review.authors -%}{{ a.person.full_name }}{% if not loop.last %}, {% endif %}{%- endfor -%}
+  </p>
+  {%- endif %}
+  <p class="ride-review-card__meta">
+    {%- if review.publication_date %}<span class="ride-review-card__date">{{ review.publication_date }}</span>{% endif -%}
+    {%- if review.issue %} · <span class="ride-review-card__issue">Issue {{ review.issue }}</span>{% endif -%}
+  </p>
+</article>
+{%- endmacro -%}

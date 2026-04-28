@@ -25,9 +25,26 @@ import sys
 from pathlib import Path
 from typing import Iterable, Optional
 
+from src.model.review import Review
+from src.parser.datasets import (
+    aggregate_reviewed_resources,
+    aggregate_reviewers,
+    aggregate_tags,
+)
 from src.parser.review import parse_review
+from src.render.aggregations import (
+    render_index,
+    render_issue,
+    render_issues_overview,
+    render_resources,
+    render_reviewer,
+    render_reviewers_overview,
+    render_tag,
+    render_tags_overview,
+    reviewer_slug,
+)
 from src.render.editorial import discover_editorials, render_editorial
-from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review
+from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, _slugify, make_env, render_review
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 SITE_DIR = REPO_ROOT / "site"
@@ -60,8 +77,8 @@ def _site_config(base_url: str = "") -> SiteConfig:
     )
 
 
-def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Path:
-    """Parse one TEI file and write its rendered HTML page. Returns the page directory."""
+def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Review:
+    """Parse one TEI file and write its rendered HTML page. Returns the Review."""
     review = parse_review(path)
     page_dir = out_root / "issues" / (review.issue or "0") / (review.id or path.stem)
     page_dir.mkdir(parents=True, exist_ok=True)
@@ -73,7 +90,7 @@ def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Path:
     target_xml = page_dir / f"{review.id or path.stem}.xml"
     shutil.copyfile(path, target_xml)
 
-    return page_dir
+    return review
 
 
 def _render_editorials(env, site: SiteConfig, out_root: Path) -> int:
@@ -97,15 +114,82 @@ def _copy_static(out_root: Path) -> None:
         shutil.copytree(STATIC_DIR, target)
 
 
-def _placeholder_index(out_root: Path, reviewed_count: int) -> None:
-    """Site root index until Phase 10's home page lands."""
-    body = (
-        "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\">"
-        f"<title>ride-static</title><h1>ride-static</h1>"
-        f"<p>Built {reviewed_count} review pages under /issues/. "
-        f"Phase 10 will replace this index with the curated home page.</p>"
+def _render_aggregations(
+    reviews: tuple[Review, ...],
+    env,
+    site: SiteConfig,
+    out_root: Path,
+) -> int:
+    """Build every aggregation page — home, issues, tags, reviewers, resources.
+
+    Each page is written under ``site/<slug>/index.html`` so URLs end in
+    a trailing slash and match the URL-Schema in ``docs/url-scheme.md``.
+    Returns the number of pages written (informational).
+    """
+    pages = 0
+
+    # Site root.
+    (out_root / "index.html").write_text(
+        render_index(reviews, site=site, env=env), encoding="utf-8"
     )
-    (out_root / "index.html").write_text(body, encoding="utf-8")
+    pages += 1
+
+    # Heftübersicht and per-issue.
+    issues_dir = out_root / "issues"
+    issues_dir.mkdir(parents=True, exist_ok=True)
+    (issues_dir / "index.html").write_text(
+        render_issues_overview(reviews, site=site, env=env), encoding="utf-8"
+    )
+    pages += 1
+
+    seen_issues = sorted({r.issue for r in reviews if r.issue})
+    for issue_no in seen_issues:
+        d = issues_dir / issue_no
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(
+            render_issue(issue_no, reviews, site=site, env=env), encoding="utf-8"
+        )
+        pages += 1
+
+    # Tags.
+    tags_dir = out_root / "tags"
+    tags_dir.mkdir(parents=True, exist_ok=True)
+    (tags_dir / "index.html").write_text(
+        render_tags_overview(reviews, site=site, env=env), encoding="utf-8"
+    )
+    pages += 1
+    for tag in aggregate_tags(reviews):
+        d = tags_dir / _slugify(tag.name)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(
+            render_tag(tag, reviews, site=site, env=env), encoding="utf-8"
+        )
+        pages += 1
+
+    # Reviewers.
+    reviewers_dir = out_root / "reviewers"
+    reviewers_dir.mkdir(parents=True, exist_ok=True)
+    (reviewers_dir / "index.html").write_text(
+        render_reviewers_overview(reviews, site=site, env=env), encoding="utf-8"
+    )
+    pages += 1
+    for r in aggregate_reviewers(reviews):
+        d = reviewers_dir / reviewer_slug(r)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "index.html").write_text(
+            render_reviewer(r, reviews, site=site, env=env), encoding="utf-8"
+        )
+        pages += 1
+
+    # Reviewed resources.
+    resources_dir = out_root / "resources"
+    resources_dir.mkdir(parents=True, exist_ok=True)
+    (resources_dir / "index.html").write_text(
+        render_resources(reviews, site=site, env=env), encoding="utf-8"
+    )
+    pages += 1
+
+    return pages
 
 
 def _iter_corpus(corpus_dir: Path, limit: Optional[int]) -> Iterable[Path]:
@@ -130,28 +214,28 @@ def build(
     site = _site_config(base_url=base_url)
     env = make_env()
 
-    written = 0
+    rendered: list[Review] = []
     failed: list[tuple[Path, Exception]] = []
     for path in _iter_corpus(corpus_dir, limit):
         try:
-            _render_one(path, env, site, out_root)
-            written += 1
+            rendered.append(_render_one(path, env, site, out_root))
         except Exception as exc:  # noqa: BLE001 — we want to keep building on per-file failure
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
     editorials = _render_editorials(env, site, out_root)
+    aggregations = _render_aggregations(tuple(rendered), env, site, out_root)
 
     _copy_static(out_root)
-    _placeholder_index(out_root, written)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
 
     if editorials:
         print(f"Wrote {editorials} editorial pages")
+    print(f"Wrote {aggregations} aggregation pages")
 
-    return written
+    return len(rendered)
 
 
 def main(argv: Optional[list[str]] = None) -> int:
