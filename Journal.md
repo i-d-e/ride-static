@@ -30,6 +30,28 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 5 abgeschlossen, Stage 2.B steht; Rollen-Split etabliert
+
+**Ziel:** Stage 2.B abschließen — `parse_inlines` überall einhängen, Block-in-Paragraph-Anomalie auflösen, `parse_review` integrieren, Aggregate für Figures und Notes materialisieren. Parallel die Koordinationsschicht zwischen Backend- und Frontend-Claude einrichten.
+
+**Erledigt:**
+- Commit 5.A (`7662712`): Refactor von `UnknownTeiElement`/`locate_hint` nach `common.py`, parse_inlines in alle Per-Kind-Parser eingehängt, sections.py-Heading auf Walker umgestellt. Modell additiv erweitert: `Paragraph.xml_id`, `Figure.xml_id`, `Figure.alt`. Long-Tail-Inlines (mod, del, seg, affiliation, plus Bib-Strukturelemente) als Passthrough-Text.
+- Commit 5.B (`f09e707`): `parse_paragraph_or_split` zerlegt `<p>` mit Block-Kindern in alternierende Paragraph-/Block-Sequenz; erste Chunk erbt `@xml:id`/`@n`, Continuations sind synthetisch. `parse_block_sequence` als neuer Section-Block-Walker. ListItem und TableCell um `blocks`-Feld erweitert für nested Lists/Figures. `<p>` in `<note>` als transparenter Wrapper unwrapped.
+- Commit 5.C (`fd25fbb`): `parse_review` zieht front/body/back über `parse_sections`. `src/parser/aggregate.py` neu — Tiefen-Walker für Figures und Notes in Dokumentreihenfolge, durch alle Inline-tragenden Flächen. `<listBibl>` (102×) als `_DEFERRED_BLOCKS` für Phase 6 markiert. Korpus-Smoke gegen alle 107 Reviews durchläuft mit ≥800 Figures und ≥1800 Notes.
+
+**Entscheidungen:**
+- Drei Spec-Frage aus dem UI-Audit defensibel beantwortet: figDesc warn (Phase 13), Wayback-Detector deferred to Phase 7, inline xml:lang-Spec entschärft auf Section-/Review-Level (Korpus markiert keine Inline-Sprache, redaktionell nachzuziehen).
+- `<listBibl>` skip-and-defer statt Placeholder-Block. Begründung: Phase 6 ersetzt den Branch ohnehin, Placeholder-Klasse wäre toter Code.
+- Nested Blocks in Items/Cells als zusätzliches `blocks: tuple[Block, ...]`-Feld am ListItem/TableCell statt Mixed-Typ-Children. Dokument-Order-Interleaving zwischen Inlines und Blocks ist konventionell aufgelöst (Inlines first, Blocks second).
+- Aggregate (Figures, Notes) am Parse-Zeitpunkt materialisiert statt lazy. Begründung: Templates bekommen pure Domänenobjekte, keine Iterator-Aufrufe — entspricht N1 (Read-only-Pipeline).
+- Rollen-Split: Backend + Doku + Koordination = ich; Frontend (Templates, CSS, JS, HTML-Build) = anderer Claude. Datenvertrag = Domänenobjekte; gemeinsame Doku = `COORDINATION.md`.
+
+**Offen:** Phase 6 — Bibliography-Parser (`<bibl>` strukturiert), Questionnaire-Parser (`<num value="0|1|3">`), und Aggregat-Datasets (Tags, Reviewer, Reviewed Resources). Phase 7 — Ref-Resolver (4-Bucket-Logik, Wayback-Detection, K-Ref-Auflösung gegen externes Kriteriendokument). Phase 8 — der Frontend-Claude beginnt sobald `Review.bibliography` und `Review.questionnaire` aus Phase 6 verfügbar sind, kann aber heute schon mit dem Stage-2.B-Modell-Stand auf der Rezensionsansicht arbeiten.
+
+**Nächster Einstieg:** `src/model/bibliography.py` mit `BibEntry`-Dataclass plus `src/parser/bibliography.py` für `<listBibl>`/`<bibl>`-strukturierte Bibliografieeinträge. Korpus-Konvention prüfen (welche TEI-Felder pro bibl?), dann Synthetik plus Real-Korpus-Smoke gegen ein Review mit voller Bibliographie. Anschließend Questionnaire-Parser für die `<num>`-Boolean-Antworten gemäß `taxonomy.json`.
+
+---
+
 ## 2026-04-29 — Phase 4 abgeschlossen, Inline-Parser steht
 
 **Ziel:** Mixed-Content-Walker `parse_inlines(host)` für die sechs verifizierten Inline-Kinds (Text, Emphasis, Highlight, Reference, Note, InlineCode), inklusive Whitespace-Strategie an Sequenz-Rändern und Normalisierung der `crosssref`-Typo.
