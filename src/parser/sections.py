@@ -28,6 +28,9 @@ from src.parser.common import NS, TEI_NS, attr, itertext
 
 _KNOWN_DIV_TYPES = frozenset({"abstract", "bibliography", "appendix"})
 _MAX_DIV_DEPTH = 3
+# Element local names that, when they appear as the first child of <body>,
+# trigger the implicit-section-wrapper anomaly (4 + 3 = 7 reviews in the corpus).
+_WRAP_TRIGGERS = frozenset({"p", "cit"})
 
 
 def parse_sections(host: Optional[etree._Element]) -> tuple[Section, ...]:
@@ -35,12 +38,57 @@ def parse_sections(host: Optional[etree._Element]) -> tuple[Section, ...]:
 
     ``host`` is typically a ``<front>``, ``<body>``, or ``<back>`` element.
     Returns the empty tuple when ``host`` is None (the seven no-back reviews).
+
+    **Body-wrap anomaly.** Seven reviews start ``<body>`` directly with ``<p>``
+    or ``<cit>`` instead of ``<div>``. For these we synthesise a single
+    top-level Section whose ``blocks`` will (in Phase 5) hold the wrapped
+    content. The decision is taken by inspecting the first non-comment child
+    of the host: if it is a ``<div>``, normal parsing applies; otherwise the
+    wrap branch fires.
     """
     if host is None:
         return ()
+    if _is_body_wrap_case(host):
+        return (_synthesise_wrap_section(host),)
     divs = host.findall("t:div", NS)
     return tuple(
         _parse_div(div, level=1, position=(i + 1,)) for i, div in enumerate(divs)
+    )
+
+
+def _is_body_wrap_case(host: etree._Element) -> bool:
+    """True iff ``host`` has at least one TEI element child and the first one is not <div>.
+
+    Keeping the check element-only (skipping comments and processing
+    instructions) avoids false negatives on stylistically-formatted source
+    files. The fixture in tests/test_parser_sections.py exercises both <p>
+    and <cit> first-child variants.
+    """
+    for child in host:
+        if not isinstance(child.tag, str):
+            continue  # comment or PI
+        local = etree.QName(child).localname
+        if local == "div":
+            return False
+        return local in _WRAP_TRIGGERS
+    return False
+
+
+def _synthesise_wrap_section(host: etree._Element) -> Section:
+    """Wrap all element children of ``host`` in one implicit top-level Section.
+
+    The wrapper carries ``xml_id="sec-1"``, ``type=None``, ``heading=None``
+    and ``level=1``. Block content remains empty in Phase 2 — Phase 5
+    integrates the block parser, at which point this wrapper will hold the
+    direct ``<p>``/``<cit>`` children as block instances.
+    """
+    return Section(
+        xml_id="sec-1",
+        type=None,
+        heading=None,
+        level=1,
+        blocks=(),
+        subsections=(),
     )
 
 

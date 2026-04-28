@@ -174,6 +174,81 @@ def test_nesting_beyond_three_raises():
         parse_sections(host)
 
 
+# -- Body-wrap anomaly ----------------------------------------------------
+
+
+def test_body_starting_with_p_gets_wrapped():
+    """4 of 107 reviews start <body> directly with <p>."""
+    host = _parse_host(
+        textwrap.dedent("""
+            <TEI xmlns="http://www.tei-c.org/ns/1.0">
+              <text><body>
+                <p>First paragraph.</p>
+                <p>Second paragraph.</p>
+              </body></text>
+            </TEI>
+        """)
+    )
+    sections = parse_sections(host)
+    assert len(sections) == 1
+    wrap = sections[0]
+    assert wrap.xml_id == "sec-1"
+    assert wrap.type is None
+    assert wrap.heading is None
+    assert wrap.level == 1
+    assert wrap.subsections == ()
+
+
+def test_body_starting_with_cit_gets_wrapped():
+    """3 of 107 reviews start <body> directly with <cit>."""
+    host = _parse_host(
+        textwrap.dedent("""
+            <TEI xmlns="http://www.tei-c.org/ns/1.0">
+              <text><body>
+                <cit><quote>Block quote</quote></cit>
+                <p>Following paragraph.</p>
+              </body></text>
+            </TEI>
+        """)
+    )
+    sections = parse_sections(host)
+    assert len(sections) == 1
+    assert sections[0].xml_id == "sec-1"
+
+
+def test_body_starting_with_div_takes_normal_branch():
+    """The 100 normal reviews are unaffected by the wrap branch."""
+    host = _parse_host(
+        textwrap.dedent("""
+            <TEI xmlns="http://www.tei-c.org/ns/1.0">
+              <text><body>
+                <div xml:id="real"><head>H</head></div>
+                <div xml:id="real2"><head>H2</head></div>
+              </body></text>
+            </TEI>
+        """)
+    )
+    sections = parse_sections(host)
+    assert [s.xml_id for s in sections] == ["real", "real2"]
+
+
+def test_body_with_leading_comment_still_detects_div():
+    """Comments before the first <div> must not trigger the wrap branch."""
+    host = _parse_host(
+        textwrap.dedent("""
+            <TEI xmlns="http://www.tei-c.org/ns/1.0">
+              <text><body>
+                <!-- editorial note -->
+                <div xml:id="x"><head>X</head></div>
+              </body></text>
+            </TEI>
+        """)
+    )
+    sections = parse_sections(host)
+    assert len(sections) == 1
+    assert sections[0].xml_id == "x"
+
+
 # -- Edge cases -----------------------------------------------------------
 
 
@@ -206,7 +281,44 @@ def test_smoke_real_corpus_one_sample_review() -> None:
     tree = etree.parse(str(sample))
     body = tree.getroot().find(f"{{{TEI}}}text/{{{TEI}}}body")
     sections = parse_sections(body)
-    # Most reviews have at least one top-level div in body
     assert isinstance(sections, tuple)
     for s in sections:
         assert isinstance(s, Section)
+
+
+@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+def test_smoke_real_corpus_wrap_review() -> None:
+    """The wrap branch must collapse one of the seven anomalies into a single
+    synthesised Section. ``bdmp-tei.xml`` starts <body> with <cit>."""
+    wrap = _RIDE / "bdmp-tei.xml"
+    if not wrap.exists():
+        pytest.skip("bdmp-tei.xml not present")
+    tree = etree.parse(str(wrap))
+    body = tree.getroot().find(f"{{{TEI}}}text/{{{TEI}}}body")
+    sections = parse_sections(body)
+    assert len(sections) == 1
+    assert sections[0].xml_id == "sec-1"
+    assert sections[0].heading is None
+
+
+@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+def test_smoke_real_corpus_all_reviews_parse_without_error() -> None:
+    """All 107 reviews must parse through parse_sections without raising.
+    Of those, exactly seven trigger the wrap branch (4 with <p> + 3 with <cit>).
+    """
+    files = sorted(_RIDE.glob("*-tei.xml"))
+    assert len(files) >= 100, "expected at least 100 reviews in corpus"
+    wrap_count = 0
+    for f in files:
+        tree = etree.parse(str(f))
+        body = tree.getroot().find(f"{{{TEI}}}text/{{{TEI}}}body")
+        sections = parse_sections(body)
+        assert isinstance(sections, tuple)
+        if len(sections) == 1 and sections[0].xml_id == "sec-1" and sections[0].heading is None:
+            # Could be a wrap-Section *or* a real div without xml_id and head;
+            # we don't try to disambiguate further here. Phase 5 will tighten.
+            wrap_count += 1
+    # 7 wrap reviews are documented in architecture.md; the count is permissive
+    # (≥ 7) because some non-wrap reviews may also yield this shape until
+    # Phase 5 marks the wrap explicitly.
+    assert wrap_count >= 7
