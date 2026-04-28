@@ -64,10 +64,14 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
   - `id`, `issue`, `language`, `publication_date`, `licence`
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
-  - `questionnaire: Questionnaire` — the `<num>`-based classification payload (see [[data]], `<num>` rule)
-  - `front: tuple[Section, ...]`, `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
+  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 105 reviews carry one taxonomy, 2 reviews carry two or three.
+  - `front: tuple[Section, ...]` — **always carries the abstract** (107/107 reviews have exactly one Section with `type="abstract"` here, zero in body)
+  - `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
+  - `figures: tuple[Figure, ...]`, `notes: tuple[Note, ...]` — corpus-order aggregates feeding the parallel apparate sub-blocks ([[interface#6]])
   - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
   - `related_items: tuple[RelatedItem, ...]`
+
+The TEI element `<bibl>` lives at three sites in the corpus and is parsed by three different paths into the same `BibEntry` shape (Phase 6.A unification): `<listBibl>/<bibl>` in `<back>` → `parse_bibliography` → `Review.bibliography`; `<cit>/<bibl>` inline in mixed content → `parse_bibl` from inside `parse_cit` → `Citation.bibl`; `<relatedItem>/<bibl>` in the header → `parse_related_items` → `Review.related_items` (this third path retains its own `RelatedItem` shape because the relatedItem wrapper carries `@type` semantics that BibEntry does not).
 
 - **`Section`** — recursive
   - `xml_id` (synthesised from position when missing — see [[data]] "div without head" rule)
@@ -192,6 +196,16 @@ The mapping file is loaded in Phase 8 ([[pipeline#Phasenplan]]) and is the singl
 The site is fully static. Everything is computed at build time. No server,
 no database, no per-request work beyond serving files and running the
 client-side search.
+
+### Parser ↔ discovery-script boundary
+
+`scripts/` and `src/parser/` both walk the TEI corpus, and a few patterns
+appear in both. The split is intentional and worth knowing:
+
+- `scripts/*.py` produces aggregated **discovery JSON** at build-time of the inventory only — `inventory/*.json` answers "what does the corpus actually contain?" and feeds the auto-rendered `knowledge/data.md` and `knowledge/schema.md`. Coarse aggregations are acceptable; over-attribution (e.g. `scripts/taxonomy.py` using `cat.iter()` to find any descendant `<num>`) is fine here because the consumer is a human reader of the JSON.
+- `src/parser/*.py` produces **per-review domain objects** at site-build-time, consumed by templates and PDF renderer. Semantic precision matters; `parse_questionnaires` only collects from leaf categories so each `<num>` is attributed to exactly one answer.
+
+Where the two layers parse the same TEI structure (taxonomy + num, reference classification, structure walks), they do it for different consumers with different precision requirements. Drift is mitigated by inventory-driven tests: every parser test that asserts a count against the corpus pins the inventory's number, so any divergence surfaces as a test failure.
 
 ## Key design decisions
 
