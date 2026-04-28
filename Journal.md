@@ -30,6 +30,24 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 3 abgeschlossen, Block-Parser steht
+
+**Ziel:** Block-Parser für die fünf verifiziert vorkommenden Block-Kinds (Paragraph, List, Table, Figure, Citation), inklusive List-Rend-Normalisierung, Figure-Kind-Detection und Dispatcher mit klarer Fehlermeldung bei Unbekanntem.
+
+**Erledigt:** Commit `bf7d794` — `src/parser/blocks.py` mit fünf Per-Kind-Funktionen (`parse_paragraph`, `parse_list`, `parse_table`, `parse_figure`, `parse_cit`), `parse_block(el)` als Dispatcher, `UnknownTeiElement` als Exception mit Localname-Feld und Div-xml:id-Hint. `tests/test_parser_blocks.py` mit 20 Cases inklusive Real-Korpus-Smoke gegen ein `<figure>/<eg>`-Vorkommen.
+
+**Entscheidungen:**
+- Block-Parser als ein Commit statt drei. Der Plan sah 3.1/3.2/3.3 vor; die Trennung wäre artificial gewesen, weil Dispatcher und die fünf Funktionen sich gegenseitig brauchen.
+- Inlines bleiben in Phase 3 durchgängig `()`. Phase 4 wird sie befüllen, sobald der Mixed-Content-Walker steht. Das Phase-3-Contract ist „richtige Block-Kind mit korrekter struktureller Metadaten", nicht „vollständiger Inhalt".
+- `UnknownTeiElement` als eigene Exception statt `ValueError`, damit Catch-Branches und Build-Berichte den Anomaly-Typ präzise erkennen können.
+- Tabellen-Header über `@role="label"` erkannt — Korpus-Konvention; in den 12 vorhandenen Tabellen die einzige verlässliche Markierung.
+
+**Offen:** Phase 4 — Inline-Parser. Mixed-Content-Walker für `<p>`, `<head>`, `<cell>`, `<quote>`, `<bibl>`, `<item>`, `<note>`. Whitespace-Behandlung an den Rändern (lstrip/rstrip), Erhalt im Inneren. Pro Inline-Kind eine Funktion: Text, Emphasis, Highlight, Reference, Note, InlineCode. Normalisierung von `<ref type="crosssref">` zu `crossref`.
+
+**Nächster Einstieg:** `src/parser/inlines.py` mit `parse_inlines(el)` als Walker und einem `_parse_inline(child)`-Dispatch. Synthetische Fixtures für Mixed-Content-Walker (Text-Tail-Text), jeden Inline-Typ einzeln, geschachtelte Inlines.
+
+---
+
 ## 2026-04-29 — Phase 2 abgeschlossen, Section-Parser steht
 
 **Ziel:** Rekursiver Section-Parser für `<front>`, `<body>`, `<back>`. Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>`- oder `<cit>`-Kind unter `<body>`.
