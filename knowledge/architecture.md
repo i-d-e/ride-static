@@ -2,6 +2,8 @@
 
 > Design intent for the static-site generator. Hand-written;
 > revisit when reality diverges from these assumptions.
+>
+> Anchored to [[requirements]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
 
 ## Inputs and outputs
 
@@ -51,6 +53,11 @@
 Templates and renderers never touch raw XML. They consume Python
 objects that the parser produces from each TEI file.
 
+The model is designed for **two render targets** — HTML (Phase 8) and
+PDF via WeasyPrint (Phase 13) — per [[requirements#A6 PDF-Pfad]]. No
+HTML-specific assumption may leak into the dataclasses; presentation
+concerns belong in the renderers.
+
 - **`Review`** — one per file
   - `id`, `issue`, `language`, `publication_date`, `licence`
   - `editors: list[Editor]`, `authors: list[Author]`
@@ -72,7 +79,7 @@ objects that the parser produces from each TEI file.
 
 - **`Inline`** types: `Text`, `Emphasis`, `Reference`, `Highlight`, `Note`.
 
-The parser handles the known anomalies named in `data.md` and `schema.md` explicitly:
+The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[requirements#R1 Rezension lesen]]:
 
 | Anomaly | Parser branch |
 |---|---|
@@ -91,10 +98,10 @@ Anything not yet listed but unknown should raise — silent coercion is forbidde
 
 Two output formats share the domain model:
 
-- **`render/html.py`** — Jinja templates in `templates/html/`.
-- **`render/pdf.py`** — PDF per review; engine choice deferred (WeasyPrint is the leading candidate).
+- **`render/html.py`** — Jinja templates in `templates/html/`. Visual and interaction design is fixed in [[interface]]; templates implement that spec mechanically.
+- **`render/pdf.py`** — PDF per review via WeasyPrint with own print stylesheet, per [[requirements#A6 PDF-Pfad]].
 
-Templates are dumb: they format `Review`/`Section`/`Block` instances and never reach into XML.
+Templates are dumb: they format `Review`/`Section`/`Block` instances and never reach into XML. Apparate-Block layout (References, Figures, Notes as parallel sub-blocks) lives in the renderer, not the model — see [[interface#6 Apparate als parallele Blöcke]].
 
 ```
 templates/html/
@@ -164,12 +171,17 @@ ride-static/
 
 ## Stages
 
+The high-level stage view kept for orientation. The detailed phase-by-phase
+build plan lives in [[pipeline#Phasenplan]] and is anchored to the seventeen
+R- and ten N-clauses in [[requirements]].
+
 | Stage | Status | Artifacts |
 |---|---|---|
 | 0 — Discovery | done | `inventory/*.json` (incl. `ids.json`, `refs.json`, `taxonomy.json`) |
-| 1 — Knowledge | done | `knowledge/data.md`, `schema.md`, `architecture.md`, `pipeline.md` |
-| 2 — Domain model | in progress | 2.A done (`src/model/review.py`, header parser); 2.B/2.C pending (sections, blocks, bibliography, questionnaire) |
-| 3 — HTML render | planned | `src/render/html.py`, `templates/html/`, `site/` |
-| 4 — Search index | planned | `src/render/search_index.py` |
-| 5 — PDF render | planned | `src/render/pdf.py` |
-| 6 — Deploy | planned | `.github/workflows/build.yml` |
+| 1 — Knowledge | done | `knowledge/data.md`, `schema.md`, `architecture.md`, `pipeline.md`, `requirements.md`, `interface.md` |
+| 2 — Domain model | in progress | 2.A done (`src/model/review.py`, header parser); 2.B/2.C pending |
+| 3 — Inhaltsbereich (HTML) | planned | `src/render/html.py`, `templates/html/`, rezensionsbezogene Seiten |
+| 4 — Aggregations- und Editorialschicht | planned | Hefte, Tags, Reviewer, Resources, redaktionelle Markdown-Inhalte |
+| 5 — Funktions- und Infrastrukturschicht | planned | Pagefind, OAI-PMH, JSON-LD, Validierung, Build-Bericht |
+| 6 — PDF aus Domänenmodell | planned | WeasyPrint, gemäß [[requirements#A6 PDF-Pfad]] |
+| 7 — Deploy und Ops | planned | GitHub-Actions-Workflow, Tracking, Accessibility-Audit |

@@ -1,6 +1,11 @@
 # Pipeline
 
 > Build and deploy plan. Hand-written; revise as the build reaches each stage.
+>
+> The phase table at the bottom is anchored to [[requirements]]. Each phase
+> names the R- and N-clauses it satisfies; conversely, every R- or N-clause
+> in [[requirements]] is covered by at least one phase. Architectural
+> commitments are in [[architecture]].
 
 ## Local development
 
@@ -40,17 +45,18 @@ Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes
 python -m pytest tests/
 ```
 
-### Build the site (planned, Stage 3+)
+### Build the site (planned, Phase 8+)
 
 ```sh
 python -m src.build         # parses ride/tei_all/, renders site/
-python -m src.build --pdf   # also runs pdf renderer
-python -m src.build --serve # local preview server on :8000
+python -m src.build --pdf   # also runs the WeasyPrint PDF renderer (Phase 14)
 ```
 
-## GitHub Actions workflow (planned)
+For local preview after a build: `python -m http.server -d site/` is sufficient. No `--serve` flag is in scope.
 
-`.github/workflows/build.yml` — triggered on push to `main` and via `workflow_dispatch`.
+## GitHub Actions workflow (Phase 15)
+
+A single workflow file `.github/workflows/build.yml` per [[requirements#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI sources, Markdown texts, pipeline code) and via `workflow_dispatch`.
 
 ```
 1. Checkout ride-static (this repo)
@@ -101,33 +107,31 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 ## Cross-cutting concerns
 
 - **Asset handling.** Images referenced via `<graphic @url>` live next to the TEI in `../ride/issues/{n}/`. The build copies them into `site/issues/{n}/{review-id}/figures/` and rewrites URLs.
-- **Reference resolution.** `<ref @target>` follows three paths at build time:
+- **Reference resolution.** `<ref @target>` follows the four-bucket logic specified in [[requirements#R1 Rezension lesen]]:
   - local anchor present in this review → render as in-page anchor link;
-  - looks like `#K…` (5 209 cases) → resolve against the criteria document
-    at the taxonomy's `@xml:base` (see `architecture.md`);
+  - looks like `#K…` (5 209 cases, see [[data#Reference resolution]]) → resolve against the criteria document at the taxonomy's `@xml:base`;
   - external URL → pass through;
   - anything else → log a build warning and render as plain text.
 - **Cross-review references.** Reviews citing one another (via `<relatedItem>`) become hyperlinks if the target is in the corpus; otherwise they stay as bibliographic citations.
-- **Schematron warnings.** Build prints (but does not fail on) Schematron violations from `inventory/cross-reference.json`. Hard failures are reserved for parsing errors.
+- **Schematron warnings.** Build prints (but does not fail on) Schematron violations from `inventory/cross-reference.json`. Hard failures are reserved for parsing errors. The full pre-build validation layer ([[requirements#N3 Validierung als eigene Schicht]]) is implemented in Phase 13.
 
-## Deployment target (open)
+## Deployment
 
-| Option | Pros | Cons |
-|---|---|---|
-| GitHub Pages | Built into CI, no extra infra | URL would be `<owner>.github.io/...`; less control |
-| i-d-e.de via SSH/rsync | IDE-controlled, expected long-term home | Requires deploy key + SSH action |
+GitHub Pages, per [[requirements#2 Plattform und Architekturgrundsätze]]. Custom domain versus `<owner>.github.io/<repo>` is still open per [[requirements#8 Offene Fragen]]; this affects the URL scheme stability promised in [[requirements#R17 Stabile URLs]] and is to be decided before Phase 15.
 
-**Default plan:** GitHub Pages for early stages, switch to i-d-e.de before public launch. Decide before Stage 6.
+For large artifacts (older PDF versions, OAI-PMH dumps): the choice between GitHub Pages and GitHub Releases is deferred per [[requirements#8 Offene Fragen]].
 
 ## Re-deployment flow
 
 ```
 git push main
-  → GitHub Actions
+  → GitHub Actions (single workflow, see [[requirements#N10]])
+      → pre-build validation (Phase 13, [[requirements#N3]])
       → pytest
       → regenerate inventory/ (gitignored, in CI workspace only)
-      → render knowledge/*.md
-      → src.build → site/
+      → render knowledge/data.md and schema.md
+      → src.build → site/  (HTML + PDF + Pagefind index + JSON-LD + OAI-PMH dump + sitemap)
+      → upload build-info.json ([[requirements#N4]])
       → deploy site/
 ```
 
@@ -138,12 +142,46 @@ acceptable options:
 - **Strict.** CI fails if regenerated docs differ from committed ones (forces local re-render before push).
 - **Auto-commit.** CI commits the refreshed docs back. Risk of merge churn.
 
-Pick one before Stage 6 — strict is cleaner.
+Strict is cleaner; pick before Phase 15.
 
-## Open decisions
+## Resolved design decisions (locked by [[requirements]])
 
-- PDF engine — WeasyPrint vs. Prince vs. headless Chromium.
-- Search engine — Lunr vs. Stork vs. Pagefind.
+| Decision | Resolution | Anchor |
+|---|---|---|
+| PDF engine | WeasyPrint, with own print stylesheet | [[requirements#A6 PDF-Pfad]] |
+| Search engine | Pagefind, build-time index, client-side runtime | [[requirements#A4 Volltextsuche]] |
+| Hosting platform | GitHub Pages | [[requirements#2 Plattform und Architekturgrundsätze]] |
+| Editorial format | Markdown with frontmatter, in-repo | [[requirements#A3 Redaktionelle Texte]] |
+| Tag source of truth | TEI only; WordPress retired post-consolidation | [[requirements#A2 Datenquellen]] |
+| Machine APIs | OAI-PMH + JSON-LD + JSON dump + sitemap with `schema.org/ScholarlyArticle` | [[requirements#A5 Maschinenschnittstellen]] |
+
+## Still open
+
 - Knowledge-doc CI behaviour — strict vs. auto-commit (above).
-- Deployment target — GitHub Pages vs. i-d-e.de (above).
-- Whether to track `site/` builds as artifacts beyond CI retention.
+- Custom domain vs. `<owner>.github.io/<repo>` ([[requirements#8 Offene Fragen]]).
+- Distribution path for large artifacts ([[requirements#8 Offene Fragen]]).
+- Reach of the WordPress-to-TEI consolidation ([[requirements#8 Offene Fragen]]).
+
+## Phasenplan
+
+The build is split into fifteen sequential phases. Each phase produces one commit, has synthetic test fixtures plus a real-corpus smoke test, and respects the TDD rule from `CLAUDE.md`. Each row maps to the [[requirements]] clauses it satisfies.
+
+| # | Phase | Output | Requirements |
+|---|---|---|---|
+| 1 | Domain model — Section / Block / Inline | Frozen dataclasses; doc patch for `labeled` list and `figure/eg` | [[requirements#A6 PDF-Pfad]] (zwei Renderings) |
+| 2 | Section parser | Recursive sections, body-wrap anomaly, fallback `xml_id` | [[requirements#R1 Rezension lesen]] (TOC, anchors) |
+| 3 | Block parser | Paragraph, List (3 kinds), Table, Figure (graphic / code_example), Citation | [[requirements#R1 Rezension lesen]] |
+| 4 | Inline parser | Mixed-content walker; Text, Emphasis, Highlight, Reference, Note, InlineCode | [[requirements#R1 Rezension lesen]] (lang, footnotes) |
+| 5 | Integration in `parse_review` | `Review.body` fully populated for all 107 reviews. **Stage 2.B done.** | [[requirements#R1 Rezension lesen]] |
+| 6 | Bibliography + Questionnaire | `BibEntry`, `Questionnaire` dataclasses + parsers; aggregates for tags, reviewers, reviewed resources. **Stage 2.C done.** | R1 (Bibliographie, Factsheet, Tags), R6, R7, R8, [[requirements#A2 Datenquellen]] |
+| 7 | Ref-Resolver + Asset-Pipeline | 4-bucket link resolution; image copy with URL rewriting | R1 (cross-refs, K-refs), [[requirements#R17 Stabile URLs]] |
+| 8 | HTML — Rezensionsseiten | Per-review HTML via Jinja; citation export (BibTeX, CSL-JSON); TEI + PDF download links; Open-Graph metadata; Copy-Link auf Absätze; Tooltip-Vorschau für Cross-Refs; CSS ≤ 800 Zeilen; vier kleine JS-Module — alles gemäß [[interface]] | R1, [[requirements#R2 Rezension zitieren]], [[requirements#R3 Rezension herunterladen]], [[requirements#R13 Sharing]], [[interface]] |
+| 9 | Editorialschicht | About, Imprint, Review Criteria, optional Reviewer profiles as Markdown with frontmatter; per-issue YAML config; consistency check against TEI headers | [[requirements#R10 Statische Inhalte pflegen]], [[requirements#R11 Heftmetadaten pflegen]], [[requirements#A3 Redaktionelle Texte]] |
+| 10 | Aggregations- und Übersichtsseiten | Heftübersicht, Heftansicht, Tag-Übersicht, Reviewer-Liste + Detailseiten, Reviewed-Resources-Tabelle, Data-Charts | [[requirements#R4 Heftansicht]], [[requirements#R5 Heftübersicht]], [[requirements#R6 Tag-Aggregation]], [[requirements#R7 Reviewed Resources]], [[requirements#R8 Reviewer-Liste]], [[requirements#R9 Data-Charts]] |
+| 11 | Pagefind-Suche | Build-time index; client-side runtime with context highlighting | [[requirements#R12 Volltextsuche]], [[requirements#A4 Volltextsuche]] |
+| 12 | Maschinenschnittstellen | OAI-PMH static snapshot; JSON-LD per page; full corpus JSON dump; sitemap with `schema.org/ScholarlyArticle` | [[requirements#R15 Maschinenschnittstellen]], [[requirements#A5 Maschinenschnittstellen]] |
+| 13 | Validierung + Build-Bericht | RelaxNG + Schematron pre-build check with per-file report; aggregated build warnings; `build-info.json` | [[requirements#N3 Validierung als eigene Schicht]], [[requirements#N4 Reproduzierbarkeit]], [[requirements#N7 Build-Bericht]] |
+| 14 | PDF aus Domänenmodell | WeasyPrint with print stylesheet; DOI on first page | [[requirements#R3 Rezension herunterladen]], [[requirements#A6 PDF-Pfad]] |
+| 15 | Deploy + Ops | Single GitHub-Actions workflow; cookieless Matomo tracking; WCAG 2.2 AA audit; licence statements; Kontakt; meta-refresh redirects on rename | [[requirements#R14 Kontakt]], [[requirements#R16 Tracking]], [[requirements#R17 Stabile URLs]], [[requirements#N5 Barrierefreiheit]], [[requirements#N6 Lizenzklarheit pro Artefakt]], [[requirements#N10 Single-Workflow-Build]] |
+
+Phases 1–8 form the inhaltliche Basislinie; the site is renderable end-to-end after Phase 8. Phases 9–15 add the surrounding apparatus (editorial, aggregation, search, machine APIs, validation, PDF, deploy). Estimated total effort ~55 hours, distributed across roughly twelve sessions.
