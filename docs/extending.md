@@ -8,6 +8,7 @@ How to add a new TEI element, attribute, or render variant. Anchored to `require
 |---|---|
 | Render an existing element with a different template or CSS class | YAML only |
 | Add a new variant of an existing kind (e.g. a fourth list type) | YAML only |
+| Add a new bucket-aware variant for `Reference` (e.g. distinguish DOIs) | YAML only — extend `inlines.Reference.by_bucket` plus the resolver classifier |
 | Add a new TEI element with structurally new semantics | Python + YAML |
 | Change how text-node whitespace is treated | Python (parser) |
 | Add a new aggregation page or feed | Python (renderer) + template |
@@ -101,12 +102,23 @@ This updates `knowledge/data.md` so the new element shows up in the corpus refer
 
 Most YAML-only extensions do not affect any pipeline phase boundary. Python extensions affect the parser phase (Phase 1 dataclasses, Phase 3 block parser, Phase 4 inline parser) — see `knowledge/pipeline.md` Phasenplan for the phase breakdown. New aggregation pages are Phase 10 work.
 
+## Reference buckets and the resolver post-pass
+
+Phase 7 added `Reference.bucket` ∈ `{local, criteria, external, orphan, None}`. The classifier sits in `src/parser/refs_resolver.py::classify_target` and is called from `resolve_references(review)` as the last step of `parse_review`. Two extension shapes are common:
+
+- **Add a new bucket value.** Extend `classify_target` with the new branch, extend `inlines.Reference.by_bucket` in `config/element-mapping.yaml` with the matching CSS class, and add a unit test for the classifier plus a real-corpus integration test if the corpus has the case.
+- **Move targets between buckets.** For example, treating `mailto:` as `external` instead of `orphan`. Edit only the classifier and adjust the unit test; the renderer dispatch follows automatically.
+
+## Asset pipeline
+
+Figure URL rewriting and image copying live in `src/parser/assets.py::rewrite_figure_assets`. The function is pure with respect to the dataclasses (returns a new `Review`) and reports filesystem outcomes via `AssetReport`. Extending it for a new URL form means extending the `_URL_PATTERN` regex; the surrounding walker stays unchanged.
+
 ## Validation
 
-After any extension, run the full test suite. The real-corpus smoke test in `tests/test_parser_metadata.py` exercises all 107 reviews when `../ride/` is present.
+After any extension, run the full test suite. Real-corpus smoke tests in `tests/test_parser_*.py` exercise all 107 reviews when `../ride/` is present. Per the test data philosophy in `CLAUDE.md`, integration tests should drive off real corpus reviews; only pure-function unit tests (regex, classifier) may use synthetic inputs.
 
 ```sh
 python -m pytest tests/ -v
 ```
 
-A clean run means no element raised, the mapping is consistent (once Phase 8 has introduced it), and all 107 reviews parse end-to-end.
+A clean run means no element raised, the mapping is consistent, and all 107 reviews parse end-to-end with their references classified.

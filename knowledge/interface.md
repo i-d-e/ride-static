@@ -64,7 +64,9 @@ Die Begründung ist funktional. References dienen dem Beleg, Figures dem visuell
 
 Bidirektionale Verlinkung ist in allen drei Apparaten Pflicht. Jede Figure-Nummer in der Liste verlinkt zurück zur Bildposition im Text, jede Footnote zur Aufrufstelle, jede Reference auf die Inline-Erwähnung (sofern eindeutig). Das ist heute uneinheitlich und wird normalisiert.
 
-References tragen drei Varianten je nach Quellen-Status. Direkter Link auf eine lebendige Quelle. DOI-Link, wenn vorhanden. Webarchiv-Link mit sichtbarem Hinweis "via Wayback Machine, archiviert am ..." bei toten Quellen. Letzteres ist heute redaktionelle Praxis, wird aber im Datenmodell als formale Variante markiert.
+References tragen drei Varianten je nach Quellen-Status. Direkter Link auf eine lebendige Quelle. DOI-Link, wenn vorhanden. Webarchiv-Link mit sichtbarem Hinweis "via Wayback Machine, archiviert am ..." bei toten Quellen. Letzteres ist heute redaktionelle Praxis, wird aber im Datenmodell als formale Variante markiert. Die Wayback-Erkennung selbst landet erst in Phase 13 (Build-Validation), nicht in Phase 7.
+
+Cross-References im Fließtext werden seit Phase 7 nach `Reference.bucket` ∈ `{local, criteria, external, orphan}` getypt. Templates dispatchen über `config/element-mapping.yaml` `inlines.Reference.by_bucket` auf vier CSS-Klassen (`ride-ref--local`, `ride-ref--criteria`, `ride-ref--external`, `ride-ref--orphan`). Local-Refs zeigen Tooltip-Vorschau (Footnote-Text, Figure-Thumbnail), criteria-Refs öffnen das externe Kriteriendokument am Anker, external-Refs sind reine Out-Links, orphan-Refs werden als grauer Plain-Text mit `aria-disabled` gerendert.
 
 ## 7. Typografie und Lesbarkeit
 

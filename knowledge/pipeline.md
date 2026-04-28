@@ -106,12 +106,13 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 
 ## Cross-cutting concerns
 
-- **Asset handling.** Images referenced via `<graphic @url>` live next to the TEI in `../ride/issues/{n}/`. The build copies them into `site/issues/{n}/{review-id}/figures/` and rewrites URLs.
-- **Reference resolution.** `<ref @target>` follows the four-bucket logic specified in [[requirements#R1 Rezension lesen]]:
-  - local anchor present in this review → render as in-page anchor link;
-  - looks like `#K…` (5 209 cases, see [[data#Reference resolution]]) → resolve against the criteria document at the taxonomy's `@xml:base`;
-  - external URL → pass through;
-  - anything else → log a build warning and render as plain text.
+- **Asset handling (Phase 7).** Images referenced via `<graphic @url>` live in `../ride/issues/issue{NN:02d}/{slug}/pictures/`. `src/parser/assets.py::rewrite_figure_assets(review, ride_root, site_root)` copies them into `site/issues/{N}/{review_id}/figures/` and rewrites `Figure.graphic_url` to the site-root-relative form `/issues/{N}/{review_id}/figures/{file}`. Missing source files become entries in `AssetReport.missing` — no crash; Phase 13 aggregates the per-review reports.
+- **Reference resolution (Phase 7).** `src/parser/refs_resolver.py::resolve_references(review)` runs as a post-pass in `parse_review` and writes `Reference.bucket ∈ {local, criteria, external, orphan, None}` on every `<ref>`:
+  - `local` — `#xml-id` and the anchor exists in this review's `xml:id` index (sections, paragraphs, figures, notes, bibliography entries);
+  - `criteria` — `#K…` (5 209 corpus cases, all in `<teiHeader>/<catDesc>`, none in body — see [[data#Reference resolution]]). Renderer dispatches to the external criteria document at the taxonomy's `@xml:base`;
+  - `external` — `http(s)://`, passed through;
+  - `orphan` — anything else (mailto:, bare bibkeys, `#abb…`-style dangling internals). Build-time warning, renderer falls back to plain text.
+  Bucket is `None` when the source `<ref>` has no `@target` at all.
 - **Cross-review references.** Reviews citing one another (via `<relatedItem>`) become hyperlinks if the target is in the corpus; otherwise they stay as bibliographic citations.
 - **Schematron warnings.** Build prints (but does not fail on) Schematron violations from `inventory/cross-reference.json`. Hard failures are reserved for parsing errors. The full pre-build validation layer ([[requirements#N3 Validierung als eigene Schicht]]) is implemented in Phase 13.
 
@@ -174,7 +175,7 @@ The build is split into fifteen sequential phases. Each phase produces one commi
 | 4 | Inline parser | Mixed-content walker; Text, Emphasis, Highlight, Reference, Note, InlineCode | [[requirements#R1 Rezension lesen]] (lang, footnotes) |
 | 5 | Integration in `parse_review` | `Review.body` fully populated for all 107 reviews. **Stage 2.B done.** | [[requirements#R1 Rezension lesen]] |
 | 6 | Bibliography + Questionnaire | `BibEntry`, `Questionnaire` dataclasses + parsers; aggregates for tags, reviewers, reviewed resources. **Stage 2.C done.** | R1 (Bibliographie, Factsheet, Tags), R6, R7, R8, [[requirements#A2 Datenquellen]] |
-| 7 | Ref-Resolver + Asset-Pipeline | 4-bucket link resolution; image copy with URL rewriting | R1 (cross-refs, K-refs), [[requirements#R17 Stabile URLs]] |
+| 7 | Ref-Resolver + Asset-Pipeline | `Reference.bucket` ∈ {local, criteria, external, orphan} via `src/parser/refs_resolver.py`; image copy + URL rewrite via `src/parser/assets.py`. Wayback-Hint deferred → Phase 13. **done ✅** | R1 (cross-refs, K-refs), [[requirements#R17 Stabile URLs]] |
 | 8 | HTML — Rezensionsseiten | Per-review HTML via Jinja; citation export (BibTeX, CSL-JSON); TEI + PDF download links; Open-Graph metadata; Copy-Link auf Absätze; Tooltip-Vorschau für Cross-Refs; CSS ≤ 800 Zeilen; vier kleine JS-Module — alles gemäß [[interface]] | R1, [[requirements#R2 Rezension zitieren]], [[requirements#R3 Rezension herunterladen]], [[requirements#R13 Sharing]], [[interface]] |
 | 9 | Editorialschicht | About, Imprint, Review Criteria, optional Reviewer profiles as Markdown with frontmatter; per-issue YAML config; consistency check against TEI headers | [[requirements#R10 Statische Inhalte pflegen]], [[requirements#R11 Heftmetadaten pflegen]], [[requirements#A3 Redaktionelle Texte]] |
 | 10 | Aggregations- und Übersichtsseiten | Heftübersicht, Heftansicht, Tag-Übersicht, Reviewer-Liste + Detailseiten, Reviewed-Resources-Tabelle, Data-Charts | [[requirements#R4 Heftansicht]], [[requirements#R5 Heftübersicht]], [[requirements#R6 Tag-Aggregation]], [[requirements#R7 Reviewed Resources]], [[requirements#R8 Reviewer-Liste]], [[requirements#R9 Data-Charts]] |

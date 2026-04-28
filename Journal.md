@@ -34,29 +34,25 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 **Phase 7 ready — Reference.bucket ∈ {local, criteria, external, orphan}.**
 
-**Ziel:** Aspekt A aus WORKPLAN.md abschließen — Vier-Bucket-Resolver für jeden `<ref @target>`, Asset-Pipeline für Figure-Bilder, plus den Test-Refactor zu Real-Corpus-Drive (vom Stakeholder explizit nachgezogen, weil synthetische Dataclass-Konstruktionen Schulden waren). Wayback-Hint nach Phase 13 verschoben — passt thematisch besser in den Validation/Build-Bericht-Schritt als in den Resolver.
+**Ziel:** Aspekt A aus WORKPLAN.md — Vier-Bucket-Resolver, Asset-Pipeline, Test-Refactor auf Real-Corpus-Drive (vom Stakeholder eingefordert).
 
 **Erledigt:**
-- Commit 7.A (`425f2a2`): `Reference.bucket: Optional[str]` als zusätzliches Feld an der Inline-Klasse, plus `src/parser/refs_resolver.py` mit `classify_target` (pure) und `resolve_references(review)` als Post-Pass über Sections + Bibliography. Buckets `local` (Anker im Review-eigenen `xml:id`-Index), `criteria` (`#K…`), `external` (`http(s)://`), `orphan` (sonst). Re-Aggregation der Figures/Notes nach dem Walk, damit `Review.figures`/`Review.notes` Identity-Equal mit den Section-Tree-Pendants bleiben. Wire-up in `parse_review`. 21 Tests (später auf 17 reduziert).
-- Commit 7.B (`8a439df`): `src/parser/assets.py` mit `rewrite_figure_assets(review, ride_root, site_root, copy=True)` + `AssetReport`. URL-Pattern aus dem Korpus (`http(s)://ride.i-d-e.de/wp-content/uploads/issue_N/{slug}/pictures/{file}`) wird auf das site-relative `/issues/{N}/{review_id}/figures/{file}` umgeschrieben (gemäß `docs/url-scheme.md`). Disk-Pfad: `../ride/issues/issue{NN:02d}/{slug}/pictures/{file}`. Fehlende Files = Report-Eintrag, kein Crash. Modul liegt in `src/parser/`, weil eine `src/build/`-Package-Variante mit dem Frontend-eigenen `src/build.py` kollidieren würde. 11 Tests.
-- Commit 7.C (`66fbb0d`): Test-Daten-Philosophie als Hard Rule in `CLAUDE.md` — Integration-Tests parsen das echte Korpus, synthetic-from-dataclass ist Schuld. Phase-7-Tests refaktoriert: `test_parser_refs_resolver.py` (17 Tests) und `test_parser_assets.py` (12 Tests) treiben jetzt aus echten Reviews (1641, anemoskala, bayeux, godwin) — nur die Pure-Function-Units (`classify_target`, `_parse_url`) und der nicht-existierende Unparseable-URL-Fall bleiben synthetisch und sind als Ausnahmen dokumentiert. Audit-Cleanup: vier File-Existence-Smoke-Tests gelöscht (inventory, structure, taxonomy, cross_reference), eine Anomalie-Lücke geschlossen (`test_real_corpus_list_inside_item` gegen anemoskala — die 3 Korpus-Fälle waren vorher uncovered).
-- COORDINATION.md auf Phase-7-Stand: `Reference.bucket` im Datenvertrag, Asset-Pipeline-API beschrieben, Frontend-Kontrakt für die Bucket-CSS-Klassen via `config/element-mapping.yaml` `by_bucket` markiert.
-- `knowledge/architecture.md` um eine Stakeholder-Sektion ergänzt (Editorial / Reviewers / Readers / Indexers / Maintainers, plus die zwei Achsen Reader-First und Editorial-Light) und um eine kurze methodische Randnotiz zu Promptotyping/Context-Engineering — explizit als Hintergrund, nicht als Hauptthema. Test-Hard-Rule synchronisiert.
+- 7.A (`425f2a2`): `Reference.bucket` + `src/parser/refs_resolver.py` (`classify_target` pure, `resolve_references(review)` als Post-Pass mit Re-Aggregation für Figures/Notes-Identity). Wire-up in `parse_review`. 17 Tests.
+- 7.B (`8a439df`): `src/parser/assets.py` mit `rewrite_figure_assets` + `AssetReport`. URL-Rewrite Korpus → `/issues/{N}/{review_id}/figures/{file}`; Disk-Pfad `../ride/issues/issue{NN:02d}/{slug}/pictures/{file}`. Fehlende Files = Report, kein Crash. 12 Tests.
+- 7.C (`66fbb0d`): Test-Daten-Philosophie als Hard Rule in CLAUDE.md. Phase-7-Tests refaktoriert auf Real-Corpus (1641, anemoskala, bayeux, godwin). Vier File-Existence-Smokes gelöscht, `<list>`-in-`<item>`-Anomalietest gegen anemoskala ergänzt. 315 Tests grün.
+- 7.D (`6c36759`): COORDINATION.md, architecture.md (Stakeholder-Sektion + methodische Randnotiz), WORKPLAN-Status, Journal-Handover.
 
 **Entscheidungen:**
-- `Reference.bucket` als zusätzliches Feld am Inline-Modell statt eines parallelen `Review.resolved_refs`-Mappings. Begründung: kleinster Eingriff, jede Reference trägt ihre Klassifikation selbst, Renderer und Aggregat-Walker müssen nicht zwei parallele Strukturen synchronisieren.
-- `criteria`-Bucket bleibt im Vertrag, obwohl das Body-Korpus 0 Vorkommen hat. Begründung: alle 5 209 K-Refs liegen im Header (`<teiHeader>/<catDesc>`) und der Body-Parser traversiert dort nicht — der Bucket ist Future-Proofing für künftige Submissions, der `classify_target`-Unit-Test pinnt das Verhalten.
-- Asset-Pipeline-Modul in `src/parser/assets.py`, nicht in `src/build/assets.py`. Begründung: das Frontend hält `src/build.py` als Datei; eine Geschwister-Package `src/build/` würde im Python-Importsystem kollidieren. Das WORKPLAN-Dokument hatte beide Optionen offen.
-- Wayback-Hint **deferred to Phase 13**. Begründung: eine HTTP-HEAD-Probe-Schleife gehört in den Build-Validation/Bericht-Schritt; in Phase 7 wäre sie ein Fremdkörper, der den Resolver-Test-Lauf an Online-Status koppelt.
-- Re-Aggregation in beiden Phase-7-Modulen (Resolver und Asset-Pipeline). Begründung: würde der Walker die `Review.figures`/`Review.notes`-Aggregate separat traversieren, entstünden divergente Kopien — Aggregate würden nach dem Walk nicht mehr Identity-Equal mit den Section-Tree-Knoten sein. Stattdessen: nur Sections+Bibliography walken, dann re-aggregieren.
-- Test-Daten-Prinzip als Hard Rule in CLAUDE.md, nicht nur in COORDINATION.md. Begründung: gilt für beide Claudes und für jede künftige Phase, nicht nur für die aktuelle Backend-/Frontend-Trennung.
+- `Reference.bucket` als Inline-Feld statt paralleler `resolved_refs`-Map — kleinster Eingriff, keine zwei Strukturen zu synchronisieren.
+- `criteria`-Bucket bleibt im Vertrag trotz 0 Body-Vorkommen: alle 5 209 K-Refs leben im Header (`<catDesc>`), Body-Parser traversiert dort nicht; Future-Proofing.
+- Asset-Modul in `src/parser/assets.py` statt `src/build/assets.py` — Frontend hält `src/build.py` als Datei, ein Geschwister-Package würde kollidieren.
+- Wayback-Hint deferred → Phase 13: HTTP-HEAD-Probe gehört in den Validation/Bericht-Schritt, nicht in den Resolver.
+- Re-Aggregation in Resolver und Asset-Pipeline: separater Walk über die Aggregate erzeugt sonst divergente Kopien gegenüber dem Section-Tree.
+- Test-Prinzip als Hard Rule in CLAUDE.md (nicht nur COORDINATION.md): gilt für beide Claudes und alle künftigen Phasen.
 
-**Offen:**
-- Frontend integriert die Buckets ins Cross-Ref-Rendering und die rewritten Bildpfade in `src/render/html.py` und `src/build.py`. Pre-Handover-Note ist in COORDINATION.md (Phase 7 abgeschlossen ✅) und im obersten Eintrag dieser Datei.
-- Wayback-Hint für tote Bibliographie-Refs steht für Phase 13 an.
-- Phase 12 (OAI-PMH, JSON-LD, Sitemap) und Phase 13 (Validierung + Build-Bericht) sind die nächsten Backend-Sprints, sobald Phase 10 (Frontend) und 11 (Suche) gelandet sind.
+**Offen:** Frontend integriert Buckets (`config/element-mapping.yaml` `by_bucket`) und ruft `rewrite_figure_assets` in `src/build.py` auf. Wayback-Hint für Phase 13. Phase 12 (OAI-PMH/JSON-LD/Sitemap) und 13 (Validierung) als nächste Backend-Sprints.
 
-**Nächster Einstieg:** Frontend-Übergabe abwarten — sobald der andere Claude die Buckets in `config/element-mapping.yaml` und Templates dispatcht und `rewrite_figure_assets` in `src/build.py` aufruft, ist Phase 7 vollständig integriert. Backend selbst wechselt danach auf Phase 12 oder 13, je nach Frontend-Tempo. Falls eine Lücke zu überbrücken ist, kann der Backend-Claude Phase 11 (Pagefind-Integration) als parallel-machbares Vorzieh-Stück übernehmen — ist mehr Build-CLI-Verdrahtung als Render-Hoheit.
+**Nächster Einstieg:** Frontend-Integration abwarten; falls Backend parallel arbeiten soll, Phase 11 (Pagefind-Integration in `src/build.py`) als überbrückendes Vorzieh-Stück.
 
 ---
 
