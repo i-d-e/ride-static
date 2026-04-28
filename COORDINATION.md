@@ -105,8 +105,11 @@ Inline = Text | Emphasis | Highlight | Reference | Note | InlineCode
 
 Reference:
     children: tuple[Inline, ...]
-    target: Optional[str]                # roh; Phase 7 löst auf
+    target: Optional[str]                # roh aus dem TEI
     type: Optional[str]                  # "crossref" (normalisiert)
+    bucket: Optional[str]                # Phase 7: "local" | "criteria" |
+                                         # "external" | "orphan"; None wenn
+                                         # target None ist
 
 Note:
     children: tuple[Inline, ...]
@@ -135,11 +138,32 @@ Resources per erste Target-URL dedup. Der Frontend-Claude ruft sie
 einmal beim Build und reicht die Aggregate an die jeweiligen
 Templates.
 
-## Was vom Frontend NICHT angenommen werden darf (Phase 6 Stand)
+## Phase 7 Stand (Ref-Resolver + Asset-Pipeline)
 
-- `Reference.target` ist nicht aufgelöst — Phase 7. Render solange als rohes Attribut, ohne Tooltip-Vorschau und ohne Wayback-Branch.
+Was das Frontend ab sofort sehen darf:
+
+- **`Reference.bucket`** ist auf jeder Reference-Instanz gesetzt, sobald
+  `parse_review` durchgelaufen ist. Werte: `"local"`, `"criteria"`,
+  `"external"`, `"orphan"`, oder `None` (wenn `target` selbst `None` ist).
+  Templates dispatchen via `config/element-mapping.yaml` `inlines.Reference.by_bucket`.
+- **`Figure.graphic_url`** wird durch
+  `src.parser.assets.rewrite_figure_assets(review, ride_root, site_root)`
+  von der Korpus-URL auf den site-relativen Pfad umgeschrieben:
+  `/issues/{N}/{review_id}/figures/{filename}`. Frontend ruft die Funktion
+  pro Review im Build und kopiert die Bilder dabei nach
+  `site/issues/{N}/{review_id}/figures/`. Fehlende Quelldateien landen
+  als Eintrag in `AssetReport.missing` — kein Crash, der Original-URL
+  bleibt erhalten, Phase 13 aggregiert das zur Build-Warnung.
+- **K-Refs (`#K…`)** liegen alle im Header (`<teiHeader>/<catDesc>`),
+  nicht im Body. Im Body kommen aktuell **0** criteria-Refs vor; der
+  bucket-Vertrag ist trotzdem für die Zukunft gehalten.
+- **Wayback-Hint** für tote Bibliographie-Refs: nicht in Phase 7
+  gelandet, wandert nach Phase 13 (Build-Bericht), weil ein HTTP-HEAD-
+  Probe-Lauf ohnehin in den Validation-Schritt gehört.
+
+Was vom Frontend weiterhin NICHT angenommen werden darf:
+
 - `Figure.alt` ist im aktuellen Korpus immer `None`. Frontend muss Fallback liefern (`head`-Text oder `"Figure N"`); Phase 13 wird die Lücke als Build-Warnung aggregieren.
-- `Figure.graphic_url` zeigt aktuell auf den rohen TEI-`@url`-Wert (relative Pfade aus dem TEI). Asset-Pipeline aus Phase 7 schreibt sie auf `site/issues/{n}/{review_id}/figures/...` um. Bis dahin sind Bilder in den gerenderten Seiten broken.
 - `Section.back` enthält den Bibliographie-`<div>`, aber dessen `blocks` sind heute `()` (Architektur, kein Bug). Die Bibliographie lebt auf `Review.bibliography`, nicht über `back.blocks`.
 - Es gibt keine inline `xml:lang`-Markierung im Korpus. Section/Review-Lang reicht für Screenreader-Korrektheit.
 
@@ -178,9 +202,11 @@ dieses Dokument.** Memory ist privat, das Repo ist geteilt.
 - **Phase 6 abgeschlossen ✅** → Frontend kann Bibliographie-Apparat,
   Questionnaire/Factsheet, Tag-Übersicht, Reviewer-Liste und
   Reviewed-Resources-Tabelle bauen.
-- **Phase 7 in Arbeit (Backend nächster Sprint)** → schaltet Cross-Ref-
-  Tooltips, K-Ref-Auflösung und korrekte Bild-Pfade frei. Vorher: Refs
-  als rohe Anker, Bilder broken.
+- **Phase 7 abgeschlossen ✅** → `Reference.bucket` ∈
+  {`local`, `criteria`, `external`, `orphan`, `None`} liegt auf jeder
+  Reference-Instanz. `src.parser.assets.rewrite_figure_assets` ist die
+  Asset-Pipeline-API. Frontend kann Cross-Refs jetzt bucket-aware
+  rendern und Bilder unter dem deployten URL-Schema ausliefern.
 - **Phase 8 unter Frontend-Hoheit, First Light geschippt ✅** —
   `python -m src.build` rendert alle 107 Reviews. Backend liefert
   Domänenobjekte und prüft den Datenvertrag, mischt sich in Templates /

@@ -5,6 +5,34 @@
 >
 > Anchored to [[requirements]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
 
+## Stakeholders and how they touch the system
+
+The architecture is shaped by who uses it and where they enter. The
+five stakeholder roles are stable across phases; the build plan in
+[[pipeline#Phasenplan]] is sequenced so each role gets value as soon
+as its inputs land.
+
+| Role | What they do | Where they enter the system |
+|---|---|---|
+| **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `config/issues/{n}.yaml`, the TEI submission process upstream of `../ride/`. |
+| **Reviewers** | Author reviews in TEI per `ride.odd`. | `../ride/tei_all/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
+| **Readers** | Read reviews, follow citations, search across the corpus, cite reviews in their own work. | The deployed site — review pages, aggregation pages (tags, reviewers, resources), the search box, the `Cite` button per review. |
+| **Indexers / harvesters** | Pull metadata into discovery layers (DOI, Google Scholar, ScholarLed, library catalogues). | `/api/corpus.json`, `/oai/`, `/sitemap.xml`, JSON-LD per review page, stable URLs per [[url-scheme|docs/url-scheme.md]]. |
+| **Maintainers (this project)** | Add new TEI elements, change visual design, fix anomalies, ship new phases. | `src/parser/`, `src/render/`, `templates/`, `config/element-mapping.yaml`, `knowledge/` for design-intent decisions. |
+
+Two axes of stakeholder load shape the architecture:
+
+* **Reader-first.** Most stakeholder traffic is readers; the build is
+  optimised for fast static pages, no runtime, no JS frameworks. The
+  apparate-block design ([[interface#6]]) and per-paragraph copy-link
+  ([[interface#11]]) are concessions to reader workflows that the
+  domain model carries (`Paragraph.xml_id`, `Figure.xml_id`,
+  `Reference.bucket`).
+* **Editorial-light.** Editorial change should not require Python.
+  `config/element-mapping.yaml` puts the dominant 90 % of presentation
+  edits behind a YAML change — an editorial-team-friendly contact
+  surface. New parsing semantics still need a maintainer.
+
 ## Inputs and outputs
 
 **Inputs**
@@ -212,8 +240,16 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **Domain model first.** Templates and renderers never see raw TEI.
 - **Inventory-driven.** Anything the parser does is informed by `inventory/`. New elements or attributes that appear in the corpus must show up in the inventory before they are handled.
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones raise.
-- **TDD throughout.** Every module ships with pytest using synthetic TEI fixtures.
+- **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
+
+> Methodological aside. This codebase was developed via promptotyping
+> and context-engineering with multiple Claude sessions running in
+> parallel against shared knowledge documents (`CLAUDE.md`,
+> `COORDINATION.md`, this vault). Mentioned here because it explains
+> why the documentation density is unusual for a static-site project,
+> not because it shapes the architecture itself — the design decisions
+> above stand on their own merits.
 
 ## Repository layout (target)
 
