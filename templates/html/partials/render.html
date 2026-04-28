@@ -141,12 +141,17 @@
   </table>
 {%- endmacro -%}
 
-{#- Figure has two kinds. graphic_url is rewritten by the asset pipeline
-    in Phase 7; until then the path is whatever the TEI carries. -#}
+{#- Figure has two kinds. The Phase-7 asset pipeline
+    (`src.parser.assets.rewrite_figure_assets`) rewrites graphic_url to a
+    root-absolute `/issues/{N}/{review_id}/figures/{file}` path. The
+    `media_path` filter prepends `site.base_url` for deploys under a path
+    prefix and passes external/legacy URLs through untouched, so unrewritten
+    figures (missing source file on disk) keep their original WordPress
+    link rather than 404. -#}
 {%- macro figure_block(f) -%}
   <figure class="ride-figure ride-figure--{% if f.kind == 'graphic' %}image{% else %}code{% endif %}"{% if f.xml_id %} id="{{ f.xml_id }}"{% endif %}>
     {%- if f.kind == "graphic" and f.graphic_url -%}
-      <img src="{{ f.graphic_url }}" alt="{{ f.alt or (f.head | inlines_to_text) or '' }}">
+      <img src="{{ media_path(f.graphic_url) }}" alt="{{ f.alt or (f.head | inlines_to_text) or '' }}">
     {%- elif f.kind == "code_example" and f.code -%}
       <pre><code{% if f.code_lang %} data-lang="{{ f.code_lang }}"{% endif %}>{{ f.code }}</code></pre>
     {%- endif -%}

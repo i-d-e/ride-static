@@ -8,7 +8,9 @@
 
   Imports the shared inline/block macros from render.html.
 -#}
-{%- import "partials/render.html" as r -%}
+{#- `with context` propagates page-level helpers (media_path, static_path)
+    into the imported macros so figure_block can resolve asset URLs. -#}
+{%- import "partials/render.html" as r with context -%}
 
 {%- macro section(s) -%}
   <section class="ride-section{% if s.type %} ride-section--{{ s.type }}{% endif %}"{% if s.xml_id %} id="{{ s.xml_id }}"{% endif %}>

@@ -32,7 +32,13 @@ from src.parser.datasets import (
     aggregate_reviewers,
     aggregate_tags,
 )
-from src.render.html import SiteConfig, make_env, slugify, static_path_factory
+from src.render.html import (
+    SiteConfig,
+    make_env,
+    media_path_factory,
+    slugify,
+    static_path_factory,
+)
 from src.render.issues_config import IssueConfig, order_reviews
 
 
@@ -44,6 +50,7 @@ def _common_ctx(site: SiteConfig) -> dict:
     return {
         "site": site,
         "static_path": static_path_factory(site.base_url),
+        "media_path": media_path_factory(site.base_url),
         "page_lang": site.default_language,
         "og": None,
         "json_ld": None,

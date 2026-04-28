@@ -14,7 +14,9 @@
 
   Empty panels collapse — we don't render headers without content.
 -#}
-{%- import "partials/render.html" as r -%}
+{#- `with context` propagates page-level helpers (media_path, static_path)
+    into the imported macros — figure_block reads media_path. -#}
+{%- import "partials/render.html" as r with context -%}
 
 {%- macro apparate(review, strings={}) -%}
   {%- set has_refs    = review.bibliography and (review.bibliography | length) > 0 -%}

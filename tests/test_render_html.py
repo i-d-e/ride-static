@@ -27,6 +27,7 @@ from src.render.html import (
     _inlines_to_text,
     _obfuscate_mail,
     make_env,
+    media_path_factory,
     render_review,
     slugify,
     split_abstract,
@@ -106,6 +107,31 @@ def test_obfuscate_mail():
     out = _obfuscate_mail("a@b.c")
     assert "@" not in out
     assert "." not in out
+
+
+def test_media_path_factory_passes_external_through():
+    mp = media_path_factory("/ride-static")
+    assert mp("https://example.org/x.png") == "https://example.org/x.png"
+    assert mp("http://ride.i-d-e.de/wp-content/x.png") == "http://ride.i-d-e.de/wp-content/x.png"
+
+
+def test_media_path_factory_prepends_prefix_to_root_absolute():
+    mp = media_path_factory("/ride-static")
+    assert mp("/issues/1/ride.1.1/figures/x.png") == "/ride-static/issues/1/ride.1.1/figures/x.png"
+
+
+def test_media_path_factory_no_prefix_passes_root_absolute_through():
+    mp = media_path_factory("")
+    assert mp("/issues/1/ride.1.1/figures/x.png") == "/issues/1/ride.1.1/figures/x.png"
+
+
+def test_media_path_factory_handles_empty_and_relative():
+    mp = media_path_factory("/ride-static")
+    assert mp("") == ""
+    assert mp(None) == ""
+    # Relative paths (no leading /) are passed through unchanged so callers
+    # that build their own URLs are not double-prefixed.
+    assert mp("figures/x.png") == "figures/x.png"
 
 
 def test_inlines_to_text_recurses_into_emphasis():

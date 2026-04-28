@@ -12,9 +12,11 @@
     body_sections    — Review.body sections excluding the abstract
 -#}
 {% extends "base.html" %}
-{%- import "partials/section.html" as s -%}
-{%- import "partials/apparate.html" as a -%}
-{%- import "partials/render.html" as r -%}
+{#- `with context` propagates page-level helpers (media_path, static_path)
+    into the imported macros so figure_block can resolve asset URLs. -#}
+{%- import "partials/section.html" as s with context -%}
+{%- import "partials/apparate.html" as a with context -%}
+{%- import "partials/render.html" as r with context -%}
 {%- import "partials/factsheet.html" as fs -%}
 
 {% block title %}{{ review.title }} — {{ site.title }}{% endblock %}

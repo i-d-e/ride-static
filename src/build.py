@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 from src.model.review import Review
+from src.parser.assets import AssetReport, rewrite_figure_assets
 from src.parser.datasets import (
     aggregate_reviewed_resources,
     aggregate_reviewers,
@@ -52,6 +53,7 @@ from src.render.issues_config import (
 )
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_ROOT = REPO_ROOT.parent / "ride"
 SITE_DIR = REPO_ROOT / "site"
 STATIC_DIR = REPO_ROOT / "static"
 
@@ -82,9 +84,22 @@ def _site_config(base_url: str = "") -> SiteConfig:
     )
 
 
-def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Review:
-    """Parse one TEI file and write its rendered HTML page. Returns the Review."""
+def _render_one(
+    path: Path,
+    env,
+    site: SiteConfig,
+    out_root: Path,
+    ride_root: Path,
+) -> tuple[Review, AssetReport]:
+    """Parse one TEI file, copy its figures, write its HTML.
+
+    Returns the rewritten Review (figure URLs now point at the deployed
+    location) and the per-review AssetReport so the caller can aggregate
+    the build summary.
+    """
     review = parse_review(path)
+    review, report = rewrite_figure_assets(review, ride_root=ride_root, site_root=out_root)
+
     page_dir = out_root / "issues" / (review.issue or "0") / (review.id or path.stem)
     page_dir.mkdir(parents=True, exist_ok=True)
 
@@ -95,7 +110,7 @@ def _render_one(path: Path, env, site: SiteConfig, out_root: Path) -> Review:
     target_xml = page_dir / f"{review.id or path.stem}.xml"
     shutil.copyfile(path, target_xml)
 
-    return review
+    return review, report
 
 
 def _render_editorials(env, site: SiteConfig, out_root: Path) -> int:
@@ -224,10 +239,13 @@ def build(
     env = make_env()
 
     rendered: list[Review] = []
+    asset_reports: list[AssetReport] = []
     failed: list[tuple[Path, Exception]] = []
     for path in _iter_corpus(corpus_dir, limit):
         try:
-            rendered.append(_render_one(path, env, site, out_root))
+            review, report = _render_one(path, env, site, out_root, ride_root=RIDE_ROOT)
+            rendered.append(review)
+            asset_reports.append(report)
         except Exception as exc:  # noqa: BLE001 — we want to keep building on per-file failure
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
@@ -256,7 +274,31 @@ def build(
         print(f"Wrote {editorials} editorial pages")
     print(f"Wrote {aggregations} aggregation pages")
 
+    _print_asset_summary(asset_reports)
+
     return len(rendered)
+
+
+def _print_asset_summary(reports: list[AssetReport]) -> None:
+    """Aggregate per-review AssetReports into one build-summary line.
+
+    Per-review missing/unparseable lists go to stderr so CI surfaces them
+    without polluting the success output. Phase 13 will turn this into
+    structured warnings tied to the validation pipeline.
+    """
+    total_copied = sum(len(r.copied) for r in reports)
+    total_missing = sum(len(r.missing) for r in reports)
+    total_unparseable = sum(len(r.unparseable) for r in reports)
+    print(
+        f"Assets: copied {total_copied}, "
+        f"missing {total_missing}, unparseable {total_unparseable}"
+    )
+    for report in reports:
+        if report.missing or report.unparseable:
+            for url in report.missing:
+                print(f"  asset missing: {report.review_id}: {url}", file=sys.stderr)
+            for url in report.unparseable:
+                print(f"  asset url-unparseable: {report.review_id}: {url}", file=sys.stderr)
 
 
 def main(argv: Optional[list[str]] = None) -> int:

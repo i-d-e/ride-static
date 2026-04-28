@@ -103,6 +103,31 @@ def static_path_factory(base_url: str):
     return static_path
 
 
+def media_path_factory(base_url: str):
+    """Returns a function that prefixes root-absolute media URLs with ``base_url``.
+
+    The asset pipeline (``src.parser.assets.rewrite_figure_assets``) writes
+    ``Figure.graphic_url`` as ``/issues/{N}/{review_id}/figures/{file}`` —
+    root-absolute. When the site is deployed under a path prefix (e.g.
+    ``/ride-static`` on GitHub Pages), templates must concatenate that
+    prefix; otherwise the URL passes through. External URLs (``http(s)://``)
+    or empty values are returned untouched so unparseable / unrewritten
+    figures keep their legacy WordPress link rather than 404.
+    """
+    prefix = base_url.rstrip("/")
+
+    def media_path(url: Optional[str]) -> str:
+        if not url:
+            return ""
+        if url.startswith(("http://", "https://", "data:")):
+            return url
+        if url.startswith("/") and prefix:
+            return f"{prefix}{url}"
+        return url
+
+    return media_path
+
+
 # ── Citation export ──────────────────────────────────────────────────
 
 
@@ -278,6 +303,7 @@ def render_review(
         og=None,
         json_ld=None,
         static_path=static_path_factory(site.base_url),
+        media_path=media_path_factory(site.base_url),
     )
 
 
