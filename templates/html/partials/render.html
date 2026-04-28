@@ -31,14 +31,22 @@
   {%- if seq -%}{%- for i in seq -%}{{ inline(i) }}{%- endfor -%}{%- endif -%}
 {%- endmacro -%}
 
-{#- Reference rendering. Phase 7 will resolve `target` into a four-bucket
-    classification; for now we render as a raw anchor with a CSS hook for
-    later refinement. -#}
+{#- Reference rendering. The Phase-7 resolver fills `r.bucket` with one of
+    {local, criteria, external, orphan} (or None when @target itself is
+    missing). The bucket maps to a BEM modifier class per
+    config/element-mapping.yaml `inlines.Reference.by_bucket`. Orphan refs
+    render as a non-clickable span so we never expose a broken link. -#}
 {%- macro reference(r) -%}
-  {%- if r.target -%}
-    <a class="ride-ref" href="{{ r.target }}"{% if r.type %} data-ref-type="{{ r.type }}"{% endif %}>{{ inlines(r.children) }}</a>
+  {%- set bucket = r.bucket -%}
+  {%- if bucket == "orphan" or not r.target -%}
+    <span class="ride-ref ride-ref--orphan"
+          {%- if r.type %} data-ref-type="{{ r.type }}"{% endif -%}
+          {%- if r.target %} data-target="{{ r.target }}"{% endif -%}>{{ inlines(r.children) }}</span>
   {%- else -%}
-    <span class="ride-ref ride-ref--orphan">{{ inlines(r.children) }}</span>
+    <a class="ride-ref{% if bucket %} ride-ref--{{ bucket }}{% endif %}"
+       href="{{ r.target }}"
+       {%- if r.type %} data-ref-type="{{ r.type }}"{% endif -%}
+       {%- if bucket == "external" %} rel="noopener noreferrer"{% endif -%}>{{ inlines(r.children) }}</a>
   {%- endif -%}
 {%- endmacro -%}
 

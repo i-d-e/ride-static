@@ -362,6 +362,65 @@ def test_render_review_with_ref_renders_anchor():
     assert 'data-ref-type="crossref"' in html
 
 
+def _ref_in_body(ref: Reference) -> tuple:
+    """Wrap a single Reference in a one-paragraph, one-section body."""
+    return (
+        _section(
+            "s",
+            "S",
+            blocks=(Paragraph(inlines=(Text(text="See "), ref, Text(text="."))),),
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "bucket,expected_class",
+    [
+        ("local", "ride-ref--local"),
+        ("criteria", "ride-ref--criteria"),
+        ("external", "ride-ref--external"),
+    ],
+)
+def test_render_review_emits_bucket_modifier_for_clickable_buckets(bucket, expected_class):
+    target = "https://example.org/x" if bucket == "external" else "#anchor"
+    ref = Reference(children=(Text(text="link"),), target=target, bucket=bucket)
+    html = render_review(_minimal_review(body=_ref_in_body(ref)))
+    assert expected_class in html
+    assert f'href="{target}"' in html
+
+
+def test_render_review_external_ref_carries_rel_noopener():
+    ref = Reference(
+        children=(Text(text="ext"),),
+        target="https://example.org/",
+        bucket="external",
+    )
+    html = render_review(_minimal_review(body=_ref_in_body(ref)))
+    assert 'rel="noopener noreferrer"' in html
+
+
+def test_render_review_orphan_ref_renders_as_non_clickable_span():
+    ref = Reference(
+        children=(Text(text="missing"),),
+        target="#does-not-exist",
+        bucket="orphan",
+    )
+    html = render_review(_minimal_review(body=_ref_in_body(ref)))
+    # Orphan refs must NEVER be wrapped in an anchor — broken links degrade UX.
+    assert "ride-ref--orphan" in html
+    assert 'href="#does-not-exist"' not in html
+    # Original target survives as data-* so debug tools / future passes can recover it.
+    assert 'data-target="#does-not-exist"' in html
+
+
+def test_render_review_targetless_ref_falls_back_to_orphan():
+    """Defensive: a Reference with neither target nor bucket renders harmlessly."""
+    ref = Reference(children=(Text(text="dangling"),))
+    html = render_review(_minimal_review(body=_ref_in_body(ref)))
+    assert "ride-ref--orphan" in html
+    assert "dangling" in html
+
+
 # ── env.get_template never raises for templates we know about ────────
 
 

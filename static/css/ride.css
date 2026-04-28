@@ -225,11 +225,14 @@ hr {
 .ride-highlight                 { /* contextual rend variants land here */ }
 .ride-code                      { font-family: var(--ride-font-mono); background: var(--ride-bg-muted); padding: 1px 4px; border-radius: 2px; }
 
-.ride-ref                       { /* base anchor styling inherits from a {} */ }
-.ride-ref--local                { /* in-page anchor — same as default link */ }
-.ride-ref--criteria             { /* K-refs to external criteria document */ }
-.ride-ref--external             { /* http(s) link, optional external icon via ::after */ }
-.ride-ref--orphan               { color: var(--ride-fg-secondary); text-decoration: none; cursor: not-allowed; }
+/* Reference buckets — Phase 7 resolver classifies every <ref> into one of
+   four kinds; the modifier classes are mirrored in
+   config/element-mapping.yaml `inlines.Reference.by_bucket`. */
+.ride-ref                       { /* base — inherits link colour from a {} */ }
+.ride-ref--local                { /* same-page anchor — default link styling is the right affordance */ }
+.ride-ref--criteria             { border-bottom: 1px dotted currentColor; text-decoration: none; }
+.ride-ref--external::after      { content: " ↗"; font-size: 0.85em; color: var(--ride-fg-tertiary); }
+.ride-ref--orphan               { color: var(--ride-fg-secondary); text-decoration: line-through; cursor: not-allowed; }
 
 .ride-note                      { /* footnote marker; superscript wrapper renders the @n value */ }
 
