@@ -30,6 +30,41 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 8 First Light, Frontend rendert 107 Reviews End-to-End
+
+**Ziel:** Aus dem Stage-2.B-Datenvertrag heraus den ersten lauffähigen Frontend-Strang aufsetzen — Jinja-Render-Macros für alle Block- und Inline-Kinds, Rezensionsseiten-Template gemäß [[interface#5]], Render-Layer plus Build-CLI, dazu der CI-Workflow für GitHub-Pages-Deploy. Ziel: ein `python -m src.build` baut alle 107 Reviews ohne Raise.
+
+**Erledigt:**
+- Render-Macros (`templates/html/partials/render.html`): rekursive Block- und Inline-Dispatcher auf `__class__.__name__`, je Kind eine spezialisierte Macro. Whitespace-Strategie an Sequenz-Rändern via Jinja-Trim, BEM-Klassen aus `config/element-mapping.yaml`.
+- Section-Partial (`partials/section.html`): rekursiv mit `Section.level + 1` als Heading-Level (h2..h4); h1 reserviert für den Seitentitel.
+- Apparate-Partial (`partials/apparate.html`): paralleles Dreispalten-Layout mit Figures + Notes, leere Panels kollabieren, References-Slot wartet auf Phase 7.
+- Rezensionsseiten-Template (`templates/html/review.html`): Kopfbereich (Titel, reviewed item aus `related_items`, Reviewer-Block mit ORCID + Mail obfuscated), Abstract-Section gesondert, Body, Apparate, Sidebar mit TOC + Meta + Cite.
+- Render-Layer (`src/render/html.py`): Jinja-Env mit ChainableUndefined (für optionale UI-Strings), drei Filter (`slugify`, `obfuscate_mail`, `inlines_to_text`), `SiteConfig`+`BuildInfo`-Dataclasses, `render_review(review, site, env)`. Abstract wird via `split_abstract` aus `Review.body` separiert.
+- Build-CLI (`src/build.py`): walks `../ride/tei_all/`, parst, rendert, schreibt nach `site/issues/{n}/{id}/index.html`, kopiert `static/` und das originale TEI; Platzhalter-Index für die Site-Wurzel; `--reviews N` und `--base-url` als Optionen; per-Datei-Failure crasht nicht den ganzen Build.
+- 16 Render-Tests in `tests/test_render_html.py` — Filter-Units, `split_abstract`, Skelett-Marker, alle Block-Kinds rendern ohne Raise, Apparate kollabiert/erscheint, Reference rendert mit `data-ref-type`, alle Templates laden ohne Syntax-Error, Real-Korpus-Smoke gegen ein Review.
+- Voller Korpus-Build: **107/107 Reviews rendern ohne Fehler**, Pages 36–63 KB, `site/static/css/ride.css` mit deployt.
+- `.gitignore` um `site/` ergänzt.
+- CI-Workflow `.github/workflows/build.yml` mit Build- + Deploy-Job (actions/upload-pages-artifact + actions/deploy-pages); `/docs`-Variante explizit verworfen.
+
+**Entscheidungen:**
+- `ChainableUndefined` statt `StrictUndefined` für die Jinja-Env. Begründung: UI-Strings sind ein optional-deeply-nested dict; mit StrictUndefined müsste jede Default-Falle als `{% if %}`-Branch geschrieben werden, das bläht jedes Template auf. Tippfehler bei domain-objekten fängt der Test-Layer.
+- Render-Macros zentral in einer Datei statt eine Datei pro Block/Inline-Kind. Begründung: rekursive Dispatcher müssen sich gegenseitig sehen, und 11 Kinds × eigene Datei wäre Overhead ohne Gewinn — die Datei ist 110 Zeilen, weiterhin lesbar.
+- Block-Dispatch über `__class__.__name__` statt isinstance-Kette. Begründung: Templates kennen den String-Namen aus `element-mapping.yaml`, Konvention bleibt eindeutig parallel zur YAML.
+- Apparate kollabiert komplett wenn weder Figures noch Notes da sind, statt leere Panel zu rendern. Begründung: paralleles Layout aus [[interface#6]] braucht Inhalt, sonst wirkt es als Skelett-Bug.
+- References werden als rohe Anker mit `data-ref-type` gerendert; Resolver-Logik (4-Bucket) ist Phase 7. Templates können Phase-7-Buckets später per CSS-Selector adressieren ohne Markup-Änderung.
+- Build-CLI fängt Per-Datei-Failures, statt den Lauf abzubrechen. Begründung: ein einzelner anomaler Review soll nicht 106 fehlerfreie Renderings blockieren; aggregierte Fehlerausgabe genügt für jetzt, Phase 13 wird daraus den `build-info.json`-Bericht machen.
+
+**Offen:** 
+- Phase 7 (Ref-Resolver, Asset-Pipeline) — Voraussetzung für Tooltip-Vorschau und korrekte Figure-Pfade. Aktuell rendern Figures mit den rohen TEI-`@url`-Werten; Bilder sind im Output noch broken.
+- Phase 6 (Bibliography, Questionnaire) — sobald `Review.bibliography` und `Review.questionnaire` da sind, bekommen Rezensionsseite (Bibliographie-Apparat) und Sidebar (Factsheet) ihre fehlenden Blöcke.
+- JS-Module (`copy-link.js`, `tooltip.js`, `cite-copy.js`, `pagefind.js`) sind in `base.html` referenziert, aber noch nicht implementiert.
+- CSS-Komponenten-Regeln für die Apparate-Sub-Blöcke und Sidebar-Boxen sind als Klassen-Hooks definiert, brauchen aber noch konkrete Styles (Hover-States, Spacing-Feinschliff).
+- Aggregations- und Editorialseiten (Phase 9, 10) noch nicht angelegt.
+
+**Nächster Einstieg:** Editorial-Markdown-Stubs (`content/about.md`, `imprint.md`, `criteria.md`) plus `templates/html/editorial.html`, weil diese Achse vom Backend-Status unabhängig ist und die Site eine Navigations-Außenhaut bekommt. Anschließend die vier JS-Module als jeweils 30–60-Zeilen-ES-Module ohne Bundling, zuerst `copy-link.js` und `cite-copy.js`. Sobald Phase 6 landet, Sidebar-Factsheet aus `Review.questionnaire` befüllen und einen Bibliographie-Apparat im Apparate-Block einhängen.
+
+---
+
 ## 2026-04-29 — Phase 5 abgeschlossen, Stage 2.B steht; Rollen-Split etabliert
 
 **Ziel:** Stage 2.B abschließen — `parse_inlines` überall einhängen, Block-in-Paragraph-Anomalie auflösen, `parse_review` integrieren, Aggregate für Figures und Notes materialisieren. Parallel die Koordinationsschicht zwischen Backend- und Frontend-Claude einrichten.
