@@ -19,8 +19,8 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 ride-static/
   scripts/        Python extractors (read sibling ../ride/, write inventory/)
   inventory/      Generated JSON artifacts — gitignored, source of truth for knowledge/*.md
+  inventory/_cache/  Cached upstream downloads (e.g. p5subset.xml) — also gitignored
   knowledge/      Obsidian vault, .md only (data.md, schema.md, architecture.md, pipeline.md)
-  data/           Reserved for runtime data once the build phase starts
   tests/          pytest, run from repo root
   CLAUDE.md       this file
 ```
