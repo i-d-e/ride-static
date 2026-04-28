@@ -85,5 +85,5 @@
 
 | Aspekt | Stand | Letzte Aktualisierung |
 |---|---|---|
-| A — Phase 7 (Backend) | nicht begonnen | 2026-04-29 |
-| B — Phase 10 + Citation (Frontend) | nicht begonnen | 2026-04-29 |
+| A — Phase 7 (Backend) | in Arbeit (`src/parser/refs_resolver.py` als untracked WIP) | 2026-04-29 |
+| B — Phase 10 + Citation (Frontend) | **abgeschlossen** (Citation `511e753`, Aggregationen `469d4d6`); Data-Charts deferred bis Phase 7 K-Ref-Labels liefert | 2026-04-29 |

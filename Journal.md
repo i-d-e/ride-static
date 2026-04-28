@@ -52,6 +52,32 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 10 + Citation: Site hat ihre Außenhaut
+
+**Ziel:** Aspekt B aus dem [WORKPLAN](WORKPLAN.md) abräumen — Citation-Daten so embedden, dass die `cite-copy.js`-Buttons echt funktionieren, plus die sechs Aggregations- und Übersichtsseiten aus [interface.md §4](knowledge/interface.md) bauen, damit die Site eine Navigations-Außenhaut hat (heute nur Platzhalter-`index.html`).
+
+**Erledigt:**
+- Citation-Cleanup (`511e753`): `_to_bibtex(review)` und `_to_csl_dict(review)` als Python-Helper in `src/render/html.py`, registriert als Jinja-Filter. Zwei `<script class="ride-cite-data">`-Blöcke in `review.html` — `application/x-bibtex` für BibTeX (mit Sentinel-Pass-Brace-Escape und `</`-Defence), `application/json` mit `tojson(indent=2)` für CSL-JSON. Acht Tests (canonical shape, Brace- und Backslash-Escape, `</script>`-Defence, autorenlose Reviews, partielle Daten, Single-Name-Personen, Embed-Marker im HTML).
+- Phase 10 Aggregationen (`469d4d6`): `src/render/aggregations.py` mit acht `render_*`-Entry-Points; acht Templates für Startseite, Heftübersicht, Heftansicht, Tags-Übersicht + Detail, Reviewer-Liste + Detail, Reviewed-Resources-Tabelle, plus ein `partials/review_card.html` für die wiederkehrende Beitragskarte. `_render_aggregations` in `src/build.py` ersetzt die Platzhalter-Index-Methode. 12 Tests.
+- Korpus-Reorganisation (`cd85e44`, vor Phase 10): `image-workflow.png` und das Stakeholder-Narrativ `prozess-und-stand.md` aus dem Repo-Root in `knowledge/` verschoben — Stakeholder-Doku gehört in den Wissensvault. CLAUDE.md hard rule auf "Markdown plus referenzierte Image-Attachments" relaxed (vorher `.md only` — der Sinn der Regel war kein generierter JSON, nicht "keine Bilder").
+
+**Entscheidungen:**
+- Aggregationsseiten als `ride-page--solo` (eine Spalte, keine Sidebar). Begründung: interface.md §4 schreibt das so vor — Aggregations- und Editorialseiten haben keine Apparate, also keine Sidebar.
+- BibTeX-Brace-Escape mit Sentinel-Pass statt naivem Replace-Chain. Begründung: `\\textbackslash{}` enthält selbst Braces, naive Replace-Reihenfolgen produzieren `\\textbackslash\\{\\}`. Sentinel `\x00BIBSLASH\x00` umgeht das.
+- Reviewer-Slug ist `surname-forename`. Begründung: macht Slugs stabil bei Namensgleichheit von Personen, eindeutig durchsuchbar, und gleichzeitig lesbar in der URL.
+- Tag-Liste als zweispaltige Markup-Liste (CSS `column-count`) statt Word-Cloud-Visualisierung. Begründung: barrierefrei, scannbar, ohne Visualisierungs-Library; eine echte Cloud wäre Designer-Arbeit und prägt Lesbarkeit nicht positiv.
+- Data-Charts (`/data/`) deferred. Begründung: ohne K-Ref-Auflösung aus Phase 7 wären die Achsen-Labels rohe `seXXX`-IDs — nicht lesbar. Sobald Phase 7 die Labels liefert, kommen die Charts in einem Folge-Sprint.
+
+**Offen:**
+- Phase 7 (Backend): Ref-Resolver und Asset-Pipeline. Sobald `Reference.bucket` am Modell liegt (Pre-Handover-Marker im Journal erwartet), kann das Frontend Cross-Refs Bucket-aware rendern — heute werden sie als rohe Anker emittiert. Bilder zeigen heute noch auf rohe TEI-`@url`-Pfade; nach Phase 7 sind sie unter `site/issues/{n}/{review-id}/figures/` real.
+- Data-Charts (Stretch aus Aspekt B) wartet auf Phase 7.
+- JS-Modul `tooltip.js` ist Stub bis Phase 7, `pagefind.js` Stub bis Phase 11.
+- Heft-YAML-Schema (Phase-Plan-Punkt) ist noch nicht eingehängt — die Heftansichten generieren ihre Metadaten aktuell aus den Review-Headern. Sobald das Schema steht, wird `templates/html/issue.html` um die YAML-Felder erweitert (Heft-DOI, Hrsg.-Liste, Status-Marker bei Rolling Issues).
+
+**Nächster Einstieg:** Live-Deploy auf GitHub Pages testen — Push auf `main` triggert den Workflow, der mit dem `--base-url=/ride-static`-Fix sauber durch alle 599 Seiten läuft. Anschließend von Stakeholder-Seite einmal durchklicken, was visuell auffällt. Parallel zum Backend-Phase-7-Ergebnis warten — sobald `Reference.bucket` da ist, ist die Cross-Ref-Integration ein 30-Minuten-Patch in den Render-Macros plus ein paar CSS-Modifier-Klassen.
+
+---
+
 ## 2026-04-29 — Phase 8 First Light, Frontend rendert 107 Reviews End-to-End
 
 **Ziel:** Aus dem Stage-2.B-Datenvertrag heraus den ersten lauffähigen Frontend-Strang aufsetzen — Jinja-Render-Macros für alle Block- und Inline-Kinds, Rezensionsseiten-Template gemäß [[interface#5]], Render-Layer plus Build-CLI, dazu der CI-Workflow für GitHub-Pages-Deploy. Ziel: ein `python -m src.build` baut alle 107 Reviews ohne Raise.
