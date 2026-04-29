@@ -1,10 +1,18 @@
 """Tests for the per-review questionnaire parser.
 
-Synthetic fixtures cover the standard pattern (taxonomy with @xml:base,
-nested categories with num markers in catDesc), the multi-taxonomy
-case, the missing-taxonomy case, and the ``value="3"`` anomaly.
-A real-corpus smoke verifies the magnitude of answer aggregates against
-``inventory/taxonomy.json`` (≈20053 num occurrences corpus-wide).
+Test-data philosophy per CLAUDE.md hard rule:
+
+* ``parse_questionnaires`` is a unit-level entry point that takes the
+  TEI root element and returns a tuple of Questionnaire objects.
+  Synthetic fixtures cover the per-branch behaviour (standard
+  taxonomy, leaf-only collection, multi-taxonomy, missing-taxonomy,
+  None input, missing-xml-base, ``value="3"`` anomaly) — pure-function-
+  unit per the CLAUDE.md exception.
+* Real-corpus integration at the bottom: aggregate counts against the
+  inventory floor (≈ 20 000 ``<num>`` occurrences per
+  inventory/taxonomy.json), the four-criteria-URL distribution, the
+  named multi-taxonomy review (collationtools-tei.xml, three
+  taxonomies), and a concrete ``value="3"`` anomaly review.
 """
 from __future__ import annotations
 
@@ -18,6 +26,13 @@ from src.parser.questionnaire import parse_questionnaires
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+
+needs_corpus = pytest.mark.skipif(
+    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+)
 
 
 def _root(xml: str) -> etree._Element:
@@ -184,14 +199,11 @@ def test_parse_questionnaire_taxonomy_without_xml_base():
 # -- Real-corpus smoke ----------------------------------------------------
 
 
-_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
-
-
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_questionnaire_count() -> None:
     """The corpus inventory reports ~20053 ``<num>`` elements across 110
     ``<taxonomy>`` blocks. The parser should reach the same magnitude."""
-    files = sorted(_RIDE.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
     total_taxonomies = 0
     total_answers = 0
     anomaly_value_3_seen = False
@@ -213,3 +225,35 @@ def test_smoke_real_corpus_questionnaire_count() -> None:
     assert len(criteria_urls) >= 4
     # The known value="3" anomaly must be reachable through the parser.
     assert anomaly_value_3_seen, "the <num value='3'> anomaly was not encountered"
+
+
+@needs_corpus
+def test_real_corpus_collationtools_carries_three_taxonomies() -> None:
+    """collationtools-tei.xml is the corpus's richest multi-taxonomy
+    review (three taxonomies per the corpus probe). Pinning it
+    concretely guards against drift in the multi-taxonomy code path."""
+    path = RIDE_TEI_DIR / "collationtools-tei.xml"
+    if not path.exists():
+        pytest.skip("collationtools-tei.xml not in corpus")
+    tree = etree.parse(str(path))
+    qs = parse_questionnaires(tree.getroot())
+    assert len(qs) == 3
+    assert all(isinstance(q, Questionnaire) for q in qs)
+    # All three taxonomies carry answers, even if the criteria_url
+    # repeats (collationtools points all three at the same criteria
+    # document — a Korpus quirk worth pinning).
+    assert all(len(q.answers) > 0 for q in qs)
+
+
+@needs_corpus
+def test_real_corpus_value_3_anomaly_review_pinned() -> None:
+    """varitext-tei.xml carries the ``<num value="3">`` anomaly per the
+    corpus probe. The parser preserves the value verbatim — Phase 13
+    validation will surface it as a build warning."""
+    path = RIDE_TEI_DIR / "varitext-tei.xml"
+    if not path.exists():
+        pytest.skip("varitext-tei.xml not in corpus")
+    tree = etree.parse(str(path))
+    qs = parse_questionnaires(tree.getroot())
+    values = {a.value for q in qs for a in q.answers}
+    assert "3" in values, "varitext-tei.xml should carry a value='3' answer"
