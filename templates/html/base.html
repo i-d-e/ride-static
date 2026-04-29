@@ -74,6 +74,20 @@
   {#- Skip link is the first focusable element on every page (WCAG 2.4.1). -#}
   <a class="ride-skip" href="#ride-main">{{ site.strings.skip_to_content | default('Skip to content') }}</a>
 
+  {#- Work-in-Progress-Banner: zeigt sitewide, dass die neue ride-static-
+      Site noch in aktiver Migration ist und die WordPress-Site weiterhin
+      unter ride.i-d-e.de der kanonische Stand bleibt. Wird mit Welle 14
+      (Production-Hardening) entfernt. -#}
+  <div class="ride-wip" role="status">
+    <div class="ride-shell">
+      <strong>Work in progress.</strong>
+      This is the static rebuild of the RIDE journal under active development.
+      The current canonical site remains at
+      <a href="https://ride.i-d-e.de/">ride.i-d-e.de</a>;
+      content here is being migrated and may differ in detail or completeness.
+    </div>
+  </div>
+
   <header class="ride-header" role="banner">
     <div class="ride-shell ride-header__inner">
       {% block header %}

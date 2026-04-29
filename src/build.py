@@ -54,6 +54,7 @@ from src.render.issues_config import (
 )
 from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
+from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -317,6 +318,7 @@ def build(
     sitemap_written = _write_sitemap(tuple(rendered), site, out_root)
     _write_corpus_dump(tuple(rendered), site, out_root)
     oai_files = _write_oai_pmh_snapshot(tuple(rendered), site, out_root)
+    redirect_count = write_redirects(tuple(rendered), out_root, base_url=site.base_url)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
@@ -329,6 +331,7 @@ def build(
     print("Wrote api/corpus.json")
     if oai_files:
         print(f"Wrote {oai_files} OAI-PMH snapshot files")
+    print(f"Wrote {redirect_count} legacy-URL redirect stubs")
 
     _print_asset_summary(asset_reports)
 

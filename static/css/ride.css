@@ -242,7 +242,8 @@ main.ride-shell {
 
 .ride-header__logo img {
   display: block;
-  max-height: 60px;
+  max-height: 80px;   /* angehoben von 60px (Welle 8.E) — Logo darf
+                         visuell schwerer sitzen, näher am Live-Vorbild */
   width: auto;
   height: auto;
 }
@@ -250,8 +251,25 @@ main.ride-shell {
 @media (max-width: 719px) {
   .ride-header__inner { gap: var(--ride-space-3); }
   .ride-header__brand-name { font-size: 22px; }
-  .ride-header__logo img { max-height: 44px; }
+  .ride-header__logo img { max-height: 50px; }
 }
+
+/* Work-in-Progress-Banner — gelbliches Streifen-Band über dem Header,
+   sitewide. Wird mit der Welle-14-Production-Hardening entfernt. */
+.ride-wip {
+  background: #fff8db;
+  color: #5a4500;
+  border-bottom: 1px solid #f0d878;
+  padding: var(--ride-space-3) 0;
+  font-size: var(--ride-text-small);
+  line-height: var(--ride-leading-ui);
+}
+.ride-wip a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ride-wip strong { font-weight: var(--ride-weight-medium); }
 
 /* Global navigation — five top-level entries from config/navigation.yaml.
    Dropdown items are native <details>; CSS positions the submenu absolutely
@@ -291,12 +309,8 @@ main.ride-shell {
 .ride-nav__summary::-webkit-details-marker { display: none; }
 .ride-nav__summary { -webkit-user-select: none; user-select: none; }
 
-.ride-nav__summary::after {
-  content: " \25BE"; /* ▾ — disclosure indicator, no emoji glyph */
-  font-size: 0.75em;
-  margin-left: var(--ride-space-1);
-  opacity: 0.7;
-}
+/* Disclosure-Caret bewusst entfernt (Welle 8.E) — die Live-Site nutzt
+   keinen Indikator, und der Hover-Effekt allein reicht als Affordance. */
 
 .ride-nav__link:hover,
 .ride-nav__summary:hover { color: var(--ride-bg-muted); text-decoration: underline; }
@@ -452,9 +466,23 @@ main.ride-shell {
 .ride-note__back                { margin-left: var(--ride-space-2); color: var(--ride-fg-tertiary); text-decoration: none; }
 .ride-note__back:hover          { color: var(--ride-accent); }
 
-/* Sidebar boxes — TOC, Factsheet, Meta, Cite. */
-.ride-sidebar__box              { margin-bottom: var(--ride-space-8); }
-.ride-sidebar__box h2           { font-size: var(--ride-text-h3); margin: 0 0 var(--ride-space-3); }
+/* Sidebar boxes — TOC, Factsheet, Meta, Cite, Tags. Welle 8.E:
+   visuell mit dem Home-Widget-Panel angeglichen (gleiche Radius,
+   Border, Padding-Spur), aber ohne Schatten weil die Sidebar als
+   Gesamteinheit ruhig bleiben soll. */
+.ride-sidebar__box {
+  margin-bottom: var(--ride-space-6);
+  padding: var(--ride-space-4) var(--ride-space-5, var(--ride-space-4));
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  background: var(--ride-bg);
+}
+.ride-sidebar__box h2 {
+  font-size: var(--ride-text-h3);
+  margin: 0 0 var(--ride-space-3);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-sidebar__box > :last-child { margin-bottom: 0; }
 
 .ride-sidebar__divider          { border: 0; border-top: 1px solid var(--ride-rule); margin: var(--ride-space-6) 0; }
 
