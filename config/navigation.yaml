@@ -1,0 +1,50 @@
+# Globale Navigation, gemäß requirements.md R11.5 und interface.md §4.
+#
+# Fünf Top-Level-Einträge: About / Issues / Data / Reviewers / Reviewing Criteria.
+# Templates rendern aus dieser Datei via src.render.navigation. Hinzufügen
+# einer editorialen Seite ändert YAML, nicht das Template.
+#
+# Kind-Felder pro Eintrag:
+#   label                  — Text in der Top-Level-Bar (Pflicht)
+#   url                    — Zielpfad ohne Domain; bei Eintrag ohne Submenü Pflicht
+#   children               — Liste expliziter Submenü-Einträge
+#   children_kind          — "issues" für datengetriebenes Submenü aus dem Korpus
+#   children_count         — Anzahl Issues im Submenü vor "All Issues"
+#   fallback_url           — Top-Level-Klickziel, wenn ein Submenü-Eintrag
+#                            "All …"-Charakter haben soll
+
+items:
+  - label: About
+    fallback_url: /about/
+    children:
+      - { label: Editorial, url: /editorial/ }
+      - { label: Publishing Policy, url: /publishing-policy/ }
+      - { label: Ethical Code, url: /ethical-code/ }
+      - { label: Team, url: /team/ }
+      - { label: Peer Reviewers, url: /peer-reviewers/ }
+
+  - label: Issues
+    fallback_url: /issues/
+    children_kind: issues
+    children_count: 4
+
+  - label: Data
+    fallback_url: /data/
+    children:
+      - { label: "Overview, Download and API", url: /data/ }
+      - { label: Questionnaires, url: /data/questionnaires/ }
+      - { label: Charts, url: /data/charts/ }
+      - { label: Tags, url: /tags/ }
+      - { label: Reviewed Resources, url: /resources/ }
+
+  - label: Reviewers
+    fallback_url: /reviewers/
+    children:
+      - { label: Call for Reviews, url: /call-for-reviews/ }
+      - { label: Submitting a Review, url: /submitting-a-review/ }
+      - { label: Projects for Review, url: /projects-for-review/ }
+      - { label: RIDE Award 2017-2020, url: /ride-award/ }
+      - { label: List of Reviewers, url: /reviewers/ }
+
+  - label: Reviewing Criteria
+    url: /criteria/

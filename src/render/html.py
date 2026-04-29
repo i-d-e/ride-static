@@ -47,6 +47,9 @@ class SiteConfig:
 
     ``base_url`` is the deploy-time prefix; locally during tests this is
     the empty string so generated paths are relative to ``site/``.
+    ``navigation`` carries the resolved top-level entries from
+    ``config/navigation.yaml`` (R11.5); empty tuple means the base
+    template falls back to a plain header without dropdowns.
     """
 
     title: str = "RIDE — Reviews in Digital Editions"
@@ -54,6 +57,7 @@ class SiteConfig:
     base_url: str = ""
     strings: dict = field(default_factory=dict)
     build_info: Optional[BuildInfo] = None
+    navigation: tuple = ()
 
 
 # ── Filters and helpers ───────────────────────────────────────────────

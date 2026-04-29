@@ -52,6 +52,7 @@ from src.render.issues_config import (
     discover_issue_configs,
     validate_issue_configs,
 )
+from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
 from src.render.sitemap import build_sitemap, collect_entries
 
@@ -87,22 +88,30 @@ def _site_config(base_url: str = "") -> SiteConfig:
     )
 
 
-def _render_one(
+def _parse_one(
     path: Path,
-    env,
-    site: SiteConfig,
     out_root: Path,
     ride_root: Path,
 ) -> tuple[Review, AssetReport]:
-    """Parse one TEI file, copy its figures, write its HTML.
+    """Parse one TEI file and copy its figures.
 
-    Returns the rewritten Review (figure URLs now point at the deployed
-    location) and the per-review AssetReport so the caller can aggregate
-    the build summary.
+    Splitting parse from render lets the build resolve the navigation
+    YAML against the full corpus before any HTML is written, so every
+    page sees the populated Issues dropdown.
     """
     review = parse_review(path)
     review, report = rewrite_figure_assets(review, ride_root=ride_root, site_root=out_root)
+    return review, report
 
+
+def _render_review(
+    path: Path,
+    review: Review,
+    env,
+    site: SiteConfig,
+    out_root: Path,
+) -> None:
+    """Write a parsed Review to ``site/issues/{N}/{id}/`` plus its TEI."""
     page_dir = out_root / "issues" / (review.issue or "0") / (review.id or path.stem)
     page_dir.mkdir(parents=True, exist_ok=True)
 
@@ -113,7 +122,23 @@ def _render_one(
     target_xml = page_dir / f"{review.id or path.stem}.xml"
     shutil.copyfile(path, target_xml)
 
-    return review, report
+
+def _site_with_navigation(site: SiteConfig, reviews: tuple[Review, ...]) -> SiteConfig:
+    """Re-bind ``site`` with the resolved navigation tuple.
+
+    SiteConfig is frozen, so we materialise a copy. Failure to load the
+    YAML is fatal — the navigation file is part of the build contract.
+    """
+    items = load_navigation()
+    resolved = resolve_navigation(items, reviews)
+    return SiteConfig(
+        title=site.title,
+        default_language=site.default_language,
+        base_url=site.base_url,
+        strings=site.strings,
+        build_info=site.build_info,
+        navigation=resolved,
+    )
 
 
 def _render_editorials(env, site: SiteConfig, out_root: Path) -> int:
@@ -241,17 +266,19 @@ def build(
     site = _site_config(base_url=base_url)
     env = make_env()
 
-    rendered: list[Review] = []
+    parsed: list[tuple[Path, Review]] = []
     asset_reports: list[AssetReport] = []
     failed: list[tuple[Path, Exception]] = []
     for path in _iter_corpus(corpus_dir, limit):
         try:
-            review, report = _render_one(path, env, site, out_root, ride_root=RIDE_ROOT)
-            rendered.append(review)
+            review, report = _parse_one(path, out_root, ride_root=RIDE_ROOT)
+            parsed.append((path, review))
             asset_reports.append(report)
         except Exception as exc:  # noqa: BLE001 — we want to keep building on per-file failure
             failed.append((path, exc))
-            print(f"render failed: {path.name}: {exc}", file=sys.stderr)
+            print(f"parse failed: {path.name}: {exc}", file=sys.stderr)
+
+    rendered = [r for _, r in parsed]
 
     # Issue YAML configs — loaded once, validated against the parsed corpus.
     # R11: inconsistencies break the build with a clear error.
@@ -262,6 +289,19 @@ def build(
             "issue YAML and TEI corpus disagree:\n  - "
             + "\n  - ".join(issue_errors)
         )
+
+    # Navigation YAML resolved against the corpus so the Issues dropdown
+    # carries the most recent issues. Re-bind site so all subsequent
+    # render calls see the populated navigation tuple.
+    site = _site_with_navigation(site, tuple(rendered))
+
+    # Render pass — every HTML write happens after navigation is resolved.
+    for path, review in parsed:
+        try:
+            _render_review(path, review, env, site, out_root)
+        except Exception as exc:  # noqa: BLE001
+            failed.append((path, exc))
+            print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
     editorials = _render_editorials(env, site, out_root)
     aggregations = _render_aggregations(
