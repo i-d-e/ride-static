@@ -18,6 +18,7 @@ from typing import Any, Iterable, Optional
 
 from jinja2 import ChainableUndefined, Environment, FileSystemLoader, select_autoescape
 
+from src.model.block import Paragraph
 from src.model.inline import Emphasis, Highlight, InlineCode, Note, Reference, Text
 from src.model.review import Review
 from src.model.section import Section
@@ -77,19 +78,32 @@ def _obfuscate_mail(value: str) -> str:
     return value.replace("@", " [at] ").replace(".", " [dot] ")
 
 
-def _inlines_to_text(seq: Optional[Iterable]) -> str:
-    """Flatten an Inline sequence to plain text — used for alt and meta-description fallback."""
+def inlines_to_plain_text(seq: Optional[Iterable], *, drop_notes: bool = False) -> str:
+    """Flatten an Inline sequence to plain text.
+
+    The HTML renderer uses this for alt-text and meta-description fallbacks
+    (``drop_notes=False`` — Note bodies belong in the flattened text).
+    JSON-LD and OAI-PMH serialise abstracts and titles for machine consumers
+    where Note bodies would only add noise, so they pass ``drop_notes=True``.
+    """
     if not seq:
         return ""
     out: list[str] = []
     for i in seq:
         if isinstance(i, Text):
             out.append(i.text)
-        elif isinstance(i, (Emphasis, Highlight, Reference, Note)):
-            out.append(_inlines_to_text(i.children))
+        elif isinstance(i, Note):
+            if not drop_notes:
+                out.append(inlines_to_plain_text(i.children, drop_notes=drop_notes))
+        elif isinstance(i, (Emphasis, Highlight, Reference)):
+            out.append(inlines_to_plain_text(i.children, drop_notes=drop_notes))
         elif isinstance(i, InlineCode):
             out.append(i.text)
     return "".join(out).strip()
+
+
+# Backwards-compat alias — the original name is referenced in test_render_html.
+_inlines_to_text = inlines_to_plain_text
 
 
 def static_path_factory(base_url: str):
@@ -256,27 +270,68 @@ def make_env(templates_dir: Path = TEMPLATES_DIR) -> Environment:
 # ── Public API ────────────────────────────────────────────────────────
 
 
-def split_abstract(review: Review) -> tuple[Optional[Section], tuple[Section, ...]]:
-    """Pull the abstract Section out of the review, return (abstract, body_rest).
+def find_abstract(review: Review) -> Optional[Section]:
+    """Return the review's abstract Section, or None.
 
     The corpus convention places the abstract under ``<front>``: 107 of 107
     reviews carry exactly one front section with ``type="abstract"`` and
-    zero body abstracts. ``review.front`` is therefore the primary source.
-    The body is checked as a defensive fallback in case a future review
-    deviates from the convention (none do today). ``body`` is returned
-    unchanged when the abstract is in front.
+    zero body abstracts. ``review.front`` is therefore the primary source;
+    ``review.body`` is checked as a defensive fallback. Used by the HTML
+    renderer (via :func:`split_abstract`), the JSON-LD serialiser, and
+    the OAI-PMH serialiser — keep this single-source so the abstract
+    resolution rule cannot drift across renderers.
     """
     for sec in review.front:
         if sec.type == "abstract":
-            return sec, review.body
-    abstract: Optional[Section] = None
-    rest: list[Section] = []
+            return sec
     for sec in review.body:
-        if sec.type == "abstract" and abstract is None:
-            abstract = sec
-        else:
-            rest.append(sec)
-    return abstract, tuple(rest)
+        if sec.type == "abstract":
+            return sec
+    return None
+
+
+def split_abstract(review: Review) -> tuple[Optional[Section], tuple[Section, ...]]:
+    """HTML-flavour wrapper around :func:`find_abstract` returning ``(abstract, body_rest)``.
+
+    The body is returned unchanged when the abstract sits in front (the
+    canonical case); when the abstract is in the body, it is filtered
+    out so the renderer does not draw it twice.
+    """
+    abstract = find_abstract(review)
+    if abstract is None or abstract not in review.body:
+        return abstract, review.body
+    return abstract, tuple(s for s in review.body if s is not abstract)
+
+
+def abstract_first_paragraph_text(review: Review) -> Optional[str]:
+    """Return the abstract's first Paragraph as plain text, or None.
+
+    Convenience wrapper combining :func:`find_abstract` with the
+    "first Paragraph block, flattened to text" rule the JSON-LD and
+    OAI-PMH serialisers both need. Notes are dropped because the
+    machine-consumer use case strips footnote bodies from abstracts.
+    """
+    section = find_abstract(review)
+    if section is None:
+        return None
+    for block in section.blocks:
+        if isinstance(block, Paragraph):
+            text = inlines_to_plain_text(block.inlines, drop_notes=True)
+            return text or None
+    return None
+
+
+def doi_url(doi: Optional[str]) -> Optional[str]:
+    """Wrap a bare DOI ('10.18716/...') in the standard ``https://doi.org`` URL.
+
+    Single source for DOI URL formatting — used by the HTML template
+    sidebar/citation, the JSON-LD ``@id``, and the OAI-PMH
+    ``dc:identifier``. Returns ``None`` for missing or empty DOIs so
+    callers can guard with ``if doi_url(...): ...``.
+    """
+    if not doi:
+        return None
+    return f"https://doi.org/{doi}"
 
 
 def render_review(
@@ -301,7 +356,7 @@ def render_review(
         page_lang=review.language or site.default_language,
         page_title=review.title,
         page_url=f"{site.base_url}/issues/{review.issue}/{review.id}/" if site.base_url else None,
-        page_description=_inlines_to_text(_first_paragraph_inlines(review))[:200] or None,
+        page_description=inlines_to_plain_text(_first_paragraph_inlines(review))[:200] or None,
         og=None,
         json_ld=to_jsonld_string(review, base_url=site.base_url),
         static_path=static_path_factory(site.base_url),

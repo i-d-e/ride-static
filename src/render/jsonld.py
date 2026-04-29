@@ -15,10 +15,11 @@ from __future__ import annotations
 import json
 from typing import Any, Optional
 
-from src.model.block import Paragraph
-from src.model.inline import Emphasis, Highlight, InlineCode, Reference, Text
 from src.model.review import Affiliation, Author, Editor, Person, Review
-from src.model.section import Section
+from src.render.html import (
+    abstract_first_paragraph_text,
+    doi_url,
+)
 
 
 SCHEMA_CONTEXT = "https://schema.org"
@@ -46,18 +47,18 @@ def to_jsonld(review: Review, base_url: str = "") -> dict[str, Any]:
     }
 
     page_url = _page_url(review, base_url)
-    doi_url = _doi_url(review.doi)
-    canonical_id = doi_url or page_url
+    doi = doi_url(review.doi)
+    canonical_id = doi or page_url
     if canonical_id:
         data["@id"] = canonical_id
     if page_url:
         data["url"] = page_url
-    if doi_url:
+    if doi:
         data["identifier"] = {
             "@type": "PropertyValue",
             "propertyID": "DOI",
             "value": review.doi,
-            "url": doi_url,
+            "url": doi,
         }
 
     if review.publication_date:
@@ -85,7 +86,7 @@ def to_jsonld(review: Review, base_url: str = "") -> dict[str, Any]:
             "name": f"RIDE Issue {review.issue}",
         }
 
-    abstract = _abstract_text(review)
+    abstract = abstract_first_paragraph_text(review)
     if abstract:
         data["abstract"] = abstract
 
@@ -105,13 +106,6 @@ def _page_url(review: Review, base_url: str) -> Optional[str]:
     if not base_url or not review.issue or not review.id:
         return None
     return f"{base_url}/issues/{review.issue}/{review.id}/"
-
-
-def _doi_url(doi: Optional[str]) -> Optional[str]:
-    """Wrap a bare DOI ('10.18716/...') in the standard https://doi.org URL."""
-    if not doi:
-        return None
-    return f"https://doi.org/{doi}"
 
 
 def _author_to_jsonld(author: Author) -> dict[str, Any]:
@@ -176,44 +170,3 @@ def _reviewed_resources(review: Review) -> list[dict[str, Any]]:
     return out
 
 
-def _abstract_text(review: Review) -> Optional[str]:
-    """Return the abstract section's first paragraph as plain text, if any.
-
-    Mirrors :func:`src.render.html.split_abstract`'s discovery rule (front
-    first, then body fallback) — the ScholarlyArticle abstract should always
-    match what the rendered page shows in the abstract slot.
-    """
-    for source in (review.front, review.body):
-        for sec in source:
-            if sec.type == "abstract":
-                text = _section_first_paragraph_text(sec)
-                if text:
-                    return text
-    return None
-
-
-def _section_first_paragraph_text(section: Section) -> Optional[str]:
-    for block in section.blocks:
-        if isinstance(block, Paragraph):
-            return _inlines_to_text(block.inlines).strip() or None
-    return None
-
-
-def _inlines_to_text(inlines) -> str:
-    """Flatten an Inline tuple to a plain string for JSON-LD literals.
-
-    Trimmed-down peer of ``src.render.html._inlines_to_text``: JSON-LD does
-    not carry HTML, so emphasis/highlight wrappers collapse to their inner
-    text and references reduce to their visible label. Notes and inline
-    code are dropped — they would only add noise to a search-engine snippet.
-    """
-    parts: list[str] = []
-    for inline in inlines or ():
-        if isinstance(inline, Text):
-            parts.append(inline.text)
-        elif isinstance(inline, (Emphasis, Highlight, Reference)):
-            parts.append(_inlines_to_text(inline.children))
-        elif isinstance(inline, InlineCode):
-            parts.append(inline.text)
-        # Note inlines intentionally skipped — see docstring.
-    return "".join(parts)

@@ -28,12 +28,11 @@ trace a record back to its rendered form.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Optional, Sequence
+from typing import Optional, Sequence
 from xml.sax.saxutils import escape
 
-from src.model.block import Paragraph
 from src.model.review import Review
-from src.model.section import Section
+from src.render.html import abstract_first_paragraph_text, doi_url
 
 
 REPOSITORY_NAME = "RIDE — Reviews in Digital Editions"
@@ -262,10 +261,9 @@ def _metadata_xml(review: Review, base_url: str) -> str:
     # Dublin Core allows multiple <dc:identifier> elements; emit DOI first
     # (persistent) and the page URL second (mutable). When the DOI is
     # missing (corpus in transition), the page URL stays the only one.
-    if review.doi:
-        dc_lines.append(
-            f"          <dc:identifier>{escape(f'https://doi.org/{review.doi}')}</dc:identifier>"
-        )
+    doi = doi_url(review.doi)
+    if doi:
+        dc_lines.append(f"          <dc:identifier>{escape(doi)}</dc:identifier>")
     page_url = _page_url(review, base_url)
     if page_url:
         dc_lines.append(
@@ -277,7 +275,7 @@ def _metadata_xml(review: Review, base_url: str) -> str:
             f"          <dc:subject>{escape(kw)}</dc:subject>"
         )
 
-    abstract = _abstract_text(review)
+    abstract = abstract_first_paragraph_text(review)
     if abstract:
         dc_lines.append(
             f"          <dc:description>{escape(abstract)}</dc:description>"
@@ -338,34 +336,3 @@ def _datestamp_or_default(publication_date: str) -> str:
     return EARLIEST_DATESTAMP
 
 
-def _abstract_text(review: Review) -> Optional[str]:
-    """Mirror the JSON-LD/HTML rule: front first, then body."""
-    for source in (review.front, review.body):
-        for sec in source:
-            if sec.type == "abstract":
-                text = _section_first_paragraph_text(sec)
-                if text:
-                    return text
-    return None
-
-
-def _section_first_paragraph_text(section: Section) -> Optional[str]:
-    for block in section.blocks:
-        if isinstance(block, Paragraph):
-            return _inlines_to_text(block.inlines).strip() or None
-    return None
-
-
-def _inlines_to_text(inlines: Iterable) -> str:
-    """Flatten inlines to plain text — Dublin Core literals carry no markup."""
-    from src.model.inline import Emphasis, Highlight, InlineCode, Reference, Text
-
-    parts: list[str] = []
-    for inline in inlines or ():
-        if isinstance(inline, Text):
-            parts.append(inline.text)
-        elif isinstance(inline, (Emphasis, Highlight, Reference)):
-            parts.append(_inlines_to_text(inline.children))
-        elif isinstance(inline, InlineCode):
-            parts.append(inline.text)
-    return "".join(parts)
