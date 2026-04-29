@@ -69,10 +69,12 @@ Akzeptanzkriterien
 **R2 Rezension zitieren.** Als zitierende Leserin will ich pro Rezension einen sichtbaren Zitiervorschlag, BibTeX und CSL-JSON zum Kopieren.
 
 Akzeptanzkriterien
-- Zitiervorschlag enthält Autoren, Titel, Issue, DOI, Erscheinungsdatum
+- Zitiervorschlag im festgelegten Format `Surname, Forename (Year). "Title." RIDE {Issue}, ed. by {Editors}. DOI: {DOI}. Accessed: {Date}.` — Autoren mit Surname-First, Issue-Nummer, vollständige Editor-Liste, DOI, Erscheinungs- bzw. Abrufdatum
+- DOI ist Pflichtfeld; ohne DOI bricht der Build mit klarer Fehlermeldung, weil ohne DOI keine zitierfähige Rezension auslieferbar ist
 - Kopier-Button für BibTeX
 - Kopier-Button für CSL-JSON
-- Bei Rolling Issue zusätzlich Abrufdatum im Zitiervorschlag, gemäß A1
+- Bei Rolling Issue zeigt der Zitiervorschlag zusätzlich „Accessed: {Build-Datum}", gemäß A1
+- Unter dem Zitiervorschlag erscheint die erklärende Mikrokopie „You can use the running numbers on the left side to refer to a specific paragraph." als Hinweis auf die Zitierbarkeit auf Absatzebene
 
 **R3 Rezension herunterladen.** Als Leserin mit Datenpräferenz will ich pro Rezension TEI-XML und PDF herunterladen.
 
@@ -128,12 +130,19 @@ Akzeptanzkriterien
 
 ### 5.3 Editorialbereich
 
-**R10 Statische Inhalte pflegen.** Als Editorin will ich About, Impressum und Review Criteria niedrigschwellig pflegen, ohne Build-Tooling oder Programmierwissen.
+**R10 Statische Inhalte pflegen.** Als Editorin will ich die editorialen Seiten der Site niedrigschwellig pflegen, ohne Build-Tooling oder Programmierwissen.
 
 Akzeptanzkriterien
 - Pflegeformat ist Markdown mit Frontmatter, gemäß A3
 - Bearbeitung über die GitHub-Web-UI ist möglich
 - Push auf `main` triggert automatisch einen neuen Build und ein Deployment
+- Die folgenden editorialen Seiten existieren als jeweils eigene Markdown-Datei unter `content/`:
+  - **About-Untermenü:** Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers
+  - **Reviewers-Untermenü:** Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020
+  - **Footer-/Standalone:** Imprint · Reviewing Criteria
+  - „List of Reviewers" wird **nicht** als Markdown geführt, sondern aus der TEI-Aggregation auf `/reviewers/` erzeugt (R8)
+- Im Footer jeder Seite stehen sichtbar: Lizenz-Kürzel, Markenname mit aktuellem Jahr, ISSN (`2363-4952`), Link auf Imprint and Privacy
+- Im globalen Header steht die Site-Tagline „A Review Journal for Scholarly Digital Editions and Resources" als Untertitel zur Marke RIDE
 
 **R11 Issue-Metadaten pflegen.** Als Herausgeberin will ich pro Issue Metadaten an einer einzigen Stelle pflegen.
 
@@ -141,6 +150,14 @@ Akzeptanzkriterien
 - Eine Konfigurationsdatei pro Issue (YAML) hält DOI, Herausgeberangaben, Beitragsreihenfolge, Status (regulär oder rolling)
 - Diese Datei ist die einzige Quelle für die Issue-Ansicht
 - Inkonsistenzen zwischen Issue-Konfiguration und TEI-Header brechen den Build mit klarer Fehlermeldung
+
+**R11.5 Globale Navigation pflegen.** Als Herausgeberin will ich die globale Navigation (Header-Dropdowns) konfigurieren können, ohne Templates anzufassen.
+
+Akzeptanzkriterien
+- Eine Konfigurationsdatei `config/navigation.yaml` führt die fünf Top-Level-Einträge (About / Issues / Data / Reviewers / Reviewing Criteria) und ihre Untermenüs als Liste mit Label und Ziel-URL
+- Issues-Dropdown listet die letzten N Issues plus „All Issues" — N und Sortierreihenfolge sind konfigurierbar
+- Templates lesen die Navigation aus dieser Datei; Hinzufügen einer neuen editorialen Seite ändert YAML, nicht Template
+- Die Navigation wird mit nativen `<details>`-Elementen umgesetzt, kein JavaScript-Framework
 
 ### 5.4 Funktionsbereich
 

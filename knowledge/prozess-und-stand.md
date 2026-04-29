@@ -238,18 +238,28 @@ Sechs Seitentypen sind festgelegt.
   heutigen sequenziellen Anordnung.
 - **Aggregationsseiten** für Tags, Reviewer, Reviewed Resources und Data,
   jeweils mit Sortier- und Filterleiste plus Liste oder Tabelle.
-- **Editorialseiten** für About, Impressum und Reviewing Criteria, in
-  einer einspaltigen Inhaltsspalte ohne Sidebar.
+- **Editorialseiten** für die elf editorialen Markdowns aus den
+  About- und Reviewers-Untermenüs (Editorial, Publishing Policy,
+  Ethical Code, Team, Peer Reviewers, Call for Reviews, Submitting a
+  Review, Projects for Review, RIDE Award) sowie Imprint und Reviewing
+  Criteria, in einer einspaltigen Inhaltsspalte ohne Sidebar.
 
 Das Stylesheet ist ein einzelnes CSS von etwa 600 bis 800 Zeilen, ohne
-Build-Schritt und ohne Preprocessor. JavaScript ist auf vier kleine
+Build-Schritt und ohne Preprocessor; insbesondere ohne Bootstrap oder
+ein anderes Komponenten-Framework. JavaScript ist auf vier kleine
 Module beschränkt, also Copy-Link auf Absätze, Tooltip-Vorschau für
-Cross-References, Pagefind-Integration und Cite-Kopieraktion. Schriftwahl
-ist eine seriöse Sans-Serif für UI und Headings, eine Serif für den
-Lesefließtext. Akzentfarbe ist ein einziges gedämpftes Blau für Links,
-Anker und Querverweise. Mindestziel der Barrierefreiheit ist WCAG 2.2 AA,
-mit Schwerpunkt auf Sprachpropagation, Tabellen-Header, Alt-Texten aus
-dem TEI-`figDesc` und Tastaturnavigation.
+Cross-References, Pagefind-Integration und Cite-Kopieraktion. Die
+globale Navigation nutzt natives `<details>` plus CSS, kein eigenes
+Dropdown-Modul. Schriftwahl ist eine einzige Open-Source-Sans-Serif
+(Source Sans 3) für die gesamte Site, lokal als WOFF2 ausgeliefert.
+Über dem Inhaltsraster steht ein dreiteiliger globaler Header mit
+Tagline, dunkelgrauer Navigationsleiste (fünf Top-Level-Dropdowns:
+About / Issues / Data / Reviewers / Reviewing Criteria) und einem
+prominenten Suchfeld rechts in der Navbar. Akzentfarbe ist ein
+einziges gedämpftes Blau für Links, Anker und Querverweise.
+Mindestziel der Barrierefreiheit ist WCAG 2.2 AA, mit Schwerpunkt auf
+Sprachpropagation, Tabellen-Header, Alt-Texten aus dem TEI-`figDesc`
+und Tastaturnavigation.
 
 ## Phasenplan
 
@@ -272,7 +282,7 @@ gebaut wird; Stand-Marker zeigen, was abgeschlossen ist.
 | 9 | Editorialschicht (Markdown plus Issue-YAML mit Konsistenzcheck) | offen |
 | 10 | Aggregations- und Übersichtsseiten | offen |
 | 11 | Pagefind-Volltextsuche | offen |
-| 12 | Maschinenschnittstellen (OAI-PMH, JSON-LD, Korpus-Dump, Sitemap) | offen |
+| 12 | Maschinenschnittstellen (OAI-PMH, JSON-LD, Korpus-Dump, Sitemap) | abgeschlossen |
 | 13 | Validierung gegen RelaxNG plus Schematron, `build-info.json`, Build-Bericht | offen |
 | 14 | PDF aus Domänenmodell via WeasyPrint | offen |
 | 15 | Deploy, cookieloses Matomo, WCAG-Audit, Meta-Refresh-Redirects | offen |
@@ -324,7 +334,7 @@ Fragen" formuliert.
 | About | Statische Texte | Markdown mit Frontmatter unter `content/about.md`, Pflege über GitHub-Web-UI | 9 | — |
 | Issues | Issue-Titel, Hrsg., Beiträge mit Autor, DOI | Issue-YAML als alleinige Quelle, Konsistenzcheck gegen TEI-Header bricht den Build | 9 | Welche Issues erscheinen in der Hauptnavigation, alle, kuratiert oder die letzten N? |
 | Rolling Issue | implizit | Statusmarker in Issue-YAML, Zitiervorschlag mit Abrufdatum, optionales Versionssegment in URL reserviert | 8, 9 | Wann gilt ein Rolling Issue als fertig, welcher Statuswechsel im YAML markiert das? Welche zusätzlichen Felder gegenüber regulären Issues? |
-| Navigation | Manuell gepflegt | YAML-konfigurierte Hauptnavigation plus Aggregations-Links | 9, 10 | Speist sich die Navbar aus Content oder aus manueller YAML-Konfiguration? |
+| Navigation | Manuell gepflegt | `config/navigation.yaml` als Single Source of Truth: fünf Top-Level-Dropdowns (About / Issues / Data / Reviewers / Reviewing Criteria) mit Untermenüs auf editorial Markdowns oder Aggregations-URLs; Issues-Dropdown listet die letzten N Issues plus „All Issues" | 9, 10 | — |
 | Beitrag (Rezensionsansicht) | Bestehendes Layout | Jinja-HTML aus dem Domänenmodell, Apparate parallel, reduzierte Sidebar (TOC, Meta, Cite) | 8 | Soll „first / last updated"-Information neben dem reinen Build-Datum sichtbar werden? |
 | Tags | TEI plus WordPress, teils divergent | Aus TEI generiert; einmalige Konsolidierung der WordPress-Tags vor erstem Produktiv-Build, danach WordPress als Tag-Quelle abgeschaltet (A2) | Vor 6 (redaktionell), 10 | — |
 | Factsheet | Bestehende Anordnung | Aus Questionnaire-Datenmodell gerendert, separate Meta-Box entfällt | 8 | — |

@@ -28,7 +28,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 **Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer.
 
-**Suche marginalisiert.** Das Suchfeld liegt klein rechts in der Navigationsleiste. Bei einem Korpus, das primär durchsucht wird, ist das eine zu schwache Position.
+**Suche zu klein.** Das Suchfeld liegt rechts in der Navigationsleiste, ist aber visuell schwach. Bei einem Korpus, das primär durchsucht wird, braucht die Suche prominente Eingabe und sichtbaren Submit-Button — die Position rechts in der Navbar ist richtig, die Größe nicht.
 
 **Bibliografie und Reviewer verschmolzen.** Im Kopf der Rezension stehen die bibliografische Angabe der besprochenen Edition und die Reviewer-Information in einem Fließsatz. Beide haben verschiedene semantische Funktionen und sollten visuell getrennt erscheinen.
 
@@ -36,25 +36,44 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 ## 4. Layout-Architektur
 
-Das Grundraster hat eine maximale Breite von 1080 Pixeln, mit einer 680 Pixel breiten Inhaltsspalte und einer 220 Pixel breiten Sidebar, dazwischen 60 Pixel Lücke. Diese Breite hält Zeilen unter etwa 75 Zeichen, was für Fließtext ergonomisch ist.
+Das Grundraster hat eine maximale Breite von 1150 Pixeln, mit einer 720 Pixel breiten Inhaltsspalte und einer 280 Pixel breiten Sidebar, dazwischen 60 Pixel Lücke. Die Breite hält Zeilen unter etwa 80 Zeichen, was für eine Sans-Serif-Lesefläche (Abschnitt 7) ergonomisch ist; die Sidebar bekommt Platz für Citation Suggestion und Meta ohne Umbruch-Akrobatik.
 
-Sechs Seitentypen folgen diesem Raster. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — das aktuelle Issue prominent als erste Sektion, eine Auswahl ausgewählter Rezensionen mit Titel und Kurzbeschreibung darunter, News und Call for Reviews kombiniert in der Sidebar. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria) verwenden nur die Inhaltsspalte ohne Sidebar.
+Über dem Inhaltsraster steht ein dreiteiliger globaler Header. Oben eine kleine **Tagline-Zeile** („A Review Journal for Scholarly Digital Editions and Resources"), gesetzt als Untertitel zur Marke RIDE — der Brand-Name selbst tritt zurück, weil die Tagline mehr Information für Erstbesucher liefert als das Akronym. Darunter eine **dunkelgraue Navigationsleiste** mit fünf Top-Level-Einträgen (siehe unten), rechts daneben ein prominentes **Suchfeld** mit sichtbarem Submit-Button. Suche bekommt damit ihren Platz in der Navbar; ein zusätzlicher Suchslot zwischen Header und Inhalt entfällt.
 
-Suche bekommt einen eigenen sichtbaren Slot zwischen Header und Inhalt — eine schmale Leiste mit Sucheingabe und globalem Tag-Zugang, auf jeder Seite präsent. Begründung ist die primäre Nutzungsweise eines Korpus dieser Größe, das überwiegend gezielt befragt und nicht linear durchgeblättert wird.
+Die globale Navigation hat fünf Top-Level-Einträge:
+
+| Top-Level | Untermenüs |
+|---|---|
+| **About** | Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers |
+| **Issues** | All Issues plus die letzten N Issues als Schnellzugriff (Reihenfolge in `config/navigation.yaml`) |
+| **Data** | Overview / Download / API · Questionnaires · Charts · Tags · Reviewed Resources |
+| **Reviewers** | Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020 · List of Reviewers |
+| **Reviewing Criteria** | Direkter Link, kein Dropdown |
+
+Die Dropdowns werden mit nativen `<details>`-Elementen umgesetzt (kein JavaScript-Framework, keine Bootstrap-Komponente); CSS gibt ihnen die Anmutung einer klassischen Hover-/Click-Navigation. Die Liste der Untermenüs ist in `config/navigation.yaml` konfigurierbar, sodass redaktionelle Erweiterungen ohne Template-Änderung möglich sind.
+
+Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — das aktuelle Issue prominent als erste Sektion, eine Auswahl ausgewählter Rezensionen mit Titel und Kurzbeschreibung darunter, News und Call for Reviews kombiniert in der Sidebar. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria, plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs) verwenden nur die Inhaltsspalte ohne Sidebar.
 
 ## 5. Rezensionsansicht im Detail
 
-Der **Kopfbereich** trennt drei Funktionen visuell. Titel als h1. Bibliografische Angabe der besprochenen Edition als eigener Block, einschließlich Last-Accessed-Datum bei Online-Quellen. Reviewer-Information als getrennter Block mit ORCID-Icon, Affiliation und Email. Die heutige Verschmelzung beider Blöcke geht damit aufgelöst.
+Der **Kopfbereich** trägt drei Bestandteile in dieser Reihenfolge. Der **Titel** als prominentes Heading-Element. Direkt darunter die **bibliografische Angabe der besprochenen Edition** als eigener Absatz: Werktitel in Italic, Editorenliste mit `(ed.)`, Erscheinungsjahr, URL und Last-Accessed-Datum bei Online-Quellen. Im selben Absatz nahtlos angeschlossen die **Reviewer-Information** in der Form „Reviewed by ⟨ORCID-Icon⟩ Vorname Nachname (Affiliation), email@example.org." — Inline-Prosa statt strukturierter Liste, damit die bibliografische und die Reviewer-Information zusammen als ein zusammenhängender Eingangssatz lesbar sind. Strukturelle Auszeichnung (BEM-Klassen, ORCID-Link, mailto-obfuskiert) bleibt darunter erhalten.
 
-Das **Abstract** erscheint als leicht hinterlegter Block ohne Heading-Wiederholung, da der Block selbst seine Funktion trägt.
+Das **Abstract** erscheint als leicht hinterlegter Block mit einem eigenen Heading „Abstract", das den Block sowohl visuell als auch semantisch (für Screenreader) öffnet. Begründung der Heading-Wiederholung: das Heading dient hier nicht der Hierarchie-Information, sondern als deutlicher Funktions-Anker — Leser:innen erkennen den Abstract sofort, Screenreader können in Heading-Listen navigieren.
 
-Im **Hauptteil** tragen Sektionen h2-Headings; numbered paragraphs zeigen die Absatznummer dezent am linken Rand der Inhaltsspalte, also außerhalb des Lesefließtexts. Hover über die Nummer aktiviert eine Copy-Link-Aktion. Eingebettete Bilder erscheinen mit Caption darunter, Caption-Text in kleinerer Schrift und gedämpfter Farbe. Inline-Verweise auf `Fig. N` zeigen beim Hover eine kleine Vorschau (Tooltip mit Thumbnail und Caption-Beginn).
+Im **Hauptteil** tragen Top-Level-Sektionen h3-Headings, Sub-Sektionen h4 (der Review-Titel ist h2, die globale Tagline-Zeile h1). Numbered paragraphs zeigen die Absatznummer dezent am linken Rand der Inhaltsspalte, außerhalb des Lesefließtexts. Hover über die Nummer aktiviert eine Copy-Link-Aktion. Eingebettete Bilder erscheinen mit Caption darunter, Caption-Text in kleinerer Schrift und gedämpfter Farbe. Inline-Verweise auf `Fig. N` zeigen beim Hover eine kleine Vorschau (Tooltip mit Thumbnail und Caption-Beginn).
 
 Der **Apparate-Block** (References, Figures, Notes) wird als drei klar getrennte Sub-Blöcke unter einer gemeinsamen Trennlinie gesetzt, mit eigenem h3-Header pro Sub-Block (Abschnitt 6).
 
-**Lizenz und Provenance** stehen am Seitenende in einer dezenten Footer-Zeile innerhalb der Inhaltsspalte. Lizenz, Build-Datum, DOI, optional Commit-Hash. Begründung ist [[requirements#N6 Lizenzklarheit pro Artefakt]].
+**Lizenz und Provenance** stehen am Seitenende in einer dezenten Footer-Zeile innerhalb der Inhaltsspalte. Lizenz, Build-Datum, optional Commit-Hash. Begründung ist [[requirements#N6 Lizenzklarheit pro Artefakt]]. Die DOI selbst lebt im Sidebar (siehe nächster Absatz), nicht im Footer — sie ist Identifier, nicht Provenance-Marker.
 
-Die **Sidebar** ist auf drei Blöcke reduziert. Table of Contents (immer). Meta mit Published, DOI, Factsheet-Link und Download-Aktionen für TEI-XML und PDF. Cite mit Suggestion und Kopier-Buttons für BibTeX und CSL-JSON. Share-Buttons entfallen zugunsten von Open-Graph-Metadaten und einer Copy-Link-Aktion in der Meta-Box. Begründung ist die geringe tatsächliche Nutzung von Share-Buttons in akademischen Kontexten.
+Die **Sidebar** trägt vier Boxen in dieser Reihenfolge:
+
+1. **Table of Contents** — immer, mit den Section-Headings als Sprung-Anker.
+2. **Meta** — Published-Datum, DOI als Plaintext-Zeile, ein Link „Factsheet of this project" auf den separat verlinkten Factsheet-Apparat, ein Download-Link „XML of this review, including formal evaluation data", ein Download-Link „PDF of this review article", als letzte Zeile das Lizenz-Kürzel (z.B. „CC BY 4.0", abgeleitet aus der Lizenz-URL).
+3. **Citation Suggestion** — der Zitiervorschlag im Format `Surname, Forename (Year). "Title." RIDE {Issue}, ed. by {Editors}. DOI: {DOI}. Accessed: {Date}.`, gefolgt von einer italic-Mikrokopie „You can use the running numbers on the left side to refer to a specific paragraph." Direkt darunter die Kopier-Buttons für BibTeX und CSL-JSON.
+4. **Tags** — alphabetisch sortierte Liste der Keywords als Inline-Tag-Pillen, jeweils mit Link zur Tag-Detailseite.
+
+Share-Buttons entfallen zugunsten von Open-Graph-Metadaten und der Copy-Link-Aktion auf Absatzebene. Begründung ist die geringe tatsächliche Nutzung von Share-Buttons in akademischen Kontexten.
 
 ## 6. Apparate als parallele Blöcke
 
@@ -70,11 +89,11 @@ Cross-References im Fließtext werden seit Phase 7 nach `Reference.bucket` ∈ `
 
 ## 7. Typografie und Lesbarkeit
 
-Schriftwahl ist eine seriöse Sans-Serif für UI und Headings, eine Serif für den Lesefließtext der Rezensionen. Die engere Auswahl umfasst Inter oder Source Sans für UI und Source Serif oder Crimson Pro für Lesetext. Beide sind Open-Source und werden lokal als WOFF2 ausgeliefert, nicht über externe CDN. Begründung der Doppelschrift ist die längere Lesedauer von Rezensionen — Serif-Schriften reduzieren Ermüdung in Fließtext, Sans-Serif unterstützt schnelle Orientierung in UI-Elementen.
+Schriftwahl ist **eine** seriöse Sans-Serif für die gesamte Site — Body, UI, Headings. Source Sans 3 ist die primäre Wahl, lokal als WOFF2 unter `static/fonts/` ausgeliefert, nicht über externes Font-CDN. Begründung der Single-Family-Entscheidung: einheitliche moderne Anmutung, keine sichtbare Font-Übergangs-Spannung zwischen UI und Lesetext, Reduktion der Familien-Anzahl auf eine Open-Source-Familie mit voller Glyph-Abdeckung für Deutsch, Englisch und romanische Inline-Zitate. Die frühere Doppelschrift-Spec (Serif für Body, Sans für UI) ist mit dem Mockup-Vorbild aufgegeben worden — die Praxis zeigt, dass eine gut gesetzte Sans bei 17–18 Pixel und 1.6 Zeilenhöhe auch für längere Lesedauern tragfähig ist. Mono bleibt für Code (`<code>`, `<pre>`) als zweite Familie.
 
-Größen sind 17 Pixel für Lesefließtext, 22 Pixel für h2 (Section), 28 Pixel für h1 (Rezensionstitel), 14 Pixel für Sidebar und Apparate. Zeilenhöhe 1.6 für Lesetext, 1.4 für UI. Kein Text unter 12 Pixel, auch nicht in Footnoten.
+Größen sind 18 Pixel für Lesefließtext, 22 Pixel für h3 (Top-Level-Section), 28 Pixel für h2 (Rezensionstitel), 14 Pixel für Sidebar, Apparate und Footer, 12 Pixel als harte Untergrenze auch in Footnoten. Die globale Tagline-Zeile als h1 ist visuell klein gesetzt (etwa 16 Pixel, gedämpft), weil sie als Site-Brand fungiert und nicht mit dem Review-Titel konkurrieren soll. Zeilenhöhe 1.6 für Lesetext, 1.4 für UI.
 
-Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Akzentfarbe ist ein einziges gedämpftes Blau für Links, Anker und Querverweise. Schwarz und drei Grauwerte (primary, secondary, tertiary) decken den Rest ab.
+Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Akzentfarbe ist ein einziges gedämpftes Blau für Links, Anker und Querverweise — der genaue Farbwert wird gegen das Mockup gegengelesen, sobald wir auf der Live-Site einen ersten Build haben. Schwarz und drei Grauwerte (primary, secondary, tertiary) decken den Rest ab; die Navigationsleiste hebt sich als dunkelgrauer Block ab.
 
 ## 8. Mehrsprachigkeit
 
@@ -122,7 +141,7 @@ Alle anderen Interaktionen sind Browser-Standard. Animationen jenseits dezenter 
 
 Das CSS ist ein einzelnes Stylesheet von etwa 600 bis 800 Zeilen, ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen.
 
-JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[requirements#N10 Single-Workflow-Build]].
+JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[requirements#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
 
 Die Pagefind-Integration aus Abschnitt 11 wird in [[pipeline#Phasenplan|Phase 11]] ausgeführt, die Cite-Kopieraktion in [[pipeline#Phasenplan|Phase 8]], die Mehrsprachigkeit aus Abschnitt 8 als Querschnittsanforderung über alle Render-Phasen.
 

@@ -90,6 +90,7 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
 
 - **`Review`** — one per file
   - `id`, `issue`, `language`, `publication_date`, `licence`
+  - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[requirements#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
   - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 105 reviews carry one taxonomy, 2 reviews carry two or three.
@@ -97,7 +98,7 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
   - `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
   - `figures: tuple[Figure, ...]`, `notes: tuple[Note, ...]` — corpus-order aggregates feeding the parallel apparate sub-blocks ([[interface#6]])
   - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
-  - `related_items: tuple[RelatedItem, ...]`
+  - `related_items: tuple[RelatedItem, ...]` — `RelatedItem` carries `type` ∈ {`reviewed_resource`, `reviewing_criteria`}, `bibl_text`, `bibl_targets: tuple[str, ...]`, and `last_accessed: Optional[str]` (the `<ref @when>` value for online sources, used in the rendered „(Last Accessed: …)" suffix per [[interface#5]]).
 
 The TEI element `<bibl>` lives at three sites in the corpus and is parsed by three different paths into the same `BibEntry` shape (Phase 6.A unification): `<listBibl>/<bibl>` in `<back>` → `parse_bibliography` → `Review.bibliography`; `<cit>/<bibl>` inline in mixed content → `parse_bibl` from inside `parse_cit` → `Citation.bibl`; `<relatedItem>/<bibl>` in the header → `parse_related_items` → `Review.related_items` (this third path retains its own `RelatedItem` shape because the relatedItem wrapper carries `@type` semantics that BibEntry does not).
 
