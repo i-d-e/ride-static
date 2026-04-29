@@ -142,7 +142,13 @@ a {
   text-decoration-thickness: 1px;
 }
 a:hover { color: var(--ride-accent-hover); }
-a:focus-visible {
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
   outline: none;
   box-shadow: var(--ride-focus);
   border-radius: 2px;
@@ -595,9 +601,11 @@ main.ride-shell {
 .ride-cite__btn                 { flex: 1 1 auto; min-width: 0; padding: var(--ride-space-2) var(--ride-space-3); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; text-align: center; }
 .ride-cite__btn:hover           { background: var(--ride-rule); }
 
-/* Tags as pill-list in the review sidebar. */
+/* Tags as pill-list in the review sidebar. WCAG 2.5.8 (Target Size,
+   Minimum, AA) requires 24×24 CSS-px pointer targets — min-height +
+   inline-flex centering hits that without changing the visual rhythm. */
 .ride-tag-pills                 { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: var(--ride-space-2); }
-.ride-tag-pills li a            { display: inline-block; padding: 2px 8px; background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; font-size: var(--ride-text-small); }
+.ride-tag-pills li a            { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 10px; background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; font-size: var(--ride-text-small); }
 .ride-tag-pills li a:hover      { background: var(--ride-rule); }
 
 /* ─── Panel — geteiltes Karten-Primitiv ───────────────────────────────

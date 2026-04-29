@@ -58,6 +58,11 @@ class SiteConfig:
     strings: dict = field(default_factory=dict)
     build_info: Optional[BuildInfo] = None
     navigation: tuple = ()
+    # Cookieless Matomo (R16). Both fields must be set for the snippet
+    # to render; either alone is treated as an unconfigured deploy and
+    # base.html stays tracker-free.
+    matomo_url: str = ""
+    matomo_site_id: str = ""
 
 
 # ── Filters and helpers ───────────────────────────────────────────────

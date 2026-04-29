@@ -101,3 +101,15 @@ def test_discover_editorials_finds_repo_content_files():
     assert "about" in slugs
     assert "imprint" in slugs
     assert "criteria" in slugs
+    assert "contact" in slugs  # R14: Kontakt page must exist
+
+
+def test_contact_page_renders_with_email_and_imprint_pointer():
+    """R14: contact page surfaces an editorial mail address and links
+    onward to imprint for the legal information."""
+    pages = {p.slug: p for p in discover_editorials()}
+    contact = pages.get("contact")
+    assert contact is not None
+    html = render_editorial(contact)
+    assert "ride-editor" in html or "ride-editor@i-d-e.de" in html
+    assert "/imprint/" in html

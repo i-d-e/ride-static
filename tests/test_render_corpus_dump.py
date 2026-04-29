@@ -26,6 +26,8 @@ from src.model.inline import Emphasis, Reference, Text
 from src.model.review import Review
 from src.model.section import Section
 from src.render.corpus_dump import (
+    LICENCE_NAME,
+    LICENCE_URL,
     VERSION,
     to_corpus_dump,
     to_corpus_dump_string,
@@ -60,9 +62,22 @@ def test_empty_corpus_emits_envelope_with_zero_reviews():
         "version": VERSION,
         "generated_at": "2024-08-01",
         "base_url": "https://x.de",
+        "licence": {"name": LICENCE_NAME, "url": LICENCE_URL},
         "review_count": 0,
         "reviews": [],
     }
+
+
+def test_dump_carries_top_level_licence_for_consumer_clarity():
+    """N6: every machine-readable artefact names its licence explicitly.
+
+    The CC-BY-4.0 statement at the top of corpus.json mirrors the
+    per-review ``licence`` field in the TEI source so consumers do not
+    have to scan 107 records to discover the terms of use.
+    """
+    dump = to_corpus_dump([_minimal_review()])
+    assert dump["licence"]["name"] == "CC-BY-4.0"
+    assert dump["licence"]["url"].startswith("https://creativecommons.org/licenses/by/4.0")
 
 
 def test_review_count_matches_input_length():

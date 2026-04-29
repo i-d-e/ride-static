@@ -22,6 +22,7 @@ items:
       - { label: Ethical Code, url: /ethical-code/ }
       - { label: Team, url: /team/ }
       - { label: Peer Reviewers, url: /peer-reviewers/ }
+      - { label: Contact, url: /contact/ }
 
   - label: Issues
     fallback_url: /issues/

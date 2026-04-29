@@ -44,7 +44,7 @@ from src.render.aggregations import (
     render_tags_overview,
     reviewer_slug,
 )
-from src.render.corpus_dump import to_corpus_dump_string
+from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL, to_corpus_dump_string
 from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
@@ -80,13 +80,19 @@ def _build_info() -> BuildInfo:
         return BuildInfo()
 
 
-def _site_config(base_url: str = "") -> SiteConfig:
+def _site_config(
+    base_url: str = "",
+    matomo_url: str = "",
+    matomo_site_id: str = "",
+) -> SiteConfig:
     return SiteConfig(
         title="RIDE — Reviews in Digital Editions",
         default_language="en",
         base_url=base_url,
         strings={},  # localised UI strings — Phase 9 wires them from content/
         build_info=_build_info(),
+        matomo_url=matomo_url,
+        matomo_site_id=matomo_site_id,
     )
 
 
@@ -140,6 +146,8 @@ def _site_with_navigation(site: SiteConfig, reviews: tuple[Review, ...]) -> Site
         strings=site.strings,
         build_info=site.build_info,
         navigation=resolved,
+        matomo_url=site.matomo_url,
+        matomo_site_id=site.matomo_site_id,
     )
 
 
@@ -260,6 +268,8 @@ def build(
     base_url: str = "",
     validate: bool = True,
     linkcheck: bool = False,
+    matomo_url: str = "",
+    matomo_site_id: str = "",
 ) -> int:
     """Run the build. Returns the number of review pages written."""
     if not corpus_dir.exists():
@@ -269,7 +279,11 @@ def build(
         )
 
     out_root.mkdir(parents=True, exist_ok=True)
-    site = _site_config(base_url=base_url)
+    site = _site_config(
+        base_url=base_url,
+        matomo_url=matomo_url,
+        matomo_site_id=matomo_site_id,
+    )
     env = make_env()
 
     parsed: list[tuple[Path, Review]] = []
@@ -398,6 +412,7 @@ def _write_build_info(
 
     data = {
         "schema_version": 1,
+        "licence": {"name": LICENCE_NAME, "url": LICENCE_URL},
         "site": {
             "title": site.title,
             "base_url": site.base_url,
@@ -523,16 +538,23 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--pdf", action="store_true", help="Also run the WeasyPrint PDF pass (Phase 14)")
     parser.add_argument("--no-validate", action="store_true", help="Skip the RelaxNG validation pre-check")
     parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
+    parser.add_argument("--matomo-url", default="", help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking")
+    parser.add_argument("--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set")
     args = parser.parse_args(argv)
 
     if args.pdf:
         print("--pdf is a Phase 14 placeholder; no PDF rendered yet.", file=sys.stderr)
+
+    if bool(args.matomo_url) != bool(args.matomo_site_id):
+        parser.error("--matomo-url and --matomo-site-id must be set together")
 
     written = build(
         limit=args.reviews,
         base_url=args.base_url,
         validate=not args.no_validate,
         linkcheck=args.linkcheck,
+        matomo_url=args.matomo_url,
+        matomo_site_id=args.matomo_site_id,
     )
     print(f"Wrote {written} review pages to {SITE_DIR}")
     return 0

@@ -23,6 +23,7 @@ from src.model.questionnaire import Questionnaire, QuestionnaireAnswer
 from src.model.review import Author, Person, Review
 from src.model.section import Section
 from src.render.html import (
+    BuildInfo,
     SiteConfig,
     _inlines_to_text,
     _obfuscate_mail,
@@ -462,6 +463,73 @@ def test_render_review_targetless_ref_falls_back_to_orphan():
 def test_known_templates_load(name):
     env = make_env()
     env.get_template(name)
+
+
+# ── Footer + console banner (R14, N4) ────────────────────────────────
+
+
+def test_footer_carries_contact_link():
+    """R14: every page exposes a Contact route in the footer."""
+    html = render_review(_minimal_review())
+    assert 'href="/contact/"' in html
+    assert ">Contact</a>" in html
+
+
+def test_console_banner_renders_when_build_info_present():
+    """N4: build commit + date are surfaced to the devtools console.
+
+    The banner is gated on ``site.build_info.commit_short`` so dev
+    builds with the default SiteConfig (build_info=None) stay quiet.
+    """
+    site = SiteConfig(
+        build_info=BuildInfo(
+            commit="abc123def456789", commit_short="abc123d", date="2026-04-29T12:00:00+00:00"
+        )
+    )
+    html = render_review(_minimal_review(), site=site)
+    assert "console.info(" in html
+    assert "abc123d" in html
+    assert "2026-04-29" in html
+
+
+def test_console_banner_omitted_when_build_info_missing():
+    """No build_info → no console output (silent dev builds)."""
+    html = render_review(_minimal_review())  # default SiteConfig: build_info=None
+    assert "console.info(" not in html
+
+
+# ── Cookieless Matomo (R16) ──────────────────────────────────────────
+
+
+def test_matomo_snippet_omitted_when_unconfigured():
+    """Empty Matomo config → no tracker, no third-party script tag."""
+    html = render_review(_minimal_review())
+    assert "_paq" not in html
+    assert "matomo.js" not in html
+
+
+def test_matomo_snippet_renders_with_disable_cookies_flag():
+    """R16 requires cookieless tracking; ``disableCookies`` is the flag."""
+    site = SiteConfig(
+        matomo_url="https://stats.example.org/",
+        matomo_site_id="42",
+    )
+    html = render_review(_minimal_review(), site=site)
+    assert "_paq" in html
+    assert "disableCookies" in html
+    assert "https://stats.example.org/" in html
+    assert "setSiteId" in html
+    assert "'42'" in html
+    # noscript fallback uses the matomo.php pixel — not a JS-only tracker
+    assert "matomo.php?idsite=42" in html
+
+
+def test_matomo_snippet_omitted_when_only_url_set():
+    """Half-configured deploy stays tracker-free (defensive: avoids
+    silently sending hits with site_id=undefined)."""
+    site = SiteConfig(matomo_url="https://stats.example.org/", matomo_site_id="")
+    html = render_review(_minimal_review(), site=site)
+    assert "_paq" not in html
 
 
 # ── Real-corpus smoke ────────────────────────────────────────────────

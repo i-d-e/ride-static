@@ -164,6 +164,7 @@
         <li>{{ site.strings.licence_short | default('CC BY 4.0') }}</li>
         <li>{{ site.title }} 2014–{{ _year }}</li>
         <li>ISSN: {{ site.issn | default('2363-4952') }}</li>
+        <li><a href="{{ site.base_url }}/contact/">{{ site.strings.contact | default('Contact') }}</a></li>
         <li><a href="{{ site.base_url }}/imprint/">{{ site.strings.imprint | default('Imprint and Privacy') }}</a></li>
       </ul>
       {%- if site.build_info %}
@@ -176,6 +177,20 @@
     </div>
   </footer>
 
+  {#- Console banner: tiny build-info hint in devtools so anyone
+      inspecting a deployed page can read commit + date without
+      scraping the footer's data attributes. Inline (not a module)
+      so it runs synchronously and prints once per page load. -#}
+  {%- if site.build_info and site.build_info.commit_short %}
+  <script>
+    console.info(
+      "%cRIDE Static%c build {{ site.build_info.commit_short }} · {{ site.build_info.date }}",
+      "background:#0d6efd;color:#fff;padding:2px 6px;border-radius:3px;font-weight:600",
+      "color:#666"
+    );
+  </script>
+  {%- endif %}
+
   {#- Four small JS modules (interface.md §12). Each is loaded as a plain ES module,
       no bundler. Phase 8 ships copy-link, tooltip, cite-copy; Phase 11 adds pagefind. -#}
   {% block scripts %}
@@ -187,5 +202,27 @@
   <script type="module" src="{{ static_path('js/pagefind.js') }}"></script>
   <link rel="stylesheet" href="{{ site.base_url }}/pagefind/pagefind-ui.css" media="all">
   {% endblock %}
+
+  {#- Cookieless Matomo (R16, [[interface#A11y]]). Both site.matomo_url
+      and site.matomo_site_id must be set for the snippet to render —
+      empty config means no tracker, no third-party request, nothing
+      to opt out of. ``disableCookies`` is the cookieless-mode flag;
+      IP anonymisation is enforced server-side per the Imprint. -#}
+  {%- if site.matomo_url and site.matomo_site_id %}
+  <script>
+    var _paq = window._paq = window._paq || [];
+    _paq.push(['disableCookies']);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+      var u = "{{ site.matomo_url }}";
+      _paq.push(['setTrackerUrl', u + 'matomo.php']);
+      _paq.push(['setSiteId', '{{ site.matomo_site_id }}']);
+      var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+      g.async = true; g.src = u + 'matomo.js'; s.parentNode.insertBefore(g, s);
+    })();
+  </script>
+  <noscript><p><img src="{{ site.matomo_url }}matomo.php?idsite={{ site.matomo_site_id }}&amp;rec=1" style="border:0" alt=""></p></noscript>
+  {%- endif %}
 </body>
 </html>

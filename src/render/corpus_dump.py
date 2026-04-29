@@ -37,6 +37,13 @@ from src.model.review import Review
 
 VERSION = 1
 
+# Per requirements N6 — every machine-readable artefact carries an
+# explicit licence claim so consumers know the terms without inferring
+# from the rendered footer. CC-BY 4.0 mirrors the per-review licence in
+# the TEI source.
+LICENCE_URL = "https://creativecommons.org/licenses/by/4.0/"
+LICENCE_NAME = "CC-BY-4.0"
+
 # Discriminated-union members get a ``__type`` field so consumers can
 # dispatch on it. All other dataclasses have a deterministic shape.
 _UNION_TYPES: tuple[type, ...] = (
@@ -71,6 +78,7 @@ def to_corpus_dump(
         "version": VERSION,
         "generated_at": build_date,
         "base_url": base_url,
+        "licence": {"name": LICENCE_NAME, "url": LICENCE_URL},
         "review_count": len(reviews),
         "reviews": [_to_dict(r) for r in reviews],
     }
