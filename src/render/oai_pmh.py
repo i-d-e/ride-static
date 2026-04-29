@@ -259,6 +259,13 @@ def _metadata_xml(review: Review, base_url: str) -> str:
             f"          <dc:rights>{escape(review.licence)}</dc:rights>"
         )
 
+    # Dublin Core allows multiple <dc:identifier> elements; emit DOI first
+    # (persistent) and the page URL second (mutable). When the DOI is
+    # missing (corpus in transition), the page URL stays the only one.
+    if review.doi:
+        dc_lines.append(
+            f"          <dc:identifier>{escape(f'https://doi.org/{review.doi}')}</dc:identifier>"
+        )
     page_url = _page_url(review, base_url)
     if page_url:
         dc_lines.append(

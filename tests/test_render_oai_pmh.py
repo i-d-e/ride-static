@@ -159,6 +159,32 @@ def test_list_records_emits_dublin_core_record_per_review():
     assert dc.find("dc:source", NS).text == "RIDE Issue 13"
 
 
+def test_dc_identifier_emits_doi_first_then_page_url():
+    """When a DOI is set, two <dc:identifier> elements are emitted: the
+    DOI as ``https://doi.org/{doi}`` first (persistent), the page URL
+    second (mutable). Order matters for DC harvesters that take the
+    first identifier as canonical."""
+    review = _r(doi="10.18716/ride.a.5.4")
+    xml = build_get_record(review, "https://x.de", build_date="2024-08-01")
+    root = ET.fromstring(xml)
+    dc = root.find("oai:GetRecord/oai:record/oai:metadata/oai_dc:dc", NS)
+    identifiers = [el.text for el in dc.findall("dc:identifier", NS)]
+    assert identifiers == [
+        "https://doi.org/10.18716/ride.a.5.4",
+        "https://x.de/issues/13/ride.13.7/",
+    ]
+
+
+def test_dc_identifier_without_doi_emits_only_page_url():
+    """Reviews without a DOI fall back to a single page-URL identifier —
+    heutiges Verhalten bleibt rückwärtskompatibel."""
+    xml = build_get_record(_r(), "https://x.de", build_date="2024-08-01")
+    root = ET.fromstring(xml)
+    dc = root.find("oai:GetRecord/oai:record/oai:metadata/oai_dc:dc", NS)
+    identifiers = [el.text for el in dc.findall("dc:identifier", NS)]
+    assert identifiers == ["https://x.de/issues/13/ride.13.7/"]
+
+
 def test_reviewed_resource_targets_become_dc_relation():
     review = _r(
         related_items=(
@@ -305,3 +331,13 @@ def test_real_corpus_oai_snapshot_is_well_formed(tmp_path):
         "oai:GetRecord/oai:record/oai:metadata/oai_dc:dc/dc:title", NS
     ).text
     assert title == reviews[0].title
+
+    # Welle 1.B/C: DOI surfaces as the first dc:identifier when present.
+    identifiers = [
+        el.text
+        for el in root.findall(
+            "oai:GetRecord/oai:record/oai:metadata/oai_dc:dc/dc:identifier", NS
+        )
+    ]
+    if reviews[0].doi:
+        assert identifiers[0] == f"https://doi.org/{reviews[0].doi}"
