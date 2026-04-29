@@ -104,6 +104,7 @@ def test_top_level_fields(fixture_path: Path) -> None:
     assert r.publication_date == "2024-06-15"
     assert r.language == "en"
     assert r.licence == "https://creativecommons.org/licenses/by/4.0/"
+    assert r.doi == "10.example/x"
 
 
 def test_body_fields_populated_via_section_parser(fixture_path: Path) -> None:
@@ -155,8 +156,51 @@ def test_related_items(fixture_path: Path) -> None:
     assert rev.xml_id == "rev1"
     assert "thing being reviewed" in rev.bibl_text
     assert rev.bibl_targets == ("https://example.org/thing",)
+    assert rev.last_accessed is None  # no <date type="accessed"> in this fixture
     assert r.related_items[1].type == "reviewing_criteria"
     assert r.related_items[1].xml_id is None
+
+
+def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
+    """The canonical reviewed_resource shape from the real corpus uses
+    <bibl>/<idno type="URI"> for the link target and <bibl>/<date
+    type="accessed"> for the last-accessed date. This synthetic fixture
+    isolates both because the maximal FIXTURE above uses the older
+    <ref @target> shape (kept for backwards-compat coverage)."""
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="ride.99.50">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>R</title><author><name>A</name></author></titleStmt>
+      <publicationStmt>
+        <date when="2024-01-01">2024</date>
+        <idno type="DOI">10.example/y</idno>
+        <availability><licence target="https://x">x</licence></availability>
+      </publicationStmt>
+      <seriesStmt><editor>E</editor><biblScope n="99"/></seriesStmt>
+      <notesStmt>
+        <relatedItem type="reviewed_resource">
+          <bibl>
+            <title>Reviewed Edition</title>
+            <idno type="URI">https://example.org/edition</idno>
+            <date type="accessed">2023-11-15</date>
+          </bibl>
+        </relatedItem>
+      </notesStmt>
+      <sourceDesc><p>x</p></sourceDesc>
+    </fileDesc>
+    <profileDesc><langUsage><language ident="en">English</language></langUsage></profileDesc>
+  </teiHeader>
+  <text><body><div><p>x</p></div></body></text>
+</TEI>
+"""
+    p = tmp_path / "uri-shape.xml"
+    p.write_text(xml, encoding="utf-8")
+    r = parse_review(p)
+    [reviewed] = r.related_items
+    assert reviewed.type == "reviewed_resource"
+    assert "https://example.org/edition" in reviewed.bibl_targets
+    assert reviewed.last_accessed == "2023-11-15"
 
 
 def test_review_is_immutable(fixture_path: Path) -> None:
@@ -178,6 +222,45 @@ def test_smoke_real_corpus_smallest_file() -> None:
     assert r.authors  # every review has at least one author per Schematron
     assert r.editors  # every review has editors
     assert any(ri.type == "reviewed_resource" for ri in r.related_items)
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+def test_doi_extracted_from_publicationStmt_in_real_corpus() -> None:
+    """Pin the canonical DOI shape: <publicationStmt>/<idno type="DOI">.
+
+    The corpus carries a stable triplet of <idno> children (URI / DOI /
+    archive — see knowledge/data.md). The parser picks the DOI by its
+    @type, not by position, so the order can drift without breaking
+    extraction. 1641-tei.xml is the rich-metadata reference fixture.
+    """
+    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    assert r.doi == "10.18716/ride.a.5.4"
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+def test_reviewed_resource_carries_uri_and_last_accessed_in_real_corpus() -> None:
+    """The reviewed_resource RelatedItem in 1641 holds the reviewed work's
+    URL as <bibl>/<idno type="URI"> and the last-accessed date as
+    <bibl>/<date type="accessed">. Both must surface on the dataclass for
+    the rendered "(Last Accessed: …)" suffix in the review header
+    (interface.md §5)."""
+    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
+    assert "http://1641.tcd.ie" in reviewed.bibl_targets
+    assert reviewed.last_accessed == "2017-02-01"
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+def test_doi_consistent_across_three_corpus_reviews() -> None:
+    """Three independently-authored reviews exercise the same parse path."""
+    cases = {
+        "ehd-tei.xml": "10.18716/ride.a.13.4",
+        "busoni-nachlass-tei.xml": "10.18716/ride.a.12.5",
+        "bayeux-tei.xml": "10.18716/ride.a.20.3",
+    }
+    for filename, expected_doi in cases.items():
+        r = parse_review(RIDE_TEI_DIR / filename)
+        assert r.doi == expected_doi, f"{filename}: expected {expected_doi}, got {r.doi}"
 
 
 # Minimal review with optional fields stripped — covers what the parser must

@@ -54,12 +54,21 @@ class Editor:
 
 @dataclass(frozen=True)
 class RelatedItem:
-    """An entry in <notesStmt>/<relatedItem> — typed link to reviewed work or criteria."""
+    """An entry in <notesStmt>/<relatedItem> — typed link to reviewed work or criteria.
+
+    ``bibl_targets`` collects all reachable URLs from the inner ``<bibl>``:
+    ``<idno type="URI">`` and ``<idno type="DOI">`` for ``reviewed_resource``
+    (the canonical RIDE shape), plus ``<ref @target>`` for ``reviewing_criteria``
+    (which uses a ``<ref>`` instead of an ``<idno>``). The ``last_accessed``
+    field carries ``<date type="accessed">`` from inside ``<bibl>`` and feeds
+    the rendered "(Last Accessed: …)" suffix in the review header.
+    """
 
     type: str
     bibl_text: str
     bibl_targets: tuple[str, ...] = field(default_factory=tuple)
     xml_id: Optional[str] = None
+    last_accessed: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -86,6 +95,16 @@ class Review:
 
     licence: str
     """@target on <availability>/<licence>."""
+
+    doi: Optional[str] = None
+    """Canonical persistent identifier from ``<publicationStmt>/<idno type="DOI">``.
+
+    Per [requirements R2](../knowledge/requirements.md), the DOI is the
+    citation anchor for every review and feeds the sidebar Meta box, the
+    Citation Suggestion (R2 format), JSON-LD ``@id``/``identifier``, and
+    the OAI-PMH ``dc:identifier``. Phase 13 validation will refuse builds
+    that ship a review without a DOI.
+    """
 
     keywords: tuple[str, ...] = field(default_factory=tuple)
     authors: tuple[Author, ...] = field(default_factory=tuple)

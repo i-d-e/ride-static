@@ -65,19 +65,60 @@ def parse_keywords(profile_desc: Optional[etree._Element]) -> list[str]:
     ]
 
 
+def parse_doi(file_desc: Optional[etree._Element]) -> Optional[str]:
+    """Read ``<publicationStmt>/<idno type="DOI">`` and return its text.
+
+    Every RIDE review in the corpus carries this idno in the standard
+    publicationStmt triplet (URI / DOI / archive — see knowledge/data.md).
+    Returns ``None`` when the field is missing so the caller can decide
+    whether to error out (Phase 13 validation will).
+    """
+    for idno_el in findall(file_desc, "t:publicationStmt/t:idno"):
+        if attr(idno_el, "type") == "DOI":
+            text = itertext(idno_el)
+            return text or None
+    return None
+
+
 def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem]:
+    """Parse ``<notesStmt>/<relatedItem>`` entries.
+
+    The two RIDE relatedItem types use different conventions for the
+    target URL: ``reviewed_resource`` carries it as ``<bibl>/<idno type="URI">``
+    (often paired with a ``<date type="accessed">``), while ``reviewing_criteria``
+    carries it as ``<bibl>/<ref @target>``. Both shapes are collected into
+    ``bibl_targets`` so the rendered bibliography can link either way.
+    """
     out: list[RelatedItem] = []
     for ri_el in findall(file_desc, "t:notesStmt/t:relatedItem"):
         bibl_el = find(ri_el, "t:bibl")
-        # Targets come from any <ref> nested under the relatedItem (or its <bibl>).
-        targets = tuple(
-            t for r in findall(ri_el, ".//t:ref")
-            if (t := attr(r, "target"))
-        )
+
+        # Collect targets from <ref @target> (reviewing_criteria) and
+        # from <idno type="URI"|"DOI"> (reviewed_resource) — both shapes
+        # appear in the corpus, see knowledge/data.md.
+        targets: list[str] = []
+        for r in findall(ri_el, ".//t:ref"):
+            t = attr(r, "target")
+            if t:
+                targets.append(t)
+        for idno in findall(ri_el, ".//t:idno"):
+            if attr(idno, "type") in {"URI", "DOI"}:
+                t = itertext(idno)
+                if t:
+                    targets.append(t)
+
+        # Last-accessed date for online sources.
+        last_accessed: Optional[str] = None
+        for date_el in findall(ri_el, ".//t:date"):
+            if attr(date_el, "type") == "accessed":
+                last_accessed = itertext(date_el) or None
+                break
+
         out.append(RelatedItem(
             type=attr(ri_el, "type") or "",
             bibl_text=itertext(bibl_el) if bibl_el is not None else itertext(ri_el),
-            bibl_targets=targets,
+            bibl_targets=tuple(targets),
             xml_id=attr(ri_el, "xml:id"),
+            last_accessed=last_accessed,
         ))
     return out

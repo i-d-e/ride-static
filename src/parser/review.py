@@ -18,6 +18,7 @@ from src.parser.common import NS, attr, find, itertext
 from src.parser.questionnaire import parse_questionnaires
 from src.parser.metadata import (
     parse_authors,
+    parse_doi,
     parse_editors,
     parse_keywords,
     parse_related_items,
@@ -61,6 +62,7 @@ def parse_review(path: Path) -> Review:
         publication_date=publication_date,
         language=attr(find(profile_desc, "t:langUsage/t:language"), "ident") or "",
         licence=attr(find(file_desc, "t:publicationStmt/t:availability/t:licence"), "target") or "",
+        doi=parse_doi(file_desc),
         keywords=tuple(parse_keywords(profile_desc)),
         authors=tuple(parse_authors(file_desc)),
         editors=tuple(parse_editors(file_desc)),
