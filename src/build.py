@@ -52,6 +52,7 @@ from src.render.issues_config import (
     discover_issue_configs,
     validate_issue_configs,
 )
+from src.render.oai_pmh import write_oai_pmh
 from src.render.sitemap import build_sitemap, collect_entries
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
@@ -270,6 +271,7 @@ def build(
     _copy_static(out_root)
     sitemap_written = _write_sitemap(tuple(rendered), site, out_root)
     _write_corpus_dump(tuple(rendered), site, out_root)
+    oai_files = _write_oai_pmh_snapshot(tuple(rendered), site, out_root)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
@@ -280,10 +282,29 @@ def build(
     if sitemap_written:
         print("Wrote sitemap.xml")
     print("Wrote api/corpus.json")
+    if oai_files:
+        print(f"Wrote {oai_files} OAI-PMH snapshot files")
 
     _print_asset_summary(asset_reports)
 
     return len(rendered)
+
+
+def _write_oai_pmh_snapshot(
+    reviews: tuple[Review, ...], site: SiteConfig, out_root: Path
+) -> int:
+    """Write the OAI-PMH snapshot under ``site/oai/`` if ``base_url`` is set.
+
+    Like the sitemap, OAI-PMH identifiers and ``baseURL`` need an
+    absolute origin, so dev builds without a deploy prefix skip silently.
+    Returns the number of XML files written (0 when skipped).
+    """
+    if not site.base_url:
+        return 0
+    build_date = site.build_info.date if site.build_info else None
+    return write_oai_pmh(
+        reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
+    )
 
 
 def _write_corpus_dump(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> None:
