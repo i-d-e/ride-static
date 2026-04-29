@@ -1,0 +1,22 @@
+html, body {
+    font-family: "Source Sans 3";
+}
+
+.container {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1150px;
+}
+
+.navbar-dark, .navbar[data-bs-theme=dark] {
+    background-color: #333;
+}
+
+.navbar .nav-link {
+    color: white;
+    font-size: 1.1em;
+}
+
+ul.list-unstyled a {
+    text-decoration: none;
+}
