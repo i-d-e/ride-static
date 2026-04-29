@@ -75,6 +75,7 @@ def test_minimal_review_has_required_schema_keys():
 
 
 def test_url_and_id_present_when_base_url_set():
+    """Without a DOI, the page URL serves as both @id and url."""
     data = to_jsonld(_minimal_review(), base_url="https://ride.i-d-e.de")
     assert data["url"] == "https://ride.i-d-e.de/issues/13/ride.13.7/"
     assert data["@id"] == data["url"]
@@ -84,6 +85,38 @@ def test_url_omitted_when_base_url_empty():
     data = to_jsonld(_minimal_review(), base_url="")
     assert "url" not in data
     assert "@id" not in data
+
+
+def test_doi_becomes_canonical_id_and_identifier_property_value():
+    """When a DOI is set, @id points at the DOI URL (persistent identifier)
+    while url stays on the deployed page (mutable address). The DOI also
+    surfaces as a schema.org PropertyValue so DOI-aware harvesters lift it."""
+    data = to_jsonld(
+        _minimal_review(doi="10.18716/ride.a.5.4"),
+        base_url="https://ride.i-d-e.de",
+    )
+    assert data["@id"] == "https://doi.org/10.18716/ride.a.5.4"
+    assert data["url"] == "https://ride.i-d-e.de/issues/13/ride.13.7/"
+    assert data["identifier"] == {
+        "@type": "PropertyValue",
+        "propertyID": "DOI",
+        "value": "10.18716/ride.a.5.4",
+        "url": "https://doi.org/10.18716/ride.a.5.4",
+    }
+
+
+def test_doi_id_works_even_without_base_url():
+    """DOIs are absolute identifiers — they should populate @id even when
+    no deploy URL is configured (e.g. local builds for inspection)."""
+    data = to_jsonld(_minimal_review(doi="10.18716/ride.a.5.4"), base_url="")
+    assert data["@id"] == "https://doi.org/10.18716/ride.a.5.4"
+    assert "url" not in data
+    assert data["identifier"]["value"] == "10.18716/ride.a.5.4"
+
+
+def test_no_identifier_field_when_doi_missing():
+    data = to_jsonld(_minimal_review(), base_url="https://ride.i-d-e.de")
+    assert "identifier" not in data
 
 
 def test_publication_date_language_licence_pass_through():
@@ -238,7 +271,10 @@ def test_real_corpus_review_round_trips_through_jsonld():
 
     assert data["@type"] == "ScholarlyArticle"
     assert data["headline"] == review.title
+    # Welle 1.B: DOI is the canonical @id, page URL stays in url.
+    assert data["@id"] == "https://doi.org/10.18716/ride.a.5.4"
     assert data["url"] == f"https://ride.i-d-e.de/issues/{review.issue}/{review.id}/"
+    assert data["identifier"]["value"] == "10.18716/ride.a.5.4"
     assert data["datePublished"] == "2017-02"
     assert data["inLanguage"] == "en"
     assert data["isPartOf"]["issueNumber"] == "5"

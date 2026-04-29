@@ -31,6 +31,12 @@ def to_jsonld(review: Review, base_url: str = "") -> dict[str, Any]:
     locally, the canonical host in CI). When set, ``url`` and ``@id``
     point at the deployed page; when empty, both fields are omitted so
     consumers do not see relative or partial URIs.
+
+    DOI handling: when ``review.doi`` is present, the DOI URL takes the
+    role of the canonical ``@id`` (DOIs are designed to be persistent
+    identifiers, page URLs are not), and ``identifier`` carries it as a
+    PropertyValue so Crossref/OpenAlex-style harvesters can lift it
+    directly. The deployed page URL stays in ``url``.
     """
     data: dict[str, Any] = {
         "@context": SCHEMA_CONTEXT,
@@ -40,9 +46,19 @@ def to_jsonld(review: Review, base_url: str = "") -> dict[str, Any]:
     }
 
     page_url = _page_url(review, base_url)
+    doi_url = _doi_url(review.doi)
+    canonical_id = doi_url or page_url
+    if canonical_id:
+        data["@id"] = canonical_id
     if page_url:
-        data["@id"] = page_url
         data["url"] = page_url
+    if doi_url:
+        data["identifier"] = {
+            "@type": "PropertyValue",
+            "propertyID": "DOI",
+            "value": review.doi,
+            "url": doi_url,
+        }
 
     if review.publication_date:
         data["datePublished"] = review.publication_date
@@ -89,6 +105,13 @@ def _page_url(review: Review, base_url: str) -> Optional[str]:
     if not base_url or not review.issue or not review.id:
         return None
     return f"{base_url}/issues/{review.issue}/{review.id}/"
+
+
+def _doi_url(doi: Optional[str]) -> Optional[str]:
+    """Wrap a bare DOI ('10.18716/...') in the standard https://doi.org URL."""
+    if not doi:
+        return None
+    return f"https://doi.org/{doi}"
 
 
 def _author_to_jsonld(author: Author) -> dict[str, Any]:
