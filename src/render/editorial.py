@@ -104,7 +104,51 @@ def render_editorial(
 
 
 def discover_editorials(content_dir: Path = CONTENT_DIR) -> list[EditorialPage]:
-    """Load every ``content/*.md`` file as an EditorialPage."""
+    """Load every top-level ``content/*.md`` file as an EditorialPage.
+
+    Files inside subdirectories (e.g. ``content/home/``) are widgets, not
+    standalone editorial pages — those live under :func:`discover_widgets`.
+    """
     if not content_dir.exists():
         return []
     return [parse_editorial(p) for p in sorted(content_dir.glob("*.md"))]
+
+
+@dataclass(frozen=True)
+class HomeWidget:
+    """A widget block on the homepage, loaded from ``content/home/*.md``.
+
+    Filename prefix (``01-welcome.md``, ``02-news.md``) drives ordering;
+    the renderer hands the widgets to the home template in sorted order.
+    """
+
+    slug: str
+    title: str
+    body_html: str
+    order: int
+
+
+def discover_home_widgets(content_dir: Path = CONTENT_DIR) -> list[HomeWidget]:
+    """Load every ``content/home/*.md`` file as a HomeWidget."""
+    home_dir = content_dir / "home"
+    if not home_dir.exists():
+        return []
+    out: list[HomeWidget] = []
+    for path in sorted(home_dir.glob("*.md")):
+        page = parse_editorial(path)
+        prefix, _, _ = page.slug.partition("-")
+        order = int(prefix) if prefix.isdigit() else 999
+        body_html = markdown.markdown(
+            page.body_md,
+            extensions=["extra", "sane_lists", "smarty"],
+            output_format="html5",
+        )
+        out.append(
+            HomeWidget(
+                slug=page.slug,
+                title=page.title,
+                body_html=body_html,
+                order=order,
+            )
+        )
+    return sorted(out, key=lambda w: (w.order, w.slug))

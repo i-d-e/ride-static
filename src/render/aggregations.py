@@ -32,6 +32,7 @@ from src.parser.datasets import (
     aggregate_reviewers,
     aggregate_tags,
 )
+from src.render.editorial import HomeWidget, discover_home_widgets
 from src.render.html import (
     SiteConfig,
     make_env,
@@ -96,8 +97,19 @@ def reviewer_slug(reviewer: ReviewerAggregate) -> str:
 # ── home + issues ──────────────────────────────────────────────────────
 
 
-def render_index(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
-    """Site root — current issue prominent, browse shortcuts."""
+def render_index(
+    reviews: tuple[Review, ...],
+    site: SiteConfig,
+    env: Environment,
+    home_widgets: Optional[list[HomeWidget]] = None,
+) -> str:
+    """Site root — current issue prominent plus editorial widgets.
+
+    ``home_widgets`` is loaded by the build (``discover_home_widgets``)
+    so the redaktionelle Heimseite is bearbeitbar via Markdown unter
+    ``content/home/``. None falls back to the empty list — useful for
+    isolated unit tests that don't care about widget content.
+    """
     by_issue = group_reviews_by_issue(reviews)
     current_issue = ""
     current_reviews: list[Review] = []
@@ -111,6 +123,7 @@ def render_index(reviews: tuple[Review, ...], site: SiteConfig, env: Environment
         current_reviews=current_reviews,
         total_reviews=len(reviews),
         total_issues=len(by_issue),
+        home_widgets=home_widgets or [],
     )
 
 

@@ -45,7 +45,7 @@ from src.render.aggregations import (
     reviewer_slug,
 )
 from src.render.corpus_dump import to_corpus_dump_string
-from src.render.editorial import discover_editorials, render_editorial
+from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
     IssueConfigError,
@@ -168,6 +168,7 @@ def _render_aggregations(
     site: SiteConfig,
     out_root: Path,
     issue_configs: Optional[dict] = None,
+    home_widgets: Optional[list] = None,
 ) -> int:
     """Build every aggregation page — home, issues, tags, reviewers, resources.
 
@@ -179,7 +180,8 @@ def _render_aggregations(
 
     # Site root.
     (out_root / "index.html").write_text(
-        render_index(reviews, site=site, env=env), encoding="utf-8"
+        render_index(reviews, site=site, env=env, home_widgets=home_widgets or []),
+        encoding="utf-8",
     )
     pages += 1
 
@@ -304,8 +306,11 @@ def build(
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
     editorials = _render_editorials(env, site, out_root)
+    home_widgets = discover_home_widgets()
     aggregations = _render_aggregations(
-        tuple(rendered), env, site, out_root, issue_configs=issue_configs
+        tuple(rendered), env, site, out_root,
+        issue_configs=issue_configs,
+        home_widgets=home_widgets,
     )
 
     _copy_static(out_root)

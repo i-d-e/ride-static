@@ -1,10 +1,15 @@
 {#-
-  index.html — Startseite per interface.md §4.
+  index.html — Startseite per [[interface.md §4]].
 
-  v0 layout: aktuelles Issue prominent als erste Sektion, eine Auswahl der
-  Beiträge als Karten, Browse-Shortcuts darunter. News/Call-for-Reviews-
-  Slot kommt aus content/news.md (Phase 9 Erweiterung), bis dahin nicht
-  gerendert.
+  Aufbau v1 (Welle 4):
+    1. Hero — Titel + zwei kurze Kennzahlen
+    2. Aktuelles Issue mit Review-Karten
+    3. Bearbeitbarer Widget-Bereich (content/home/*.md), drei
+       Spalten auf Desktop, gestapelt auf Mobile
+    4. Browse-Shortcuts in einer Zeile
+
+  Widgets sind redaktionell editierbar in content/home/*.md
+  (Loader: src.render.editorial.discover_home_widgets).
 -#}
 {% extends "base.html" %}
 {%- import "partials/review_card.html" as rc -%}
@@ -27,6 +32,19 @@
       <div class="ride-home__cards">
         {%- for r in current_reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
       </div>
+    </section>
+    {%- endif -%}
+
+    {%- if home_widgets -%}
+    <section class="ride-home__widgets" aria-label="Editorial">
+      {%- for w in home_widgets -%}
+      <article class="ride-widget" id="widget-{{ w.slug }}">
+        <h2 class="ride-widget__title">{{ w.title }}</h2>
+        <div class="ride-widget__body">
+          {{ w.body_html | safe }}
+        </div>
+      </article>
+      {%- endfor -%}
     </section>
     {%- endif -%}
 
