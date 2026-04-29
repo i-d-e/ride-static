@@ -231,7 +231,7 @@ hr {
 .ride-ref                       { /* base — inherits link colour from a {} */ }
 .ride-ref--local                { /* same-page anchor — default link styling is the right affordance */ }
 .ride-ref--criteria             { border-bottom: 1px dotted currentColor; text-decoration: none; }
-.ride-ref--external::after      { content: " ↗"; font-size: 0.85em; color: var(--ride-fg-tertiary); }
+.ride-ref--external             { /* external link styling — class hook, no glyph indicator */ }
 .ride-ref--orphan               { color: var(--ride-fg-secondary); text-decoration: line-through; cursor: not-allowed; }
 
 .ride-note                      { /* footnote marker; superscript wrapper renders the @n value */ }

@@ -77,7 +77,7 @@
   <li id="{{ anchor }}">
     {%- if n.n %}<span class="ride-note__n">{{ n.n }}</span> {% endif -%}
     {{ inlines(n.children) }}
-    {%- if anchor %} <a class="ride-note__back" href="#{{ anchor }}-mark" aria-label="Back to text">↩</a>{% endif -%}
+    {%- if anchor %} <a class="ride-note__back" href="#{{ anchor }}-mark">back</a>{% endif -%}
   </li>
 {%- endmacro -%}
 
