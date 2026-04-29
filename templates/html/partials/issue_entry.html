@@ -1,0 +1,57 @@
+{#-
+  issue_entry.html — rich review entry on the Issue page.
+
+  Shows the reviewed-edition citation block, the reviewer attribution
+  inline, and a truncated abstract excerpt. Falls back gracefully when
+  any field is missing (corpus has 107 reviews with various levels of
+  metadata completeness). Wordcloud thumbnail is rendered when present
+  on the per-issue YAML config; otherwise the image column is omitted
+  and the text fills the row.
+
+  Variables expected:
+    review            — the Review domain object
+    site              — SiteConfig (for base_url)
+    abstract_excerpt  — already-truncated plain text (or None)
+    wordcloud_url     — site-rooted image URL (or None)
+-#}
+{%- macro issue_entry(review, site, abstract_excerpt, wordcloud_url) -%}
+{%- set reviewed = namespace(item=None) -%}
+{%- for ri in review.related_items if ri.type == 'reviewed_resource' and reviewed.item is none -%}
+  {%- set reviewed.item = ri -%}
+{%- endfor -%}
+{%- set review_url = site.base_url ~ '/issues/' ~ review.issue ~ '/' ~ review.id ~ '/' -%}
+<article class="ride-issue-entry">
+  {%- if wordcloud_url -%}
+  <a class="ride-issue-entry__thumb" href="{{ review_url }}" tabindex="-1" aria-hidden="true">
+    <img src="{{ wordcloud_url }}" alt="" loading="lazy">
+  </a>
+  {%- endif -%}
+  <div class="ride-issue-entry__body">
+    <h3 class="ride-issue-entry__title">
+      <a href="{{ review_url }}">{{ review.title }}</a>
+    </h3>
+
+    {%- if reviewed.item or review.authors -%}
+    <p class="ride-issue-entry__cite">
+      {%- if reviewed.item -%}
+        {%- if reviewed.item.title -%}<cite>{{ reviewed.item.title }}</cite>{% else %}<cite>{{ reviewed.item.bibl_text }}</cite>{% endif -%}
+        {%- if reviewed.item.bibl_targets %} <a href="{{ reviewed.item.bibl_targets[0] }}" rel="external">{{ reviewed.item.bibl_targets[0] }}</a>{% endif -%}
+        {%- if reviewed.item.last_accessed %} (Last Accessed: {{ reviewed.item.last_accessed }}){% endif -%}.
+      {%- endif -%}
+      {%- if review.authors %}
+        Reviewed by
+        {%- for a in review.authors %}
+          {{ ' ' }}{{ a.person.full_name }}
+          {%- if a.affiliation and a.affiliation.org_name %} ({{ a.affiliation.org_name }}){% endif -%}
+          {%- if not loop.last %}{% if loop.revindex == 2 %} and{% else %},{% endif %}{% endif -%}
+        {%- endfor -%}.
+      {%- endif -%}
+    </p>
+    {%- endif -%}
+
+    {%- if abstract_excerpt -%}
+    <p class="ride-issue-entry__abstract">{{ abstract_excerpt }}</p>
+    {%- endif -%}
+  </div>
+</article>
+{%- endmacro -%}

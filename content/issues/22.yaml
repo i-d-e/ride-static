@@ -1,0 +1,9 @@
+issue: '22'
+title: 'Issue 22: Scholarly Editions'
+doi: 10.18716/ride.a.22
+publication_date: 2026-03
+editors:
+- name: Ulrike Henny-Krahmer
+- name: Martina Scholger
+- name: Finnja Borchardt
+  role: assistant

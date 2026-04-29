@@ -681,16 +681,126 @@ main.ride-shell {
   .ride-tag-list                { column-count: 1; }
 }
 
-/* Issue header & rolling-issue badge. */
-.ride-issue__header             { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-4); border-bottom: 1px solid var(--ride-rule); }
-.ride-issue__status             { margin: 0 0 var(--ride-space-3); }
-.ride-issue__meta               { font-family: var(--ride-font-sans); font-size: var(--ride-text-small); margin: var(--ride-space-3) 0; }
-.ride-issue__meta dt            { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); color: var(--ride-fg-secondary); }
-.ride-issue__meta dd            { margin: 0; }
-.ride-issue__description        { font-style: italic; color: var(--ride-fg-secondary); }
+/* Issue-Header — Titel, Editor-Lead, optional Description und Count.
+   Welle 6: vorher zwei-spaltige <dl>-Tabelle mit Editors/DOI/Date,
+   jetzt ein redaktioneller Lead-Satz im Live-Site-Stil
+   ("Edited by …. {Date}. DOI: …."). */
+.ride-issue__header {
+  margin-bottom: var(--ride-stack-section);
+  padding-bottom: var(--ride-space-6);
+  border-bottom: 1px solid var(--ride-rule);
+}
+.ride-issue__title {
+  margin: 0 0 var(--ride-space-3);
+  font-size: var(--ride-text-h1);
+}
+.ride-issue__lead {
+  margin: 0 0 var(--ride-space-3);
+  font-size: 1.05em;
+  color: var(--ride-fg-primary);
+  line-height: var(--ride-leading-prose);
+}
+.ride-issue__description {
+  margin: var(--ride-space-3) 0;
+  font-style: italic;
+  color: var(--ride-fg-secondary);
+}
+.ride-issue__count {
+  margin: var(--ride-space-3) 0 0;
+  font-size: var(--ride-text-small);
+  color: var(--ride-fg-tertiary);
+}
+.ride-issue__back {
+  margin-top: var(--ride-stack-section);
+  font-size: var(--ride-text-small);
+}
 
-.ride-badge                     { display: inline-block; padding: 1px 6px; font-family: var(--ride-font-sans); font-size: var(--ride-text-tiny); font-weight: var(--ride-weight-medium); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 2px; margin-left: var(--ride-space-2); }
-.ride-badge--rolling            { background: var(--ride-accent); color: var(--ride-bg); }
+/* Rich-Entry pro Review — Wordcloud-Thumbnail (wenn vorhanden) +
+   Titel + Edition-Citation + Reviewer-Inline + Abstract-Excerpt. */
+.ride-issue__contributions > * + * {
+  margin-top: var(--ride-stack-block);
+  padding-top: var(--ride-stack-block);
+  border-top: 1px solid var(--ride-rule);
+}
+
+.ride-issue-entry {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: var(--ride-space-6);
+  align-items: start;
+}
+.ride-issue-entry__thumb {
+  display: block;
+  width: 160px;
+  aspect-ratio: 1;
+  background: var(--ride-bg-muted);
+  border-radius: var(--ride-radius);
+  overflow: hidden;
+}
+.ride-issue-entry__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.ride-issue-entry__body {
+  min-width: 0;
+}
+.ride-issue-entry__title {
+  margin: 0 0 var(--ride-space-3);
+  font-size: var(--ride-text-h2);
+  font-weight: var(--ride-weight-medium);
+  line-height: var(--ride-leading-ui);
+}
+.ride-issue-entry__title a {
+  text-decoration: none;
+}
+.ride-issue-entry__title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ride-issue-entry__cite {
+  margin: 0 0 var(--ride-space-3);
+  font-size: var(--ride-text-small);
+  color: var(--ride-fg-secondary);
+}
+.ride-issue-entry__cite cite {
+  font-style: italic;
+  color: var(--ride-fg-primary);
+}
+.ride-issue-entry__abstract {
+  margin: 0;
+  color: var(--ride-fg-primary);
+}
+
+/* Wenn die Issue-Liste keine Wordcloud hat, fällt die Thumbnail-Spalte
+   weg. Pre-Welle-6-Issues kommen so ohne leeren Platzhalter aus. */
+.ride-issue-entry:not(:has(.ride-issue-entry__thumb)) {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 719px) {
+  .ride-issue-entry {
+    grid-template-columns: 96px 1fr;
+    gap: var(--ride-space-4);
+  }
+  .ride-issue-entry__thumb { width: 96px; }
+  .ride-issue-entry__title { font-size: var(--ride-text-h3); }
+}
+
+.ride-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-tiny);
+  font-weight: var(--ride-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--ride-radius);
+  vertical-align: middle;
+  margin-left: var(--ride-space-3);
+}
+.ride-badge--rolling { background: var(--ride-accent); color: var(--ride-bg); }
 
 /* Review header — title + bibliographic-and-reviewer prose block
    (interface.md §5, mockup-driven). The reviewed-edition citation and

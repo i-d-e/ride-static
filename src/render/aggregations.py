@@ -34,12 +34,34 @@ from src.parser.datasets import (
 )
 from src.render.editorial import HomeWidget, discover_home_widgets
 from src.render.html import (
+    REPO_ROOT,
     SiteConfig,
+    abstract_excerpt,
     make_env,
     media_path_factory,
     slugify,
     static_path_factory,
 )
+
+WORDCLOUD_DIR = REPO_ROOT / "static" / "images" / "wordclouds"
+
+
+def _wordcloud_url(review: Review, base_url: str) -> Optional[str]:
+    """Return the wordcloud thumbnail URL for a review, or None if absent.
+
+    Wordclouds are bundled under ``static/images/wordclouds/{review_id}.{ext}``
+    after a one-shot import from the live ride.i-d-e.de site (Welle 6.B).
+    Both PNG and JPG are accepted because the source site mixes them.
+    Reviews without a wordcloud render the issue entry without a thumbnail.
+    """
+    if not review.id:
+        return None
+    for ext in ("png", "jpg"):
+        candidate = WORDCLOUD_DIR / f"{review.id}.{ext}"
+        if candidate.exists():
+            prefix = base_url.rstrip("/") if base_url else ""
+            return f"{prefix}/static/images/wordclouds/{review.id}.{ext}"
+    return None
 from src.render.issues_config import IssueConfig, order_reviews
 
 
@@ -156,12 +178,23 @@ def render_issue(
     issue_reviews = order_reviews(issue_no, issue_reviews, config)
     latest = max((r.publication_date or "" for r in issue_reviews), default="")
     title = (config.title if config and config.title else f"Issue {issue_no}")
+    # Pre-compute per-review excerpts and wordcloud URLs so the template
+    # stays declarative; same pattern as the citation/JSON-LD pipelines.
+    entries = [
+        {
+            "review": r,
+            "abstract_excerpt": abstract_excerpt(r),
+            "wordcloud_url": _wordcloud_url(r, site.base_url),
+        }
+        for r in issue_reviews
+    ]
     return env.get_template("issue.html").render(
         **_common_ctx(site),
         page_title=title,
         page_url=_abs_url(site, f"/issues/{issue_no}/"),
         issue_no=issue_no,
         reviews=issue_reviews,
+        entries=entries,
         latest_date=latest,
         config=config,
     )

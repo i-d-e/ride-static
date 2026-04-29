@@ -325,6 +325,27 @@ def abstract_first_paragraph_text(review: Review) -> Optional[str]:
     return None
 
 
+def abstract_excerpt(review: Review, max_chars: int = 360) -> Optional[str]:
+    """Truncated abstract for listing pages.
+
+    Returns the first paragraph of the abstract trimmed to roughly
+    ``max_chars`` characters at a word boundary, with a Unicode ellipsis
+    appended. ``None`` when the review has no abstract paragraph. Used
+    by the issue entry template to give readers a content preview
+    without leaving the listing.
+    """
+    text = abstract_first_paragraph_text(review)
+    if not text:
+        return None
+    if len(text) <= max_chars:
+        return text
+    cut = text[:max_chars]
+    last_space = cut.rfind(" ")
+    if last_space > max_chars * 0.6:
+        cut = cut[:last_space]
+    return cut.rstrip(".,;:") + "…"
+
+
 def doi_url(doi: Optional[str]) -> Optional[str]:
     """Wrap a bare DOI ('10.18716/...') in the standard ``https://doi.org`` URL.
 

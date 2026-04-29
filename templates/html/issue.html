@@ -1,64 +1,60 @@
 {#-
   issue.html — Issue-Ansicht (R4).
-  Issue-Metadaten oben + Beitragskarten. Die yaml-konfigurierten Felder
-  (DOI, Editors, Description, Status, Publication-Date) werden
-  bevorzugt; ohne YAML wird auf TEI-Header-Aggregat zurückgefallen.
+
+  Aufbau Welle 6:
+    - Issue-Titel + Lead-Absatz mit Editor:innen, Datum, DOI inline
+    - Status-Badge bei Rolling-Issues
+    - Optionale Description (aus issue.yaml)
+    - Liste von Rich-Entries: Wordcloud-Thumbnail (wenn vorhanden) +
+      Titel + Edition-Citation + Reviewer + Abstract-Excerpt
+    - Footer-Link "All issues"
 -#}
 {% extends "base.html" %}
-{%- import "partials/review_card.html" as rc -%}
+{%- import "partials/issue_entry.html" as ie -%}
 
 {% block content %}
 <div class="ride-page ride-page--solo">
   <div class="ride-content">
 
     <header class="ride-issue__header">
-      <h1>
+      <h1 class="ride-issue__title">
         {%- if config and config.title %}{{ config.title }}
         {%- else %}Issue {{ issue_no }}{% endif -%}
+        {%- if config and config.is_rolling %} <span class="ride-badge ride-badge--rolling">rolling issue</span>{% endif -%}
       </h1>
 
-      {%- if config and config.is_rolling -%}
-        <p class="ride-issue__status"><span class="ride-badge ride-badge--rolling">rolling issue</span></p>
-      {%- endif -%}
-
-      <dl class="ride-issue__meta">
-        {%- set effective_date = (config.publication_date if config and config.publication_date else latest_date) -%}
-        {%- if effective_date -%}
-          <dt>{% if config and config.is_rolling %}Latest update{% else %}Published{% endif %}</dt>
-          <dd>{{ effective_date }}</dd>
-        {%- endif -%}
-        {%- if config and config.doi -%}
-          <dt>DOI</dt>
-          <dd><a href="https://doi.org/{{ config.doi }}">{{ config.doi }}</a></dd>
-        {%- endif -%}
+      {#- Editor-Lead-Satz im Stil der Live-Site: "Edited by … . {Date}. DOI: …" -#}
+      <p class="ride-issue__lead">
         {%- if config and config.editors -%}
-          <dt>Editor{% if config.editors | length > 1 %}s{% endif %}</dt>
-          <dd>
-            {%- for ed in config.editors -%}
-              {%- if ed.orcid %}<a href="{{ ed.orcid }}">{{ ed.name }}</a>
-              {%- else %}{{ ed.name }}{% endif -%}
-              {%- if ed.affiliation %} ({{ ed.affiliation }}){% endif -%}
-              {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}
-          </dd>
+          Edited by
+          {%- for ed in config.editors %}
+            {{ ' ' }}
+            {%- if ed.orcid %}<a href="{{ ed.orcid }}">{{ ed.name }}</a>
+            {%- else %}{{ ed.name }}{% endif -%}
+            {%- if not loop.last %}{% if loop.revindex == 2 %} and{% else %},{% endif %}{% endif -%}
+          {%- endfor -%}.
         {%- endif -%}
-        <dt>Reviews</dt>
-        <dd>{{ reviews | length }}</dd>
-      </dl>
+        {%- set effective_date = (config.publication_date if config and config.publication_date else latest_date) -%}
+        {%- if effective_date %} {{ effective_date }}{% if config and config.is_rolling %} – present (rolling release){% endif %}.{% endif -%}
+        {%- if config and config.doi %} DOI: <a href="https://doi.org/{{ config.doi }}">{{ config.doi }}</a>.{% endif -%}
+      </p>
 
       {%- if config and config.description -%}
         <p class="ride-issue__description">{{ config.description }}</p>
       {%- endif -%}
+
+      <p class="ride-issue__count">
+        {{ reviews | length }} review{% if reviews | length != 1 %}s{% endif %} in this issue.
+      </p>
     </header>
 
-    <section class="ride-issue__contributions">
-      <h2 class="ride-sr-only">Contributions</h2>
-      <div class="ride-issue__cards">
-        {%- for r in reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
-      </div>
+    <section class="ride-issue__contributions" aria-label="Contributions">
+      {%- for entry in entries -%}
+        {{ ie.issue_entry(entry.review, site, entry.abstract_excerpt, entry.wordcloud_url) }}
+      {%- endfor -%}
     </section>
 
-    <p><a href="{{ site.base_url }}/issues/">← All issues</a></p>
+    <p class="ride-issue__back"><a href="{{ site.base_url }}/issues/">← All issues</a></p>
   </div>
 </div>
 {% endblock %}
