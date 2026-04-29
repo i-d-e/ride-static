@@ -285,6 +285,8 @@ def render_review(
     env: Optional[Environment] = None,
 ) -> str:
     """Render one Review to a complete HTML page string."""
+    from src.render.jsonld import to_jsonld_string
+
     site = site or SiteConfig()
     env = env or make_env()
 
@@ -301,7 +303,7 @@ def render_review(
         page_url=f"{site.base_url}/issues/{review.issue}/{review.id}/" if site.base_url else None,
         page_description=_inlines_to_text(_first_paragraph_inlines(review))[:200] or None,
         og=None,
-        json_ld=None,
+        json_ld=to_jsonld_string(review, base_url=site.base_url),
         static_path=static_path_factory(site.base_url),
         media_path=media_path_factory(site.base_url),
     )
