@@ -1,14 +1,24 @@
 """Tests for the mixed-content inline parser.
 
-Synthetic TEI fragments cover the walker (text + child + tail), the
-whitespace strategy (collapse internal, strip edges), each of the six
-inline kinds, nesting (Emphasis containing Reference, Reference
-containing Emphasis), the soft-skip set (``<lb/>``), the ``crosssref``
-normalisation, and the unknown-element raise.
+Test-data philosophy per CLAUDE.md hard rule:
 
-A real-corpus smoke test parses ``<head>`` elements from a few reviews
-without raising, and another verifies that the single ``crosssref`` typo
-is normalised to ``crossref``.
+* ``parse_inlines`` is a unit-level walker — it takes one lxml element
+  and returns a tuple of Inline dataclasses. Synthetic TEI fragments
+  are the appropriate test shape per the "Pure-function unit tests
+  may use synthetic inputs" exception. Each walker rule (text + child
+  + tail, whitespace collapse-and-strip, soft-skip ``<lb/>``,
+  ``crosssref`` typo normalisation, unknown-element raise) is pinned
+  with a small synthetic fragment.
+* Reference-bucket classification (``local`` / ``criteria`` /
+  ``external`` / ``orphan``) is the post-pass on top of the parsed
+  inlines — its real-corpus coverage lives in
+  ``test_parser_refs_resolver.py``. This module pins the parser; that
+  module pins the resolver.
+* Real-corpus integration sits at the bottom: ``<head>`` elements in
+  the first ten reviews parse without raising, and the single
+  ``<ref type="crosssref">`` typo in the corpus is normalised to
+  ``crossref``. A third test pins a concrete body paragraph against
+  1641-tei.xml so any drift in the inline mix surfaces.
 """
 from __future__ import annotations
 
@@ -30,6 +40,13 @@ from src.parser.inlines import parse_inlines
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+
+needs_corpus = pytest.mark.skipif(
+    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+)
 
 
 def _el(xml: str) -> etree._Element:
@@ -324,17 +341,14 @@ def test_block_inside_p_raises():
 # -- Real-corpus smoke ----------------------------------------------------
 
 
-_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
-
-
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_first_ten_heads_parse() -> None:
     """``<head>`` elements have only inline children in the corpus
     (1917 occurrences with emph/ref/note/code/hi inside). Pick the first
     ten across alphabetically-first reviews and confirm they parse without
     raising."""
     seen = 0
-    for f in sorted(_RIDE.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
         tree = etree.parse(str(f))
         for head in tree.iter("{%s}head" % TEI):
             inlines = parse_inlines(head)
@@ -345,14 +359,14 @@ def test_smoke_real_corpus_first_ten_heads_parse() -> None:
     assert seen > 0
 
 
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_crosssref_normalised() -> None:
     """Find the single ``<ref type="crosssref">`` in the corpus (one
     occurrence per inventory) and verify the parser normalises it to
     ``crossref``."""
     import copy
     found = False
-    for f in sorted(_RIDE.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
         tree = etree.parse(str(f))
         for ref in tree.iter("{%s}ref" % TEI):
             if ref.get("type") == "crosssref":
@@ -372,3 +386,35 @@ def test_smoke_real_corpus_crosssref_normalised() -> None:
         if found:
             break
     assert found, "expected exactly one <ref type='crosssref'> in the corpus"
+
+
+@needs_corpus
+def test_smoke_real_corpus_inline_kinds_distribution() -> None:
+    """Walk inline-only hosts across the corpus and confirm the parser
+    produces every inline kind known to the model. ``<head>`` and
+    ``<hi>`` carry only inlines (block children would raise via
+    ``parse_paragraph_or_split`` elsewhere); paragraphs that contain
+    block-children are handled by the block parser, not parse_inlines,
+    so they are filtered out here.
+
+    The test pins existence rather than exact counts so small editorial
+    drifts do not flip it. If an inline kind vanishes entirely, that
+    is a real signal worth surfacing.
+    """
+    BLOCK_TAGS = {f"{{{TEI}}}{t}" for t in ("p", "list", "table", "figure", "cit", "quote", "div")}
+    seen = {"Text": 0, "Emphasis": 0, "Highlight": 0, "Reference": 0, "Note": 0, "InlineCode": 0}
+    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
+        tree = etree.parse(str(f))
+        for host in tree.iter("{%s}head" % TEI, "{%s}p" % TEI):
+            # Skip <p> elements that contain block-level children; those
+            # belong to the block parser path, not the inline walker.
+            if any(child.tag in BLOCK_TAGS for child in host):
+                continue
+            for inline in parse_inlines(host):
+                seen[type(inline).__name__] += 1
+    # Every inline kind has at least one corpus occurrence in the
+    # inline-only hosts we walked. Many inlines also live inside <p>
+    # elements with block children — those are routed through the block
+    # parser, not parse_inlines, and are intentionally not counted here.
+    for kind, count in seen.items():
+        assert count > 0, f"no {kind} found across the corpus — kind has vanished?"
