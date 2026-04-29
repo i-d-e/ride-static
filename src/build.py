@@ -44,6 +44,7 @@ from src.render.aggregations import (
     render_tags_overview,
     reviewer_slug,
 )
+from src.render.corpus_dump import to_corpus_dump_string
 from src.render.editorial import discover_editorials, render_editorial
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
@@ -268,6 +269,7 @@ def build(
 
     _copy_static(out_root)
     sitemap_written = _write_sitemap(tuple(rendered), site, out_root)
+    _write_corpus_dump(tuple(rendered), site, out_root)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
@@ -277,10 +279,30 @@ def build(
     print(f"Wrote {aggregations} aggregation pages")
     if sitemap_written:
         print("Wrote sitemap.xml")
+    print("Wrote api/corpus.json")
 
     _print_asset_summary(asset_reports)
 
     return len(rendered)
+
+
+def _write_corpus_dump(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> None:
+    """Write the full-corpus JSON dump to ``site/api/corpus.json``.
+
+    Per requirements R15 / A5 the dump is always written — unlike
+    sitemap.xml it does not require an absolute base_url. Consumers
+    receive the corpus as one self-describing file.
+    """
+    api_dir = out_root / "api"
+    api_dir.mkdir(parents=True, exist_ok=True)
+    build_date = site.build_info.date if site.build_info else None
+    payload = to_corpus_dump_string(
+        reviews,
+        base_url=site.base_url,
+        build_date=build_date,
+        indent=None,  # compact production dump
+    )
+    (api_dir / "corpus.json").write_text(payload, encoding="utf-8")
 
 
 def _write_sitemap(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
