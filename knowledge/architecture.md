@@ -244,7 +244,7 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
 
-## Repository layout (target)
+## Repository layout
 
 ```
 ride-static/
@@ -254,11 +254,11 @@ ride-static/
     model/                  domain types
     render/                 html, pdf, refs, assets, citation, corpus_dump
     build.py                Phase 8 build CLI: python -m src.build
-  templates/html/           Jinja templates (Phase 8+)
-  static/                   css/, js/, fonts/ (Phase 8+)
+  templates/html/           Jinja templates
+  static/                   css/, js/, fonts/
   config/
-    element-mapping.yaml    domain class → template + CSS class (Phase 8+)
-  content/                  editorial Markdown + per-issue YAML (Phase 9+)
+    element-mapping.yaml    domain class → template + CSS class (spec-only, see §Element-Mapping)
+  content/                  editorial Markdown + per-issue YAML
     about.md, imprint.md, criteria.md
     issues/{n}.yaml
     reviewers/{slug}.md     optional

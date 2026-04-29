@@ -27,11 +27,11 @@ ride-static/
   src/                    Stage 2+ — parser, model, render
     model/                domain types (Review, Person, Editor, …)
     parser/               TEI → domain
-    render/, build.py     html, pdf, refs, assets, build CLI (Phase 8+, planned)
-  templates/html/         Jinja templates (Phase 8+, planned)
-  static/                 css/, js/, fonts/ (Phase 8+, planned)
-  config/                 element-mapping.yaml + per-issue YAML configs (Phase 8+, planned)
-  content/                editorial Markdown: about, imprint, criteria, reviewers (Phase 9+, planned)
+    render/, build.py     html, pdf, refs, assets, build CLI
+  templates/html/         Jinja templates
+  static/                 css/, js/, fonts/
+  config/                 element-mapping.yaml + per-issue YAML configs
+  content/                editorial Markdown: about, imprint, criteria, reviewers
   inventory/              Generated JSON artifacts — gitignored
     _cache/               Cached upstream downloads (e.g. p5subset.xml)
   knowledge/              Obsidian-style vault, .md only, wikilinks for cross-refs

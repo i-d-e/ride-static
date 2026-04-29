@@ -45,7 +45,7 @@ Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes
 python -m pytest tests/
 ```
 
-### Build the site (planned, Phase 8+)
+### Build the site
 
 ```sh
 python -m src.build         # parses ride/tei_all/, renders site/
@@ -76,7 +76,7 @@ unchanged in CI.
 
 Cache `inventory/_cache/p5subset.xml` between runs to avoid re-downloading the 4 MB TEI P5 source on every build.
 
-## Output structure (planned)
+## Output structure
 
 ```
 site/
