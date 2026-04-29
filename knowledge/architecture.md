@@ -42,8 +42,14 @@ Two axes of stakeholder load shape the architecture:
 
 **Outputs**
 - `site/` — HTML pages, CSS, fonts, JS, images.
-- `site/pdf/` — per-review PDFs.
-- `site/search/index.json` — client-side search index.
+- `site/issues/{N}/{review_id}/{review_id}.pdf` — per-review PDF, written by the WeasyPrint pass alongside the HTML when `--pdf` is set.
+- `site/issues/{N}/{review_id}/{review_id}.xml` — original TEI, copied next to the rendered page so the sidebar download link resolves to a real file (R3).
+- `site/pagefind/` — Pagefind-generated search bundle (UI script, search index, language workers); produced as a CI step after `python -m src.build`.
+- `site/api/corpus.json` — full-corpus JSON dump with top-level `licence: {name, url}` (R15 / N6).
+- `site/api/build-info.json` — aggregated build report (commit, date, validation, optional linkcheck, asset counts) with the same licence field (N4 / N7).
+- `site/oai/` — OAI-PMH static snapshot (verb-per-file, A5).
+- `site/sitemap.xml` — when `--base-url` is set; A5.
+- `site/redirects/` — meta-refresh stubs from legacy WordPress paths (R17).
 
 ## Layers
 
@@ -82,7 +88,7 @@ Templates and renderers never touch raw XML. They consume Python
 objects that the parser produces from each TEI file.
 
 The model is designed for **two render targets** — HTML (Phase 8) and
-PDF via WeasyPrint (Phase 13) — per [[requirements#A6 PDF-Pfad]]. No
+PDF via WeasyPrint (Phase 14) — per [[requirements#A6 PDF-Pfad]]. No
 HTML-specific assumption may leak into the dataclasses; presentation
 concerns belong in the renderers.
 
@@ -134,7 +140,9 @@ Anything not yet listed but unknown should raise — silent coercion is forbidde
 Two output formats share the domain model:
 
 - **`render/html.py`** — Jinja templates in `templates/html/`. Visual and interaction design is fixed in [[interface]]; templates implement that spec mechanically.
-- **`render/pdf.py`** — PDF per review via WeasyPrint with own print stylesheet, per [[requirements#A6 PDF-Pfad]].
+- **`render/pdf.py`** — PDF per review via WeasyPrint, per [[requirements#A6 PDF-Pfad]]. The PDF pass reuses the already-rendered `index.html` and relies on the `@media print` block in `static/css/ride.css` to strip chrome (nav, sidebar, WIP-Banner) and surface a print-only DOI line on page 1. **No second template tree, no second render pass.** The lazy WeasyPrint import in `render_review_pdf` lets the build skip cleanly on hosts without Pango/Cairo (typical Windows dev) — only CI (with the GTK apt packages) actually emits PDFs.
+
+The print-only DOI line is its own small design pattern worth naming. The Meta sidebar exposes the DOI to web readers but is hidden in print, so without intervention the PDF would have no DOI on page 1. The fix is a `<p class="ride-review__doi-print">` directly under the review header that defaults to `display: none` and flips to `display: block` inside `@media print`. Two cooperating tests pin the contract without needing WeasyPrint at all (HTML-rendertest pinns the `<p>`, CSS-contract-test pinns the `display: block`); the integration test only confirms the WeasyPrint chain runs.
 
 Templates are dumb: they format `Review`/`Section`/`Block` instances and never reach into XML. Apparate-Block layout (References, Figures, Notes as parallel sub-blocks) lives in the renderer, not the model — see [[interface#6 Apparate als parallele Blöcke]].
 
@@ -255,6 +263,8 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones raise.
 - **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
+- **Build-info trinity (N4).** The build commit + date land in three places from a single `BuildInfo` dataclass: HTML footer (`<code>{commit_short}</code>` plus `data-commit` / `data-build-date` attributes), `site/api/build-info.json` (`build.commit_short`, `build.date`), and a `console.info` banner that fires once per page load when devtools are open. Three manifestations, one source — debugging any one of them surfaces the others. The console banner is gated on `site.build_info.commit_short`, so dev builds without git stay silent.
+- **Licence per machine artefact (N6).** A single constant pair `LICENCE_NAME` / `LICENCE_URL` in `src/render/corpus_dump.py` feeds the top-level `licence` field in both `corpus.json` and `build-info.json`; `<dc:rights>` in OAI-PMH is sourced from the per-review TEI `licence` value. Consumers downloading any of the JSON / XML artefacts know the terms without inferring from the footer.
 
 ## Repository layout
 
@@ -300,6 +310,7 @@ A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phas
 | Stage | Phases | Status |
 |---|---|---|
 | Discovery + Knowledge | scripts/, knowledge/ | done |
-| Domain model | 1–6 | 2.A done, 2.B–2.C pending |
-| Site rendering | 7–10 | planned |
-| Search, APIs, validation, PDF, deploy | 11–15 | planned |
+| Domain model | 1–6 | done (Stage 2.A–2.C) |
+| Site rendering | 7–10 | done; Data-Charts (R9, Phase 10-Rest) pending |
+| Search, APIs, validation, PDF | 11–14 | done |
+| Deploy + Ops | 15 | partial — GH Actions + Contact + Matomo-config + Lizenzen + WCAG-Polish gelandet; offen: WCAG-Vollaudit, Matomo-URL in CI-Secret, Custom-Domain-Entscheidung |

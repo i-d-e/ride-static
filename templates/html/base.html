@@ -192,7 +192,8 @@
   {%- endif %}
 
   {#- Four small JS modules (interface.md §12). Each is loaded as a plain ES module,
-      no bundler. Phase 8 ships copy-link, tooltip, cite-copy; Phase 11 adds pagefind. -#}
+      no bundler. copy-link / tooltip / cite-copy are the click + hover features
+      from Phase 8; pagefind mounts the search UI bound to #ride-search. -#}
   {% block scripts %}
   <script type="module" src="{{ static_path('js/copy-link.js') }}"></script>
   <script type="module" src="{{ static_path('js/tooltip.js') }}"></script>

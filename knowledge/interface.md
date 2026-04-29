@@ -140,17 +140,21 @@ Schriftwahl muss alle relevanten Glyphen sauber tragen, einschließlich Diakriti
 
 ## 9. Barrierefreiheit
 
-Mindestziel ist WCAG 2.2 AA gemäß [[requirements#N5 Barrierefreiheit]]. Vier Schwerpunkte sind operativ.
+Mindestziel ist WCAG 2.2 AA gemäß [[requirements#N5 Barrierefreiheit]]. Sechs Schwerpunkte sind operativ.
 
-Tastaturnavigation reicht bis in jede Sidebar-Box und jeden Apparat-Sub-Block. Fokus-Indikatoren sind sichtbar mit ausreichendem Kontrast.
+**Tastaturnavigation** reicht bis in jede Sidebar-Box und jeden Apparat-Sub-Block. Fokus-Indikatoren sind sichtbar mit ausreichendem Kontrast — eine generische `:focus-visible`-Regel überschreibt die UA-Defaults für alle interaktiven Element-Familien (`a`, `button`, `input`, `select`, `textarea`, `summary`, `[tabindex]`) und setzt einen 3-Pixel-Box-Shadow (`var(--ride-focus)`), weil die Browser-Defaults zwischen Chrome und Firefox bei dunklen Hintergründen schwach sind und nicht zuverlässig AA-Kontrast erreichen.
 
-Alt-Texte für alle Figures werden aus dem TEI-`figDesc`-Element bezogen. Fehlt `figDesc`, wird `Figure N` als Fallback gesetzt und eine Build-Warnung erzeugt, sodass redaktionelle Lücken sichtbar werden.
+**Target Size (WCAG 2.5.8 AA, neu in 2.2).** Pointer-Targets sind mindestens 24×24 CSS-Pixel. Tag-Pillen tragen `min-height: 24px` plus `display: inline-flex; align-items: center` — die kleinere Tag-Schrift schrumpft die Pille sonst unter die Schwelle, ohne dass es im Layout auffällt.
 
-Tabellen-Header verwenden `th`-Elemente mit `scope`-Attribut, nicht nur visuelle Auszeichnung.
+**Alt-Texte** für alle Figures werden aus dem TEI-`figDesc`-Element bezogen. Fehlt `figDesc`, wird `Figure N` als Fallback gesetzt und eine Build-Warnung erzeugt, sodass redaktionelle Lücken sichtbar werden. Wordcloud-Thumbnails auf der Issue-Seite tragen leeren Alt-Text plus `aria-hidden="true"` am Eltern-Link, weil der Titel-Link daneben die identische Funktion erfüllt — eine zweite ARIA-Stimme würde Screenreader doppeln.
 
-Sprach-Annotation wie in Abschnitt 8.
+**Tabellen-Header** verwenden `th`-Elemente mit `scope`-Attribut, nicht nur visuelle Auszeichnung.
 
-Kein Inhalt ist ausschließlich über Hover erreichbar. Hover zeigt zusätzliche Hilfen, nie kritische Information.
+**Sprach-Annotation** wie in Abschnitt 8.
+
+**Kein Inhalt** ist ausschließlich über Hover erreichbar. Hover zeigt zusätzliche Hilfen, nie kritische Information.
+
+**Reduced Motion.** Ein Block am Ende des Stylesheets (`@media (prefers-reduced-motion: reduce)`) deaktiviert Animationen und Transitions blanket — User-Präferenz schlägt Designwunsch.
 
 ## 10. Responsive
 
@@ -176,11 +180,25 @@ Alle anderen Interaktionen sind Browser-Standard. Animationen jenseits dezenter 
 
 **[[pipeline#Phasenplan|Phase 8]]** erzeugt ein Template pro semantische Einheit, plus ein Seitentyp-Template pro Seitentyp aus Abschnitt 4. Templates erhalten ausschließlich Domänenobjekte, kein XML, gemäß [[requirements#N1 Read-only-Pipeline]] und der Architektur-Designentscheidung „Domain model first" in [[architecture#Renderers]].
 
-Das CSS ist ein einzelnes Stylesheet (Welle 6 Stand: ca. 880 Zeilen, Soft-Cap auf 1000 Zeilen angehoben), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste.
+Das CSS ist ein einzelnes Stylesheet (Stand Phase 14/15.A: ca. 1010 Zeilen, Soft-Cap mehrfach angehoben — pro Welle eine Konsolidierung), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste; der Print-Stylesheet (§12.5) macht den jüngsten Zuwachs aus.
 
 JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[requirements#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
 
 Die Pagefind-Integration aus Abschnitt 11 wird in [[pipeline#Phasenplan|Phase 11]] ausgeführt, die Cite-Kopieraktion in [[pipeline#Phasenplan|Phase 8]], die Mehrsprachigkeit aus Abschnitt 8 als Querschnittsanforderung über alle Render-Phasen.
+
+## 12.5 Print-Stylesheet (PDF-Output)
+
+Die Site rendert ihren PDF-Pfad über WeasyPrint, das das fertige `index.html` und sein `@media print` interpretiert (siehe [[architecture#Renderers]]). Der Print-Stylesheet ist deshalb nicht „auch noch Druckansicht", sondern der **maßgebliche Layout-Vertrag für die ausgelieferten PDFs** und damit Teil des Designs.
+
+Die Konfiguration:
+
+- **`@page A4` mit 18mm/16mm Außenrand.** Größere Margins ergeben für eine textlastige Rezension einen ruhigeren Satzspiegel als die WeasyPrint-Defaults; A4 ist das geographische Ziel-Format der RIDE-Leserschaft.
+- **Chrome aus.** WIP-Banner, Header, Navbar, Footer, Sidebar, Skip-Link, Cite-Buttons sind im Print ausgeblendet — sie sind im PDF entweder bedeutungslos (Suchschlitz, Skip-Link) oder durch andere PDF-Elemente abgedeckt (Sidebar-Inhalte landen entweder im Header oder am Seitenende).
+- **DOI auf Seite 1 (R3 / A6).** Eine print-only `<p class="ride-review__doi-print">` direkt unter dem Review-Header trägt die DOI als klickbaren Link. Der `display: none`-Default hält sie im Web aus dem Lese-Layout heraus — die Sidebar-Meta-Box bedient den Web-Reader. Im Print flippt sie auf `display: block`.
+- **Page-break-Steuerung.** Headings vermeiden Page-Break-After (`page-break-after: avoid`), Figures und Tabellen vermeiden Page-Break-Inside. Das verhindert, dass Captions oder Tabellenzellen über Seitenwechsel zerrissen werden.
+- **Externe Links als sichtbare URLs.** `a[href^="http"]::after { content: " (" attr(href) ")"; … }` setzt die Ziel-URL hinter den Linktext, weil ein klickbarer Link in einem ausgedruckten PDF wertlos ist.
+
+Pagefind-CSS, Logos und das Konsole-Banner sind im PDF nicht sichtbar — entweder durch `display: none` im `@media print` oder weil WeasyPrint kein JavaScript ausführt.
 
 ## 13. Bewusst nicht behandelt
 

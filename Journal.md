@@ -30,6 +30,32 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 14 + 15.A: PDF live, Compliance-Block geschlossen
+
+**Ziel:** Die nach Welle 8-10 verbliebenen Compliance- und UX-Items aus dem Phasenplan abräumen — Kontaktseite (R14), Cookieless-Matomo (R16), Lizenzhinweise pro Artefakt (N6), WCAG-2.2-AA-Polish (N5) — und anschließend Phase 14 (PDF aus Domänenmodell) implementieren, damit der seit Welle 8 tote Sidebar-Link `ride.N.M.pdf` produktiv wird.
+
+**Erledigt:**
+- **`0de85ca` Phase 15.A:** Contact-Seite (`content/contact.md`) mit zwei Mail-Adressen + Verweis auf Imprint, Footer- und About-Submenü-Link; Console-Banner mit Build-Commit + Datum (devtools-Ausgabe nur wenn `build_info` gesetzt — silent dev-builds); `licence: {name, url}` als Top-Level-Feld in `api/corpus.json` und `api/build-info.json`; cookieless Matomo-Snippet via `--matomo-url` + `--matomo-site-id`, gated auf beide Felder zusammen; generic `:focus-visible` über alle interaktiven Element-Familien (`button`, `input`, `select`, `textarea`, `summary`, `[tabindex]`); Tag-Pills `min-height: 24px` für WCAG 2.5.8.
+- **`84183f8` Phase 14:** `src/render/pdf.py` mit lazy-importierter WeasyPrint, `_render_pdfs()` in `build.py` rendert nach jedem HTML einen PDF-Geschwister; print-only `<p class="ride-review__doi-print">` im Review-Header (DOI auf Seite 1, da Sidebar im Print-CSS verschwindet); print-Stylesheet ausgebaut (`@page A4`, Chrome weg, `page-break-after`, Link-URLs als Klammertext); CI installiert `libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0` und ruft `--pdf` auf.
+- **Tests:** 438 → 455 (+17 über zwei Commits); WeasyPrint-Tests skippen sauber wenn GTK fehlt (`HAS_WEASYPRINT` via Try/Except um Import + OSError, weil ctypes auf Windows OSError statt ImportError wirft).
+
+**Entscheidungen:**
+- **PDF reuses HTML, no separate template.** Begründung: WeasyPrint kann das fertige `index.html` direkt schlucken; das `@media print` in `ride.css` strippt Chrome. Kein zweiter Template-Baum, kein zweiter Render-Pass. Zwei Wahrheiten = eine Drift-Quelle weniger.
+- **DOI-Zeile als print-only Element**, nicht im normalen Header für Web sichtbar. Begründung: A6 verlangt DOI auf Seite 1 des PDFs, aber im Web-Layout zeigt die Meta-Sidebar die DOI bereits — eine zweite Zeile im Header wäre redundant. `display: none` als Default + `display: block` im `@media print` löst beides.
+- **Matomo-Snippet gated auf beide Felder.** `parser.error` wenn nur eines gesetzt — ein halbkonfigurierter Deploy würde sonst still mit `setSiteId('')` Hits senden. Sicherheits-Default: kein Tracker statt undefiniertem Tracker.
+- **WeasyPrint-Imports in einem `try/except (ImportError, OSError)`.** Begründung: lokaler Windows-Stand hat WeasyPrint installiert, aber GTK fehlt → `OSError` aus ctypes. `pytest.importorskip` allein würde das nicht catchen. CI auf Ubuntu hat beides.
+
+**Offen:**
+- **CI-Run für Phase 14 läuft noch** (Run 25110248391, queued bei Push). Erste Verifikation der WeasyPrint-Pipeline gegen den vollen 107-Review-Korpus auf Linux. Bei Erfolg: Sidebar-PDF-Link wird live, A6 erfüllt.
+- **Data-Charts (R9, Phase 10-Rest)** — nicht in dieser Session angefasst. Letzter offener Brocken aus dem 7-Item-Plan. Die Questionnaire-Aggregate (Stage 2.C) sind da; was fehlt ist SVG-Rendering pro Kategorie und die `/data/charts/`-Seite, die sie einbettet.
+- **39 fehlende Wordclouds** für ältere Issues — kosmetisch, kein Hard-Block.
+- **`pipeline.md` Phasentabelle** noch nicht von "open" auf "done" für Phase 14 geupdated. Trivialer Edit nach CI-Bestätigung.
+
+**Nächster Einstieg:**
+`gh run view 25110248391` prüfen — wenn grün, in `knowledge/pipeline.md` Phase 14 + 15 (Teilstand) auf done setzen und `memory/project_phase.md` aktualisieren. Dann optional Data-Charts angehen — Einstiegspunkt: `src/parser/datasets.py` hat schon `Questionnaire`-Aggregat, fehlt nur ein neues `src/render/charts.py`-Modul, das pro Kategorie ein bar-chart-SVG aus den `value=0/1`-Antworten produziert, plus Einbettung in `content/data-charts.md`. Test: real-corpus-drive — SVG-Pfad enthält Anzahl Kategorien × Anzahl Reviews als Datenpunkte.
+
+---
+
 ## 2026-04-28 — Backend Session-Ende: Test-Refactor-Welle 2 angestoßen, Übergabe
 
 **Ziel:** Nach Phase-7-Abschluss eine zweite Test-Refactor-Welle gegen die neue Real-Corpus-Drive-Hard-Rule aus CLAUDE.md anstoßen — den Phase-7-Audit auf den Rest der Suite anwenden, statt Schulden mitzunehmen.

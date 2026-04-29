@@ -2,7 +2,7 @@
 title: Die statische RIDE-Webseite. Konzept, Architektur und Stand
 repository: https://github.com/i-d-e/ride-static
 version: 2026-04-29
-status: Phasen 1–4 abgeschlossen, Phase 5 als nächster Einstieg
+status: Phasen 1–14 abgeschlossen, Phase 15 zu ca. 60 % gelandet (Kontakt, Matomo-Config, Lizenzhinweise, WCAG-Polish); offen: Data-Charts (R9), WCAG-Vollaudit, Matomo-CI-Secret, Custom-Domain-Entscheidung
 ---
 
 # Die statische RIDE-Webseite. Konzept, Architektur und Stand
@@ -275,17 +275,17 @@ gebaut wird; Stand-Marker zeigen, was abgeschlossen ist.
 | 2 | Section-Parser inklusive Body-Wrap-Anomalie | abgeschlossen |
 | 3 | Block-Parser (Paragraph, List, Table, Figure, Citation) | abgeschlossen |
 | 4 | Inline-Parser (Mixed-Content-Walker plus sechs Inline-Kinds) | abgeschlossen |
-| 5 | Integration in `parse_review`; `Review.body` für alle 107 Reviews voll | nächster Einstieg |
-| 6 | Bibliography- und Questionnaire-Modell, Aggregate für Tags, Reviewer, Resources | offen |
-| 7 | Reference-Resolver, Asset-Pipeline für eingebettete Bilder | offen |
-| 8 | HTML-Rezensionsseiten plus Zitierexport, Copy-Link, Tooltip-Vorschau, JS-Module | offen |
-| 9 | Editorialschicht (Markdown plus Issue-YAML mit Konsistenzcheck) | offen |
-| 10 | Aggregations- und Übersichtsseiten | offen |
-| 11 | Pagefind-Volltextsuche | offen |
+| 5 | Integration in `parse_review`; `Review.body` für alle 107 Reviews voll | abgeschlossen |
+| 6 | Bibliography- und Questionnaire-Modell, Aggregate für Tags, Reviewer, Resources | abgeschlossen |
+| 7 | Reference-Resolver, Asset-Pipeline für eingebettete Bilder | abgeschlossen |
+| 8 | HTML-Rezensionsseiten plus Zitierexport, Copy-Link, Tooltip-Vorschau, JS-Module | abgeschlossen |
+| 9 | Editorialschicht (Markdown plus Issue-YAML mit Konsistenzcheck) | abgeschlossen |
+| 10 | Aggregations- und Übersichtsseiten | abgeschlossen außer Data-Charts (R9) |
+| 11 | Pagefind-Volltextsuche | abgeschlossen (Welle 9) |
 | 12 | Maschinenschnittstellen (OAI-PMH, JSON-LD, Korpus-Dump, Sitemap) | abgeschlossen |
-| 13 | Validierung gegen RelaxNG plus Schematron, `build-info.json`, Build-Bericht | offen |
-| 14 | PDF aus Domänenmodell via WeasyPrint | offen |
-| 15 | Deploy, cookieloses Matomo, WCAG-Audit, Meta-Refresh-Redirects | offen |
+| 13 | Validierung gegen RelaxNG, `build-info.json`, Build-Bericht | abgeschlossen (Welle 10); Schematron deferred |
+| 14 | PDF aus Domänenmodell via WeasyPrint | abgeschlossen |
+| 15 | Deploy, cookieloses Matomo, WCAG-Audit, Meta-Refresh-Redirects | partial — GH-Actions, Contact-Seite, Matomo-Snippet (deploy-time-konfigurierbar), Lizenzhinweise pro Artefakt, WCAG-2.5.8/2.4.7-Polish und Redirects gelandet; offen: WCAG-Vollaudit über die Live-Site, produktive Matomo-URL als CI-Secret, Custom-Domain-Entscheidung |
 
 Die Verortung der PDF-Phase ist absichtlich auf Phase 14 belassen. Beide
 Renderer hängen am gleichen Domänenmodell, eine frühere Implementierung
@@ -352,33 +352,33 @@ Fragen" formuliert.
 
 ## Stand der Implementierung
 
-Stage Discovery und Stage Knowledge sind abgeschlossen. Stage Domain-Model
-2.A (Header-Parser) ist abgeschlossen. Aus dem Phasenplan sind Phasen 1
-bis 4 abgeschlossen, mit 170 von 170 grünen Tests inklusive
-Real-Korpus-Smokes; jüngster Stand ist Commit `6d9f05e` (Inline-Parser,
-2026-04-29).
+Stand 2026-04-29 nach Phase 14 + 15.A: 14 von 15 Phasen abgeschlossen,
+Phase 15 zu etwa 60 % gelandet, ca. 455 Tests grün (zwei skippen lokal
+wegen fehlender GTK-Runtime auf Windows; in CI laufen alle), die Site
+ist live unter [i-d-e.github.io/ride-static](https://i-d-e.github.io/ride-static/)
+und produziert pro Push: 107 HTML-Reviews, 107 PDFs daneben, 107
+TEI-Downloads, fünf Home-Widgets, 22 Issue-Pages, Tag- und Reviewer-
+und Resources-Aggregationen, Pagefind-Index, OAI-PMH-Snapshot,
+`api/corpus.json`, `api/build-info.json` und Sitemap.
 
-Konkret liegt im Repository ein gefrorenes Domänenmodell unter `src/model/`
-(`review.py`, `section.py`, `block.py`, `inline.py`, alle Subtypen als
-immutable `@dataclass(frozen=True)`) und die parsenden Module unter
-`src/parser/`: `metadata.py` für den Header (Stage 2.A), `sections.py`
-mit rekursivem `<div>`-Walk inklusive Body-Wrap-Anomalie, `blocks.py` mit
-fünf Per-Kind-Funktionen plus Dispatcher und einer dedizierten
-`UnknownTeiElement`-Exception, `inlines.py` mit dem Mixed-Content-Walker
-und sechs Inline-Kinds. Sonderfall-Branches sind im Code für
-Body-Wrap-Anomalie, List-Rend-Normalisierung, `crosssref`-Normalisierung,
-`<lb/>`-Soft-Skip und unbekannte Elemente vollständig umgesetzt; das
-duplizierte `<sourceDesc>` und die `<num value="3">`-Ausreißer sind in
-`data.md` benannt und werden in Phase 6 (Stage 2.C, Bibliography- und
-Questionnaire-Parser) implementiert.
+Domänenmodell unter `src/model/` (`review.py`, `section.py`, `block.py`,
+`inline.py`, `bibliography.py`, `questionnaire.py`) ist seit Phase 6
+gefroren; Parser unter `src/parser/` (`metadata.py`, `sections.py`,
+`blocks.py`, `inlines.py`, `bibliography.py`, `questionnaire.py`,
+`refs_resolver.py`, `assets.py`, `datasets.py`) erzeugt aus jedem
+TEI-File ein immutables `Review`-Objekt mit aufgelösten
+`Reference.bucket`-Annotationen und kopierten Figure-Assets.
 
-Phase 5 (Integration in `parse_review`) ist der nächste Einstieg: ein
-Pre-Pass über `<p>` muss Block-Kinder (figure, list, cit, table, in Summe
-~1 000 Vorkommen unter `<p>`) aus dem Mixed-Content auslagern und als
-Sibling-Blöcke einreihen, bevor der Inline-Walker greift. Ist das
-geleistet, läuft der Real-Korpus-Smoke gegen alle 107 Reviews fehlerfrei
-und Stage 2.B ist abgeschlossen. Spezifiziert, aber noch nicht
-implementiert sind elf der fünfzehn Phasen, also Phase 5 bis Phase 15.
+Render-Pfad unter `src/render/` (`html.py`, `pdf.py`, `editorial.py`,
+`aggregations.py`, `navigation.py`, `corpus_dump.py`, `oai_pmh.py`,
+`sitemap.py`, `redirects.py`, `issues_config.py`) und
+`templates/html/` rendert HTML, PDF, Editorial-Pages, Aggregationen
+und Maschinenschnittstellen aus dem Domänenmodell. Validation
+(`src/validate.py`) und Linkcheck (`src/linkcheck.py`) als optionale
+Pre- bzw. Post-Build-Schritte; aggregierter Bericht in
+`api/build-info.json`.
+
+Offene Arbeit: **Data-Charts (R9)** als letzter inhaltlicher Brocken aus Phase 10. Die `Questionnaire`-Aggregate aus Stage 2.C liegen vor; was fehlt, ist ein `src/render/charts.py`-Modul, das pro Kategorie ein Bar-Chart-SVG aus den `value=0/1`-Antworten produziert, plus eine Einbettung in `content/data-charts.md`. **Phase 15 Restposten**: WCAG-Vollaudit über die Live-Site (axe-Pass), produktive Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain-Entscheidung.
 
 ## Pflege nach Abschluss
 

@@ -1,21 +1,27 @@
 """Build CLI — ``python -m src.build``.
 
 Walks the sibling ``../ride/tei_all/`` corpus, parses every TEI file
-into a :class:`~src.model.review.Review`, and renders an HTML page per
-review under ``site/issues/{issue}/{review_id}/``. Copies the static
-asset tree and the original TEI file alongside each rendered page.
+into a :class:`~src.model.review.Review`, and writes the full static
+site tree under ``site/``: per-review HTML at
+``issues/{issue}/{review_id}/index.html`` plus the original TEI as a
+download sibling, optional WeasyPrint PDF (``--pdf``), editorial pages
+from ``content/*.md``, aggregation pages (issues, tags, reviewers,
+resources), the static asset tree, the OAI-PMH snapshot, the corpus
+JSON dump, the sitemap, the redirect stubs, and the build report at
+``site/api/build-info.json``.
 
-This is the Phase 8 entry point. The asset pipeline for embedded figures
-(rewriting ``<graphic @url>`` to a deployed path and copying the image
-file) belongs to Phase 7 and lands in the parser/render bridge — until
-then, ``Figure.graphic_url`` carries the raw corpus path and broken
-image links are an accepted v0 limitation.
+The build runs in two passes: parse all reviews first (so the navigation
+YAML can resolve its data-driven Issues dropdown against the full
+corpus), then render every page. RelaxNG validation runs by default
+before the build report is written; ``--no-validate`` skips it.
 
 Usage:
 
-    python -m src.build               # build every review into site/
-    python -m src.build --pdf         # also run the WeasyPrint pass (Phase 14)
-    python -m src.build --reviews 5   # build only the first N reviews — for quick iteration
+    python -m src.build                           # build every review into site/
+    python -m src.build --pdf                     # also produce a per-review PDF via WeasyPrint
+    python -m src.build --linkcheck               # probe external bibliography URLs (slow, off by default)
+    python -m src.build --matomo-url … --matomo-site-id …   # emit the cookieless tracker snippet
+    python -m src.build --reviews 5               # build only the first N reviews — for quick iteration
 """
 from __future__ import annotations
 
