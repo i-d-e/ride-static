@@ -173,9 +173,11 @@ The page-type set follows [[interface#4 Layout-Architektur]]; the parallel appar
 
 ## Element-Mapping (declarative)
 
-The bridge between the domain model and the rendered output is configured in `config/element-mapping.yaml`, not in Python. This makes the most common extension — wiring a new TEI element or variant to a template and CSS class — a YAML-only change. Implementing genuinely new behaviour still requires a Python dataclass and parser function, but ninety percent of presentation changes do not.
+The bridge between the domain model and the rendered output **is intended to be** configured in `config/element-mapping.yaml`, not in Python. This makes the most common extension — wiring a new TEI element or variant to a template and CSS class — a YAML-only change. Implementing genuinely new behaviour still requires a Python dataclass and parser function, but ninety percent of presentation changes would not.
 
-The mapping is a single YAML file with three top-level keys: `blocks`, `inlines`, `extensibility`. Each block or inline entry names the Jinja template, the CSS class, and optional variants for sub-kinds (e.g. list `bulleted` versus `ordered` versus `labeled`). The file is loaded once at the start of the build and consulted by every renderer.
+**Current status: spec-only.** The YAML file exists and pins the BEM convention as a living contract, but `src.build` does not load it; templates in `templates/html/partials/render.html` dispatch directly on dataclass class names and emit hard-coded BEM classes. Keep both in sync by hand. A future phase may activate the YAML as a CI check (verify every block/inline class has an entry, every template path exists, every CSS class is referenced) — until then, treat the file as documentation.
+
+The mapping is a single YAML file with three top-level keys: `blocks`, `inlines`, `extensibility`. Each block or inline entry names the Jinja template, the CSS class, and optional variants for sub-kinds (e.g. list `bulleted` versus `ordered` versus `labeled`).
 
 ```yaml
 blocks:

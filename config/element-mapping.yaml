@@ -1,8 +1,18 @@
 # element-mapping.yaml — domain class → Jinja template + CSS class
 #
-# The declarative bridge between src/model/ and templates/html/.
-# Specified in knowledge/architecture.md §"Element-Mapping (declarative)"
-# and the formal answer to requirements.md N2 ("Erweiterbarkeit auf vier Ebenen").
+# Status: SPEC-ONLY.
+#
+# This file documents the intended declarative bridge between src/model/
+# and templates/html/. It is *not* loaded by src.build today — templates
+# in templates/html/partials/render.html dispatch directly on dataclass
+# class names and emit hard-coded BEM classes. Keep this file in sync
+# with the BEM convention in render.html as a living contract.
+#
+# A future phase may activate this YAML as a CI check (verify every
+# block/inline class has an entry, every template path exists, every
+# CSS class is referenced in static/css/ride.css). Until then, the file
+# is a spec anchor. See knowledge/architecture.md §"Element-Mapping
+# (declarative)" for the rationale.
 #
 # Top-level keys:
 #   blocks         — one entry per Block dataclass in src/model/block.py
@@ -20,11 +30,7 @@
 #
 # CSS-class convention is BEM: `ride-<element>` as base, `ride-<element>--<variant>` as
 # modifier. The single stylesheet (interface.md §12, ≤ 800 lines) hangs all rules off
-# these classes; Phase 8 templates render them mechanically.
-#
-# CI validates this file at build start: every block/inline class the parser emits must
-# have an entry, and every `template:` path must exist on disk. Half-finished mappings
-# refuse to build.
+# these classes.
 
 blocks:
 
