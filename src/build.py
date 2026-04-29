@@ -51,6 +51,7 @@ from src.render.issues_config import (
     discover_issue_configs,
     validate_issue_configs,
 )
+from src.render.sitemap import build_sitemap, collect_entries
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 RIDE_ROOT = REPO_ROOT.parent / "ride"
@@ -266,6 +267,7 @@ def build(
     )
 
     _copy_static(out_root)
+    sitemap_written = _write_sitemap(tuple(rendered), site, out_root)
 
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
@@ -273,10 +275,41 @@ def build(
     if editorials:
         print(f"Wrote {editorials} editorial pages")
     print(f"Wrote {aggregations} aggregation pages")
+    if sitemap_written:
+        print("Wrote sitemap.xml")
 
     _print_asset_summary(asset_reports)
 
     return len(rendered)
+
+
+def _write_sitemap(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
+    """Build and write ``site/sitemap.xml`` if a base_url is configured.
+
+    Sitemaps require absolute URLs, so dev builds without a deploy prefix
+    skip silently. CI passes ``--base-url`` and gets a real sitemap.
+    Returns whether a file was written.
+    """
+    if not site.base_url:
+        return False
+
+    issues = sorted({r.issue for r in reviews if r.issue})
+    tag_aggregates = aggregate_tags(reviews)
+    reviewer_aggregates = aggregate_reviewers(reviews)
+    editorials = discover_editorials()
+    build_date = site.build_info.date if site.build_info else None
+
+    entries = collect_entries(
+        reviews,
+        base_url=site.base_url,
+        issues=issues,
+        tag_aggregates=tag_aggregates,
+        reviewer_aggregates=reviewer_aggregates,
+        editorials=editorials,
+        build_date=build_date,
+    )
+    (out_root / "sitemap.xml").write_text(build_sitemap(entries), encoding="utf-8")
+    return True
 
 
 def _print_asset_summary(reports: list[AssetReport]) -> None:
