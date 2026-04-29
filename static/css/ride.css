@@ -984,13 +984,33 @@ main.ride-shell {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* ─── 8. Print stylesheet (Phase 14 placeholder) ─────────────────────── */
+/* Print-only DOI line in the review header — hidden on screen, shown
+   when the page is rendered to PDF via WeasyPrint (requirements A6:
+   DOI on the first page). The Meta sidebar carries the DOI for web
+   readers; in print, the sidebar is suppressed. */
+.ride-review__doi-print { display: none; }
 
-/* Phase 14 (PDF via WeasyPrint) replaces this block with a full print style.
-   Until then a minimal fallback keeps the HTML-Druck halbwegs lesbar. */
+/* ─── 8. Print stylesheet (Phase 14) ─────────────────────────────────── */
+
+/* Used by the browser's Drucken-Dialog and by WeasyPrint when generating
+   the per-review PDF. Strips chrome, drops the sidebar, surfaces the
+   first-page DOI line. WeasyPrint honours @page, page margins and
+   page-break-* properties — kept simple here; tune per-template if a
+   review's tables overflow. */
 @media print {
-  .ride-sidebar, .ride-search-slot, .ride-skip { display: none; }
-  .ride-page { grid-template-columns: minmax(0, 1fr); }
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-size: 11pt; }
+  .ride-wip, .ride-header, .ride-nav, .ride-footer,
+  .ride-sidebar, .ride-search-slot, .ride-skip,
+  .ride-cite__btns, .ride-cite-data { display: none; }
+  .ride-page, .ride-review { grid-template-columns: minmax(0, 1fr); }
+  .ride-content, .ride-shell { max-width: 100%; padding: 0; margin: 0; }
+  .ride-review__doi-print {
+    display: block; margin: 0 0 var(--ride-space-4) 0;
+    font-size: 10pt; color: #444;
+  }
   a { color: inherit; text-decoration: none; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.9em; color: #555; }
+  h1, h2, h3 { page-break-after: avoid; }
+  figure, table { page-break-inside: avoid; }
 }

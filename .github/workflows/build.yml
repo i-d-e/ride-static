@@ -64,6 +64,12 @@ jobs:
           cache: pip
           cache-dependency-path: ride-static/requirements.txt
 
+      # WeasyPrint links Pango/Cairo at import time. The Ubuntu runner
+      # ships a partial GTK stack; install the WeasyPrint-listed runtime
+      # libs explicitly so `import weasyprint` succeeds in CI.
+      - name: Install WeasyPrint system libraries
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+
       - name: Install dependencies
         working-directory: ride-static
         run: pip install -r requirements.txt
@@ -119,7 +125,7 @@ jobs:
         working-directory: ride-static
         run: |
           if [ -f src/build.py ] || python -c "import src.build" 2>/dev/null; then
-            python -m src.build --base-url=/${{ github.event.repository.name }}
+            python -m src.build --base-url=/${{ github.event.repository.name }} --pdf
           else
             echo "::warning::src.build is not implemented yet (Phase 8). Emitting placeholder site/."
             mkdir -p site

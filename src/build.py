@@ -270,6 +270,7 @@ def build(
     linkcheck: bool = False,
     matomo_url: str = "",
     matomo_site_id: str = "",
+    pdf: bool = False,
 ) -> int:
     """Run the build. Returns the number of review pages written."""
     if not corpus_dir.exists():
@@ -337,6 +338,11 @@ def build(
     oai_files = _write_oai_pmh_snapshot(tuple(rendered), site, out_root)
     redirect_count = write_redirects(tuple(rendered), out_root, base_url=site.base_url)
 
+    pdf_count = 0
+    pdf_failed: list[tuple[str, str]] = []
+    if pdf:
+        pdf_count, pdf_failed = _render_pdfs(parsed, out_root)
+
     # Phase 13 / Welle 10: validation + link-probe + aggregated build report.
     validation_report = None
     if validate:
@@ -380,11 +386,57 @@ def build(
     if link_report:
         print(f"Linkcheck: {link_report.alive} alive, {link_report.dead} dead "
               f"({link_report.probed} probed)")
+    if pdf:
+        print(f"PDF: {pdf_count} rendered, {len(pdf_failed)} failed")
     print("Wrote api/build-info.json")
 
     _print_asset_summary(asset_reports)
 
     return len(rendered)
+
+
+def _render_pdfs(
+    parsed: list,
+    out_root: Path,
+) -> tuple[int, list[tuple[str, str]]]:
+    """Render every parsed review's HTML to a sibling PDF.
+
+    Returns ``(success_count, failures)`` where ``failures`` is a list
+    of ``(review_id, error_message)`` pairs. The whole pass surfaces
+    cleanly (count = 0) when WeasyPrint or its system libraries
+    cannot be loaded, so a missing GTK install on a developer machine
+    does not block the rest of the build.
+
+    Phase 14 / Welle 11. The HTML is read from disk so the print
+    output reflects exactly what was deployed to the static tree —
+    no separate template, no second render pass.
+    """
+    try:
+        from src.render.pdf import render_review_pdf
+    except (ImportError, OSError) as exc:
+        print(
+            "PDF: WeasyPrint unavailable, skipping. "
+            f"Install instructions: https://doc.courtbouillon.org/weasyprint/  ({exc})",
+            file=sys.stderr,
+        )
+        return 0, []
+
+    count = 0
+    failed: list[tuple[str, str]] = []
+    for path, review in parsed:
+        review_id = review.id or path.stem
+        page_dir = out_root / "issues" / (review.issue or "0") / review_id
+        html_path = page_dir / "index.html"
+        if not html_path.exists():
+            continue  # render pass skipped this review (already in `failed`)
+        pdf_path = page_dir / f"{review_id}.pdf"
+        try:
+            render_review_pdf(html_path, pdf_path)
+            count += 1
+        except Exception as exc:  # noqa: BLE001 — keep building on per-file failure
+            failed.append((review_id, str(exc)))
+            print(f"PDF failed: {review_id}: {exc}", file=sys.stderr)
+    return count, failed
 
 
 def _write_build_info(
@@ -535,15 +587,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Build the ride.i-d-e.de static site.")
     parser.add_argument("--reviews", type=int, default=None, help="Limit to first N reviews (for iteration)")
     parser.add_argument("--base-url", default="", help="Deploy URL prefix; empty for relative paths")
-    parser.add_argument("--pdf", action="store_true", help="Also run the WeasyPrint PDF pass (Phase 14)")
+    parser.add_argument("--pdf", action="store_true", help="Render a PDF next to every review's HTML via WeasyPrint")
     parser.add_argument("--no-validate", action="store_true", help="Skip the RelaxNG validation pre-check")
     parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
     parser.add_argument("--matomo-url", default="", help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking")
     parser.add_argument("--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set")
     args = parser.parse_args(argv)
-
-    if args.pdf:
-        print("--pdf is a Phase 14 placeholder; no PDF rendered yet.", file=sys.stderr)
 
     if bool(args.matomo_url) != bool(args.matomo_site_id):
         parser.error("--matomo-url and --matomo-site-id must be set together")
@@ -555,6 +604,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         linkcheck=args.linkcheck,
         matomo_url=args.matomo_url,
         matomo_site_id=args.matomo_site_id,
+        pdf=args.pdf,
     )
     print(f"Wrote {written} review pages to {SITE_DIR}")
     return 0

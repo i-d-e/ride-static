@@ -498,6 +498,30 @@ def test_console_banner_omitted_when_build_info_missing():
     assert "console.info(" not in html
 
 
+# ── Print-only DOI line (Phase 14, A6) ───────────────────────────────
+
+
+def test_review_html_carries_print_only_doi_line_when_doi_set():
+    """A6: DOI must surface on the first page of the PDF rendering.
+
+    The Meta sidebar carries the DOI for web readers but is hidden in
+    the print stylesheet. The print-only line in the header guarantees
+    the DOI lands on page 1 of the PDF.
+    """
+    review = _minimal_review(doi="10.18716/ride.a.13.7")
+    html = render_review(review)
+    assert 'class="ride-review__doi-print"' in html
+    assert "10.18716/ride.a.13.7" in html
+    assert 'href="https://doi.org/10.18716/ride.a.13.7"' in html
+
+
+def test_review_html_omits_print_doi_line_when_doi_missing():
+    """No DOI → no orphan label in the PDF (corpus has reviews without DOI)."""
+    review = _minimal_review(doi=None)
+    html = render_review(review)
+    assert 'class="ride-review__doi-print"' not in html
+
+
 # ── Cookieless Matomo (R16) ──────────────────────────────────────────
 
 

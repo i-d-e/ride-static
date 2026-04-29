@@ -73,6 +73,16 @@
       {%- endif %}
     </header>
 
+    {#- Print-only DOI line per requirements A6 — must appear on the
+        first page of the PDF rendering. Hidden on screen because the
+        Meta sidebar already exposes the DOI to web readers; in the
+        PDF the sidebar is suppressed by ``@media print``. -#}
+    {%- if review.doi %}
+    <p class="ride-review__doi-print">
+      DOI: <a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a>
+    </p>
+    {%- endif %}
+
     {%- if abstract_section -%}
     <section class="ride-review__abstract" aria-labelledby="abstract-heading">
       <h3 id="abstract-heading">{{ site.strings.abstract | default('Abstract') }}</h3>

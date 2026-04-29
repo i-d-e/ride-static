@@ -16,7 +16,10 @@ pyyaml>=6.0
 markdown>=3.5
 
 # PDF (Phase 14)
-# weasyprint>=60.0          # uncomment when Phase 14 starts
+# WeasyPrint pulls Pango/Cairo at import time. Local Windows installs
+# additionally need the GTK3 runtime; CI on Ubuntu uses libpango1.0-0
+# + libpangoft2-1.0-0 from apt (see .github/workflows/build.yml).
+weasyprint>=60.0
 
 # Search (Phase 11)
 # pagefind is a binary fetched by the build script, not a Python package.

@@ -64,6 +64,30 @@ def test_tag_pills_meet_target_size_minimum():
     assert "min-height: 24px" in rule
 
 
+def test_print_stylesheet_hides_chrome_and_shows_doi():
+    """Phase 14 print stylesheet drives the WeasyPrint output.
+
+    Three load-bearing rules:
+      - chrome (nav, sidebar, footer) is suppressed so the PDF is
+        body-only;
+      - .ride-review__doi-print flips from display:none to display:block
+        in print so the DOI lands on page 1 (requirements A6);
+      - @page sets paper size + margins for a predictable PDF.
+    """
+    css = _css()
+    print_block_start = css.find("@media print")
+    assert print_block_start != -1
+    # Slice generously — the @media block contains nested rules with
+    # their own braces, so we just take everything from @media print to
+    # the next top-level marker.
+    block = css[print_block_start:]
+    assert "@page" in block
+    assert ".ride-sidebar" in block
+    # display:block on the DOI line is the load-bearing flip.
+    assert ".ride-review__doi-print" in block
+    assert "display: block" in block
+
+
 def test_reduced_motion_preference_is_honoured():
     """WCAG 2.3.3 (AAA, but project policy): users who set
     ``prefers-reduced-motion: reduce`` get no animations, no
