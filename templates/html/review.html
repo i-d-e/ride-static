@@ -22,7 +22,23 @@
 {% block title %}{{ review.title }} — {{ site.title }}{% endblock %}
 
 {% block content %}
-<article class="ride-page" lang="{{ review.language }}">
+{#- Pagefind metadata: data-pagefind-body marks the indexable region;
+    data-pagefind-meta carries title/issue for the result snippet;
+    hidden filter spans below expose Issue / Tag / Reviewer as facets
+    in the Pagefind UI (Welle 9.C). Hidden spans rather than repeated
+    attributes on <article>, because HTML allows only one of any given
+    attribute per element. -#}
+<article class="ride-page" lang="{{ review.language }}"
+  data-pagefind-body
+  data-pagefind-meta="title:{{ review.title }}, issue:{{ review.issue }}{%- if review.publication_date %}, date:{{ review.publication_date }}{% endif %}">
+  {#- Filter-only spans, kept out of the visible flow. -#}
+  <span hidden data-pagefind-filter="issue:Issue {{ review.issue }}"></span>
+  {%- for kw in review.keywords %}
+  <span hidden data-pagefind-filter="tag:{{ kw }}"></span>
+  {%- endfor %}
+  {%- for a in review.authors %}
+  <span hidden data-pagefind-filter="reviewer:{{ a.person.full_name }}"></span>
+  {%- endfor %}
   <div class="ride-content">
 
     <header class="ride-review__header">

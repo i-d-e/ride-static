@@ -74,17 +74,17 @@
   {#- Skip link is the first focusable element on every page (WCAG 2.4.1). -#}
   <a class="ride-skip" href="#ride-main">{{ site.strings.skip_to_content | default('Skip to content') }}</a>
 
-  {#- Work-in-Progress-Banner: zeigt sitewide, dass die neue ride-static-
-      Site noch in aktiver Migration ist und die WordPress-Site weiterhin
-      unter ride.i-d-e.de der kanonische Stand bleibt. Wird mit Welle 14
-      (Production-Hardening) entfernt. -#}
+  {#- Work-in-Progress-Status — eine Zeile, dunkles Band im Stil der
+      Navbar; markiert die Site als Migrations-Vorschau ohne als
+      Warnung zu wirken. Wird mit Welle 14 (Production-Hardening)
+      entfernt. -#}
   <div class="ride-wip" role="status">
     <div class="ride-shell">
-      <strong>Work in progress.</strong>
-      This is the static rebuild of the RIDE journal under active development.
-      The current canonical site remains at
-      <a href="https://ride.i-d-e.de/">ride.i-d-e.de</a>;
-      content here is being migrated and may differ in detail or completeness.
+      <span class="ride-wip__label">Preview build</span>
+      <span class="ride-wip__text">
+        Static rebuild in progress — the canonical site remains at
+        <a href="https://ride.i-d-e.de/">ride.i-d-e.de</a>.
+      </span>
     </div>
   </div>
 
@@ -105,10 +105,14 @@
   {#- Global navigation: five top-level entries from config/navigation.yaml.
       Dropdown items use native <details> so the menu works without JS
       (interface.md §4, requirements.md R11.5). The summary is the
-      click target; submenu items live inside the same <details>. -#}
+      click target; submenu items live inside the same <details>.
+      The search container on the right mounts the Pagefind UI in
+      static/js/pagefind.js. Without JS or before Pagefind has loaded,
+      the inline form falls back to a GET to /search/ which today
+      returns the home page — usable but unstyled. -#}
   {% if site.navigation %}
   <nav class="ride-nav" aria-label="{{ site.strings.main_navigation | default('Main') }}">
-    <div class="ride-shell">
+    <div class="ride-shell ride-nav__shell">
       <ul class="ride-nav__list">
         {% for item in site.navigation %}
           {% if item.has_dropdown %}
@@ -129,6 +133,16 @@
           {% endif %}
         {% endfor %}
       </ul>
+      <div class="ride-nav__search" role="search">
+        <div id="ride-search" data-pagefind-ui data-pagefind-bundle-path="{{ site.base_url }}/pagefind/"></div>
+        <noscript>
+          <form action="{{ site.base_url }}/" method="get" class="ride-nav__search-form">
+            <label class="ride-sr-only" for="ride-search-input">Search</label>
+            <input id="ride-search-input" type="search" name="q" placeholder="Search…">
+            <button type="submit">Go</button>
+          </form>
+        </noscript>
+      </div>
     </div>
   </nav>
   {% endif %}
@@ -168,7 +182,10 @@
   <script type="module" src="{{ static_path('js/copy-link.js') }}"></script>
   <script type="module" src="{{ static_path('js/tooltip.js') }}"></script>
   <script type="module" src="{{ static_path('js/cite-copy.js') }}"></script>
+  {#- Pagefind: bundle path is on the #ride-search container; the runtime
+      stylesheet ships alongside the bundle and is picked up here. -#}
   <script type="module" src="{{ static_path('js/pagefind.js') }}"></script>
+  <link rel="stylesheet" href="{{ site.base_url }}/pagefind/pagefind-ui.css" media="all">
   {% endblock %}
 </body>
 </html>

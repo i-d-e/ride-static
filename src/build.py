@@ -56,6 +56,7 @@ from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
 from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
+from src.validate import validate_corpus
 
 CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
 RIDE_ROOT = REPO_ROOT.parent / "ride"
@@ -257,6 +258,8 @@ def build(
     out_root: Path = SITE_DIR,
     limit: Optional[int] = None,
     base_url: str = "",
+    validate: bool = True,
+    linkcheck: bool = False,
 ) -> int:
     """Run the build. Returns the number of review pages written."""
     if not corpus_dir.exists():
@@ -320,6 +323,28 @@ def build(
     oai_files = _write_oai_pmh_snapshot(tuple(rendered), site, out_root)
     redirect_count = write_redirects(tuple(rendered), out_root, base_url=site.base_url)
 
+    # Phase 13 / Welle 10: validation + link-probe + aggregated build report.
+    validation_report = None
+    if validate:
+        try:
+            validation_report = validate_corpus(corpus_dir, RIDE_ROOT / "schema" / "ride.rng")
+        except FileNotFoundError as exc:
+            print(f"validation skipped: {exc}", file=sys.stderr)
+    link_report = None
+    if linkcheck:
+        from src.linkcheck import probe_links
+
+        link_report = probe_links(tuple(rendered))
+    _write_build_info(
+        out_root=out_root,
+        site=site,
+        reviews=tuple(rendered),
+        asset_reports=asset_reports,
+        failed=failed,
+        validation_report=validation_report,
+        link_report=link_report,
+    )
+
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
 
@@ -332,10 +357,76 @@ def build(
     if oai_files:
         print(f"Wrote {oai_files} OAI-PMH snapshot files")
     print(f"Wrote {redirect_count} legacy-URL redirect stubs")
+    if validation_report:
+        print(
+            f"Validation: {validation_report.files_checked} files checked, "
+            f"{validation_report.files_with_errors} with errors, "
+            f"{len(validation_report.findings)} findings"
+        )
+    if link_report:
+        print(f"Linkcheck: {link_report.alive} alive, {link_report.dead} dead "
+              f"({link_report.probed} probed)")
+    print("Wrote api/build-info.json")
 
     _print_asset_summary(asset_reports)
 
     return len(rendered)
+
+
+def _write_build_info(
+    *,
+    out_root: Path,
+    site: SiteConfig,
+    reviews: tuple,
+    asset_reports: list,
+    failed: list,
+    validation_report=None,
+    link_report=None,
+) -> None:
+    """Write ``site/api/build-info.json`` — N7 aggregated build report.
+
+    Captures:
+      - build commit, date, base-URL
+      - per-review counts (parsed, rendered, failed)
+      - asset-pipeline summary (copied / missing / unparseable)
+      - validation report (per-file warnings) if validation ran
+      - link-probe report (dead URLs + Wayback snapshots) if linkcheck ran
+
+    Phase 13 will surface this as a downloadable artefact in CI.
+    """
+    import json
+
+    data = {
+        "schema_version": 1,
+        "site": {
+            "title": site.title,
+            "base_url": site.base_url,
+            "default_language": site.default_language,
+        },
+        "build": {
+            "commit": site.build_info.commit if site.build_info else None,
+            "commit_short": site.build_info.commit_short if site.build_info else None,
+            "date": site.build_info.date if site.build_info else None,
+        },
+        "reviews": {
+            "rendered": len(reviews),
+            "failed": [
+                {"file": str(p.name), "error": str(exc)} for p, exc in failed
+            ],
+        },
+        "assets": {
+            "copied": sum(len(r.copied) for r in asset_reports),
+            "missing": sum(len(r.missing) for r in asset_reports),
+            "unparseable": sum(len(r.unparseable) for r in asset_reports),
+        },
+        "validation": validation_report.to_dict() if validation_report else None,
+        "linkcheck": link_report.to_dict() if link_report else None,
+    }
+    api_dir = out_root / "api"
+    api_dir.mkdir(parents=True, exist_ok=True)
+    (api_dir / "build-info.json").write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def _write_oai_pmh_snapshot(
@@ -430,12 +521,19 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--reviews", type=int, default=None, help="Limit to first N reviews (for iteration)")
     parser.add_argument("--base-url", default="", help="Deploy URL prefix; empty for relative paths")
     parser.add_argument("--pdf", action="store_true", help="Also run the WeasyPrint PDF pass (Phase 14)")
+    parser.add_argument("--no-validate", action="store_true", help="Skip the RelaxNG validation pre-check")
+    parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
     args = parser.parse_args(argv)
 
     if args.pdf:
         print("--pdf is a Phase 14 placeholder; no PDF rendered yet.", file=sys.stderr)
 
-    written = build(limit=args.reviews, base_url=args.base_url)
+    written = build(
+        limit=args.reviews,
+        base_url=args.base_url,
+        validate=not args.no_validate,
+        linkcheck=args.linkcheck,
+    )
     print(f"Wrote {written} review pages to {SITE_DIR}")
     return 0
 

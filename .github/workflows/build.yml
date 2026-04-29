@@ -126,6 +126,13 @@ jobs:
             echo "<!doctype html><title>ride-static</title><h1>build pending</h1>" > site/index.html
           fi
 
+      # Phase 11 — Pagefind index. Indexes site/ after the build, writes the
+      # client-side runtime under site/pagefind/. Picked up by static/js/pagefind.js
+      # via the data-pagefind-ui container in base.html.
+      - name: Build Pagefind index (Welle 9)
+        working-directory: ride-static
+        run: npx -y pagefind --site site
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

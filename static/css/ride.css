@@ -254,22 +254,44 @@ main.ride-shell {
   .ride-header__logo img { max-height: 50px; }
 }
 
-/* Work-in-Progress-Banner — gelbliches Streifen-Band über dem Header,
-   sitewide. Wird mit der Welle-14-Production-Hardening entfernt. */
+/* Work-in-Progress-Status — schmales dunkles Band oberhalb des
+   Headers, ein Liner, neutral. Tritt visuell zurück wie ein
+   System-Status-Bar, nicht wie eine Warnung. Welle 14 entfernt es. */
 .ride-wip {
-  background: #fff8db;
-  color: #5a4500;
-  border-bottom: 1px solid #f0d878;
-  padding: var(--ride-space-3) 0;
-  font-size: var(--ride-text-small);
+  background: var(--ride-navbar-bg);
+  color: var(--ride-navbar-fg);
+  font-size: var(--ride-text-tiny);
   line-height: var(--ride-leading-ui);
+  letter-spacing: 0.01em;
+}
+.ride-wip .ride-shell {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ride-space-3);
+}
+.ride-wip__label {
+  display: inline-block;
+  padding: 1px 8px;
+  background: var(--ride-accent);
+  color: var(--ride-bg);
+  border-radius: var(--ride-radius);
+  font-weight: var(--ride-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+.ride-wip__text {
+  color: rgba(255, 255, 255, 0.85);
 }
 .ride-wip a {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.ride-wip strong { font-weight: var(--ride-weight-medium); }
+.ride-wip a:hover { color: var(--ride-bg); }
 
 /* Global navigation — five top-level entries from config/navigation.yaml.
    Dropdown items are native <details>; CSS positions the submenu absolutely
@@ -360,6 +382,66 @@ main.ride-shell {
   }
   .ride-nav__sublink { color: var(--ride-bg); }
   .ride-nav__sublink:hover { background: transparent; color: var(--ride-bg-muted); }
+}
+
+/* Navbar-Layout — Liste links, Suchfeld rechts. Auf Mobile bricht die
+   Suche unter die Liste. */
+.ride-nav__shell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ride-space-6);
+  flex-wrap: wrap;
+}
+.ride-nav__list { flex: 1 1 auto; }
+.ride-nav__search {
+  flex: 0 0 auto;
+  min-width: 240px;
+  max-width: 320px;
+  width: 100%;
+}
+.ride-nav__search-form {
+  display: flex;
+  gap: var(--ride-space-2);
+}
+.ride-nav__search-form input {
+  flex: 1 1 auto;
+  padding: var(--ride-space-2) var(--ride-space-3);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  font: inherit;
+}
+.ride-nav__search-form button {
+  padding: var(--ride-space-2) var(--ride-space-3);
+  background: var(--ride-bg);
+  color: var(--ride-fg-primary);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Pagefind UI — Tokens an unsere Palette anpassen (Pagefind exposiert
+   per CSS-Custom-Property einen kompletten Theme-Hook). */
+#ride-search {
+  --pagefind-ui-scale: 0.85;
+  --pagefind-ui-primary: var(--ride-accent);
+  --pagefind-ui-text: var(--ride-fg-primary);
+  --pagefind-ui-background: var(--ride-bg);
+  --pagefind-ui-border: var(--ride-rule);
+  --pagefind-ui-tag: var(--ride-bg-muted);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: var(--ride-radius);
+  --pagefind-ui-image-border-radius: var(--ride-radius);
+  --pagefind-ui-image-box-ratio: 1 / 1;
+  --pagefind-ui-font: var(--ride-font-sans);
+  width: 100%;
+}
+#ride-search.ride-search--unavailable { display: none; }
+
+@media (max-width: 719px) {
+  .ride-nav__shell { flex-direction: column; align-items: stretch; }
+  .ride-nav__search { max-width: none; }
 }
 
 .ride-footer {
