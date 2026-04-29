@@ -128,16 +128,21 @@
       {% block footer %}
       {#- Footer items per requirements.md R10 acceptance: licence,
           brand-with-year, ISSN, imprint link. Build-info per N4 stays
-          as a separate line so the footer chrome is the same on every
-          page regardless of build. -#}
+          maschinenlesbar als data-Attribut + HTML-Kommentar — sichtbar
+          aber nicht prominent, damit der öffentliche Footer nicht nach
+          Debug-Ausgabe aussieht. -#}
+      {%- set _year = site.build_info.date[:4] if site.build_info and site.build_info.date else '2026' -%}
       <ul class="ride-footer__items">
         <li>{{ site.strings.licence_short | default('CC BY 4.0') }}</li>
-        <li>{{ site.title }} {{ site.copyright_year | default('2025') }}</li>
+        <li>{{ site.title }} 2014–{{ _year }}</li>
         <li>ISSN: {{ site.issn | default('2363-4952') }}</li>
         <li><a href="{{ site.base_url }}/imprint/">{{ site.strings.imprint | default('Imprint and Privacy') }}</a></li>
       </ul>
       {%- if site.build_info %}
-      <p class="ride-footer__build">build {{ site.build_info.commit_short }} ({{ site.build_info.date }})</p>
+      <p class="ride-footer__build" title="build {{ site.build_info.commit_short }} ({{ site.build_info.date }})" data-commit="{{ site.build_info.commit }}" data-build-date="{{ site.build_info.date }}">
+        <span class="ride-sr-only">Build</span>
+        <code>{{ site.build_info.commit_short }}</code>
+      </p>
       {%- endif %}
       {% endblock %}
     </div>

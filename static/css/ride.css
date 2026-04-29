@@ -77,6 +77,21 @@
   --ride-space-6: 24px;
   --ride-space-8: 32px;
   --ride-space-12: 48px;
+  --ride-space-16: 64px;
+  --ride-space-20: 80px;
+
+  /* Section-Rhythmus — Abstand zwischen großen Inhaltsblöcken auf Aggregations-
+     und Editorialseiten. Knapp doppelt so groß wie der Block-Innenabstand,
+     damit die Hierarchie zwischen Block (innen) und Section (außen) klar wird. */
+  --ride-stack-section: var(--ride-space-16);
+  --ride-stack-block:   var(--ride-space-8);
+
+  /* Form-Tokens — eine Quelle für Radien, Schatten, Übergänge. */
+  --ride-radius:        4px;
+  --ride-radius-pill:   999px;
+  --ride-shadow-soft:   0 1px 2px rgba(17, 20, 24, 0.04), 0 1px 4px rgba(17, 20, 24, 0.04);
+  --ride-shadow-hover:  0 2px 8px rgba(17, 20, 24, 0.08), 0 4px 16px rgba(17, 20, 24, 0.04);
+  --ride-transition:    160ms ease-out;
 }
 
 /* ─── 2. Reset and base typography ───────────────────────────────────── */
@@ -98,6 +113,11 @@ body {
   /* Prevent horizontal scroll from wide tables/figures by default;
      blocks that need overflow opt in via their own scroll container. */
   overflow-x: hidden;
+  /* Schrift-Rendering: Kerning + Standard-Ligaturen für sauberes Lesetypografie-Bild. */
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4 {
@@ -155,6 +175,11 @@ hr {
   padding: 0 var(--ride-page-padding);
 }
 
+main.ride-shell {
+  padding-top: var(--ride-space-12);
+  padding-bottom: var(--ride-space-16);
+}
+
 /* Two-column layout for review and aggregation pages.
    Single-column for editorial pages — toggled by adding .ride-page--solo. */
 .ride-page {
@@ -178,7 +203,7 @@ hr {
 
 .ride-header {
   border-bottom: 1px solid var(--ride-rule);
-  padding: var(--ride-space-4) 0;
+  padding: var(--ride-space-6) 0;
 }
 
 .ride-header__inner {
@@ -350,6 +375,19 @@ hr {
   content: none;
 }
 
+.ride-footer__build {
+  margin: var(--ride-space-3) 0 0;
+  font-size: var(--ride-text-tiny);
+  color: var(--ride-fg-tertiary);
+}
+.ride-footer__build code {
+  font-family: var(--ride-font-mono);
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+  letter-spacing: 0.04em;
+}
+
 /* ─── 5. Component class hooks ───────────────────────────────────────── */
 
 /* These selectors mirror config/element-mapping.yaml. They are deliberately
@@ -452,6 +490,56 @@ hr {
 .ride-tag-pills li a            { display: inline-block; padding: 2px 8px; background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; font-size: var(--ride-text-small); }
 .ride-tag-pills li a:hover      { background: var(--ride-rule); }
 
+/* ─── Panel — geteiltes Karten-Primitiv ───────────────────────────────
+   Wird für Home-Widgets, Sidebar-Boxen (perspektivisch) und Review-
+   Cards verwendet. Eine Quelle für Padding, Radius, Border, Shadow,
+   Hover-Transition. Modifier ändern Akzent oder Layout. */
+
+.ride-panel {
+  padding: var(--ride-space-6);
+  background: var(--ride-bg);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  box-shadow: var(--ride-shadow-soft);
+  transition: box-shadow var(--ride-transition), transform var(--ride-transition);
+}
+
+.ride-panel__title {
+  margin: 0 0 var(--ride-space-3);
+  font-size: var(--ride-text-h3);
+  font-weight: var(--ride-weight-medium);
+  line-height: var(--ride-leading-ui);
+}
+
+.ride-panel__body > :first-child { margin-top: 0; }
+.ride-panel__body > :last-child  { margin-bottom: 0; }
+
+.ride-panel--lede {
+  /* Lede-Variante — keine Border, Hintergrund leicht abgesetzt, mehr Padding,
+     größerer Lesefließtext. Setzt einen ruhigen Einleitungs-Block ohne
+     Karten-Anmutung. */
+  border: 0;
+  background: var(--ride-bg-muted);
+  padding: var(--ride-space-8);
+  box-shadow: none;
+}
+.ride-panel--lede .ride-panel__body { font-size: 1.05em; }
+
+.ride-panel--action {
+  /* Action-Karten in der 2x2-Grid auf der Startseite. Etwas weniger
+     Padding als die Default-Panel, hover bekommt Schatten. */
+  padding: var(--ride-space-4) var(--ride-space-6);
+}
+.ride-panel--action:hover { box-shadow: var(--ride-shadow-hover); }
+
+/* Prose-Klasse — Editorial-Markdown-Output bekommt einheitliche
+   vertikale Rhythmik. `* + *`-Pattern: jedes Folge-Element bekommt
+   konsistenten Top-Abstand vom Vorgänger, ohne dass jede Komponente
+   ihre eigenen Margins setzen muss. */
+.ride-prose > * + * { margin-top: var(--ride-space-3); }
+.ride-prose > h2 + *,
+.ride-prose > h3 + * { margin-top: var(--ride-space-2); }
+
 /* Editorial pages — single column, generous reading width. */
 .ride-editorial                 { max-width: var(--ride-content-width); }
 .ride-editorial__updated        { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-12); }
@@ -459,57 +547,116 @@ hr {
 /* Aggregation pages — Issue-Übersicht, Tags, Reviewer, Resources, Home. */
 .ride-lede                      { color: var(--ride-fg-secondary); font-size: 1.05em; margin: 0 0 var(--ride-space-8); }
 
-.ride-home__hero                { margin-bottom: var(--ride-space-8); }
-.ride-home__lede                { color: var(--ride-fg-secondary); }
-.ride-home__cards               { display: grid; gap: var(--ride-space-6); margin: var(--ride-space-6) 0 var(--ride-space-12); }
+/* Section-Heading-Pattern — wiederverwendbar auf Home und Aggregations-
+   Seiten. Heading ohne Top-Margin (das übernimmt der Section-Stack),
+   ein zarter Sub-Meta-Text rechts daneben für „· {issue}". */
+.ride-section__heading {
+  margin: 0 0 var(--ride-space-4);
+  font-size: var(--ride-text-h2);
+  font-weight: var(--ride-weight-medium);
+  line-height: var(--ride-leading-ui);
+}
+.ride-section__heading-meta {
+  color: var(--ride-fg-secondary);
+  font-weight: var(--ride-weight-regular);
+}
 
-/* Editorial widget area — three columns auf Desktop, stacked auf Mobile.
-   Inhalte aus content/home/*.md (Welle 4.B). Jedes Widget ist eine
-   leichte Karte mit dünner Rule, ohne starkes Hintergrundgrau. */
+/* ─── Startseite ──────────────────────────────────────────────────────
+   Sechs vertikale Stationen: lede-section, lede-panel, current-issue,
+   action-widgets, browse, footer. Section-Rhythmus über --ride-stack-
+   section, jede Sektion verteilt ihren Innenraum selbst. */
+
+.ride-home > * + * {
+  margin-top: var(--ride-stack-section);
+}
+
+.ride-home__lede-section { /* nur sr-only h1 plus eine Zeile lede */ }
+.ride-home__lede {
+  margin: 0;
+  font-size: 1.25em;
+  color: var(--ride-fg-secondary);
+  max-width: 60ch;
+  line-height: var(--ride-leading-ui);
+}
+
+.ride-home__current { /* heading + cards */ }
+.ride-home__cards {
+  display: grid;
+  gap: var(--ride-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+}
+
+/* Action-Widgets (News, Call for Reviews, Open Data, Follow us) als
+   2x2-Grid auf Desktop, 2x1 auf Tablet, 1x4 auf Mobile. */
 .ride-home__widgets {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ride-space-6);
-  margin: var(--ride-space-12) 0;
 }
 
-.ride-widget {
-  padding: var(--ride-space-4) var(--ride-space-6);
-  border: 1px solid var(--ride-rule);
-  border-radius: 2px;
-  background: var(--ride-bg);
+.ride-home__browse {
+  padding-top: var(--ride-space-6);
+  border-top: 1px solid var(--ride-rule);
 }
-.ride-widget__title {
-  margin: 0 0 var(--ride-space-3);
-  font-size: var(--ride-text-h3);
-  font-weight: var(--ride-weight-medium);
+.ride-home__browse-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--ride-space-3) 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ride-space-6);
 }
-.ride-widget__body p:last-child { margin-bottom: 0; }
+.ride-home__browse-list a {
+  text-decoration: none;
+  font-size: var(--ride-text-base);
+  color: var(--ride-accent);
+}
+.ride-home__browse-list a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
-.ride-home__browse-list         { list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: var(--ride-space-4); }
-.ride-home__browse-list a       { display: inline-block; padding: var(--ride-space-2) var(--ride-space-4); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; }
-
-@media (max-width: 1023px) {
-  .ride-home__widgets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (max-width: 719px) {
   .ride-home__widgets { grid-template-columns: minmax(0, 1fr); }
+  .ride-home__lede { font-size: 1.125em; }
 }
 
-.ride-review-card               { padding: var(--ride-space-4); border: 1px solid var(--ride-rule); border-radius: 2px; }
-.ride-review-card__title        { margin: 0 0 var(--ride-space-2); font-size: var(--ride-text-h3); }
+.ride-review-card {
+  padding: var(--ride-space-4) var(--ride-space-6);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  background: var(--ride-bg);
+  box-shadow: var(--ride-shadow-soft);
+  transition: box-shadow var(--ride-transition), transform var(--ride-transition);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ride-space-2);
+}
+.ride-review-card:hover { box-shadow: var(--ride-shadow-hover); }
+.ride-review-card__title        { margin: 0; font-size: var(--ride-text-h3); line-height: var(--ride-leading-ui); }
 .ride-review-card__title a      { text-decoration: none; }
-.ride-review-card__authors      { margin: 0 0 var(--ride-space-2); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
-.ride-review-card__meta         { margin: 0; font-family: var(--ride-font-sans); font-size: var(--ride-text-tiny); color: var(--ride-fg-tertiary); }
+.ride-review-card__title a:hover { color: var(--ride-accent-hover); text-decoration: underline; text-underline-offset: 3px; }
+.ride-review-card__authors      { margin: 0; font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
+.ride-review-card__meta         { margin: 0; font-size: var(--ride-text-tiny); color: var(--ride-fg-tertiary); letter-spacing: 0.02em; }
 
-.ride-issue-list                { list-style: none; padding-left: 0; }
-.ride-issue-list__entry         { margin-bottom: var(--ride-space-3); }
-.ride-issue-list__link          { text-decoration: none; }
+.ride-issue-list {
+  list-style: none;
+  padding-left: 0;
+  display: grid;
+  gap: var(--ride-space-3);
+}
+.ride-issue-list__entry         { padding: var(--ride-space-2) 0; }
+.ride-issue-list__link          { text-decoration: none; display: inline-flex; gap: var(--ride-space-3); align-items: baseline; flex-wrap: wrap; }
+.ride-issue-list__link:hover    { text-decoration: underline; text-underline-offset: 3px; }
 .ride-issue-list__no            { font-weight: var(--ride-weight-medium); }
 .ride-issue-list__date,
-.ride-issue-list__count         { color: var(--ride-fg-secondary); font-size: var(--ride-text-small); }
+.ride-issue-list__count         { color: var(--ride-fg-secondary); font-size: var(--ride-text-small); font-weight: var(--ride-weight-regular); }
 
-.ride-issue__cards              { display: grid; gap: var(--ride-space-4); }
+.ride-issue__cards {
+  display: grid;
+  gap: var(--ride-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+}
 
 .ride-tag-list                  { list-style: none; padding-left: 0; column-count: 2; column-gap: var(--ride-space-8); }
 .ride-tag-list__entry           { break-inside: avoid; margin-bottom: var(--ride-space-2); }

@@ -96,7 +96,10 @@ def test_group_reviews_by_issue(reviews):
 
 def test_render_index_picks_latest_issue_as_current(reviews, env):
     html = render_index(reviews, _site(), env)
-    assert "Current issue · 13" in html
+    # Heading is split into a label and a meta-span (Welle 5);
+    # both pieces must be present and identify issue 13 as current.
+    assert "Current issue" in html
+    assert 'ride-section__heading-meta">· 13' in html
     assert "First Review" in html
     assert "Second Review" in html
     assert "Older Review" not in html  # belongs to the older issue

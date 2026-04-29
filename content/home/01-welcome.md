@@ -1,22 +1,17 @@
 ---
-title: Welcome to RIDE!
+title: Welcome to RIDE
 slug: 01-welcome
 language: en
 last_updated: 2026-04-29
 ---
 
-RIDE is an [open access](/publishing-policy/) review journal dedicated
-to digital editions and resources.
+RIDE provides a forum in which expert peers evaluate digital scholarly
+editions and digital resources. Reviewers report not only on the
+philological and editorial merits of an edition but also on its
+methodology, encoding decisions, and technical sustainability. Read
+more in our [editorial](/editorial/).
 
-RIDE directs attention to digital editions and other digital scholarly
-resources by providing a forum in which expert peers criticise and
-discuss the resources in order to improve current practices and
-advance future developments. RIDE encourages the reviewers to pay
-attention not only to the traditional virtues and vices of humanities
-publications, but also to the progressing methodology and its
-technical implications. Read more about RIDE in our
-[editorial](/editorial/).
-
-RIDE was founded in 2014 by a team of scholars united under the roof
-of the [Institute of Documentology and Scholarly Editing](https://www.i-d-e.de)
-(see also our [team-page](/team/)).
+Founded in 2014 by a team of scholars at the
+[Institute for Documentology and Scholarly Editing](https://www.i-d-e.de),
+the journal is published [open access](/publishing-policy/) under a
+Creative Commons licence. See also our [team page](/team/).

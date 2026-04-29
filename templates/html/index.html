@@ -1,46 +1,59 @@
 {#-
   index.html — Startseite per [[interface.md §4]].
 
-  Aufbau v1 (Welle 4):
-    1. Hero — Titel + zwei kurze Kennzahlen
-    2. Aktuelles Issue mit Review-Karten
-    3. Bearbeitbarer Widget-Bereich (content/home/*.md), drei
-       Spalten auf Desktop, gestapelt auf Mobile
-    4. Browse-Shortcuts in einer Zeile
-
-  Widgets sind redaktionell editierbar in content/home/*.md
-  (Loader: src.render.editorial.discover_home_widgets).
+  Aufbau Welle 5:
+    1. Lede-Block (sr-only h1 + ein-Satz-Lede mit Kennzahlen)
+    2. Welcome-Widget als breite Einleitungs-Karte (Welle-5-Restruktur:
+       erstes Widget bekommt eigene Spur, weil sein Text die anderen
+       Widgets längenmäßig dominiert)
+    3. Aktuelles Issue mit Beitragskarten
+    4. Vier Action-Widgets (News, Call-for-Reviews, Open Data, Follow us)
+       in einer 2x2-Grid auf Desktop, gestapelt auf Mobile
+    5. Browse-Footer mit ruhigen Text-Links
 -#}
 {% extends "base.html" %}
 {%- import "partials/review_card.html" as rc -%}
+
+{# Splittet die Widget-Liste: Erstes (Welcome) als lede, Rest als Action-Cards. #}
+{%- set lede_widget = home_widgets[0] if home_widgets else None -%}
+{%- set action_widgets = home_widgets[1:] if home_widgets else [] -%}
 
 {% block content %}
 <div class="ride-page ride-page--wide" lang="{{ page_lang }}">
   <div class="ride-content ride-home">
 
-    <header class="ride-home__hero">
-      <h1>{{ site.title }}</h1>
+    <header class="ride-home__lede-section">
+      <h1 class="ride-sr-only">{{ site.title }}</h1>
       <p class="ride-home__lede">
-        Peer-reviewed reviews of scholarly digital editions.
+        A peer-reviewed journal of scholarly digital editions.
         {{ total_reviews }} reviews across {{ total_issues }} issues.
       </p>
     </header>
 
+    {%- if lede_widget -%}
+    <article class="ride-panel ride-panel--lede" id="widget-{{ lede_widget.slug }}">
+      <h2 class="ride-panel__title">{{ lede_widget.title }}</h2>
+      <div class="ride-panel__body ride-prose">
+        {{ lede_widget.body_html | safe }}
+      </div>
+    </article>
+    {%- endif -%}
+
     {%- if current_reviews -%}
     <section class="ride-home__current" aria-labelledby="current-issue-heading">
-      <h2 id="current-issue-heading">Current issue · {{ current_issue }}</h2>
+      <h2 id="current-issue-heading" class="ride-section__heading">Current issue <span class="ride-section__heading-meta">· {{ current_issue }}</span></h2>
       <div class="ride-home__cards">
         {%- for r in current_reviews -%}{{ rc.review_card(r, site) }}{%- endfor -%}
       </div>
     </section>
     {%- endif -%}
 
-    {%- if home_widgets -%}
-    <section class="ride-home__widgets" aria-label="Editorial">
-      {%- for w in home_widgets -%}
-      <article class="ride-widget" id="widget-{{ w.slug }}">
-        <h2 class="ride-widget__title">{{ w.title }}</h2>
-        <div class="ride-widget__body">
+    {%- if action_widgets -%}
+    <section class="ride-home__widgets" aria-label="News and information">
+      {%- for w in action_widgets -%}
+      <article class="ride-panel ride-panel--action" id="widget-{{ w.slug }}">
+        <h2 class="ride-panel__title">{{ w.title }}</h2>
+        <div class="ride-panel__body ride-prose">
           {{ w.body_html | safe }}
         </div>
       </article>
@@ -48,15 +61,15 @@
     </section>
     {%- endif -%}
 
-    <section class="ride-home__browse" aria-labelledby="browse-heading">
-      <h2 id="browse-heading">Browse</h2>
+    <nav class="ride-home__browse" aria-labelledby="browse-heading">
+      <h2 id="browse-heading" class="ride-section__heading">Browse</h2>
       <ul class="ride-home__browse-list">
         <li><a href="{{ site.base_url }}/issues/">All issues</a></li>
         <li><a href="{{ site.base_url }}/tags/">Tags</a></li>
         <li><a href="{{ site.base_url }}/reviewers/">Reviewers</a></li>
         <li><a href="{{ site.base_url }}/resources/">Reviewed resources</a></li>
       </ul>
-    </section>
+    </nav>
 
   </div>
 </div>
