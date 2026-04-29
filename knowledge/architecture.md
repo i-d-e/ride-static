@@ -243,14 +243,6 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
 
-> Methodological aside. This codebase was developed via promptotyping
-> and context-engineering with multiple Claude sessions running in
-> parallel against shared knowledge documents (`CLAUDE.md`,
-> `COORDINATION.md`, this vault). Mentioned here because it explains
-> why the documentation density is unusual for a static-site project,
-> not because it shapes the architecture itself — the design decisions
-> above stand on their own merits.
-
 ## Repository layout (target)
 
 ```
