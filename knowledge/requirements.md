@@ -4,7 +4,7 @@
 
 ## 1. Zweck und Scope
 
-Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus 107 TEI-XML-Rezensionen, einem schmalen Bestand redaktioneller Markdown-Texte und einer pro Heft gepflegten Konfiguration erzeugt wird.
+Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus 107 TEI-XML-Rezensionen, einem schmalen Bestand redaktioneller Markdown-Texte und einer pro Issue gepflegten Konfiguration erzeugt wird.
 
 Das Projekt *ride-static* mit seinen acht Pipeline-Phasen deckt den Inhaltsbereich ab. Dieses Requirements-Dokument erweitert den Scope auf die vollständige Site und benennt vier weitere Funktionsbereiche, die als eigene Bauabschnitte nach Abschluss von Phase 8 anschließen.
 
@@ -28,7 +28,7 @@ Die **Leserin** ist Wissenschaftlerin oder Studierende; sie liest, zitiert, durc
 
 Die **Editorin** pflegt redaktionelle Texte (About, Impressum, Review Criteria, Reviewer-Profile). Sie ist nicht zwingend Programmiererin und braucht niedrigschwellige Bearbeitungswege, idealerweise über die GitHub-Web-UI.
 
-Die **Herausgeberin** verantwortet ein Heft, vergibt DOI, bestimmt Reihenfolge der Beiträge und Status eines Rolling Issue.
+Die **Herausgeberin** verantwortet ein Issue, vergibt DOI, bestimmt Reihenfolge der Beiträge und Status eines Rolling Issue.
 
 Der **Aggregator** ist ein automatisiertes externes System (Bibliothekskatalog, Repository-Crawler, Zotero-Connector). Er verlangt strukturierte Metadaten in standardkonformer Form.
 
@@ -69,7 +69,7 @@ Akzeptanzkriterien
 **R2 Rezension zitieren.** Als zitierende Leserin will ich pro Rezension einen sichtbaren Zitiervorschlag, BibTeX und CSL-JSON zum Kopieren.
 
 Akzeptanzkriterien
-- Zitiervorschlag enthält Autoren, Titel, Heft, DOI, Erscheinungsdatum
+- Zitiervorschlag enthält Autoren, Titel, Issue, DOI, Erscheinungsdatum
 - Kopier-Button für BibTeX
 - Kopier-Button für CSL-JSON
 - Bei Rolling Issue zusätzlich Abrufdatum im Zitiervorschlag, gemäß A1
@@ -82,21 +82,21 @@ Akzeptanzkriterien
 - Während der Übergangsphase wird das bestehende PDF ausgeliefert; ab Phase 9 das aus dem Domänenmodell erzeugte PDF, gemäß A6
 - Beide Downloads sind über sichtbare Aktion in der Rezensionsansicht erreichbar
 
-**R4 Heftansicht.** Als Leserin will ich pro Heft eine Übersichtsseite mit Heftmetadaten und Beitragsliste.
+**R4 Issue-Ansicht.** Als Leserin will ich pro Issue eine Übersichtsseite mit Issue-Metadaten und Beitragsliste.
 
 Akzeptanzkriterien
-- Heft-Titel, Herausgeber, DOI, Erscheinungsdatum sichtbar
+- Issue-Titel, Herausgeber, DOI, Erscheinungsdatum sichtbar
 - Beitragsliste mit Autoren, Titel, kurzem Abstract
-- Reihenfolge der Beiträge ist über die Heftkonfiguration einstellbar (siehe R11)
+- Reihenfolge der Beiträge ist über die Issue-Konfiguration einstellbar (siehe R11)
 - Bei Rolling Issue ist Status sichtbar markiert, gemäß A1
 
 ### 5.2 Aggregationsbereich
 
-**R5 Heftübersicht.** Als Leserin will ich eine Übersicht aller Hefte, sortiert nach Erscheinungsdatum.
+**R5 Issue-Übersicht.** Als Leserin will ich eine Übersicht aller Issues, sortiert nach Erscheinungsdatum.
 
 Akzeptanzkriterien
-- Liste mit Heft-Titel, Erscheinungsdatum, Herausgebern, Anzahl Beiträge
-- Verweis auf jeweilige Heftansicht
+- Liste mit Issue-Titel, Erscheinungsdatum, Herausgebern, Anzahl Beiträge
+- Verweis auf jeweilige Issue-Ansicht
 - Rolling Issues sind als solche markiert
 
 **R6 Tag-Aggregation.** Als Leserin will ich pro Tag eine Übersicht aller Rezensionen, die diesen Tag tragen.
@@ -135,12 +135,12 @@ Akzeptanzkriterien
 - Bearbeitung über die GitHub-Web-UI ist möglich
 - Push auf `main` triggert automatisch einen neuen Build und ein Deployment
 
-**R11 Heftmetadaten pflegen.** Als Herausgeberin will ich pro Heft Metadaten an einer einzigen Stelle pflegen.
+**R11 Issue-Metadaten pflegen.** Als Herausgeberin will ich pro Issue Metadaten an einer einzigen Stelle pflegen.
 
 Akzeptanzkriterien
-- Eine Konfigurationsdatei pro Heft (YAML) hält DOI, Herausgeberangaben, Beitragsreihenfolge, Status (regulär oder rolling)
-- Diese Datei ist die einzige Quelle für die Heftansicht
-- Inkonsistenzen zwischen Heftkonfiguration und TEI-Header brechen den Build mit klarer Fehlermeldung
+- Eine Konfigurationsdatei pro Issue (YAML) hält DOI, Herausgeberangaben, Beitragsreihenfolge, Status (regulär oder rolling)
+- Diese Datei ist die einzige Quelle für die Issue-Ansicht
+- Inkonsistenzen zwischen Issue-Konfiguration und TEI-Header brechen den Build mit klarer Fehlermeldung
 
 ### 5.4 Funktionsbereich
 
@@ -148,7 +148,7 @@ Akzeptanzkriterien
 
 Akzeptanzkriterien
 - Suchindex wird über Pagefind zur Build-Zeit erzeugt, gemäß A4
-- Treffer enthalten Rezensionstitel, Heft, kurze Kontextausschnitte
+- Treffer enthalten Rezensionstitel, Issue, kurze Kontextausschnitte
 - Sprung in die Rezension landet an der Trefferstelle
 - Suche funktioniert offline, sobald die Site einmal geladen wurde
 

@@ -19,7 +19,7 @@ doi: "10.18716/ride.13"
 status: regular              # or "rolling"
 publication_date: "2024-06-01"
 description: |
-  Free-text intro shown on the Heftansicht above the contribution list.
+  Free-text intro shown on the Issue-Ansicht above the contribution list.
 editors:
   - name: "Editor Person"
     affiliation: "Some University"

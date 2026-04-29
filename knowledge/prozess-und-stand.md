@@ -40,7 +40,7 @@ Rezensionen optisch nicht ausreichend.
 
 Ziel des Projekts ist eine vollständig statisch gebaute Site. Ein einziger
 GitHub-Actions-Workflow erzeugt aus dem TEI-Korpus, einem schmalen Bestand
-redaktioneller Markdown-Texte und einer pro Heft gepflegten YAML-Konfiguration
+redaktioneller Markdown-Texte und einer pro Issue gepflegten YAML-Konfiguration
 den auslieferungsfähigen Output. Die Site läuft auf GitHub Pages, ohne
 Backend, ohne Datenbank, ohne Daemon. Pagefind übernimmt die Volltextsuche
 client-seitig, WeasyPrint die PDF-Erzeugung zur Build-Zeit, JSON-LD und ein
@@ -66,7 +66,7 @@ anderes Format, bis am Ende eine ausschließlich statische Site steht.
 Domänenmodell und Renderer bis zum Build- und Deploy-Schritt.](image-workflow.png)
 
 Die oberste Schicht zeigt die drei Eingabequellen, also TEI-XML, redaktionelles
-Markdown und Heft-YAML. Die mittlere Schicht trägt das Domänenmodell mit
+Markdown und Issue-YAML. Die mittlere Schicht trägt das Domänenmodell mit
 Parser und immutablen Datenklassen für `Review`, `Section` und `Block` und
 ist die einzige Schicht, die rohes XML sieht. Aus dem Domänenmodell entstehen
 parallel die Render-Formate (HTML, PDF, Aggregationsseiten) und die
@@ -225,13 +225,13 @@ statt Designarmut.
 
 Sechs Seitentypen sind festgelegt.
 
-- **Startseite** mit drei Inhaltsblöcken ohne Slider, also aktuelles Heft
+- **Startseite** mit drei Inhaltsblöcken ohne Slider, also aktuelles Issue
   prominent, eine Auswahl ausgewählter Rezensionen mit Titel und
   Kurzbeschreibung, und News plus Call for Reviews kombiniert in der
   Sidebar.
-- **Heftübersicht** als reine Liste der Hefte, sortiert nach
+- **Issue-Übersicht** als reine Liste der Issues, sortiert nach
   Erscheinungsdatum, mit Rolling-Issue-Markern.
-- **Heftansicht** mit Heftmetadaten oben und Beitragskarten mit
+- **Issue-Ansicht** mit Issue-Metadaten oben und Beitragskarten mit
   Abstract-Ausschnitten.
 - **Rezensionsansicht** als Hauptansicht mit Kopfbereich, Abstract,
   Hauptteil und drei parallel gesetzten Apparat-Sub-Blöcken statt der
@@ -269,7 +269,7 @@ gebaut wird; Stand-Marker zeigen, was abgeschlossen ist.
 | 6 | Bibliography- und Questionnaire-Modell, Aggregate für Tags, Reviewer, Resources | offen |
 | 7 | Reference-Resolver, Asset-Pipeline für eingebettete Bilder | offen |
 | 8 | HTML-Rezensionsseiten plus Zitierexport, Copy-Link, Tooltip-Vorschau, JS-Module | offen |
-| 9 | Editorialschicht (Markdown plus Heft-YAML mit Konsistenzcheck) | offen |
+| 9 | Editorialschicht (Markdown plus Issue-YAML mit Konsistenzcheck) | offen |
 | 10 | Aggregations- und Übersichtsseiten | offen |
 | 11 | Pagefind-Volltextsuche | offen |
 | 12 | Maschinenschnittstellen (OAI-PMH, JSON-LD, Korpus-Dump, Sitemap) | offen |
@@ -301,7 +301,7 @@ eine Copy-Link-Mikrointeraktion sichtbar wird. Das URL-Schema reserviert
 ein optionales Versionssegment `/v/{version}/` für eine spätere
 Snapshot-Strategie bei Rolling Issues, ohne bestehende URLs zu brechen.
 
-Daneben stehen die übergreifenden Site-Artefakte, also Heftseiten,
+Daneben stehen die übergreifenden Site-Artefakte, also Issue-Seiten,
 Aggregationsseiten für Tags, Reviewer, Reviewed Resources und Data-Charts,
 der OAI-PMH-Snapshot mit statisch dispatchten Verb-Endpoints (`Identify`,
 `ListIdentifiers`, `ListRecords`, `GetRecord`), ein vollständiger
@@ -320,10 +320,10 @@ Fragen" formuliert.
 
 | Komponente | Heute | Künftig | Phase | Offene Fragen |
 |---|---|---|---|---|
-| Startseite | Statische Texte plus Slider | Drei Inhaltsblöcke ohne Slider gemäß `interface.md` | 8, 10 | Sind „ausgewählte Rezensionen" händisch in der Heftkonfiguration kuratiert oder algorithmisch ausgewählt? |
+| Startseite | Statische Texte plus Slider | Drei Inhaltsblöcke ohne Slider gemäß `interface.md` | 8, 10 | Sind „ausgewählte Rezensionen" händisch in der Issue-Konfiguration kuratiert oder algorithmisch ausgewählt? |
 | About | Statische Texte | Markdown mit Frontmatter unter `content/about.md`, Pflege über GitHub-Web-UI | 9 | — |
-| Issues (Hefte) | Heft-Titel, Hrsg., Beiträge mit Autor, DOI | Heft-YAML als alleinige Quelle, Konsistenzcheck gegen TEI-Header bricht den Build | 9 | Welche Hefte erscheinen in der Hauptnavigation, alle, kuratiert oder die letzten N? |
-| Rolling Issue | implizit | Statusmarker in Heft-YAML, Zitiervorschlag mit Abrufdatum, optionales Versionssegment in URL reserviert | 8, 9 | Wann gilt ein Rolling Issue als fertig, welcher Statuswechsel im YAML markiert das? Welche zusätzlichen Felder gegenüber regulären Heften? |
+| Issues | Issue-Titel, Hrsg., Beiträge mit Autor, DOI | Issue-YAML als alleinige Quelle, Konsistenzcheck gegen TEI-Header bricht den Build | 9 | Welche Issues erscheinen in der Hauptnavigation, alle, kuratiert oder die letzten N? |
+| Rolling Issue | implizit | Statusmarker in Issue-YAML, Zitiervorschlag mit Abrufdatum, optionales Versionssegment in URL reserviert | 8, 9 | Wann gilt ein Rolling Issue als fertig, welcher Statuswechsel im YAML markiert das? Welche zusätzlichen Felder gegenüber regulären Issues? |
 | Navigation | Manuell gepflegt | YAML-konfigurierte Hauptnavigation plus Aggregations-Links | 9, 10 | Speist sich die Navbar aus Content oder aus manueller YAML-Konfiguration? |
 | Beitrag (Rezensionsansicht) | Bestehendes Layout | Jinja-HTML aus dem Domänenmodell, Apparate parallel, reduzierte Sidebar (TOC, Meta, Cite) | 8 | Soll „first / last updated"-Information neben dem reinen Build-Datum sichtbar werden? |
 | Tags | TEI plus WordPress, teils divergent | Aus TEI generiert; einmalige Konsolidierung der WordPress-Tags vor erstem Produktiv-Build, danach WordPress als Tag-Quelle abgeschaltet (A2) | Vor 6 (redaktionell), 10 | — |
@@ -376,9 +376,9 @@ Die Site ist mit Blick auf laufende Pflege gebaut. Vier Stellen sind
 dafür entscheidend.
 
 Redaktionelle Texte werden als Markdown mit Frontmatter im Repository
-gepflegt und sind über die GitHub-Web-UI direkt editierbar. Heftmetadaten
-liegen in einer YAML-Konfigurationsdatei pro Heft, die als alleinige
-Quelle für die Heftansicht dient; Inkonsistenzen zur TEI-Header-Information
+gepflegt und sind über die GitHub-Web-UI direkt editierbar. Issue-Metadaten
+liegen in einer YAML-Konfigurationsdatei pro Issue, die als alleinige
+Quelle für die Issue-Ansicht dient; Inkonsistenzen zur TEI-Header-Information
 brechen den Build mit klarer Fehlermeldung. Visuelle Anpassungen erfolgen
 in einem einzigen CSS-Stylesheet ohne Preprocessor. Wer Templates anpasst,
 arbeitet mit Jinja-Dateien, die ausschließlich Domänenobjekte sehen.
@@ -401,7 +401,7 @@ Beitrags vom Autor bis ins TEI aus, also welche Tools für TEI-Authoring
 (oXygen, anderer Editor, Vorlagen), entstehen TEI-Dateien per Hand aus
 einem Template oder gibt es Vorprozessierungs-Skripte, an welcher Stelle
 laufen heute Validierungen (vor dem Commit, nach dem Push)? Welche Felder
-sind beim Anlegen eines neuen Hefts zu pflegen, die nicht ohnehin im
+sind beim Anlegen eines neuen Issue zu pflegen, die nicht ohnehin im
 TEI-Header eines Beitrags stehen, und wie wird die Beitragsreihenfolge
 festgelegt? Welche Felder werden heute redundant in WordPress und TEI
 gepflegt und sollen in der neuen Architektur in YAML oder TEI konsolidiert

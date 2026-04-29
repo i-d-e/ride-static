@@ -155,7 +155,7 @@ def _render_aggregations(
     )
     pages += 1
 
-    # Heftübersicht and per-issue.
+    # Issue-Übersicht and per-issue.
     configs = issue_configs or {}
     issues_dir = out_root / "issues"
     issues_dir.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-"""Tests for src.render.issues_config — Phase 11 R11 Heft-YAML."""
+"""Tests for src.render.issues_config — Phase 11 R11 Issue-YAML."""
 from __future__ import annotations
 
 from pathlib import Path

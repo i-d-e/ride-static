@@ -4,9 +4,9 @@ Sechs Seitentypen aus ``knowledge/interface.md`` §4, alle gegen die
 Domänenobjekte aus ``src.model`` und die Cross-Korpus-Aggregate aus
 ``src.parser.datasets``:
 
-- :func:`render_index`             — Startseite (aktuelles Heft + Browse)
-- :func:`render_issues_overview`   — Heftübersicht (alle Hefte)
-- :func:`render_issue`             — Heftansicht (ein Heft mit Beiträgen)
+- :func:`render_index`             — Startseite (aktuelles Issue + Browse)
+- :func:`render_issues_overview`   — Issue-Übersicht (alle Issues)
+- :func:`render_issue`             — Issue-Ansicht (ein Issue mit Beiträgen)
 - :func:`render_tags_overview`     — Tag-Übersicht (alphabetisch)
 - :func:`render_tag`               — eine Tag-Seite
 - :func:`render_reviewers_overview` — Reviewer-Liste

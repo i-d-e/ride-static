@@ -24,7 +24,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 **Apparate undifferenziert.** References, Figures und Notes erscheinen im gleichen kleinen grauen Listenstil. Der Lesefluss zwischen ihnen ist mühsam, die Funktion jeder Liste verschwimmt.
 
-**Sidebar überladen.** Drei Boxen (Social, TOC, Meta) plus eine Citation-Suggestion konkurrieren um Aufmerksamkeit. Auf Heft- und Issue-Seiten werden alle drei mitgeführt, obwohl nur eine sinnvoll ist.
+**Sidebar überladen.** Drei Boxen (Social, TOC, Meta) plus eine Citation-Suggestion konkurrieren um Aufmerksamkeit. Auf Issue- und Rezensionsseiten werden alle drei mitgeführt, obwohl nur eine sinnvoll ist.
 
 **Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer.
 
@@ -38,7 +38,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 Das Grundraster hat eine maximale Breite von 1080 Pixeln, mit einer 680 Pixel breiten Inhaltsspalte und einer 220 Pixel breiten Sidebar, dazwischen 60 Pixel Lücke. Diese Breite hält Zeilen unter etwa 75 Zeichen, was für Fließtext ergonomisch ist.
 
-Sechs Seitentypen folgen diesem Raster. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — das aktuelle Heft prominent als erste Sektion, eine Auswahl ausgewählter Rezensionen mit Titel und Kurzbeschreibung darunter, News und Call for Reviews kombiniert in der Sidebar. Die **Heftübersicht** ist eine reine Liste der Hefte, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Heftansicht** trägt Heftmetadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria) verwenden nur die Inhaltsspalte ohne Sidebar.
+Sechs Seitentypen folgen diesem Raster. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — das aktuelle Issue prominent als erste Sektion, eine Auswahl ausgewählter Rezensionen mit Titel und Kurzbeschreibung darunter, News und Call for Reviews kombiniert in der Sidebar. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria) verwenden nur die Inhaltsspalte ohne Sidebar.
 
 Suche bekommt einen eigenen sichtbaren Slot zwischen Header und Inhalt — eine schmale Leiste mit Sucheingabe und globalem Tag-Zugang, auf jeder Seite präsent. Begründung ist die primäre Nutzungsweise eines Korpus dieser Größe, das überwiegend gezielt befragt und nicht linear durchgeblättert wird.
 

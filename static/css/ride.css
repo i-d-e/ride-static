@@ -279,7 +279,7 @@ hr {
 .ride-editorial                 { max-width: var(--ride-content-width); }
 .ride-editorial__updated        { font-size: var(--ride-text-small); color: var(--ride-fg-secondary); margin-top: var(--ride-space-12); }
 
-/* Aggregation pages — Heftübersicht, Tags, Reviewer, Resources, Home. */
+/* Aggregation pages — Issue-Übersicht, Tags, Reviewer, Resources, Home. */
 .ride-lede                      { color: var(--ride-fg-secondary); font-size: 1.05em; margin: 0 0 var(--ride-space-8); }
 
 .ride-home__hero                { margin-bottom: var(--ride-space-12); }
