@@ -51,16 +51,20 @@
   --ride-weight-regular: 400;
   --ride-weight-medium:  500;
 
-  /* Colour — single accent, three greys, plus structural surfaces.
-     Targets WCAG 2.2 AA contrast against --ride-bg. */
-  --ride-fg-primary:    #111418;
-  --ride-fg-secondary:  #4b5560;
-  --ride-fg-tertiary:   #7a8694;
+  /* Colour — derived from the colleague's mockup (mockup/ride.css +
+     mockup/template.html) and the live ride.i-d-e.de palette. The
+     navbar is medium-dark grey (#333) rather than near-black; the
+     accent blue matches the link colour on the live WordPress site. */
+  --ride-fg-primary:    #212529;   /* body text — Bootstrap default text */
+  --ride-fg-secondary:  #4b5560;   /* secondary text, sidebar labels */
+  --ride-fg-tertiary:   #7a8694;   /* meta lines, separators */
   --ride-bg:            #ffffff;
   --ride-bg-muted:      #f4f6f8;   /* abstract block, code background */
   --ride-rule:          #d4d9df;   /* hairlines between sections */
-  --ride-accent:        #1d4f8c;   /* the single dampened blue */
-  --ride-accent-hover:  #15406f;
+  --ride-accent:        #0d6efd;   /* link blue (mockup-aligned) */
+  --ride-accent-hover:  #0a58ca;
+  --ride-navbar-bg:     #333333;   /* mockup ride.css line 12 */
+  --ride-navbar-fg:     #ffffff;
 
   /* Focus ring — visible on every interactive element (interface.md §9) */
   --ride-focus:         0 0 0 3px rgba(29, 79, 140, 0.45);
@@ -172,10 +176,51 @@ hr {
   padding: var(--ride-space-4) 0;
 }
 
-.ride-header__tagline {
+.ride-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ride-space-6);
+}
+
+.ride-header__brand {
   margin: 0;
+  text-decoration: none;
+  color: var(--ride-fg-primary);
+}
+
+.ride-header__brand-name {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: block;
+  line-height: 1;
+}
+
+.ride-header__tagline {
+  display: block;
+  margin: 4px 0 0;
   font-size: var(--ride-text-base);
   color: var(--ride-fg-secondary);
+  line-height: var(--ride-leading-ui);
+}
+
+.ride-header__brand:hover .ride-header__brand-name,
+.ride-header__brand:hover .ride-header__tagline {
+  color: var(--ride-accent-hover);
+}
+
+.ride-header__logo img {
+  display: block;
+  max-height: 60px;
+  width: auto;
+  height: auto;
+}
+
+@media (max-width: 719px) {
+  .ride-header__inner { gap: var(--ride-space-3); }
+  .ride-header__brand-name { font-size: 22px; }
+  .ride-header__logo img { max-height: 44px; }
 }
 
 /* Global navigation — five top-level entries from config/navigation.yaml.
@@ -183,8 +228,8 @@ hr {
    beneath the summary so the visual model matches a classic navbar.
    No JavaScript required (interface.md §4, R11.5). */
 .ride-nav {
-  background: var(--ride-fg-primary);
-  color: var(--ride-bg);
+  background: var(--ride-navbar-bg);
+  color: var(--ride-navbar-fg);
   border-bottom: 1px solid var(--ride-rule);
 }
 
@@ -412,11 +457,42 @@ hr {
 /* Aggregation pages — Issue-Übersicht, Tags, Reviewer, Resources, Home. */
 .ride-lede                      { color: var(--ride-fg-secondary); font-size: 1.05em; margin: 0 0 var(--ride-space-8); }
 
-.ride-home__hero                { margin-bottom: var(--ride-space-12); }
+.ride-home__hero                { margin-bottom: var(--ride-space-8); }
 .ride-home__lede                { color: var(--ride-fg-secondary); }
 .ride-home__cards               { display: grid; gap: var(--ride-space-6); margin: var(--ride-space-6) 0 var(--ride-space-12); }
+
+/* Editorial widget area — three columns auf Desktop, stacked auf Mobile.
+   Inhalte aus content/home/*.md (Welle 4.B). Jedes Widget ist eine
+   leichte Karte mit dünner Rule, ohne starkes Hintergrundgrau. */
+.ride-home__widgets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ride-space-6);
+  margin: var(--ride-space-12) 0;
+}
+
+.ride-widget {
+  padding: var(--ride-space-4) var(--ride-space-6);
+  border: 1px solid var(--ride-rule);
+  border-radius: 2px;
+  background: var(--ride-bg);
+}
+.ride-widget__title {
+  margin: 0 0 var(--ride-space-3);
+  font-size: var(--ride-text-h3);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-widget__body p:last-child { margin-bottom: 0; }
+
 .ride-home__browse-list         { list-style: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: var(--ride-space-4); }
 .ride-home__browse-list a       { display: inline-block; padding: var(--ride-space-2) var(--ride-space-4); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; }
+
+@media (max-width: 1023px) {
+  .ride-home__widgets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 719px) {
+  .ride-home__widgets { grid-template-columns: minmax(0, 1fr); }
+}
 
 .ride-review-card               { padding: var(--ride-space-4); border: 1px solid var(--ride-rule); border-radius: 2px; }
 .ride-review-card__title        { margin: 0 0 var(--ride-space-2); font-size: var(--ride-text-h3); }

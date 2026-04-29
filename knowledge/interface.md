@@ -38,7 +38,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 Das Grundraster hat eine maximale Breite von 1150 Pixeln, mit einer 720 Pixel breiten Inhaltsspalte und einer 280 Pixel breiten Sidebar, dazwischen 60 Pixel Lücke. Die Breite hält Zeilen unter etwa 80 Zeichen, was für eine Sans-Serif-Lesefläche (Abschnitt 7) ergonomisch ist; die Sidebar bekommt Platz für Citation Suggestion und Meta ohne Umbruch-Akrobatik.
 
-Über dem Inhaltsraster steht ein dreiteiliger globaler Header. Oben eine kleine **Tagline-Zeile** („A Review Journal for Scholarly Digital Editions and Resources"), gesetzt als Untertitel zur Marke RIDE — der Brand-Name selbst tritt zurück, weil die Tagline mehr Information für Erstbesucher liefert als das Akronym. Darunter eine **dunkelgraue Navigationsleiste** mit fünf Top-Level-Einträgen (siehe unten), rechts daneben ein prominentes **Suchfeld** mit sichtbarem Submit-Button. Suche bekommt damit ihren Platz in der Navbar; ein zusätzlicher Suchslot zwischen Header und Inhalt entfällt.
+Über dem Inhaltsraster steht ein zweiteiliger globaler Header. Die obere Zeile ist eine **Brand-Zeile** mit zwei festen Bestandteilen: links die Marke RIDE als Wortmarke (28 Pixel, Bold) plus die **Tagline** „A Review Journal for Scholarly Digital Editions and Resources" als zweite Zeile direkt darunter, rechts das **kombinierte IDE/RIDE-Logo** als Bildmarke (PNG unter `static/images/logo-ide.png`, Höhe maximal 60 Pixel) als Link auf [https://www.i-d-e.de](https://www.i-d-e.de). Das Logo trägt den Alt-Text „IDE — Institute for Documentology and Scholarly Editing", weil es semantisch das herausgebende Institut markiert; die Wortmarke RIDE links bildet die Marke des Journals selbst ab. Die **Navigationsleiste** liegt unmittelbar darunter als eigenes dunkelgraues Band (`#333`, weiße Links, mockup-aligned) mit fünf Top-Level-Einträgen (siehe unten); ein dediziertes **Suchfeld** liegt rechts in derselben Zeile (Phase 11 — Pagefind-UI).
 
 Die globale Navigation hat fünf Top-Level-Einträge:
 
@@ -52,7 +52,7 @@ Die globale Navigation hat fünf Top-Level-Einträge:
 
 Die Dropdowns werden mit nativen `<details>`-Elementen umgesetzt (kein JavaScript-Framework, keine Bootstrap-Komponente); CSS gibt ihnen die Anmutung einer klassischen Hover-/Click-Navigation. Die Liste der Untermenüs ist in `config/navigation.yaml` konfigurierbar, sodass redaktionelle Erweiterungen ohne Template-Änderung möglich sind.
 
-Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — das aktuelle Issue prominent als erste Sektion, eine Auswahl ausgewählter Rezensionen mit Titel und Kurzbeschreibung darunter, News und Call for Reviews kombiniert in der Sidebar. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria, plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs) verwenden nur die Inhaltsspalte ohne Sidebar.
+Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** zeigt drei Inhaltsblöcke ohne Slider — einen knappen Hero-Header mit Titel und Kennzahlen, das aktuelle Issue prominent als zweite Sektion mit Beitragskarten, danach einen **redaktionellen Widget-Bereich** als drei-spaltiges Grid (`Welcome` · `News` · `Call for Reviews` in einer Reihe, `Open Data` · `Follow us` in der zweiten Reihe). Die Widgets liegen als Markdown unter `content/home/<NN-slug>.md` und werden von `src.render.editorial.discover_home_widgets` geladen; Ordnung folgt dem numerischen Präfix. Redaktion ändert Inhalt ohne Template-Anfassen. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria, plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs) verwenden nur die Inhaltsspalte ohne Sidebar.
 
 ## 5. Rezensionsansicht im Detail
 
@@ -93,7 +93,22 @@ Schriftwahl ist **eine** seriöse Sans-Serif für die gesamte Site — Body, UI,
 
 Größen sind 18 Pixel für Lesefließtext, 22 Pixel für h3 (Top-Level-Section), 28 Pixel für h2 (Rezensionstitel), 14 Pixel für Sidebar, Apparate und Footer, 12 Pixel als harte Untergrenze auch in Footnoten. Die globale Tagline-Zeile als h1 ist visuell klein gesetzt (etwa 16 Pixel, gedämpft), weil sie als Site-Brand fungiert und nicht mit dem Review-Titel konkurrieren soll. Zeilenhöhe 1.6 für Lesetext, 1.4 für UI.
 
-Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Akzentfarbe ist ein einziges gedämpftes Blau für Links, Anker und Querverweise — der genaue Farbwert wird gegen das Mockup gegengelesen, sobald wir auf der Live-Site einen ersten Build haben. Schwarz und drei Grauwerte (primary, secondary, tertiary) decken den Rest ab; die Navigationsleiste hebt sich als dunkelgrauer Block ab.
+Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Die Farbpalette ist seit Welle 4 verbindlich gesetzt und mockup-aligned:
+
+| Token | Wert | Verwendung |
+|---|---|---|
+| `--ride-fg-primary` | `#212529` | Body-Text, Headings |
+| `--ride-fg-secondary` | `#4b5560` | Sidebar-Labels, Tagline, Untertitel |
+| `--ride-fg-tertiary` | `#7a8694` | Meta-Zeilen, Trennzeichen |
+| `--ride-bg` | `#ffffff` | Hauptfläche |
+| `--ride-bg-muted` | `#f4f6f8` | Abstract-Block, Code, Tag-Pillen |
+| `--ride-rule` | `#d4d9df` | Haarlinien, Rule-Trenner |
+| `--ride-accent` | `#0d6efd` | Links, Querverweise, ORCID-Badges |
+| `--ride-accent-hover` | `#0a58ca` | Link-Hover-State |
+| `--ride-navbar-bg` | `#333333` | Navigationsleisten-Band (mockup line 12) |
+| `--ride-navbar-fg` | `#ffffff` | Nav-Links |
+
+Branding-Refresh (Logo, eigene Farbidentität) bleibt als spätere Iteration zurückgestellt. Die Tokens leben in [`static/css/ride.css`](../static/css/ride.css) und sind die einzige Farbquelle — Komponenten referenzieren ausschließlich Variablen.
 
 ## 8. Mehrsprachigkeit
 

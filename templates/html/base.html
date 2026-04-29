@@ -75,14 +75,15 @@
   <a class="ride-skip" href="#ride-main">{{ site.strings.skip_to_content | default('Skip to content') }}</a>
 
   <header class="ride-header" role="banner">
-    <div class="ride-shell">
+    <div class="ride-shell ride-header__inner">
       {% block header %}
-      {#- Brand tagline: per [[interface.md §4]], the journal subtitle
-          is the prominent text; the "RIDE" acronym is implicit in the
-          sitewide footer and the page title. -#}
-      <p class="ride-header__tagline">
-        <a href="{{ site.base_url }}/" class="ride-header__brand">{{ site.tagline | default('A Review Journal for Scholarly Digital Editions and Resources') }}</a>
-      </p>
+      <a href="{{ site.base_url }}/" class="ride-header__brand" rel="home">
+        <span class="ride-header__brand-name">RIDE</span>
+        <span class="ride-header__tagline">{{ site.tagline | default('A Review Journal for Scholarly Digital Editions and Resources') }}</span>
+      </a>
+      <a href="https://www.i-d-e.de/" class="ride-header__logo" rel="external" aria-label="Institute for Documentology and Scholarly Editing (IDE)">
+        <img src="{{ static_path('images/logo-ide.png') }}" alt="IDE — Institute for Documentology and Scholarly Editing">
+      </a>
       {% endblock %}
     </div>
   </header>
