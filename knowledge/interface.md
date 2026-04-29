@@ -26,7 +26,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 **Sidebar überladen.** Drei Boxen (Social, TOC, Meta) plus eine Citation-Suggestion konkurrieren um Aufmerksamkeit. Auf Issue- und Rezensionsseiten werden alle drei mitgeführt, obwohl nur eine sinnvoll ist.
 
-**Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer.
+**Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer. — Anmerkung Welle 6: Wir haben die Wordclouds in einer **anderen Rolle** wieder aufgenommen, nämlich als **statische Vorschau-Thumbnails** pro Review-Eintrag auf der Issue-Seite. In dieser Rolle dienen sie nicht als alleiniger Einstieg (wie der Slider), sondern als visueller Anker neben Titel, Citation und Abstract-Excerpt — sie tragen die Funktion „diese Rezension hat einen visuellen Identifier", ohne den Slider-Mechanismus zu reproduzieren.
 
 **Suche zu klein.** Das Suchfeld liegt rechts in der Navigationsleiste, ist aber visuell schwach. Bei einem Korpus, das primär durchsucht wird, braucht die Suche prominente Eingabe und sichtbaren Submit-Button — die Position rechts in der Navbar ist richtig, die Größe nicht.
 
@@ -60,7 +60,11 @@ Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** 
 4. **Action-Widgets** (News, Call for Reviews, Open Data, Follow us) als 2×2-Grid auf Desktop, gestapelt auf Mobile. Inhalt aus `content/home/02–05-*.md`.
 5. **Browse** — eine ruhige Reihe Text-Links unter einer Hairline (All issues, Tags, Reviewers, Reviewed resources). Ersetzt die früheren Pillen, weil sie wie Filterelemente aussahen statt wie redaktionelle Navigation.
 
-Alle Home-Widgets liegen als Markdown unter `content/home/<NN-slug>.md` und werden von `src.render.editorial.discover_home_widgets` geladen; Ordnung folgt dem numerischen Präfix. Redaktion ändert Inhalt ohne Template-Anfassen. Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** trägt Issue-Metadaten oben und Beitragskarten mit Abstract-Ausschnitten. Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Impressum, Reviewing Criteria, plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs) verwenden nur die Inhaltsspalte ohne Sidebar.
+Alle Home-Widgets liegen als Markdown unter `content/home/<NN-slug>.md` und werden von `src.render.editorial.discover_home_widgets` geladen; Ordnung folgt dem numerischen Präfix. Redaktion ändert Inhalt ohne Template-Anfassen.
+
+Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** ist seit Welle 6 als redaktionelle Liste statt als Karten-Grid gesetzt. Im Header ein Lead-Satz im Stil der Live-Site („Edited by … . {Date}{ – present (rolling release)}. DOI: …."), mit Daten aus `content/issues/{N}.yaml` (per-Issue-Konfiguration mit Title, DOI, Editors, Datum, Status). Pro Review folgt ein **Rich-Entry-Block** mit fünf Bestandteilen: Wordcloud-Thumbnail (160×160 px, lazy-loaded, Quelle `static/images/wordclouds/{review_id}.{png|jpg}`, fehlende Thumbnails klappen die Bildspalte über `:has()`-Fallback weg), großer Titel-Link, Edition-Citation kursiv mit URL und Last-Accessed-Datum, Reviewer-Inline mit Affiliation, Abstract-Excerpt auf etwa 360 Zeichen am Wortende getrimmt mit Unicode-Ellipse. Unter 720 Pixel schrumpft das Thumbnail auf 96×96 und der Titel auf h3-Größe.
+
+Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Imprint, Reviewing Criteria plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs, redaktionell gepflegt unter `content/*.md`) verwenden nur die Inhaltsspalte ohne Sidebar.
 
 ## 5. Rezensionsansicht im Detail
 
@@ -118,6 +122,16 @@ Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), 
 
 Branding-Refresh (Logo, eigene Farbidentität) bleibt als spätere Iteration zurückgestellt. Die Tokens leben in [`static/css/ride.css`](../static/css/ride.css) und sind die einzige Farbquelle — Komponenten referenzieren ausschließlich Variablen.
 
+Neben den Farben definiert das Stylesheet seit Welle 5 ein **Spacing- und Form-System**. Die Spacing-Skala ist eine 4-Pixel-Reihe (`--ride-space-1` bis `--ride-space-20`), darüber liegen zwei Section-Rhythmus-Tokens: `--ride-stack-section` (64 Pixel, Abstand zwischen großen Inhaltsblöcken auf Aggregations- und Editorialseiten) und `--ride-stack-block` (32 Pixel, Abstand innerhalb einer Section zwischen einzelnen Blöcken). Form-Tokens fixieren Radius (`--ride-radius` = 4 px für Karten, `--ride-radius-pill` für Tag-Pillen), Schatten (`--ride-shadow-soft` für Ruhezustand, `--ride-shadow-hover` für Hover) und die Standard-Übergangszeit (`--ride-transition` = 160 ms ease-out). Schriftrendering ist auf `font-feature-settings: "kern" 1, "liga" 1, "calt" 1` plus `text-rendering: optimizeLegibility` und Anti-Aliasing-Hinting eingestellt — ein-Mal-Setting, sitewide.
+
+Wiederverwendbare Komponenten-Primitive sind:
+
+- **`.ride-panel`** — geteiltes Karten-Primitiv für Home-Widgets, Sidebar-Boxen (perspektivisch) und Review-Cards. Modifier `--lede` (rahmenlos, hellgrauer Hintergrund, größerer Lesefließtext für Einleitungs-Blöcke), `--action` (kleinere Padding, Hover-Schatten für sekundäre Action-Karten).
+- **`.ride-prose`** — Editorial-Markdown-Output bekommt einheitliche vertikale Rhythmik über `* + *`. Jedes Folgekind erbt automatisch konsistenten Top-Abstand vom Vorgänger.
+- **`.ride-section__heading`** — Section-Heading-Pattern auf Aggregations- und Home-Seiten, mit optionalem `.ride-section__heading-meta`-Span für sekundäre Information rechts daneben („· {issue}").
+
+Diese drei Primitive ersetzen seit Welle 5 mehrere parallel gewachsene Karten-Patterns und sind die einzige Quelle für Padding, Border, Shadow.
+
 ## 8. Mehrsprachigkeit
 
 Rezensionen sind auf Englisch oder Deutsch verfasst, mit häufigen Inline-Zitaten in weiteren Sprachen (Italienisch, Französisch, Spanisch). Das `lang`-Attribut wird auf jeder Ebene korrekt gesetzt, vom `html`-Element für die Seitensprache über die Section-Ebene bei mehrsprachigen Beiträgen bis zum Inline-Span für einzelne fremdsprachige Zitate. Begründung ist sowohl Barrierefreiheit (Screenreader sprechen das Zitat in der richtigen Sprache aus) als auch Suchmaschinen-Korrektheit.
@@ -162,7 +176,7 @@ Alle anderen Interaktionen sind Browser-Standard. Animationen jenseits dezenter 
 
 **[[pipeline#Phasenplan|Phase 8]]** erzeugt ein Template pro semantische Einheit, plus ein Seitentyp-Template pro Seitentyp aus Abschnitt 4. Templates erhalten ausschließlich Domänenobjekte, kein XML, gemäß [[requirements#N1 Read-only-Pipeline]] und der Architektur-Designentscheidung „Domain model first" in [[architecture#Renderers]].
 
-Das CSS ist ein einzelnes Stylesheet von etwa 600 bis 800 Zeilen, ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen.
+Das CSS ist ein einzelnes Stylesheet (Welle 6 Stand: ca. 880 Zeilen, Soft-Cap auf 1000 Zeilen angehoben), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste.
 
 JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[requirements#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
 

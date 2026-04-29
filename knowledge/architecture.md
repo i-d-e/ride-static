@@ -138,6 +138,16 @@ Two output formats share the domain model:
 
 Templates are dumb: they format `Review`/`Section`/`Block` instances and never reach into XML. Apparate-Block layout (References, Figures, Notes as parallel sub-blocks) lives in the renderer, not the model — see [[interface#6 Apparate als parallele Blöcke]].
 
+Beside the per-review render path, three **content loaders** feed the rest of the site from editor-friendly source files:
+
+- **`render/navigation.py`** — parses `config/navigation.yaml` into immutable `NavItem` tuples, then resolves data-driven children (today only `children_kind: issues`, which builds the Issues dropdown from the corpus). The resolved tuple lives in `SiteConfig.navigation` and is handed to every template via the render context.
+- **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim.
+- **`render/issues_config.py`** — loads `content/issues/{N}.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
+
+These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[requirements#A3 Editorialer Pflegepfad]].
+
+The build itself runs in **two passes** (since Welle 3): first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
+
 ```
 templates/html/
   base.html               page chrome, OG metadata, lang propagation

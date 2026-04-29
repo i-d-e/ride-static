@@ -238,6 +238,8 @@ Designsystem jenseits eines minimalistischen CSS ist eigene Iteration.
 
 Migration der WordPress-Tags ist eine einmalige redaktionelle Aufgabe vor dem ersten Produktiv-Build, nicht Teil der Pipeline.
 
+Wordcloud-Slider auf der Startseite sind out, gemäß [[interface#3 Bewertung des heutigen UI]]. Die statischen Wordcloud-Thumbnails als Vorschau-Bilder pro Review-Eintrag auf der Issue-Seite sind seit Welle 6 wieder Teil des Designs — andere Funktion (visueller Anker neben Citation und Abstract-Excerpt), nicht als alleiniger Einstieg.
+
 Kontaktformular mit serverseitiger Verarbeitung ist nicht vorgesehen.
 
 Inkrementelles Build mit Caching ist konzeptionell vorgesehen, wird aber erst implementiert, wenn die Build-Zeit das erforderlich macht.
