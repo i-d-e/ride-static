@@ -7,12 +7,17 @@ last_updated: 2026-04-29
 
 # Charts
 
-Visualisations of the questionnaire answers aggregated across reviews:
-score distributions per criterion, criteria coverage per issue, tag
-co-occurrence, reviewer activity over time.
+Each RIDE review answers a structured questionnaire of yes/no
+criteria, drawn from one of the IDE *Criteria for Reviewing*
+documents. The bar charts below show, per criteria set and per
+top-level section, the share of answers that were *yes* across the
+corpus. The denominator excludes the rare `value="3"` anomaly (one
+review uses it to mark "not in scope"); the count of excluded answers
+is reported below each chart.
 
-> Placeholder — the chart gallery lands with
-> [Phase 12 of the build plan](https://github.com/i-d-e/ride-static/blob/main/knowledge/pipeline.md#phasenplan).
-> Until then the raw aggregates can be derived from the
-> [full corpus dump](/api/corpus.json) or the
-> [questionnaires page](/data/questionnaires/).
+The raw answers are also available as machine-readable JSON in the
+[full corpus dump](/api/corpus.json) under `questionnaires` per
+review, and the underlying TEI lives in the
+[GitHub mirror](https://github.com/i-d-e/ride).
+
+<!-- ride:charts -->

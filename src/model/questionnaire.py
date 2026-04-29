@@ -50,3 +50,23 @@ class Questionnaire:
 
     criteria_url: str
     answers: tuple[QuestionnaireAnswer, ...]
+
+
+@dataclass(frozen=True)
+class TaxonomySection:
+    """One top-level section of a criteria set: label and its leaf
+    category xml:ids.
+
+    The corpus criteria sets group ~200–800 leaf answers into 5–8
+    coarse top-level sections (``aims``, ``content``, ``data_modelling``
+    etc. for text-collections; section headings like "Documentation"
+    or "Aims and methods" for digital-editions and tools). The Data-
+    Charts page (``requirements.md`` R9) aggregates per top-level
+    section, so the renderer needs the leaf→section mapping that the
+    raw :class:`Questionnaire` does not carry. Built once per criteria
+    URL by :func:`src.parser.questionnaire.parse_taxonomy_sections`
+    walking one example ``<taxonomy>`` from the corpus.
+    """
+
+    label: str
+    leaf_xml_ids: tuple[str, ...]

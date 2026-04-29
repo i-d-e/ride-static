@@ -72,12 +72,22 @@ def parse_editorial(path: Path) -> EditorialPage:
     )
 
 
+CHART_MARKER = "<!-- ride:charts -->"
+
+
 def render_editorial(
     page: EditorialPage,
     site: Optional[SiteConfig] = None,
     env: Optional[Environment] = None,
+    chart_html: str = "",
 ) -> str:
-    """Render one EditorialPage to a full HTML page string."""
+    """Render one EditorialPage to a full HTML page string.
+
+    ``chart_html`` is a pre-rendered HTML block that replaces the
+    ``<!-- ride:charts -->`` marker in the page body. Empty string
+    leaves the marker untouched so editors can preview the page
+    without the build pipeline; ``content/data-charts.md`` carries
+    the marker (see :func:`src.render.charts.render_charts_block`)."""
     site = site or SiteConfig()
     env = env or make_env()
 
@@ -86,6 +96,8 @@ def render_editorial(
         extensions=["extra", "sane_lists", "smarty"],
         output_format="html5",
     )
+    if chart_html and CHART_MARKER in body_html:
+        body_html = body_html.replace(CHART_MARKER, chart_html)
 
     template = env.get_template("editorial.html")
     return template.render(

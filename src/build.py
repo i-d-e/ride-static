@@ -157,13 +157,36 @@ def _site_with_navigation(site: SiteConfig, reviews: tuple[Review, ...]) -> Site
     )
 
 
-def _render_editorials(env, site: SiteConfig, out_root: Path) -> int:
-    """Render every ``content/*.md`` page to ``site/{slug}/index.html``."""
+def _render_editorials(
+    env,
+    site: SiteConfig,
+    out_root: Path,
+    parsed: Optional[list] = None,
+) -> int:
+    """Render every ``content/*.md`` page to ``site/{slug}/index.html``.
+
+    ``parsed`` is the build's ``[(path, review), …]`` list. When given
+    and the editorial page is the Data-Charts placeholder
+    (``data/charts``), the chart marker is substituted by inline SVG
+    bar charts derived from the parsed corpus (R9). All other pages
+    render unchanged."""
+    from src.render.charts import render_charts_block
+
     written = 0
+    chart_html = ""
     for page in discover_editorials():
+        if page.slug == "data/charts" and parsed and not chart_html:
+            chart_html = render_charts_block(
+                tuple(r for _, r in parsed), parsed_paths=parsed
+            )
         page_dir = out_root / page.slug
         page_dir.mkdir(parents=True, exist_ok=True)
-        html = render_editorial(page, site=site, env=env)
+        html = render_editorial(
+            page,
+            site=site,
+            env=env,
+            chart_html=chart_html if page.slug == "data/charts" else "",
+        )
         (page_dir / "index.html").write_text(html, encoding="utf-8")
         written += 1
     return written
@@ -330,7 +353,7 @@ def build(
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
-    editorials = _render_editorials(env, site, out_root)
+    editorials = _render_editorials(env, site, out_root, parsed=parsed)
     home_widgets = discover_home_widgets()
     aggregations = _render_aggregations(
         tuple(rendered), env, site, out_root,

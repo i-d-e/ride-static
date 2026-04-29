@@ -30,6 +30,31 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-04-29 — Phase 10-Rest: Data-Charts (R9) live
+
+**Ziel:** Den letzten inhaltlichen Brocken aus Phase 10 abräumen — aggregierte Bar-Charts auf `/data/charts/` aus dem realen Korpus statt des seit Welle 6 stehenden Placeholder-Markdown.
+
+**Erledigt:**
+- Neuer Renderer `src/render/charts.py`: kanonische Slug-Map über die vier Kriterien-URLs (drei logische Sets: digital-editions-1.1, tools-1.0, text-collections-1.0); per Slug aggregiert nach Top-Level-Section über das geparste Korpus; inline-SVG-Bar-Chart mit Achsen-Ticks 0/25/50/75/100, In-Bar-Annotation `yes / total (pct%)`, getrennte `value="3"`-Anomalie-Note unter dem Chart.
+- Neuer Parser-Helfer `parse_taxonomy_sections` in `src/parser/questionnaire.py`: liest die `<taxonomy>`-Struktur per criteria_url. Innerhalb eines Reviews werden mehrere Taxonomien derselben URL gemerged (carlyle-addams-tei.xml hat zwei mit rev1-/rev2-Leaves), und `collect_sections_from_corpus` vereinigt dann über alle Files.
+- Marker-Substitution im Editorial-Renderer: `<!-- ride:charts -->` in `content/data-charts.md` wird beim Build durch das gerenderte Chart-Block ersetzt; `render_editorial(..., chart_html=...)` ist optional, ohne Marker bleibt der Body unverändert.
+- CSS-Hooks `.ride-charts*` und `.ride-chart__*` in `static/css/ride.css` (Section 5, ~16 neue Zeilen).
+- Tests: 18 neue in `tests/test_render_charts.py` — synthetische Aggregator-Branches (yes/no/anomaly, Slug-Merge, Order, HTML-Escape) + real-corpus-drive (4 URLs gefunden, 3 Charts ≥70/15/18 Reviews, kein `(other)`-Bucket-Pin gegen Drift, Marker-Substitution end-to-end).
+
+**Entscheidungen:**
+- Kanonische Slug-Map als hartkodiertes Dict in `charts.py` statt Heuristik. Begründung: vier URLs sind ein geschlossenes Set; eine spätere fünfte URL fällt sauber durch den `criteria_slug`-Fallback und liefert weiter ein Chart, nur ohne hübschen Display-Label.
+- `(other)`-Bucket als Drift-Sensor. Wenn ein Review ein Leaf antwortet, das in keiner geparsten Taxonomie auftaucht, wird das nicht stillschweigend verworfen, sondern landet in einem `(other)`-Eintrag. Test pinnt: über das echte Korpus darf der Bucket nicht entstehen.
+- Marker-Pattern (`<!-- ride:charts -->`) statt Sonder-Template für /data/charts. Begründung: Editor:innen sehen einen kommentierten Marker, sehen die Position, können die Seite ohne Build vorschauen; der Build ersetzt den Marker durch das HTML-Block.
+- Charts auf Top-Level-Sections aggregiert, nicht pro Leaf. Begründung: 282/510/780 Leaves wären visuell unbrauchbar; 5–8 Sections sind lesbar und entsprechen der ursprünglichen Visualisierung der Legacy-Site (R9-Akzeptanz "mindestens die Visualisierungen, die heute existieren").
+
+**Offen:**
+- Phase 15 Restposten: WCAG-Vollaudit über Live-Site (axe-Pass), Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain-Entscheidung. Inhaltlich gibt es nach Phase 10 keinen offenen Brocken mehr.
+- 39 fehlende Wordclouds für ältere Issues (kosmetisch, kein Block).
+
+**Nächster Einstieg:** Phase 15 Restposten anfassen — am ehesten WCAG-Vollaudit über die Live-Site mit axe-DevTools, Findings adressieren. Alternativ Matomo-URL/Site-ID als CI-Secrets in `.github/workflows/build.yml` wiring (zwei `${{ secrets.MATOMO_URL }}` plus `${{ secrets.MATOMO_SITE_ID }}` an die `python -m src.build`-Zeile hängen).
+
+---
+
 ## 2026-04-29 — Phase 14 + 15.A: PDF live, Compliance-Block geschlossen
 
 **Ziel:** Die nach Welle 8-10 verbliebenen Compliance- und UX-Items aus dem Phasenplan abräumen — Kontaktseite (R14), Cookieless-Matomo (R16), Lizenzhinweise pro Artefakt (N6), WCAG-2.2-AA-Polish (N5) — und anschließend Phase 14 (PDF aus Domänenmodell) implementieren, damit der seit Welle 8 tote Sidebar-Link `ride.N.M.pdf` produktiv wird.

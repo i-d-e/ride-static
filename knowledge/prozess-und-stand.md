@@ -2,7 +2,7 @@
 title: Die statische RIDE-Webseite. Konzept, Architektur und Stand
 repository: https://github.com/i-d-e/ride-static
 version: 2026-04-29
-status: Phasen 1–14 abgeschlossen, Phase 15 zu ca. 60 % gelandet (Kontakt, Matomo-Config, Lizenzhinweise, WCAG-Polish); offen: Data-Charts (R9), WCAG-Vollaudit, Matomo-CI-Secret, Custom-Domain-Entscheidung
+status: Phasen 1–14 abgeschlossen inklusive Data-Charts (R9: drei SVG-Bar-Charts auf /data/charts/), Phase 15 zu ca. 60 % gelandet (Kontakt, Matomo-Config, Lizenzhinweise, WCAG-Polish); offen: WCAG-Vollaudit, Matomo-CI-Secret, Custom-Domain-Entscheidung
 ---
 
 # Die statische RIDE-Webseite. Konzept, Architektur und Stand
@@ -280,7 +280,7 @@ gebaut wird; Stand-Marker zeigen, was abgeschlossen ist.
 | 7 | Reference-Resolver, Asset-Pipeline für eingebettete Bilder | abgeschlossen |
 | 8 | HTML-Rezensionsseiten plus Zitierexport, Copy-Link, Tooltip-Vorschau, JS-Module | abgeschlossen |
 | 9 | Editorialschicht (Markdown plus Issue-YAML mit Konsistenzcheck) | abgeschlossen |
-| 10 | Aggregations- und Übersichtsseiten | abgeschlossen außer Data-Charts (R9) |
+| 10 | Aggregations- und Übersichtsseiten | abgeschlossen — Data-Charts (R9) als drei inline-SVG-Bar-Charts auf `/data/charts/` |
 | 11 | Pagefind-Volltextsuche | abgeschlossen (Welle 9) |
 | 12 | Maschinenschnittstellen (OAI-PMH, JSON-LD, Korpus-Dump, Sitemap) | abgeschlossen |
 | 13 | Validierung gegen RelaxNG, `build-info.json`, Build-Bericht | abgeschlossen (Welle 10); Schematron deferred |
@@ -378,7 +378,7 @@ und Maschinenschnittstellen aus dem Domänenmodell. Validation
 Pre- bzw. Post-Build-Schritte; aggregierter Bericht in
 `api/build-info.json`.
 
-Offene Arbeit: **Data-Charts (R9)** als letzter inhaltlicher Brocken aus Phase 10. Die `Questionnaire`-Aggregate aus Stage 2.C liegen vor; was fehlt, ist ein `src/render/charts.py`-Modul, das pro Kategorie ein Bar-Chart-SVG aus den `value=0/1`-Antworten produziert, plus eine Einbettung in `content/data-charts.md`. **Phase 15 Restposten**: WCAG-Vollaudit über die Live-Site (axe-Pass), produktive Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain-Entscheidung.
+Offene Arbeit: **Phase 15 Restposten** — WCAG-Vollaudit über die Live-Site (axe-Pass), produktive Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain-Entscheidung. Inhaltlich gibt es nach Phase 10 (Data-Charts via `src/render/charts.py`: drei inline-SVG-Bar-Charts pro Kriterienset, aggregiert nach Top-Level-Section, mit `value="3"`-Anomalie-Note) keinen offenen Brocken mehr.
 
 ## Pflege nach Abschluss
 

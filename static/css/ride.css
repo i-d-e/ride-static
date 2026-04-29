@@ -943,6 +943,27 @@ main.ride-shell {
 .ride-copy-feedback             { position: absolute; left: 100%; top: -2px; margin-left: var(--ride-space-3); padding: 2px 6px; background: var(--ride-fg-primary); color: var(--ride-bg); font-size: var(--ride-text-tiny); border-radius: 2px; white-space: nowrap; opacity: 0; transition: opacity 120ms ease-out; pointer-events: none; }
 .ride-copy-feedback--visible    { opacity: 1; }
 
+/* ─── Data-Charts (Phase 10 R9) ────────────────────────────────────────
+   Renderer: src/render/charts.py emits one figure per criteria set with
+   inline SVG bars; the editorial body of /data/charts/ substitutes the
+   chart marker with this block. The SVG is responsive via viewBox; the
+   class hooks below tune colour, label weight, and axis tick subtlety.
+   Dataviz palette is intentionally muted — the bar is the data, the
+   numerals are the truth, everything else is chrome. */
+.ride-charts                         { display: flex; flex-direction: column; gap: var(--ride-space-6); margin: var(--ride-space-6) 0; }
+.ride-charts__figure                 { margin: 0; padding: var(--ride-space-4); border: 1px solid var(--ride-border); border-radius: 4px; background: var(--ride-bg-soft, #fafafa); }
+.ride-charts__caption                { margin: 0 0 var(--ride-space-3); font-size: var(--ride-text-base); }
+.ride-charts__count                  { color: var(--ride-fg-secondary); font-weight: 400; }
+.ride-charts__svg, .ride-chart__svg  { width: 100%; height: auto; max-width: 700px; }
+.ride-chart__grid                    { stroke: var(--ride-border); stroke-width: 1; }
+.ride-chart__tick                    { fill: var(--ride-fg-secondary); font-size: 10px; }
+.ride-chart__row-label               { fill: var(--ride-fg-primary); font-size: 12px; }
+.ride-chart__bar-bg                  { fill: var(--ride-bg-muted, #eaeaea); }
+.ride-chart__bar-fg                  { fill: var(--ride-accent, #0d6efd); }
+.ride-chart__bar-annotation          { fill: var(--ride-fg-primary); font-size: 11px; }
+.ride-charts__anomaly                { margin: var(--ride-space-3) 0 0; font-size: var(--ride-text-tiny); color: var(--ride-fg-secondary); }
+.ride-charts__anomaly code           { font-size: inherit; }
+
 /* ─── 6. Responsive breakpoints ──────────────────────────────────────── */
 
 /* < 720px — sidebar collapses below content; apparate stacks. */
