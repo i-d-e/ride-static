@@ -159,8 +159,10 @@
       <p class="ride-cite__suggestion-note">
         {{ site.strings.cite_note | default('You can use the running numbers on the left side to refer to a specific paragraph.') }}
       </p>
-      <button type="button" class="ride-cite__btn" data-cite-format="bibtex" data-review-id="{{ review.id }}">{{ site.strings.copy_bibtex | default('Copy BibTeX') }}</button>
-      <button type="button" class="ride-cite__btn" data-cite-format="csl-json" data-review-id="{{ review.id }}">{{ site.strings.copy_csl | default('Copy CSL-JSON') }}</button>
+      <div class="ride-cite__btns">
+        <button type="button" class="ride-cite__btn" data-cite-format="bibtex" data-review-id="{{ review.id }}">{{ site.strings.copy_bibtex | default('Copy BibTeX') }}</button>
+        <button type="button" class="ride-cite__btn" data-cite-format="csl-json" data-review-id="{{ review.id }}">{{ site.strings.copy_csl | default('Copy CSL-JSON') }}</button>
+      </div>
 
       {#- Citation payload — read by static/js/cite-copy.js. Both blocks use a
           script-MIME-type the browser does not execute. The to_bibtex helper

@@ -119,14 +119,6 @@
   </nav>
   {% endif %}
 
-  {#- Search slot lives between header and content per interface.md §4 — small,
-      always visible. Phase 11 mounts the Pagefind UI inside this container. -#}
-  <div class="ride-search-slot" role="search">
-    <div class="ride-shell">
-      <div id="ride-search" data-pagefind-ui></div>
-    </div>
-  </div>
-
   <main id="ride-main" class="ride-shell" tabindex="-1">
     {% block content %}{% endblock %}
   </main>

@@ -160,7 +160,6 @@ def test_render_review_emits_skeleton():
     assert "<!doctype html>" in html
     assert 'lang="en"' in html
     assert "ride-skip" in html
-    assert "ride-search-slot" in html
     # Review-specific structure
     assert "A Sample Review" in html
     assert "ride-review__title" in html

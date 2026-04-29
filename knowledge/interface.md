@@ -99,7 +99,7 @@ Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), 
 |---|---|---|
 | `--ride-fg-primary` | `#212529` | Body-Text, Headings |
 | `--ride-fg-secondary` | `#4b5560` | Sidebar-Labels, Tagline, Untertitel |
-| `--ride-fg-tertiary` | `#7a8694` | Meta-Zeilen, Trennzeichen |
+| `--ride-fg-tertiary` | `#5a6371` | Meta-Zeilen, Trennzeichen (WCAG AA 4.7:1) |
 | `--ride-bg` | `#ffffff` | Hauptfläche |
 | `--ride-bg-muted` | `#f4f6f8` | Abstract-Block, Code, Tag-Pillen |
 | `--ride-rule` | `#d4d9df` | Haarlinien, Rule-Trenner |

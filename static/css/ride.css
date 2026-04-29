@@ -57,7 +57,7 @@
      accent blue matches the link colour on the live WordPress site. */
   --ride-fg-primary:    #212529;   /* body text — Bootstrap default text */
   --ride-fg-secondary:  #4b5560;   /* secondary text, sidebar labels */
-  --ride-fg-tertiary:   #7a8694;   /* meta lines, separators */
+  --ride-fg-tertiary:   #5a6371;   /* meta lines, separators — AA-konform 4.7:1 auf weiß */
   --ride-bg:            #ffffff;
   --ride-bg-muted:      #f4f6f8;   /* abstract block, code background */
   --ride-rule:          #d4d9df;   /* hairlines between sections */
@@ -165,6 +165,11 @@ hr {
 }
 
 .ride-page--solo { grid-template-columns: minmax(0, var(--ride-content-width)); }
+
+/* Home- und Aggregations-Seiten brauchen die volle Page-Max-Breite, damit
+   das drei-spaltige Widget-Grid nicht in die Lese-Spalte gezwängt wird. */
+.ride-page--wide { grid-template-columns: minmax(0, 1fr); }
+.ride-page--wide .ride-content { max-width: none; }
 
 .ride-content   { grid-column: 1; min-width: 0; }
 .ride-sidebar   { grid-column: 2; font-family: var(--ride-font-sans); font-size: var(--ride-text-small); }
@@ -318,14 +323,6 @@ hr {
   .ride-nav__sublink:hover { background: transparent; color: var(--ride-bg-muted); }
 }
 
-/* Search bar gets its own dedicated slot per interface.md §4 — between header
-   and content, full width, on every page. Phase 11 wires Pagefind into it. */
-.ride-search-slot {
-  border-bottom: 1px solid var(--ride-rule);
-  padding: var(--ride-space-3) 0;
-  background: var(--ride-bg-muted);
-}
-
 .ride-footer {
   border-top: 1px solid var(--ride-rule);
   padding: var(--ride-space-6) 0;
@@ -363,7 +360,7 @@ hr {
    Block kinds: Paragraph, List, Table, Figure, Citation. */
 
 .ride-paragraph                 { /* citation-anchor gutter is set by the template */ }
-.ride-paragraph__anchor         { /* @n marker, left margin, hover reveals copy-link */ }
+.ride-paragraph__anchor         { position: relative; /* anchor for .ride-copy-feedback popover */ }
 
 .ride-list                      { padding-left: var(--ride-space-6); }
 .ride-list--bulleted            { list-style: disc; }
@@ -442,7 +439,12 @@ hr {
 .ride-cite__suggestion          { margin: 0 0 var(--ride-space-3); }
 .ride-cite__suggestion-note     { font-style: italic; color: var(--ride-fg-secondary); font-size: var(--ride-text-small); margin: var(--ride-space-2) 0 var(--ride-space-3); }
 
-.ride-cite__btn                 { display: block; width: 100%; padding: var(--ride-space-2) var(--ride-space-3); margin-top: var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; }
+/* Cite-Buttons sitzen als Paar nebeneinander, sodass die Sidebar-Höhe
+   nicht durch zwei vollbreite Buttons aufgebläht wird. Wrap auf zwei
+   Zeilen passiert nur, wenn die Sidebar so schmal ist, dass beide
+   nicht passen — dann ist auch kein vertikales Stapeln mehr störend. */
+.ride-cite__btns                { display: flex; flex-wrap: wrap; gap: var(--ride-space-2); margin-top: var(--ride-space-2); }
+.ride-cite__btn                 { flex: 1 1 auto; min-width: 0; padding: var(--ride-space-2) var(--ride-space-3); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; text-align: center; }
 .ride-cite__btn:hover           { background: var(--ride-rule); }
 
 /* Tags as pill-list in the review sidebar. */
@@ -561,8 +563,8 @@ hr {
 .ride-review__footer            { margin-top: var(--ride-space-12); padding-top: var(--ride-space-4); border-top: 1px solid var(--ride-rule); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
 .ride-review__footer p          { margin: 0 0 var(--ride-space-2); }
 
-/* Copy-link feedback popover — used by static/js/copy-link.js. */
-.ride-paragraph__anchor         { position: relative; }
+/* Copy-link feedback popover — anchor positioning lives on the upper
+   .ride-paragraph__anchor rule (consolidated). */
 .ride-copy-feedback             { position: absolute; left: 100%; top: -2px; margin-left: var(--ride-space-3); padding: 2px 6px; background: var(--ride-fg-primary); color: var(--ride-bg); font-size: var(--ride-text-tiny); border-radius: 2px; white-space: nowrap; opacity: 0; transition: opacity 120ms ease-out; pointer-events: none; }
 .ride-copy-feedback--visible    { opacity: 1; }
 
