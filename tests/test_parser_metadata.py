@@ -199,8 +199,20 @@ def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
     r = parse_review(p)
     [reviewed] = r.related_items
     assert reviewed.type == "reviewed_resource"
+    assert reviewed.title == "Reviewed Edition"
     assert "https://example.org/edition" in reviewed.bibl_targets
     assert reviewed.last_accessed == "2023-11-15"
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+def test_related_item_title_extracted_from_real_corpus() -> None:
+    """1641 carries '1641 Depositions' as the canonical reviewed-work
+    title in <bibl>/<title>; the parser exposes it on RelatedItem.title
+    so the byline cite can show just the title rather than the flat
+    bibl_text dump that includes every <respStmt> sibling."""
+    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
+    assert reviewed.title == "1641 Depositions"
 
 
 def test_review_is_immutable(fixture_path: Path) -> None:

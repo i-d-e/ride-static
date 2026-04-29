@@ -28,47 +28,38 @@
     <header class="ride-review__header">
       <h1 class="ride-review__title">{{ review.title }}</h1>
 
-      {#- Reviewed-edition block: derived from <relatedItem type="reviewed">. The
-          parser surfaces these as Review.related_items; the template renders
-          every entry whose type indicates the reviewed work. -#}
-      {%- set reviewed = review.related_items | selectattr("type", "in", ["reviewed", "review"]) | list -%}
-      {%- if reviewed -%}
-      <div class="ride-review__reviewed">
-        {%- for item in reviewed -%}
-          <p class="ride-review__bibl">{{ item.bibl_text }}</p>
-        {%- endfor -%}
-      </div>
-      {%- endif -%}
-
-      {#- Reviewer block: separate from the bibliographic one (§5). -#}
-      {%- if review.authors %}
-      <div class="ride-review__authors">
-        <h2 class="ride-sr-only">{{ site.strings.reviewers | default('Reviewers') }}</h2>
-        <ul class="ride-review__author-list">
-          {%- for author in review.authors %}
-            <li class="ride-review__author">
-              <span class="ride-review__author-name">{{ author.person.full_name }}</span>
-              {%- if author.person.orcid %}
-                <a class="ride-review__orcid" href="{{ author.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>
-              {%- endif %}
-              {%- if author.affiliation %}
-                <span class="ride-review__affiliation">
-                  {%- if author.affiliation.org_name %}{{ author.affiliation.org_name }}{% endif -%}
-                  {%- if author.affiliation.place_name %}, {{ author.affiliation.place_name }}{% endif -%}
-                </span>
-              {%- endif %}
-              {%- if author.email %}
-                <a class="ride-review__email" href="mailto:{{ author.email | obfuscate_mail }}">{{ author.email | obfuscate_mail }}</a>
-              {%- endif %}
-            </li>
-          {%- endfor %}
-        </ul>
-      </div>
+      {#- Header byline (interface.md §5): the reviewed edition's
+          bibliographic citation plus the reviewer attribution share
+          one paragraph rather than two separate blocks, matching the
+          mockup-driven visual model. -#}
+      {%- set reviewed = review.related_items | selectattr("type", "equalto", "reviewed_resource") | list -%}
+      {%- if reviewed or review.authors %}
+      <p class="ride-review__byline">
+        {%- if reviewed -%}
+          {%- set item = reviewed[0] -%}
+          {%- if item.title -%}
+            <cite>{{ item.title | trim }}</cite>.
+          {%- endif -%}
+          {%- if item.bibl_targets %} <a href="{{ item.bibl_targets[0] }}">{{ item.bibl_targets[0] }}</a>{% endif -%}
+          {%- if item.last_accessed %} ({{ site.strings.last_accessed | default('Last Accessed') }}: {{ item.last_accessed }}){% endif -%}.
+        {%- endif %}
+        {%- if review.authors %}
+          {{ site.strings.reviewed_by | default('Reviewed by') }}
+          {%- for a in review.authors %}
+            {%- if a.person.orcid %} <a class="ride-review__orcid" href="{{ a.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>{%- endif %}
+            {{ a.person.full_name }}
+            {%- if a.affiliation and a.affiliation.org_name %} ({{ a.affiliation.org_name }}){% endif -%}
+            {%- if a.email %}, <a href="mailto:{{ a.email | obfuscate_mail }}">{{ a.email | obfuscate_mail }}</a>{% endif -%}
+            {%- if not loop.last %};{% endif -%}
+          {%- endfor -%}.
+        {%- endif %}
+      </p>
       {%- endif %}
     </header>
 
     {%- if abstract_section -%}
-    <section class="ride-review__abstract" aria-label="{{ site.strings.abstract | default('Abstract') }}">
+    <section class="ride-review__abstract" aria-labelledby="abstract-heading">
+      <h3 id="abstract-heading">{{ site.strings.abstract | default('Abstract') }}</h3>
       {{ r.blocks(abstract_section.blocks) }}
     </section>
     {%- endif -%}
@@ -119,32 +110,54 @@
         {%- endif -%}
         {%- if review.issue -%}
           <dt>{{ site.strings.issue | default('Issue') }}</dt>
-          <dd>{{ review.issue }}</dd>
+          <dd><a href="{{ site.base_url }}/issues/{{ review.issue }}/">{{ review.issue }}</a></dd>
         {%- endif -%}
-        {%- if review.keywords -%}
-          <dt>{{ site.strings.tags | default('Tags') }}</dt>
-          <dd>
-            {%- for kw in review.keywords -%}
-              <a href="{{ site.base_url }}/tags/{{ kw | slugify }}/">{{ kw }}</a>{% if not loop.last %}, {% endif %}
-            {%- endfor -%}
-          </dd>
+        {%- if review.doi -%}
+          <dt>{{ site.strings.doi | default('DOI') }}</dt>
+          <dd><a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a></dd>
         {%- endif -%}
       </dl>
 
       <ul class="ride-downloads">
-        <li><a href="{{ review.id }}.xml" type="application/tei+xml">{{ site.strings.download_tei | default('TEI XML') }}</a></li>
-        <li><a href="{{ review.id }}.pdf" type="application/pdf">{{ site.strings.download_pdf | default('PDF') }}</a></li>
+        <li><a href="#factsheet">{{ site.strings.factsheet_link | default('Factsheet of this project') }}</a></li>
+        <li><a href="{{ review.id }}.xml" type="application/tei+xml">{{ site.strings.download_tei | default('XML of this review, including formal evaluation data') }}</a></li>
+        <li><a href="{{ review.id }}.pdf" type="application/pdf">{{ site.strings.download_pdf | default('PDF of this review article') }}</a></li>
       </ul>
+
+      {%- if review.licence -%}
+      <p class="ride-meta__licence">
+        <a href="{{ review.licence }}">{{ site.strings.licence_short | default('CC BY 4.0') }}</a>
+      </p>
+      {%- endif -%}
     </section>
 
     <section class="ride-sidebar__box ride-sidebar__box--cite" aria-labelledby="cite-heading">
-      <h2 id="cite-heading">{{ site.strings.cite | default('Cite') }}</h2>
+      <h2 id="cite-heading">{{ site.strings.cite | default('Citation Suggestion') }}</h2>
+      {#- R2 format: Surname, Forename (Year). "Title." RIDE {Issue},
+          ed. by {Editors}. DOI: {DOI}. Accessed: {Date}. -#}
       <p class="ride-cite__suggestion">
         {%- if review.authors -%}
-          {%- for a in review.authors -%}{{ a.person.full_name }}{% if not loop.last %}, {% endif %}{%- endfor -%}.
-        {%- endif -%}
-        “{{ review.title }}.”
-        {%- if review.publication_date %} {{ review.publication_date }}.{% endif -%}
+          {%- for a in review.authors -%}
+            {%- if a.person.surname and a.person.forename -%}
+              {{ a.person.surname }}, {{ a.person.forename }}
+            {%- else -%}
+              {{ a.person.full_name }}
+            {%- endif -%}
+            {%- if not loop.last %}; {% endif -%}
+          {%- endfor -%}
+          {%- if review.publication_date %} ({{ review.publication_date.split('-')[0] }}){% endif -%}.
+        {%- endif %}
+        "{{ review.title }}."
+        {%- if review.issue %} {{ site.title.split('—')[0] | trim | default('RIDE') }} {{ review.issue }}{% endif -%}
+        {%- if review.editors -%}
+          , {{ site.strings.edited_by | default('ed. by') }}
+          {%- for e in review.editors %} {{ e.person.full_name }}{% if not loop.last %},{% endif -%}{% endfor -%}
+        {%- endif -%}.
+        {%- if review.doi %} {{ site.strings.doi | default('DOI') }}: <a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a>.{% endif -%}
+        {%- if site.build_info and site.build_info.date %} {{ site.strings.accessed | default('Accessed') }}: {{ site.build_info.date.split('T')[0] }}.{% endif -%}
+      </p>
+      <p class="ride-cite__suggestion-note">
+        {{ site.strings.cite_note | default('You can use the running numbers on the left side to refer to a specific paragraph.') }}
       </p>
       <button type="button" class="ride-cite__btn" data-cite-format="bibtex" data-review-id="{{ review.id }}">{{ site.strings.copy_bibtex | default('Copy BibTeX') }}</button>
       <button type="button" class="ride-cite__btn" data-cite-format="csl-json" data-review-id="{{ review.id }}">{{ site.strings.copy_csl | default('Copy CSL-JSON') }}</button>
@@ -155,6 +168,17 @@
       <script class="ride-cite-data" data-format="bibtex" type="application/x-bibtex">{{ review | to_bibtex | safe }}</script>
       <script class="ride-cite-data" data-format="csl-json" type="application/json">{{ review | to_csl_dict | tojson(indent=2) }}</script>
     </section>
+
+    {%- if review.keywords %}
+    <section class="ride-sidebar__box ride-sidebar__box--tags" aria-labelledby="tags-heading">
+      <h2 id="tags-heading">{{ site.strings.tags | default('Tags') }}</h2>
+      <ul class="ride-tag-pills">
+        {%- for kw in review.keywords -%}
+          <li><a href="{{ site.base_url }}/tags/{{ kw | slugify }}/">{{ kw }}</a></li>
+        {%- endfor -%}
+      </ul>
+    </section>
+    {%- endif %}
   </aside>
 
 </article>

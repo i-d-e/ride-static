@@ -77,12 +77,12 @@
   <header class="ride-header" role="banner">
     <div class="ride-shell">
       {% block header %}
-      <a href="{{ site.base_url }}/" class="ride-header__brand">{{ site.title }}</a>
-      <nav aria-label="{{ site.strings.primary_nav | default('Primary') }}">
-        {#- Navbar source is still an open stakeholder question per
-            knowledge/prozess-und-stand.md §"Komponenten der heutigen Site".
-            Phase 9/10 wires it from a single YAML/Markdown source. -#}
-      </nav>
+      {#- Brand tagline: per [[interface.md §4]], the journal subtitle
+          is the prominent text; the "RIDE" acronym is implicit in the
+          sitewide footer and the page title. -#}
+      <p class="ride-header__tagline">
+        <a href="{{ site.base_url }}/" class="ride-header__brand">{{ site.tagline | default('A Review Journal for Scholarly Digital Editions and Resources') }}</a>
+      </p>
       {% endblock %}
     </div>
   </header>
@@ -102,16 +102,19 @@
   <footer class="ride-footer" role="contentinfo">
     <div class="ride-shell">
       {% block footer %}
-      <p>
-        {#- Build-info lands here via site.build_info (requirements.md N4). -#}
-        {{ site.title }}
-        {%- if site.build_info %} · build {{ site.build_info.commit_short }} ({{ site.build_info.date }}){% endif %}
-      </p>
-      <p>
-        {#- Licence per N6 — the per-review licence renders inside the review,
-            this footer carries the site/code licence. -#}
-        {{ site.strings.licence_footer | default('Texts licensed under their respective Creative Commons terms; pipeline code MIT.') }}
-      </p>
+      {#- Footer items per requirements.md R10 acceptance: licence,
+          brand-with-year, ISSN, imprint link. Build-info per N4 stays
+          as a separate line so the footer chrome is the same on every
+          page regardless of build. -#}
+      <ul class="ride-footer__items">
+        <li>{{ site.strings.licence_short | default('CC BY 4.0') }}</li>
+        <li>{{ site.title }} {{ site.copyright_year | default('2025') }}</li>
+        <li>ISSN: {{ site.issn | default('2363-4952') }}</li>
+        <li><a href="{{ site.base_url }}/imprint/">{{ site.strings.imprint | default('Imprint and Privacy') }}</a></li>
+      </ul>
+      {%- if site.build_info %}
+      <p class="ride-footer__build">build {{ site.build_info.commit_short }} ({{ site.build_info.date }})</p>
+      {%- endif %}
       {% endblock %}
     </div>
   </footer>

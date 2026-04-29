@@ -114,11 +114,19 @@ def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem
                 last_accessed = itertext(date_el) or None
                 break
 
+        # Canonical title — first <title> directly under <bibl>.
+        title: Optional[str] = None
+        if bibl_el is not None:
+            title_el = find(bibl_el, "t:title")
+            if title_el is not None:
+                title = itertext(title_el) or None
+
         out.append(RelatedItem(
             type=attr(ri_el, "type") or "",
             bibl_text=itertext(bibl_el) if bibl_el is not None else itertext(ri_el),
             bibl_targets=tuple(targets),
             xml_id=attr(ri_el, "xml:id"),
             last_accessed=last_accessed,
+            title=title,
         ))
     return out

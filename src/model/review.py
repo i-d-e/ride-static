@@ -69,6 +69,11 @@ class RelatedItem:
     bibl_targets: tuple[str, ...] = field(default_factory=tuple)
     xml_id: Optional[str] = None
     last_accessed: Optional[str] = None
+    title: Optional[str] = None
+    """First ``<title>`` directly under ``<bibl>`` — the canonical title
+    of the reviewed work or criteria document. Templates use this for
+    the byline cite; ``bibl_text`` keeps the flat itertext for fallback
+    and for the JSON-LD/OAI-PMH ``name`` literal."""
 
 
 @dataclass(frozen=True)

@@ -23,22 +23,25 @@
 /* ─── 1. Design tokens ───────────────────────────────────────────────── */
 
 :root {
-  /* Layout — interface.md §4 */
-  --ride-page-max:       1080px;
-  --ride-content-width:   680px;
-  --ride-sidebar-width:   220px;
+  /* Layout — interface.md §4. Widened over the original 1080/680/220
+     so the citation suggestion in the sidebar fits without wrapping
+     acrobatics; the content column stays around 80 reading-characters. */
+  --ride-page-max:       1150px;
+  --ride-content-width:   720px;
+  --ride-sidebar-width:   280px;
   --ride-gutter:           60px;
   --ride-page-padding:     20px;
 
-  /* Typography — interface.md §7 */
-  --ride-font-serif:    "Source Serif", "Source Serif Pro", "Crimson Pro", Georgia, serif;
-  --ride-font-sans:     "Inter", "Source Sans 3", "Source Sans Pro", -apple-system, system-ui, sans-serif;
+  /* Typography — interface.md §7. Single Sans-family per the
+     mockup-driven decision; the previous Serif body was retired. */
+  --ride-font-sans:     "Source Sans 3", "Source Sans Pro", -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ride-font-mono:     ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
 
-  --ride-text-base:     17px;
+  --ride-text-base:     18px;   /* slightly larger than the prior 17 to
+                                    keep readability with a sans body */
   --ride-text-small:    14px;   /* sidebar, apparate */
   --ride-text-tiny:     12px;   /* hard floor — never go smaller */
-  --ride-text-h1:       28px;
+  --ride-text-h1:       30px;
   --ride-text-h2:       22px;
   --ride-text-h3:       18px;
 
@@ -83,7 +86,7 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--ride-font-serif);
+  font-family: var(--ride-font-sans);
   font-size: var(--ride-text-base);
   line-height: var(--ride-leading-prose);
   color: var(--ride-fg-primary);
@@ -167,7 +170,12 @@ hr {
 .ride-header {
   border-bottom: 1px solid var(--ride-rule);
   padding: var(--ride-space-4) 0;
-  font-family: var(--ride-font-sans);
+}
+
+.ride-header__tagline {
+  margin: 0;
+  font-size: var(--ride-text-base);
+  color: var(--ride-fg-secondary);
 }
 
 /* Search bar gets its own dedicated slot per interface.md §4 — between header
@@ -176,7 +184,6 @@ hr {
   border-bottom: 1px solid var(--ride-rule);
   padding: var(--ride-space-3) 0;
   background: var(--ride-bg-muted);
-  font-family: var(--ride-font-sans);
 }
 
 .ride-footer {
@@ -184,8 +191,26 @@ hr {
   padding: var(--ride-space-6) 0;
   margin-top: var(--ride-space-12);
   color: var(--ride-fg-secondary);
-  font-family: var(--ride-font-sans);
   font-size: var(--ride-text-small);
+}
+
+.ride-footer__items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ride-space-4);
+}
+
+.ride-footer__items > li::after {
+  content: "·";
+  margin-left: var(--ride-space-4);
+  color: var(--ride-fg-tertiary);
+}
+
+.ride-footer__items > li:last-child::after {
+  content: none;
 }
 
 /* ─── 5. Component class hooks ───────────────────────────────────────── */
@@ -256,6 +281,8 @@ hr {
 .ride-sidebar__box              { margin-bottom: var(--ride-space-8); }
 .ride-sidebar__box h2           { font-size: var(--ride-text-h3); margin: 0 0 var(--ride-space-3); }
 
+.ride-sidebar__divider          { border: 0; border-top: 1px solid var(--ride-rule); margin: var(--ride-space-6) 0; }
+
 .ride-toc                       { list-style: none; padding-left: 0; margin: 0; }
 .ride-toc li                    { margin-bottom: var(--ride-space-2); }
 
@@ -272,8 +299,16 @@ hr {
 .ride-downloads                 { list-style: none; padding-left: 0; margin: var(--ride-space-3) 0 0; }
 .ride-downloads li              { margin-bottom: var(--ride-space-2); }
 
+.ride-cite__suggestion          { margin: 0 0 var(--ride-space-3); }
+.ride-cite__suggestion-note     { font-style: italic; color: var(--ride-fg-secondary); font-size: var(--ride-text-small); margin: var(--ride-space-2) 0 var(--ride-space-3); }
+
 .ride-cite__btn                 { display: block; width: 100%; padding: var(--ride-space-2) var(--ride-space-3); margin-top: var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font: inherit; cursor: pointer; }
 .ride-cite__btn:hover           { background: var(--ride-rule); }
+
+/* Tags as pill-list in the review sidebar. */
+.ride-tag-pills                 { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: var(--ride-space-2); }
+.ride-tag-pills li a            { display: inline-block; padding: 2px 8px; background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; text-decoration: none; font-size: var(--ride-text-small); }
+.ride-tag-pills li a:hover      { background: var(--ride-rule); }
 
 /* Editorial pages — single column, generous reading width. */
 .ride-editorial                 { max-width: var(--ride-content-width); }
@@ -337,21 +372,20 @@ hr {
 .ride-badge                     { display: inline-block; padding: 1px 6px; font-family: var(--ride-font-sans); font-size: var(--ride-text-tiny); font-weight: var(--ride-weight-medium); text-transform: uppercase; letter-spacing: 0.04em; border-radius: 2px; margin-left: var(--ride-space-2); }
 .ride-badge--rolling            { background: var(--ride-accent); color: var(--ride-bg); }
 
-/* Review header — bibliographic block + reviewer block (interface.md §5). */
+/* Review header — title + bibliographic-and-reviewer prose block
+   (interface.md §5, mockup-driven). The reviewed-edition citation and
+   the reviewer attribution share one paragraph rather than two
+   separate blocks, matching the visual model where both flow
+   together as the article's opening byline. */
 .ride-review__header            { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-6); border-bottom: 1px solid var(--ride-rule); }
-.ride-review__title             { margin-top: 0; }
-.ride-review__reviewed          { margin-top: var(--ride-space-4); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
-.ride-review__bibl              { margin: 0 0 var(--ride-space-2); }
+.ride-review__title             { margin-top: 0; font-size: var(--ride-text-h1); }
+.ride-review__byline            { margin: var(--ride-space-4) 0 0; font-size: var(--ride-text-small); color: var(--ride-fg-secondary); line-height: var(--ride-leading-prose); }
+.ride-review__byline cite       { font-style: italic; }
 
-.ride-review__authors           { margin-top: var(--ride-space-4); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); }
-.ride-review__author-list       { list-style: none; padding: 0; margin: 0; }
-.ride-review__author            { margin-bottom: var(--ride-space-3); }
-.ride-review__author-name       { font-weight: var(--ride-weight-medium); color: var(--ride-fg-primary); }
-.ride-review__orcid             { display: inline-block; margin-left: var(--ride-space-2); padding: 0 var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font-size: var(--ride-text-tiny); text-decoration: none; }
-.ride-review__affiliation       { display: block; color: var(--ride-fg-secondary); }
-.ride-review__email             { display: block; color: var(--ride-fg-secondary); }
+.ride-review__orcid             { display: inline-block; margin: 0 4px; padding: 0 var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font-size: var(--ride-text-tiny); text-decoration: none; vertical-align: middle; }
 
 .ride-review__abstract          { background: var(--ride-bg-muted); padding: var(--ride-space-4) var(--ride-space-6); margin: var(--ride-space-6) 0; border-radius: 2px; }
+.ride-review__abstract h3       { margin-top: 0; font-size: var(--ride-text-h3); }
 
 .ride-review__footer            { margin-top: var(--ride-space-12); padding-top: var(--ride-space-4); border-top: 1px solid var(--ride-rule); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
 .ride-review__footer p          { margin: 0 0 var(--ride-space-2); }
