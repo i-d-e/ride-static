@@ -1,8 +1,25 @@
 """Tests for the per-kind block parser and the dispatcher.
 
-Synthetic TEI fragments cover one happy-path case per block kind, the
-list-rend normalisation rules, the figure-kind detection, and the
-dispatcher's raise on unknown element names.
+Test-data philosophy per CLAUDE.md hard rule:
+
+* The ``parse_<kind>`` functions are unit-level entry points that take
+  a single lxml element and return one Block dataclass. Synthetic TEI
+  fragments are the appropriate test shape — the function signature is
+  the only data form richer than the input, which is exactly the
+  "Pure-function unit tests may use synthetic inputs" exception.
+* Real-corpus integration sits at the bottom of the file: documented
+  anomalies (``<list>`` inside ``<item>``, ``<figure>`` with ``<eg>``)
+  pin concrete corpus values; the per-rend-kind anchor block exercises
+  every list rendering against a real review (1641 = ordered,
+  anemoskala = bulleted, varitext = labeled); ``<figure>``/``<table>``
+  /``<cit>`` are pinned against bayeux and anemoskala. The full-corpus
+  smoke at the end checks that every review's <body> walks without
+  raising.
+* Edge cases that genuinely do not exist in the corpus — Paragraph
+  with @n attribute (synthesised from <num> elsewhere, never on <p>),
+  ``<figDesc>`` (zero corpus occurrences), ``<cit>`` without
+  ``<bibl>`` — keep their synthetic fixture with a docstring naming
+  the documented exception.
 """
 from __future__ import annotations
 
@@ -32,11 +49,38 @@ from src.parser.common import UnknownTeiElement
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
+NS = {"t": TEI}
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+
+needs_corpus = pytest.mark.skipif(
+    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+)
 
 
 def _el(xml: str) -> etree._Element:
     """Parse an XML fragment with the TEI default namespace and return its root."""
     return etree.fromstring(xml.strip().encode("utf-8"))
+
+
+def _corpus_iter(*, file_name: str = None):
+    """Iterate corpus files; if file_name is given, return just that one."""
+    if file_name:
+        path = RIDE_TEI_DIR / file_name
+        if not path.exists():
+            pytest.skip(f"{file_name} not in corpus")
+        yield path
+        return
+    yield from sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+
+
+def _first_descendant(root: etree._Element, localname: str, predicate=None):
+    """Return the first <localname> descendant for which predicate(el) is true."""
+    for el in root.iter(f"{{{TEI}}}{localname}"):
+        if predicate is None or predicate(el):
+            return el
+    return None
 
 
 # -- Paragraph ------------------------------------------------------------
@@ -320,11 +364,7 @@ def test_dispatch_unknown_includes_div_hint():
 # -- Real-corpus anomaly: <list> inside <item> ----------------------------
 
 
-_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
-_ANEMOSKALA = _RIDE / "anemoskala-tei.xml"
-
-
-@pytest.mark.skipif(not _ANEMOSKALA.exists(), reason="anemoskala-tei.xml not present")
+@needs_corpus
 def test_real_corpus_list_inside_item() -> None:
     """The corpus has 3 occurrences of ``<list>`` nested inside ``<item>``;
     anemoskala-tei.xml is one of them. The parser must surface them as
@@ -338,7 +378,8 @@ def test_real_corpus_list_inside_item() -> None:
     from src.parser.review import parse_review
     from src.model.block import List as ListBlock, ListItem
 
-    review = parse_review(_ANEMOSKALA)
+    [anemoskala] = _corpus_iter(file_name="anemoskala-tei.xml")
+    review = parse_review(anemoskala)
 
     found_nested = False
 
@@ -497,41 +538,34 @@ def test_parse_block_sequence_explodes_paragraph_with_block_child():
 # -- Real-corpus smoke ----------------------------------------------------
 
 
-_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
-
-
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_all_reviews_section_blocks_parse() -> None:
     """Every <body>'s sections through `parse_sections` (which now calls
     `parse_block_sequence` recursively) must parse without raising. This is
     the corpus-wide validation that wires Phases 1–5 together."""
     from src.parser.sections import parse_sections
-    files = sorted(_RIDE.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
     assert len(files) >= 100
-    block_in_p_seen = 0
     for f in files:
         tree = etree.parse(str(f))
         body = tree.getroot().find(f"{{{TEI}}}text/{{{TEI}}}body")
         sections = parse_sections(body)
-        # Walk every section's blocks recursively to count Paragraph splits.
+        # Walk every section's blocks recursively to prove they parsed.
         stack = list(sections)
         while stack:
             s = stack.pop()
             for b in s.blocks:
-                pass  # touching .blocks proves it parsed
+                pass
             stack.extend(s.subsections)
-        # Also count paragraphs that are clearly continuation-chunks
-        # (xml_id=None even though the source has many xml:id'd <p>).
-    # Enough signal that the smoke went through 107 files
 
 
-@pytest.mark.skipif(not _RIDE.exists(), reason="../ride/ corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_figure_with_eg():
     """At least one review in the corpus has a <figure> with <eg> (41 total).
     Pick the first such figure and confirm parse_figure yields kind=code_example.
     """
     found = False
-    for f in sorted(_RIDE.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
         tree = etree.parse(str(f))
         for fig in tree.iter("{%s}figure" % TEI):
             eg = fig.find("{%s}eg" % TEI)
@@ -544,3 +578,111 @@ def test_smoke_real_corpus_figure_with_eg():
         if found:
             break
     assert found, "expected at least one <figure>/<eg> in the corpus"
+
+
+# -- Real-corpus per-kind pins -------------------------------------------
+#
+# Each test takes the *first* matching element from a named anchor file.
+# The anchors were chosen with a one-time corpus probe; if the corpus
+# drifts (a review removes its anchor structure), the test breaks
+# loudly rather than silently passing.
+
+
+@needs_corpus
+def test_real_parse_list_ordered_against_1641():
+    """1641-tei.xml carries at least one <list rend="numbered"> — the
+    parser normalises ``numbered`` to the ``ordered`` kind."""
+    [path] = _corpus_iter(file_name="1641-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(
+        tree.getroot(),
+        "list",
+        predicate=lambda L: L.get("rend") in ("numbered", "ordered"),
+    )
+    assert el is not None, "1641-tei.xml should have a numbered/ordered list"
+    out = parse_list(el)
+    assert isinstance(out, List)
+    assert out.kind == "ordered"
+    assert len(out.items) > 0
+
+
+@needs_corpus
+def test_real_parse_list_bulleted_against_anemoskala():
+    """anemoskala-tei.xml carries default-rend (bulleted) lists."""
+    [path] = _corpus_iter(file_name="anemoskala-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(
+        tree.getroot(),
+        "list",
+        predicate=lambda L: L.get("rend") in (None, "", "bulleted"),
+    )
+    assert el is not None
+    out = parse_list(el)
+    assert out.kind == "bulleted"
+
+
+@needs_corpus
+def test_real_parse_list_labeled_against_varitext():
+    """varitext-tei.xml carries <list rend="labeled"> with paired
+    <label>/<item> elements."""
+    [path] = _corpus_iter(file_name="varitext-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(
+        tree.getroot(),
+        "list",
+        predicate=lambda L: L.get("rend") == "labeled",
+    )
+    assert el is not None
+    out = parse_list(el)
+    assert out.kind == "labeled"
+    # At least the first item carries a label per the labeled-list shape.
+    assert any(item.label is not None for item in out.items)
+
+
+@needs_corpus
+def test_real_parse_table_against_bayeux():
+    """bayeux-tei.xml carries at least one <table>; the parser produces
+    a Table with rows. RIDE tables are flat (1×N rows of cells per
+    knowledge/data.md)."""
+    [path] = _corpus_iter(file_name="bayeux-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(tree.getroot(), "table")
+    assert el is not None
+    out = parse_table(el)
+    assert isinstance(out, Table)
+    assert len(out.rows) > 0
+
+
+@needs_corpus
+def test_real_parse_figure_graphic_against_1641():
+    """1641 carries <figure>/<graphic> elements; the parser detects
+    kind=graphic and surfaces the @url."""
+    [path] = _corpus_iter(file_name="1641-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(
+        tree.getroot(),
+        "figure",
+        predicate=lambda f: f.find(f"{{{TEI}}}graphic") is not None,
+    )
+    assert el is not None
+    out = parse_figure(el)
+    assert out.kind == "graphic"
+    assert out.graphic_url
+
+
+@needs_corpus
+def test_real_parse_cit_with_bibl_against_anemoskala():
+    """anemoskala-tei.xml carries <cit><quote>…</quote><bibl>…</bibl></cit>
+    blocks; the parser yields a Citation with both quote_inlines and a
+    BibEntry on .bibl."""
+    [path] = _corpus_iter(file_name="anemoskala-tei.xml")
+    tree = etree.parse(str(path))
+    el = _first_descendant(
+        tree.getroot(),
+        "cit",
+        predicate=lambda c: c.find(f"{{{TEI}}}bibl") is not None,
+    )
+    assert el is not None
+    out = parse_cit(el)
+    assert isinstance(out, Citation)
+    assert out.bibl is not None
