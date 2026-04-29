@@ -178,6 +178,101 @@ hr {
   color: var(--ride-fg-secondary);
 }
 
+/* Global navigation — five top-level entries from config/navigation.yaml.
+   Dropdown items are native <details>; CSS positions the submenu absolutely
+   beneath the summary so the visual model matches a classic navbar.
+   No JavaScript required (interface.md §4, R11.5). */
+.ride-nav {
+  background: var(--ride-fg-primary);
+  color: var(--ride-bg);
+  border-bottom: 1px solid var(--ride-rule);
+}
+
+.ride-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ride-space-6);
+  align-items: stretch;
+}
+
+.ride-nav__item {
+  position: relative;
+}
+
+.ride-nav__link,
+.ride-nav__summary {
+  display: inline-block;
+  padding: var(--ride-space-3) 0;
+  color: var(--ride-bg);
+  text-decoration: none;
+  font-size: var(--ride-text-base);
+  cursor: pointer;
+  list-style: none;
+}
+
+.ride-nav__summary::-webkit-details-marker { display: none; }
+.ride-nav__summary { -webkit-user-select: none; user-select: none; }
+
+.ride-nav__summary::after {
+  content: " \25BE"; /* ▾ — disclosure indicator, no emoji glyph */
+  font-size: 0.75em;
+  margin-left: var(--ride-space-1);
+  opacity: 0.7;
+}
+
+.ride-nav__link:hover,
+.ride-nav__summary:hover { color: var(--ride-bg-muted); text-decoration: underline; }
+.ride-nav__link:focus-visible,
+.ride-nav__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--ride-focus);
+}
+
+.ride-nav__dropdown[open] > .ride-nav__summary { color: var(--ride-bg-muted); }
+
+.ride-nav__submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 240px;
+  list-style: none;
+  margin: 0;
+  padding: var(--ride-space-2) 0;
+  background: var(--ride-bg);
+  color: var(--ride-fg-primary);
+  border: 1px solid var(--ride-rule);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 50;
+}
+
+.ride-nav__sublink {
+  display: block;
+  padding: var(--ride-space-2) var(--ride-space-4);
+  color: var(--ride-fg-primary);
+  text-decoration: none;
+  font-size: var(--ride-text-small);
+}
+.ride-nav__sublink:hover { background: var(--ride-bg-muted); color: var(--ride-accent); }
+.ride-nav__sublink:focus-visible { outline: none; box-shadow: var(--ride-focus); }
+
+@media (max-width: 719px) {
+  .ride-nav__list { gap: var(--ride-space-3); }
+  .ride-nav__submenu {
+    position: static;
+    min-width: 0;
+    box-shadow: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding-left: var(--ride-space-4);
+  }
+  .ride-nav__sublink { color: var(--ride-bg); }
+  .ride-nav__sublink:hover { background: transparent; color: var(--ride-bg-muted); }
+}
+
 /* Search bar gets its own dedicated slot per interface.md §4 — between header
    and content, full width, on every page. Phase 11 wires Pagefind into it. */
 .ride-search-slot {

@@ -87,6 +87,37 @@
     </div>
   </header>
 
+  {#- Global navigation: five top-level entries from config/navigation.yaml.
+      Dropdown items use native <details> so the menu works without JS
+      (interface.md §4, requirements.md R11.5). The summary is the
+      click target; submenu items live inside the same <details>. -#}
+  {% if site.navigation %}
+  <nav class="ride-nav" aria-label="{{ site.strings.main_navigation | default('Main') }}">
+    <div class="ride-shell">
+      <ul class="ride-nav__list">
+        {% for item in site.navigation %}
+          {% if item.has_dropdown %}
+          <li class="ride-nav__item ride-nav__item--has-children">
+            <details class="ride-nav__dropdown">
+              <summary class="ride-nav__summary">{{ item.label }}</summary>
+              <ul class="ride-nav__submenu">
+                {% for child in item.children %}
+                <li><a class="ride-nav__sublink" href="{{ site.base_url }}{{ child.url }}">{{ child.label }}</a></li>
+                {% endfor %}
+              </ul>
+            </details>
+          </li>
+          {% else %}
+          <li class="ride-nav__item">
+            <a class="ride-nav__link" href="{{ site.base_url }}{{ item.url }}">{{ item.label }}</a>
+          </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+  {% endif %}
+
   {#- Search slot lives between header and content per interface.md §4 — small,
       always visible. Phase 11 mounts the Pagefind UI inside this container. -#}
   <div class="ride-search-slot" role="search">
