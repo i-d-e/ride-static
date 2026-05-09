@@ -1,10 +1,27 @@
 ---
+title: Schema — RIDE Schema Reference
+project:
+  name: ride-static
+  repository: https://github.com/i-d-e/ride-static
+method:
+  name: Promptotyping
+  url: https://dhcraft.org/excellence/blog/Promptotyping
+status: active
+created: 2026-04-28
+updated: 2026-04-28
+version: 0.1
+topics:
+  - "[[TEI]]"
+  - "[[Schema Customisation]]"
 generated: 2026-04-28
 source: scripts/render_schema.py
 inputs:
   - inventory/odd-summary.json
   - inventory/elements.json
   - inventory/cross-reference.json
+related:
+  - "[[data]]"
+  - "[[architecture]]"
 ---
 
 # RIDE Schema Reference

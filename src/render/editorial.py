@@ -4,7 +4,7 @@ Loads Markdown files under ``content/`` with YAML frontmatter, converts
 the body to HTML via the ``markdown`` library, and renders the result
 through ``templates/html/editorial.html``.
 
-Per requirements.md A3, editorial files are Markdown with frontmatter
+Per specification.md A3, editorial files are Markdown with frontmatter
 maintained directly in the repository. Editors push commits via the
 GitHub web UI; the build picks them up on the next workflow run.
 

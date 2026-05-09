@@ -2,11 +2,11 @@
 
 These feed the Aggregations-Seiten in Phase 10 (``interface.md`` §4):
 
-- **Tag-Übersicht** (``requirements.md`` R6) — every keyword and the
+- **Tag-Übersicht** (``specification.md`` R6) — every keyword and the
   reviews that carry it, used by the tag index and per-tag detail page.
-- **Reviewer-Liste** (``requirements.md`` R8) — every author and their
+- **Reviewer-Liste** (``specification.md`` R8) — every author and their
   authored reviews, deduplicated by ORCID where available.
-- **Reviewed Resources** (``requirements.md`` R7) — every reviewed
+- **Reviewed Resources** (``specification.md`` R7) — every reviewed
   resource and the reviews about it, deduplicated by canonical target.
 
 Each aggregation function takes the full corpus as

@@ -1,9 +1,39 @@
+---
+title: Architecture
+project:
+  name: ride-static
+  repository: https://github.com/i-d-e/ride-static
+method:
+  name: Promptotyping
+  url: https://dhcraft.org/excellence/blog/Promptotyping
+status: active
+created: 2026-04-28
+updated: 2026-04-29
+version: 0.1
+topics:
+  - "[[Static Site Generation]]"
+  - "[[TEI]]"
+  - "[[Domain Modelling]]"
+knowledge-sources:
+  standards:
+    TEI P5: https://tei-c.org/release/doc/tei-p5-doc/en/html/
+    RIDE ODD: https://github.com/i-d-e/ride/blob/main/schema/ride.odd
+  institutions:
+    IDE: https://www.i-d-e.de/
+related:
+  - "[[specification]]"
+  - "[[interface]]"
+  - "[[pipeline]]"
+  - "[[data]]"
+  - "[[schema]]"
+---
+
 # Architecture
 
 > Design intent for the static-site generator. Hand-written;
 > revisit when reality diverges from these assumptions.
 >
-> Anchored to [[requirements]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
+> Anchored to [[specification]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
 
 ## Stakeholders and how they touch the system
 
@@ -53,6 +83,10 @@ Two axes of stakeholder load shape the architecture:
 
 ## Layers
 
+![Architecture of the static RIDE pipeline. Four layers from sources through domain model and renderers to the build and deploy step.](image-workflow.png)
+
+The pipeline forms four productive layers, each transforming the format of its input into another format until the output is a fully static site.
+
 ```
             ┌───────────────────────────────┐
             │  ride/tei_all/*.xml + ride.odd │   (read-only source)
@@ -88,7 +122,7 @@ Templates and renderers never touch raw XML. They consume Python
 objects that the parser produces from each TEI file.
 
 The model is designed for **two render targets** — HTML (Phase 8) and
-PDF via WeasyPrint (Phase 14) — per [[requirements#A6 PDF-Pfad]]. No
+PDF via WeasyPrint (Phase 14) — per [[specification#A6 PDF-Pfad]]. No
 HTML-specific assumption may leak into the dataclasses; presentation
 concerns belong in the renderers.
 
@@ -96,7 +130,7 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
 
 - **`Review`** — one per file
   - `id`, `issue`, `language`, `publication_date`, `licence`
-  - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[requirements#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
+  - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[specification#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
   - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 105 reviews carry one taxonomy, 2 reviews carry two or three.
@@ -120,7 +154,7 @@ The TEI element `<bibl>` lives at three sites in the corpus and is parsed by thr
 
 - **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`.
 
-The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[requirements#R1 Rezension lesen]]:
+The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[specification#R1 Rezension lesen]]:
 
 | Anomaly | Parser branch |
 |---|---|
@@ -140,7 +174,7 @@ Anything not yet listed but unknown should raise — silent coercion is forbidde
 Two output formats share the domain model:
 
 - **`render/html.py`** — Jinja templates in `templates/html/`. Visual and interaction design is fixed in [[interface]]; templates implement that spec mechanically.
-- **`render/pdf.py`** — PDF per review via WeasyPrint, per [[requirements#A6 PDF-Pfad]]. The PDF pass reuses the already-rendered `index.html` and relies on the `@media print` block in `static/css/ride.css` to strip chrome (nav, sidebar, WIP-Banner) and surface a print-only DOI line on page 1. **No second template tree, no second render pass.** The lazy WeasyPrint import in `render_review_pdf` lets the build skip cleanly on hosts without Pango/Cairo (typical Windows dev) — only CI (with the GTK apt packages) actually emits PDFs.
+- **`render/pdf.py`** — PDF per review via WeasyPrint, per [[specification#A6 PDF-Pfad]]. The PDF pass reuses the already-rendered `index.html` and relies on the `@media print` block in `static/css/ride.css` to strip chrome (nav, sidebar, WIP-Banner) and surface a print-only DOI line on page 1. **No second template tree, no second render pass.** The lazy WeasyPrint import in `render_review_pdf` lets the build skip cleanly on hosts without Pango/Cairo (typical Windows dev) — only CI (with the GTK apt packages) actually emits PDFs.
 
 The print-only DOI line is its own small design pattern worth naming. The Meta sidebar exposes the DOI to web readers but is hidden in print, so without intervention the PDF would have no DOI on page 1. The fix is a `<p class="ride-review__doi-print">` directly under the review header that defaults to `display: none` and flips to `display: block` inside `@media print`. Two cooperating tests pin the contract without needing WeasyPrint at all (HTML-rendertest pinns the `<p>`, CSS-contract-test pinns the `display: block`); the integration test only confirms the WeasyPrint chain runs.
 
@@ -152,7 +186,7 @@ Beside the per-review render path, three **content loaders** feed the rest of th
 - **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim.
 - **`render/issues_config.py`** — loads `content/issues/{N}.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
 
-These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[requirements#A3 Editorialer Pflegepfad]].
+These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[specification#A3 Editorialer Pflegepfad]].
 
 The build itself runs in **two passes** (since Welle 3): first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
 
@@ -182,8 +216,8 @@ The page-type set follows [[interface#4 Layout-Architektur]]; the parallel appar
 
 ## Search and cross-references
 
-- **Search index** — Pagefind, per [[requirements#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/search.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
-- **`<ref @target>` resolution** — four-bucket lookup at build time, fully specified in [[pipeline#Cross-cutting concerns]] and acceptance-tested against [[requirements#R1 Rezension lesen]]:
+- **Search index** — Pagefind, per [[specification#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/search.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
+- **`<ref @target>` resolution** — four-bucket lookup at build time, fully specified in [[pipeline#Cross-cutting concerns]] and acceptance-tested against [[specification#R1 Rezension lesen]]:
   1. Local anchor present in the per-review `xml_id → object` map → in-page HTML anchor.
   2. `#K…` prefix (5 209 cases — see `inventory/refs.json`) → external link to `{xml:base}#K…` on the criteria document. v1 does not resolve K-IDs to category titles; that is a possible later enhancement.
   3. External `http(s)://` → pass through.
@@ -236,7 +270,7 @@ extensibility:
 
 **What this covers and what it does not.** The mapping resolves the binding `domain class → template + CSS`. It does not encode parsing rules, anomaly handling, or business logic. Adding a new block kind that has new structural semantics still requires a dataclass in `src/model/` and a parser function in `src/parser/`. Adding a new visual variant of an existing kind, or rewiring a template path, is YAML-only.
 
-This separation is the formal answer to [[requirements#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — map onto two action paths: the YAML for presentation, Python for semantics. The mechanics of each path live in `docs/extending.md`.
+This separation is the formal answer to [[specification#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — map onto two action paths: the YAML for presentation, Python for semantics. The mechanics of each path live in `docs/extending.md`.
 
 The mapping file is loaded in Phase 8 ([[pipeline#Phasenplan]]) and is the single source for all template-class associations from then on. CI fails if the mapping references a template path that does not exist or a domain class that the parser does not produce.
 
@@ -290,7 +324,7 @@ ride-static/
     schema.md               ride.odd reference (generated)
     architecture.md         this file
     pipeline.md             build & deploy plan with 15-phase plan
-    requirements.md         product spec, R/N/A clauses
+    specification.md        product spec, R/N/A clauses
     interface.md            visual & interaction design
   docs/
     extending.md            how to add a new TEI element
@@ -314,3 +348,13 @@ A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phas
 | Site rendering | 7–10 | done; Data-Charts (R9, Phase 10-Rest) pending |
 | Search, APIs, validation, PDF | 11–14 | done |
 | Deploy + Ops | 15 | partial — GH Actions + Contact + Matomo-config + Lizenzen + WCAG-Polish gelandet; offen: WCAG-Vollaudit, Matomo-URL in CI-Secret, Custom-Domain-Entscheidung |
+
+## Method — Promptotyping vault
+
+Implementation is preceded by a knowledge base that serves as context for an agentic build process with Claude Code. It is not part of the productive pipeline but its precondition. The base has two functionally distinct layers.
+
+The first layer is **deterministically generated** and describes corpus reality and the schema in use. Eleven Python scripts under `scripts/` traverse the 107 TEI files plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: 107 full reviews plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
+
+The second layer is **hand-curated** and fixes specification, architecture, interface, and build sequence: [[specification]], [[architecture]] (this document), [[interface]], [[pipeline]]. Both layers cross-reference each other through wikilinks. Every clause in [[specification]] has its empirical foundation in [[data]] or [[schema]]; every anomaly catalogued in [[data]] has a named handler in [[architecture]] or a documented exception. A third layer adds session-by-session narration through [Journal](../Journal.md) at the repository root — five fixed fields per entry (Ziel / Erledigt / Entscheidungen / Offen / Nächster Einstieg) that mediate between memory, git history, and project conventions.
+
+This is the form of organisation that the convention for [Promptotyping Documents](https://dhcraft.org/excellence/blog/Promptotyping) describes as a project-centred research vault. The reading heuristic — function before filename, inclusion by trigger rather than checklist, diagnostic decoupling between function and type — is documented in [[INDEX]].

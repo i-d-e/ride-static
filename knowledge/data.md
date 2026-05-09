@@ -1,4 +1,18 @@
 ---
+title: Data — RIDE TEI Structure Reference
+project:
+  name: ride-static
+  repository: https://github.com/i-d-e/ride-static
+method:
+  name: Promptotyping
+  url: https://dhcraft.org/excellence/blog/Promptotyping
+status: active
+created: 2026-04-28
+updated: 2026-04-29
+version: 0.1
+topics:
+  - "[[TEI]]"
+  - "[[Corpus Analysis]]"
 generated: 2026-04-28
 source: scripts/render_data.py
 inputs:
@@ -11,6 +25,10 @@ inputs:
   - inventory/ids.json
   - inventory/refs.json
   - inventory/taxonomy.json
+related:
+  - "[[schema]]"
+  - "[[architecture]]"
+  - "[[specification]]"
 ---
 
 # RIDE TEI Structure Reference
@@ -109,7 +127,7 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 #### `<publicationStmt>`
 - Appears under `TEI/teiHeader/fileDesc`.
 - Children: `[publisher, date, idno, idno, idno, availability]` (always).
-- The three `<idno>` children carry distinct `@type` values: `URI` (the live page on `ride.i-d-e.de`), `DOI` (the article DOI, e.g. `10.18716/ride.a.5.4`), and `archive` (the PDF archive URL on the GitHub `i-d-e/ride` repository). The DOI is the canonical persistent identifier per [[requirements#R2 Rezension zitieren]] and feeds `Review.doi`.
+- The three `<idno>` children carry distinct `@type` values: `URI` (the live page on `ride.i-d-e.de`), `DOI` (the article DOI, e.g. `10.18716/ride.a.5.4`), and `archive` (the PDF archive URL on the GitHub `i-d-e/ride` repository). The DOI is the canonical persistent identifier per [[specification#R2 Rezension zitieren]] and feeds `Review.doi`.
 
 #### `<seriesStmt>`
 - Appears under `TEI/teiHeader/fileDesc`.

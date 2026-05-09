@@ -1,7 +1,7 @@
 """PDF rendering via WeasyPrint — Phase 14.
 
-Per [[requirements#R3 Rezension herunterladen]] and
-[[requirements#A6 PDF-Pfad]] every review ships a PDF next to its HTML
+Per [[specification#R3 Rezension herunterladen]] and
+[[specification#A6 PDF-Pfad]] every review ships a PDF next to its HTML
 page. We feed WeasyPrint the already-rendered ``index.html`` so the
 print output reflects the same domain model and templates as the web
 view; the ``@media print`` block in ``ride.css`` strips chrome

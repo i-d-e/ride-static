@@ -32,7 +32,7 @@ TEMPLATES_DIR = REPO_ROOT / "templates" / "html"
 
 @dataclass(frozen=True)
 class BuildInfo:
-    """Per requirements.md N4 — embedded in every page footer."""
+    """Per specification.md N4 — embedded in every page footer."""
 
     commit: str = "dev"
     commit_short: str = "dev"
@@ -81,7 +81,7 @@ def slugify(value: str) -> str:
 
 
 def _obfuscate_mail(value: str) -> str:
-    """Spell ``@`` as ``[at]`` — minimal scraping deterrent per requirements.md R14."""
+    """Spell ``@`` as ``[at]`` — minimal scraping deterrent per specification.md R14."""
     if not value:
         return ""
     return value.replace("@", " [at] ").replace(".", " [dot] ")

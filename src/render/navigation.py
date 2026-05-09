@@ -14,7 +14,7 @@ The build hands the resolved tuple to every template via the render
 context. Templates iterate without knowing where the entries came from.
 
 Spec anchors:
-    - knowledge/requirements.md R11.5 (config-driven Navigation)
+    - knowledge/specification.md R11.5 (config-driven Navigation)
     - knowledge/interface.md §4 (five top-level entries, <details> Dropdowns)
 """
 from __future__ import annotations

@@ -132,7 +132,7 @@ def _render_review(
     html = render_review(review, site=site, env=env)
     (page_dir / "index.html").write_text(html, encoding="utf-8")
 
-    # Drop the original TEI alongside, per requirements.md R3 (download).
+    # Drop the original TEI alongside, per specification.md R3 (download).
     target_xml = page_dir / f"{review.id or path.stem}.xml"
     shutil.copyfile(path, target_xml)
 

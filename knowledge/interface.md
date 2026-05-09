@@ -1,10 +1,31 @@
+---
+title: Interface
+project:
+  name: ride-static
+  repository: https://github.com/i-d-e/ride-static
+method:
+  name: Promptotyping
+  url: https://dhcraft.org/excellence/blog/Promptotyping
+status: active
+created: 2026-04-28
+updated: 2026-04-29
+version: 0.1
+topics:
+  - "[[Scholar-Centered Design]]"
+  - "[[Web Accessibility]]"
+related:
+  - "[[specification]]"
+  - "[[architecture]]"
+  - "[[pipeline]]"
+---
+
 # Interface — RIDE Static Site
 
-> Visuelles und interaktives Design. Geschwistermodul zu [[requirements]] (was) und [[architecture]] (Datenflüsse, Domänenmodell). Ableitbar in Phase 8 ff. ([[pipeline#Phasenplan]]).
+> Visuelles und interaktives Design. Geschwistermodul zu [[specification]] (was) und [[architecture]] (Datenflüsse, Domänenmodell). Ableitbar in Phase 8 ff. ([[pipeline#Phasenplan]]).
 
 ## 1. Zweck
 
-Dieses Dokument beschreibt das visuelle und interaktive Design der statischen RIDE-Site und begründet die Designentscheidungen. Es steht als drittes Wissensdokument neben [[requirements]] (was) und [[architecture]] (Datenflüsse) und behandelt, wie die Site gesehen und bedient wird. Ziel ist keine vollständige Designsystem-Spezifikation, sondern eine knappe, begründete Festlegung, aus der die Templates ab [[pipeline#Phasenplan|Phase 8]] direkt ableitbar sind.
+Dieses Dokument beschreibt das visuelle und interaktive Design der statischen RIDE-Site und begründet die Designentscheidungen. Es steht als drittes Wissensdokument neben [[specification]] (was) und [[architecture]] (Datenflüsse) und behandelt, wie die Site gesehen und bedient wird. Ziel ist keine vollständige Designsystem-Spezifikation, sondern eine knappe, begründete Festlegung, aus der die Templates ab [[pipeline#Phasenplan|Phase 8]] direkt ableitbar sind.
 
 ## 2. Designhaltung
 
@@ -76,7 +97,7 @@ Im **Hauptteil** tragen Top-Level-Sektionen h3-Headings, Sub-Sektionen h4 (der R
 
 Der **Apparate-Block** (References, Figures, Notes) wird als drei klar getrennte Sub-Blöcke unter einer gemeinsamen Trennlinie gesetzt, mit eigenem h3-Header pro Sub-Block (Abschnitt 6).
 
-**Lizenz und Provenance** stehen am Seitenende in einer dezenten Footer-Zeile innerhalb der Inhaltsspalte. Lizenz, Build-Datum, optional Commit-Hash. Begründung ist [[requirements#N6 Lizenzklarheit pro Artefakt]]. Die DOI selbst lebt im Sidebar (siehe nächster Absatz), nicht im Footer — sie ist Identifier, nicht Provenance-Marker.
+**Lizenz und Provenance** stehen am Seitenende in einer dezenten Footer-Zeile innerhalb der Inhaltsspalte. Lizenz, Build-Datum, optional Commit-Hash. Begründung ist [[specification#N6 Lizenzklarheit pro Artefakt]]. Die DOI selbst lebt im Sidebar (siehe nächster Absatz), nicht im Footer — sie ist Identifier, nicht Provenance-Marker.
 
 Die **Sidebar** trägt vier Boxen in dieser Reihenfolge:
 
@@ -140,7 +161,7 @@ Schriftwahl muss alle relevanten Glyphen sauber tragen, einschließlich Diakriti
 
 ## 9. Barrierefreiheit
 
-Mindestziel ist WCAG 2.2 AA gemäß [[requirements#N5 Barrierefreiheit]]. Sechs Schwerpunkte sind operativ.
+Mindestziel ist WCAG 2.2 AA gemäß [[specification#N5 Barrierefreiheit]]. Sechs Schwerpunkte sind operativ.
 
 **Tastaturnavigation** reicht bis in jede Sidebar-Box und jeden Apparat-Sub-Block. Fokus-Indikatoren sind sichtbar mit ausreichendem Kontrast — eine generische `:focus-visible`-Regel überschreibt die UA-Defaults für alle interaktiven Element-Familien (`a`, `button`, `input`, `select`, `textarea`, `summary`, `[tabindex]`) und setzt einen 3-Pixel-Box-Shadow (`var(--ride-focus)`), weil die Browser-Defaults zwischen Chrome und Firefox bei dunklen Hintergründen schwach sind und nicht zuverlässig AA-Kontrast erreichen.
 
@@ -178,11 +199,11 @@ Alle anderen Interaktionen sind Browser-Standard. Animationen jenseits dezenter 
 
 ## 12. Konsequenzen für die Build-Phasen
 
-**[[pipeline#Phasenplan|Phase 8]]** erzeugt ein Template pro semantische Einheit, plus ein Seitentyp-Template pro Seitentyp aus Abschnitt 4. Templates erhalten ausschließlich Domänenobjekte, kein XML, gemäß [[requirements#N1 Read-only-Pipeline]] und der Architektur-Designentscheidung „Domain model first" in [[architecture#Renderers]].
+**[[pipeline#Phasenplan|Phase 8]]** erzeugt ein Template pro semantische Einheit, plus ein Seitentyp-Template pro Seitentyp aus Abschnitt 4. Templates erhalten ausschließlich Domänenobjekte, kein XML, gemäß [[specification#N1 Read-only-Pipeline]] und der Architektur-Designentscheidung „Domain model first" in [[architecture#Renderers]].
 
-Das CSS ist ein einzelnes Stylesheet (Stand Phase 14/15.A: ca. 1010 Zeilen, Soft-Cap mehrfach angehoben — pro Welle eine Konsolidierung), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[requirements#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste; der Print-Stylesheet (§12.5) macht den jüngsten Zuwachs aus.
+Das CSS ist ein einzelnes Stylesheet (Stand Phase 14/15.A: ca. 1010 Zeilen, Soft-Cap mehrfach angehoben — pro Welle eine Konsolidierung), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[specification#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste; der Print-Stylesheet (§12.5) macht den jüngsten Zuwachs aus.
 
-JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[requirements#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
+JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[specification#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
 
 Die Pagefind-Integration aus Abschnitt 11 wird in [[pipeline#Phasenplan|Phase 11]] ausgeführt, die Cite-Kopieraktion in [[pipeline#Phasenplan|Phase 8]], die Mehrsprachigkeit aus Abschnitt 8 als Querschnittsanforderung über alle Render-Phasen.
 

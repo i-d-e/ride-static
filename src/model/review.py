@@ -104,7 +104,7 @@ class Review:
     doi: Optional[str] = None
     """Canonical persistent identifier from ``<publicationStmt>/<idno type="DOI">``.
 
-    Per [requirements R2](../knowledge/requirements.md), the DOI is the
+    Per [specification R2](../knowledge/specification.md), the DOI is the
     citation anchor for every review and feeds the sidebar Meta box, the
     Citation Suggestion (R2 format), JSON-LD ``@id``/``identifier``, and
     the OAI-PMH ``dc:identifier``. Phase 13 validation will refuse builds
@@ -150,7 +150,7 @@ class Review:
     """One Questionnaire per ``<taxonomy>`` element in the review's
     classDecl. Most reviews carry exactly one; three carry two. Feeds
     the Factsheet (``interface.md`` §5) and the cross-corpus Data page
-    (``requirements.md`` R9)."""
+    (``specification.md`` R9)."""
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""

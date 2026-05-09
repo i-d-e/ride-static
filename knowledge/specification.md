@@ -1,4 +1,29 @@
-# Requirements — RIDE Static Site
+---
+title: Specification
+project:
+  name: ride-static
+  repository: https://github.com/i-d-e/ride-static
+method:
+  name: Promptotyping
+  url: https://dhcraft.org/excellence/blog/Promptotyping
+status: active
+created: 2026-04-28
+updated: 2026-04-29
+version: 0.1
+topics:
+  - "[[Requirements Engineering]]"
+  - "[[User Stories]]"
+  - "[[Decision Records]]"
+aliases:
+  - requirements
+related:
+  - "[[architecture]]"
+  - "[[interface]]"
+  - "[[pipeline]]"
+  - "[[data]]"
+---
+
+# Specification — RIDE Static Site
 
 > Produktdefinition. Anker für [[architecture]] (Datenflüsse, Domänenmodell), [[interface]] (Visuelles und interaktives Design) und [[pipeline#Phasenplan]] (Bauabfolge). Korpusbezogene Aussagen verweisen auf [[data]] und [[schema]].
 
@@ -33,6 +58,8 @@ Die **Herausgeberin** verantwortet ein Issue, vergibt DOI, bestimmt Reihenfolge 
 Der **Aggregator** ist ein automatisiertes externes System (Bibliothekskatalog, Repository-Crawler, Zotero-Connector). Er verlangt strukturierte Metadaten in standardkonformer Form.
 
 Die **Betreiberin** verantwortet Build, Hosting und Erhebung von Nutzungszahlen.
+
+Inhaltlich und konzeptionell beteiligt am Projekt sind Martina Scholger, Georg Vogeler und Stephan Dumont. Pflege und Weiterarbeit nach Abschluss übernehmen Ulrike Henny und Martina Scholger. Beide arbeiten direkt im GitHub-Repository, redaktionelle Texte werden über die GitHub-Web-UI gepflegt, Templating und Pipeline lassen sich lokal mit Python anpassen, ohne weitere Toolchain.
 
 ## 4. Festgelegte Designentscheidungen
 
@@ -244,12 +271,40 @@ Kontaktformular mit serverseitiger Verarbeitung ist nicht vorgesehen.
 
 Inkrementelles Build mit Caching ist konzeptionell vorgesehen, wird aber erst implementiert, wenn die Build-Zeit das erforderlich macht.
 
-## 8. Offene Fragen
+## 8. Migrationsvertrag (heute → künftig)
 
-Drei Punkte sind im Lauf der Implementierung zu klären.
+Die folgende Tabelle bildet jede heutige Komponente der RIDE-Site auf den geplanten Bauabschnitt der neuen Architektur ab. Wo Stakeholder-Notizen offene Fragen aufwerfen, sind sie als solche in der Spalte „Offene Fragen" formuliert.
 
-Domain und Hosting-Pfad. Läuft die Site unter einer eigenen Domain oder unter `username.github.io/repo`? Die Antwort prägt das URL-Schema und damit die Stabilitätszusage in N3 und R17.
+| Komponente | Heute | Künftig | Phase | Offene Fragen |
+|---|---|---|---|---|
+| Startseite | Statische Texte plus Slider | Drei Inhaltsblöcke ohne Slider gemäß [[interface]] | 8, 10 | Sind „ausgewählte Rezensionen" händisch in der Issue-Konfiguration kuratiert oder algorithmisch ausgewählt? |
+| About | Statische Texte | Markdown mit Frontmatter unter `content/about.md`, Pflege über GitHub-Web-UI | 9 | — |
+| Issues | Issue-Titel, Hrsg., Beiträge mit Autor, DOI | Issue-YAML als alleinige Quelle, Konsistenzcheck gegen TEI-Header bricht den Build | 9 | Welche Issues erscheinen in der Hauptnavigation, alle, kuratiert oder die letzten N? |
+| Rolling Issue | implizit | Statusmarker in Issue-YAML, Zitiervorschlag mit Abrufdatum, optionales Versionssegment in URL reserviert | 8, 9 | Wann gilt ein Rolling Issue als fertig, welcher Statuswechsel im YAML markiert das? Welche zusätzlichen Felder gegenüber regulären Issues? |
+| Navigation | Manuell gepflegt | `config/navigation.yaml` als Single Source of Truth: fünf Top-Level-Dropdowns (About / Issues / Data / Reviewers / Reviewing Criteria) mit Untermenüs auf editorial Markdowns oder Aggregations-URLs; Issues-Dropdown listet die letzten N Issues plus „All Issues" | 9, 10 | — |
+| Beitrag (Rezensionsansicht) | Bestehendes Layout | Jinja-HTML aus dem Domänenmodell, Apparate parallel, reduzierte Sidebar (TOC, Meta, Cite) | 8 | Soll „first / last updated"-Information neben dem reinen Build-Datum sichtbar werden? |
+| Tags | TEI plus WordPress, teils divergent | Aus TEI generiert; einmalige Konsolidierung der WordPress-Tags vor erstem Produktiv-Build, danach WordPress als Tag-Quelle abgeschaltet (A2) | Vor 6 (redaktionell), 10 | — |
+| Factsheet | Bestehende Anordnung | Aus Questionnaire-Datenmodell gerendert, separate Meta-Box entfällt | 8 | — |
+| Data | Intro plus iframe-Charts aus eXist via XQuery, Erfassung über LimeSurvey → HTML → TEI | Charts zur Build-Zeit aus Questionnaire-Daten, ohne Laufzeit-Backend; Anomaliewert `value=3` als nicht-bewertet ausgewiesen | 10 | — |
+| Reviewed Resources | Aus eXist generiert | Aus TEI generiert, ohne manuelle Pflege | 10 | — |
+| Reviewers | Statisch plus „project under review" | Liste alphabetisch aus TEI; optionale Markdown-Profildatei wird der Beitragsliste vorangestellt | 9, 10 | Wo wird „project under / for review" geführt, eigene Editorialseite oder Reviewer-Detailseite? |
+| Review Criteria | Statisch | Markdown unter `content/criteria.md`; `#K`-Refs aus Rezensionen werden gegen externe Kriteriendokument-URL aufgelöst | 7, 9 | — |
+| Kontaktformular | Mailto plus Formular | Sichtbare obfuskierte Mail-Adresse; kein Formular | 9 | — |
+| Volltextsuche | Eigene Implementierung | Pagefind, Index zur Build-Zeit, Suche client-seitig mit Kontextausschnitt | 11 | — |
+| Impressum | Statisch | Markdown mit Hinweis auf cookieloses Tracking | 9 | — |
+| Tracking | Matomo mit Cookie-Snippets | Matomo cookielos, ohne Consent-Banner | 15 | — |
+| Social-Buttons | Vorhanden | Entfallen zugunsten von Open-Graph-Metadaten und Copy-Link | 8 | Eigene Iteration zu einer Social-Media-Strategie? |
+| OAI-PMH | Dynamisch | Statischer Snapshot mit Query-String-Routing, Dublin-Core-Mindestmetadaten | 12 | — |
+| Statische Texte (WordPress) | In WordPress gepflegt | In TEI oder Markdown überführt | Vor 9 (redaktionell) | Wieviel davon sauber in TEI überführen versus als Markdown-Editorial führen? |
 
-Auslieferung großer Artefakte. Werden OAI-PMH-Dump und ältere PDF-Versionen über GitHub Pages oder über GitHub Releases distribuiert? Letzteres entlastet das Pages-Repository bei wachsendem Korpus.
+## 9. Offene Fragen
 
-Reichweite der Konsolidierung in A2. Ob die einmalige WordPress-zu-TEI-Konsolidierung nur Tags umfasst oder auch redaktionelle Fragmente, die heute in WordPress liegen und in keinem TEI auftauchen, ist redaktionell zu entscheiden.
+Drei Bereiche sind im Lauf der Implementierung zu klären.
+
+**Erstens, redaktionelle Schnittstelle.** Wie sieht der heutige Weg eines Beitrags vom Autor bis ins TEI aus, also welche Tools für TEI-Authoring (oXygen, anderer Editor, Vorlagen), entstehen TEI-Dateien per Hand aus einem Template oder gibt es Vorprozessierungs-Skripte, an welcher Stelle laufen heute Validierungen (vor dem Commit, nach dem Push)? Welche Felder sind beim Anlegen eines neuen Issue zu pflegen, die nicht ohnehin im TEI-Header eines Beitrags stehen, und wie wird die Beitragsreihenfolge festgelegt? Welche Felder werden heute redundant in WordPress und TEI gepflegt und sollen in der neuen Architektur in YAML oder TEI konsolidiert werden? Was ist beim Anlegen eines Rolling Issue zusätzlich zu erfassen? In welchem Format kommen Beiträge typischerweise an (Word, LibreOffice, Markdown, bereits TEI), und wäre eine automatisierte Konversion (Pandoc plus Post-Processing oder ein Stylesheet-Weg) als optionale spätere Erweiterung sinnvoll?
+
+**Zweitens, Komponenten-Detailfragen aus den Stakeholder-Notizen.** Diese sind in der Migrationstabelle (§8) pro Komponente verortet und brauchen redaktionelle Antworten. Sie betreffen vor allem die Auswahllogik der Startseiten-Beiträge, die Befüllung der Hauptnavigation, die Sichtbarkeit von „first / last updated", den Statuswechsel bei Rolling Issues und die Reichweite der Konsolidierung statischer Textfragmente.
+
+**Drittens, Infrastruktur und Reichweite.** Domain und Hosting-Pfad — eigene Domain versus `username.github.io/repo` — prägen das URL-Schema und damit die Stabilitätszusage in N3 und R17. Auslieferung großer Artefakte (OAI-PMH-Dump, ältere PDF-Versionen) über GitHub Pages oder GitHub Releases ist offen; Letzteres entlastet das Pages-Repository bei wachsendem Korpus. Reichweite der Konsolidierung in A2 — ob neben den Tags auch andere heute in WordPress liegende redaktionelle Fragmente in TEI oder Markdown überführt werden — ist redaktionell zu entscheiden.
+
+Die Antworten der ersten beiden Bereiche prägen direkt den Validierungsschritt aus Phase 13, der entweder vor oder nach dem Push platziert werden kann, sowie eine mögliche Konversionsschicht vor der Korpusanalyse, die heute nicht im Phasenplan steht, aber als optionale Vorstufe nachträglich ergänzbar wäre. Die Antworten des dritten Bereichs prägen Phase 15.
