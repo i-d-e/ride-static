@@ -57,6 +57,7 @@ from src.render.issues_config import (
     IssueConfigError,
     discover_issue_configs,
     validate_issue_configs,
+    validate_review_locations,
 )
 from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
@@ -332,6 +333,18 @@ def build(
             print(f"parse failed: {path.name}: {exc}", file=sys.stderr)
 
     rendered = [r for _, r in parsed]
+
+    # Folder ↔ biblScope @n check. The TEI header is the canonical source
+    # for issue membership; the folder layout is convenience. Mismatch
+    # means an editor dropped a TEI in the wrong issues/{N}/ folder —
+    # the build would otherwise quietly render it under the header's
+    # issue, surprising the editor. Surface it as a hard error.
+    location_errors = validate_review_locations(parsed)
+    if location_errors:
+        raise IssueConfigError(
+            "TEI file location does not match its biblScope @n:\n  - "
+            + "\n  - ".join(location_errors)
+        )
 
     # Issue YAML configs — loaded once, validated against the parsed corpus.
     # R11: inconsistencies break the build with a clear error.

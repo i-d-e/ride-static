@@ -210,6 +210,52 @@ def validate_issue_configs(
     return errors
 
 
+def validate_review_locations(
+    parsed: list[tuple[Path, Review]],
+    corpus_root: Optional[Path] = None,
+) -> list[str]:
+    """Return mismatches between a TEI file's enclosing folder and its
+    ``biblScope @n`` value.
+
+    The canonical layout is ``issues/{N}/reviews/{slug}-tei.xml`` and
+    the parser reads the issue number from the TEI header (``Review.issue``
+    = ``biblScope @n``). When the two disagree the build still completes
+    but the review silently renders in the wrong issue. This check makes
+    that mismatch explicit so the build raises with a clear message.
+
+    Only files under ``corpus_root`` are checked; synthetic paths from
+    unit tests fall through unchanged. When ``corpus_root`` is ``None``
+    the loader resolves it from :mod:`src._corpus`.
+    """
+    if corpus_root is None:
+        from src._corpus import CORPUS_ROOT
+        corpus_root = CORPUS_ROOT
+    corpus_root = corpus_root.resolve()
+
+    errors: list[str] = []
+    for path, review in parsed:
+        try:
+            rel = path.resolve().relative_to(corpus_root)
+        except ValueError:
+            continue  # not in the canonical corpus tree (test fixture, etc.)
+        # rel == "{N}/reviews/{slug}-tei.xml" — three parts, middle is "reviews"
+        parts = rel.parts
+        if len(parts) != 3 or parts[1] != "reviews":
+            errors.append(
+                f"{path.name}: unexpected path {rel} — "
+                f"expected issues/{{N}}/reviews/{{slug}}-tei.xml"
+            )
+            continue
+        folder_issue = parts[0]
+        if folder_issue != review.issue:
+            errors.append(
+                f"{path.name}: located in issues/{folder_issue}/reviews/ "
+                f"but biblScope @n is {review.issue!r} — "
+                f"move the file or fix the TEI header so they agree"
+            )
+    return errors
+
+
 def order_reviews(
     issue_no: str,
     issue_reviews: list[Review],
