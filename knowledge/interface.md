@@ -26,7 +26,7 @@ Die heutige Site funktioniert und bewahrt die akademische Strenge der Inhalte. S
 
 **Sidebar überladen.** Drei Boxen (Social, TOC, Meta) plus eine Citation-Suggestion konkurrieren um Aufmerksamkeit. Auf Issue- und Rezensionsseiten werden alle drei mitgeführt, obwohl nur eine sinnvoll ist.
 
-**Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer. — Anmerkung Welle 6: Wir haben die Wordclouds in einer **anderen Rolle** wieder aufgenommen, nämlich als **statische Vorschau-Thumbnails** pro Review-Eintrag auf der Issue-Seite. In dieser Rolle dienen sie nicht als alleiniger Einstieg (wie der Slider), sondern als visueller Anker neben Titel, Citation und Abstract-Excerpt — sie tragen die Funktion „diese Rezension hat einen visuellen Identifier", ohne den Slider-Mechanismus zu reproduzieren.
+**Wordcloud-Slider auf der Startseite.** Wordclouds zeigen Worthäufigkeit, nicht Bedeutung. Die symbolische Umrissform erschwert die Lesbarkeit zusätzlich. Eine echte Inhaltsvorschau ist informativer. — Die Wordclouds kommen jedoch in einer **anderen Rolle** zurück, nämlich als **statische Vorschau-Thumbnails** pro Review-Eintrag auf der Issue-Seite. In dieser Rolle dienen sie nicht als alleiniger Einstieg (wie der Slider), sondern als visueller Anker neben Titel, Citation und Abstract-Excerpt — sie tragen die Funktion „diese Rezension hat einen visuellen Identifier", ohne den Slider-Mechanismus zu reproduzieren.
 
 **Suche zu klein.** Das Suchfeld liegt rechts in der Navigationsleiste, ist aber visuell schwach. Bei einem Korpus, das primär durchsucht wird, braucht die Suche prominente Eingabe und sichtbaren Submit-Button — die Position rechts in der Navbar ist richtig, die Größe nicht.
 
@@ -52,7 +52,7 @@ Die globale Navigation hat fünf Top-Level-Einträge:
 
 Die Dropdowns werden mit nativen `<details>`-Elementen umgesetzt (kein JavaScript-Framework, keine Bootstrap-Komponente); CSS gibt ihnen die Anmutung einer klassischen Hover-/Click-Navigation. Die Liste der Untermenüs ist in `config/navigation.yaml` konfigurierbar, sodass redaktionelle Erweiterungen ohne Template-Änderung möglich sind.
 
-Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** ist seit Welle 5 als fünfteiliger Vertikal-Stack gesetzt:
+Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** ist als fünfteiliger Vertikal-Stack gesetzt:
 
 1. **Lede-Sektion** — sr-only `<h1>` mit dem Site-Titel (für Screen-Reader und SEO), darunter eine Ein-Satz-Lede mit den Kennzahlen („A peer-reviewed journal of scholarly digital editions. 107 reviews across 22 issues.").
 2. **Lede-Panel** — das erste Home-Widget (`01-welcome`) wird als breites, rahmenloses Einleitungs-Panel auf hellgrauem Hintergrund (`--ride-bg-muted`) mit etwas größerem Lesefließtext gesetzt. Es trägt die zentrale Mission-Beschreibung des Journals.
@@ -62,7 +62,7 @@ Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** 
 
 Alle Home-Widgets liegen als Markdown unter `content/home/<NN-slug>.md` und werden von `src.render.editorial.discover_home_widgets` geladen; Ordnung folgt dem numerischen Präfix. Redaktion ändert Inhalt ohne Template-Anfassen.
 
-Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** ist seit Welle 6 als redaktionelle Liste statt als Karten-Grid gesetzt. Im Header ein Lead-Satz im Stil der Live-Site („Edited by … . {Date}{ – present (rolling release)}. DOI: …."), mit Daten aus `content/issues/{N}.yaml` (per-Issue-Konfiguration mit Title, DOI, Editors, Datum, Status). Pro Review folgt ein **Rich-Entry-Block** mit fünf Bestandteilen: Wordcloud-Thumbnail (160×160 px, lazy-loaded, Quelle `static/images/wordclouds/{review_id}.{png|jpg}`, fehlende Thumbnails klappen die Bildspalte über `:has()`-Fallback weg), großer Titel-Link, Edition-Citation kursiv mit URL und Last-Accessed-Datum, Reviewer-Inline mit Affiliation, Abstract-Excerpt auf etwa 360 Zeichen am Wortende getrimmt mit Unicode-Ellipse. Unter 720 Pixel schrumpft das Thumbnail auf 96×96 und der Titel auf h3-Größe.
+Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** ist als redaktionelle Liste statt als Karten-Grid gesetzt. Im Header ein Lead-Satz im Stil der Live-Site („Edited by … . {Date}{ – present (rolling release)}. DOI: …."), mit Daten aus `content/issues/{N}.yaml` (per-Issue-Konfiguration mit Title, DOI, Editors, Datum, Status). Pro Review folgt ein **Rich-Entry-Block** mit fünf Bestandteilen: Wordcloud-Thumbnail (160×160 px, lazy-loaded, Quelle `static/images/wordclouds/{review_id}.{png|jpg}`, fehlende Thumbnails klappen die Bildspalte über `:has()`-Fallback weg), großer Titel-Link, Edition-Citation kursiv mit URL und Last-Accessed-Datum, Reviewer-Inline mit Affiliation, Abstract-Excerpt auf etwa 360 Zeichen am Wortende getrimmt mit Unicode-Ellipse. Unter 720 Pixel schrumpft das Thumbnail auf 96×96 und der Titel auf h3-Größe.
 
 Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Imprint, Reviewing Criteria plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs, redaktionell gepflegt unter `content/*.md`) verwenden nur die Inhaltsspalte ohne Sidebar.
 
@@ -105,7 +105,7 @@ Schriftwahl ist **eine** seriöse Sans-Serif für die gesamte Site — Body, UI,
 
 Größen sind 18 Pixel für Lesefließtext, 22 Pixel für h3 (Top-Level-Section), 28 Pixel für h2 (Rezensionstitel), 14 Pixel für Sidebar, Apparate und Footer, 12 Pixel als harte Untergrenze auch in Footnoten. Die globale Tagline-Zeile als h1 ist visuell klein gesetzt (etwa 16 Pixel, gedämpft), weil sie als Site-Brand fungiert und nicht mit dem Review-Titel konkurrieren soll. Zeilenhöhe 1.6 für Lesetext, 1.4 für UI.
 
-Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Die Farbpalette ist seit Welle 4 verbindlich gesetzt und mockup-aligned:
+Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), nicht durch Farbe oder Hintergrund. Die Farbpalette ist verbindlich gesetzt und mockup-aligned:
 
 | Token | Wert | Verwendung |
 |---|---|---|
@@ -122,7 +122,7 @@ Hierarchie entsteht primär durch Größe und Weight (Regular 400, Medium 500), 
 
 Branding-Refresh (Logo, eigene Farbidentität) bleibt als spätere Iteration zurückgestellt. Die Tokens leben in [`static/css/ride.css`](../static/css/ride.css) und sind die einzige Farbquelle — Komponenten referenzieren ausschließlich Variablen.
 
-Neben den Farben definiert das Stylesheet seit Welle 5 ein **Spacing- und Form-System**. Die Spacing-Skala ist eine 4-Pixel-Reihe (`--ride-space-1` bis `--ride-space-20`), darüber liegen zwei Section-Rhythmus-Tokens: `--ride-stack-section` (64 Pixel, Abstand zwischen großen Inhaltsblöcken auf Aggregations- und Editorialseiten) und `--ride-stack-block` (32 Pixel, Abstand innerhalb einer Section zwischen einzelnen Blöcken). Form-Tokens fixieren Radius (`--ride-radius` = 4 px für Karten, `--ride-radius-pill` für Tag-Pillen), Schatten (`--ride-shadow-soft` für Ruhezustand, `--ride-shadow-hover` für Hover) und die Standard-Übergangszeit (`--ride-transition` = 160 ms ease-out). Schriftrendering ist auf `font-feature-settings: "kern" 1, "liga" 1, "calt" 1` plus `text-rendering: optimizeLegibility` und Anti-Aliasing-Hinting eingestellt — ein-Mal-Setting, sitewide.
+Neben den Farben definiert das Stylesheet ein **Spacing- und Form-System**. Die Spacing-Skala ist eine 4-Pixel-Reihe (`--ride-space-1` bis `--ride-space-20`), darüber liegen zwei Section-Rhythmus-Tokens: `--ride-stack-section` (64 Pixel, Abstand zwischen großen Inhaltsblöcken auf Aggregations- und Editorialseiten) und `--ride-stack-block` (32 Pixel, Abstand innerhalb einer Section zwischen einzelnen Blöcken). Form-Tokens fixieren Radius (`--ride-radius` = 4 px für Karten, `--ride-radius-pill` für Tag-Pillen), Schatten (`--ride-shadow-soft` für Ruhezustand, `--ride-shadow-hover` für Hover) und die Standard-Übergangszeit (`--ride-transition` = 160 ms ease-out). Schriftrendering ist auf `font-feature-settings: "kern" 1, "liga" 1, "calt" 1` plus `text-rendering: optimizeLegibility` und Anti-Aliasing-Hinting eingestellt — ein-Mal-Setting, sitewide.
 
 Wiederverwendbare Komponenten-Primitive sind:
 
@@ -130,7 +130,7 @@ Wiederverwendbare Komponenten-Primitive sind:
 - **`.ride-prose`** — Editorial-Markdown-Output bekommt einheitliche vertikale Rhythmik über `* + *`. Jedes Folgekind erbt automatisch konsistenten Top-Abstand vom Vorgänger.
 - **`.ride-section__heading`** — Section-Heading-Pattern auf Aggregations- und Home-Seiten, mit optionalem `.ride-section__heading-meta`-Span für sekundäre Information rechts daneben („· {issue}").
 
-Diese drei Primitive ersetzen seit Welle 5 mehrere parallel gewachsene Karten-Patterns und sind die einzige Quelle für Padding, Border, Shadow.
+Diese drei Primitive ersetzen mehrere parallel gewachsene Karten-Patterns und sind die einzige Quelle für Padding, Border, Shadow.
 
 ## 8. Mehrsprachigkeit
 

@@ -5,6 +5,15 @@
 >
 > Anchored to [[requirements]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
 
+## Eigenbegriffe
+
+Two project-internal terms that appear throughout this doc and the codebase:
+
+- **Promptotyping.** Methodical practice of iterative prompting against a language model, in which compact Markdown knowledge documents are produced and curated; these later serve as context for agentic code generation. The contents of `knowledge/` are the artefacts of that practice.
+- **Wissensdokument.** A Markdown document under `knowledge/` — either deterministically generated from the corpus (`data.md`, `schema.md`) or hand-curated (`architecture.md`, `pipeline.md`, `requirements.md`, `interface.md`). Committed to the repo so a fresh clone carries the structural knowledge without running the pipeline.
+
+Two further terms — *Sonderfall-Branch* and *Element-Mapping* — are introduced in the [Domain model](#domain-model) and [Element-Mapping](#element-mapping-declarative) sections below.
+
 ## Stakeholders and how they touch the system
 
 The architecture is shaped by who uses it and where they enter. The
@@ -157,7 +166,7 @@ Beside the per-review render path, three **content loaders** feed the rest of th
 
 These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[requirements#A3 Editorialer Pflegepfad]].
 
-The build itself runs in **two passes** (since Welle 3): first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
+The build itself runs in **two passes**: first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
 
 ```
 templates/html/
@@ -310,10 +319,10 @@ ride-static/
 
 A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phasenplan]] and is the single source of truth for ordering, scope per phase, and requirement mapping. The four stages below group those phases.
 
-| Stage | Phases | Status |
-|---|---|---|
-| Discovery + Knowledge | scripts/, knowledge/ | done |
-| Domain model | 1–6 | done (Stage 2.A–2.C) |
-| Site rendering | 7–10 | done; Data-Charts (R9, Phase 10-Rest) pending |
-| Search, APIs, validation, PDF | 11–14 | done |
-| Deploy + Ops | 15 | partial — GH Actions + Contact + Matomo-config + Lizenzen + WCAG-Polish gelandet; offen: WCAG-Vollaudit, Matomo-URL in CI-Secret, Custom-Domain-Entscheidung |
+| Stage | Phases |
+|---|---|
+| Discovery + Knowledge | scripts/, knowledge/ |
+| Domain model | 1–6 |
+| Site rendering | 7–10 |
+| Search, APIs, validation, PDF | 11–14 |
+| Deploy + Ops | 15 |

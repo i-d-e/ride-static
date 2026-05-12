@@ -103,7 +103,7 @@ For new TEI elements or new domain shapes, see `docs/extending.md` (six files to
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-python -m pytest tests/                             # 475 tests, ~20 s
+python -m pytest tests/                             # full suite, run from repo root
 python -m src.build                                 # full build → site/
 python -m src.build --pdf                           # also produces per-review PDFs (WeasyPrint)
 python -m src.build --linkcheck                     # probes external bibliography URLs (slow)
@@ -112,132 +112,32 @@ python -m src.build --base-url=/ride-static         # path prefix for GitHub Pag
 python -m http.server -d site                       # local preview at http://localhost:8000
 ```
 
-The build runs in two passes:
-
-1. **Parse**: walks `issues/*/reviews/*-tei.xml`, parses every TEI into an immutable `Review` dataclass, classifies references (`local`/`criteria`/`external`/`orphan`), copies referenced figures from `../ride/issues/.../pictures/` (sibling repo, optional).
-2. **Render**: writes per-review HTML, per-review PDF (`--pdf`), aggregation pages, OAI-PMH snapshot, JSON-LD, sitemap, corpus dump, redirects, build report.
+`python -m src.build` runs three stages in order: **validate** (`src/validate.py`, RelaxNG against `schema/ride.rng`), **parse** (`src/parser/`, TEI into immutable `Review` dataclasses; classifies references, copies figures from `../ride/issues/.../pictures/` if the sibling repo is present), **render** (`src/render/`, HTML + optional PDF + aggregations + OAI-PMH + JSON-LD + sitemap + corpus dump + redirects).
 
 Each run records `site/api/build-info.json` with commit hash, corpus version, validation findings, asset report, and licence — the build is reproducible.
 
-### Discovery scripts (one-off)
+### Discovery scripts
 
-Run any from the repo root; they read TEI from `issues/*/reviews/` and write JSON to `inventory/` (gitignored) or Markdown to `knowledge/`:
-
-```sh
-python scripts/inventory.py        # element/attribute usage → elements.json, attributes.json
-python scripts/structure.py        # parent/child shapes → structure.json
-python scripts/sections.py         # <div type> hierarchy per review → sections.json
-python scripts/ids.py              # xml:id audit → ids.json
-python scripts/refs.py             # <ref @target> classification → refs.json
-python scripts/taxonomy.py         # criteria taxonomies → taxonomy.json
-python scripts/odd_extract.py      # ride.odd modules + Schematron → odd-summary.json
-python scripts/p5_fetch.py         # TEI P5 spec subset (cached) → tei-spec.json
-python scripts/cross_reference.py  # empirical × P5 × ODD diff → cross-reference.json
-python scripts/render_data.py      # → knowledge/data.md
-python scripts/render_schema.py    # → knowledge/schema.md
-```
+Stage-0/1 introspection lives in `scripts/`. Each script exposes `run(...)` for testing plus a `main()` that writes JSON to `inventory/` (gitignored) or Markdown to `knowledge/`. Full list and outputs: see `CLAUDE.md`. They run as part of CI but are not required for the build itself.
 
 ## Deploy workflow
 
-A single workflow at `.github/workflows/build.yml`. Triggers: push to `main` on TEI/content/code paths, or manual `workflow_dispatch`.
-
-```
-1. Checkout ride-static (TEI corpus + schema ship in-repo)
-2. Checkout i-d-e/ride sibling — picture assets only
-3. Setup Python 3.11, install requirements.txt
-4. Install WeasyPrint system libs (Pango, HarfBuzz)
-5. Run pytest
-6. Run discovery scripts (Tier 1–4)
-7. Run python -m src.build --pdf
-8. Build Pagefind index (npx pagefind --site site)
-9. Upload site/ as Pages artifact
-10. Deploy to GitHub Pages
-```
+Single workflow at `.github/workflows/build.yml`. Triggers on push to `main` (TEI / content / code paths) and on manual `workflow_dispatch`. It checks out this repo plus `i-d-e/ride` for picture assets, installs Python + WeasyPrint system libs, runs pytest and the discovery scripts, runs `python -m src.build --pdf`, builds the Pagefind index, and deploys `site/` to GitHub Pages.
 
 The second checkout is the only remaining external dependency; it can drop once the ~437 MB of picture assets migrate into this repo (Git-LFS likely needed).
 
-## Development workflow
+## Further reading
 
-### Setup
-
-Requirements: Python 3.11, git. Optional: clone `i-d-e/ride` as `../ride/` for live figure rendering.
-
-```sh
-git clone <this-repo>
-cd ride-static
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m pytest tests/                # confirm 475 pass
-```
-
-### Add a test
-
-Place it at `tests/test_<name>.py`. Real-corpus integration tests look up files via the central helper:
-
-```python
-from src._corpus import find_tei, iter_tei_files
-
-review = parse_review(find_tei("anemoskala"))     # by slug
-for path in iter_tei_files():                     # all 111 reviews
-    ...
-```
-
-Pure-function unit tests may use synthetic TEI fixtures — see CLAUDE.md "Hard rules" for the test-data philosophy. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt.
-
-### Commit and branch conventions
-
-Short imperative titles. See `CONTRIBUTING.md` for the rest.
-
-## Repository layout
-
-```
-issues/{N}/
-   metadata.yaml          editorially curated issue metadata (DOI, editors, …)
-   reviews/*-tei.xml      the TEI reviews for this issue
-schema/
-   ride.odd, ride.rng     RIDE TEI ODD + compiled RelaxNG
-scripts/                  Stage 0/1 — discovery, inventory, knowledge generation
-src/
-   _corpus.py             central corpus helper (iter_tei_files, find_tei, …)
-   model/                 immutable domain dataclasses (Review, Section, Block, …)
-   parser/                TEI → domain
-   render/                domain → HTML/PDF/JSON
-   build.py               end-to-end build CLI
-   validate.py            RelaxNG pre-build validation
-templates/html/           Jinja templates
-static/                   css/, js/, fonts/, images/
-config/                   element-mapping.yaml, navigation.yaml
-content/                  editorial Markdown (about, imprint, team, …) + home/
-inventory/                generated JSON artifacts — gitignored
-knowledge/                Obsidian-style vault, .md only, wikilinks for cross-refs
-docs/                     extending.md, url-scheme.md
-tests/                    pytest, run from repo root
-site/                     build output — gitignored
-.github/workflows/        single build+deploy workflow
-README.md / CLAUDE.md / CONTRIBUTING.md / Journal.md
-```
-
-## Where to look for more detail
-
-| Question | Source |
-|---|---|
-| Project conventions Claude operates under | `CLAUDE.md` |
-| Setup, hard rules, contribution workflow | `CONTRIBUTING.md` |
-| How to add a TEI element or render variant | `docs/extending.md` |
-| URL contract, versioned | `docs/url-scheme.md` |
-| Corpus structure, anomalies, K-refs | `knowledge/data.md` |
-| Schema vs. corpus diff, Schematron rules | `knowledge/schema.md` |
-| Architecture and domain model | `knowledge/architecture.md` |
-| Build phases (15) and deploy plan | `knowledge/pipeline.md` |
-| Functional and non-functional requirements | `knowledge/requirements.md` |
-| Visual and interaction design | `knowledge/interface.md` |
-| Session-by-session decisions and entry points | `Journal.md` |
-
-The `knowledge/` directory is an Obsidian-style vault; cross-references use `[[wikilink]]` notation.
+- `CONTRIBUTING.md` — setup, hard rules, conventions, and the pointer table to internal docs.
+- `CLAUDE.md` — repository layout, script outputs, project conventions.
+- `docs/extending.md` — adding a TEI element or render variant.
+- `docs/url-scheme.md` — versioned URL contract.
+- `knowledge/` — Obsidian-style vault: corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`requirements.md`, `interface.md`). Cross-references use `[[wikilink]]` notation.
+- `Journal.md` — session-by-session decisions and current entry point.
 
 ## Status
 
-Phases 0–14 and 15.A are complete (parser, render, aggregations, Pagefind, OAI-PMH/JSON-LD/sitemap, RelaxNG validation, WeasyPrint PDF, contact + licence + Matomo + WCAG polish). Phase 15.B (WCAG 2.2-AA audit on live site, Matomo CI secrets, custom-domain decision) is open. Current state and next entry point are in `Journal.md`.
+Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision. Current state and next entry point are in `Journal.md`.
 
 ## Licence
 

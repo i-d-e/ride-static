@@ -30,6 +30,29 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-05-12 — Doku-Refactor: README schlanker, Status-Single-Source, build() zerlegt
+
+**Ziel:** Dokumentations- und Code-Refactor in vier Schritten: README straffen, das nicht-deklarierte Duplikat `prozess-und-stand.md` auflösen, Status-Marker aus den Plan-Dokumenten ziehen, `build()`-Funktion zerlegen.
+
+**Erledigt:**
+- README.md von 245 auf 144 Zeilen reduziert. Raus: Repository-Layout-Duplikat zu CLAUDE.md, Pointer-Tabelle zu CONTRIBUTING.md, Development-Setup zu CONTRIBUTING.md, vollständige Discovery-Skript-Tabelle zu CLAUDE.md, CI-Schritte 1.–10. zu Fließsatz. Status-Absatz in Feature-Sprache statt Phasen-Nummern. Two-pass-Beschreibung zu validate → parse → render präzisiert.
+- `knowledge/prozess-und-stand.md` (443 Zeilen, nicht in CLAUDE.md-Vault-Layout deklariert) gelöscht. Glossar-Terms Promptotyping + Wissensdokument als neue Sektion „Eigenbegriffe" nach `architecture.md` migriert; Sonderfall-Branch und Element-Mapping waren bereits inline erklärt und brauchten keine separate Definition. Fehlattribuierter Bootstrap-Link in `mockup/README.md` von `prozess-und-stand.md` auf `interface.md` (`:53`) umgehängt.
+- Status-Single-Source festgelegt: `Journal.md` = laufende Wahrheit, `README.md` Status-Absatz = zeitstempelfreier Feature-Stand für Außenstehende, `pipeline.md` Phasenplan = statischer Plan ohne Tracker-Marker. Alle `**done**`, `**partial**`, `Welle X`, `seit Welle X`-Marker aus `pipeline.md` Phasenplan, `architecture.md` (Stages-Tabelle-Status-Spalte + „since Welle 3"-Marker), `interface.md` (fünf „seit Welle X"-Vorkommen, Wordcloud-Sektion-3-Anmerkung), `requirements.md` entfernt. Sentinel-Satz in `pipeline.md` über der Phasenplan-Tabelle: „This table is the static plan, not a tracker."
+- `src/build.py`: `build()` von 144 auf 97 Zeilen gekürzt durch fünf neue Helper — `_run_parse_pass`, `_check_corpus_consistency`, `_run_render_pass`, `_run_validation_layer`, `_print_build_summary`. Funktion liest jetzt als Neun-Schritt-Sequenz mit benannten Aufrufen.
+- 479 Tests grün nach jedem der vier Schritte.
+
+**Entscheidungen:**
+- Plan-Dokumente bleiben zeitstempel- und statusfrei. Wenn eine Phase erweitert wird, wird die Phasenplan-Zeile umgeschrieben (Plan-Update), nicht mit Statusmarkern ergänzt. Begründung: vier Single-Sources-of-Truth fürs Status garantieren Drift.
+- `build()` als Paket (`src/build/__init__.py`) verworfen — innere Faktorierung in einer Datei reicht, kein Import-Overhead. Begründung: die Helper sind klein und werden nur einmal aufgerufen, ein Paket würde Indirection ohne Gegenwert addieren.
+- `_write_build_info` als einziger test-extern referenzierter Helper-Name beibehalten ([tests/test_build.py:13](tests/test_build.py#L13)).
+- Methodologie-Inhalt aus `prozess-und-stand.md` („Methodisches Vorgehen und Wissensbasis", „Phasenplan-Tabelle", „Komponenten-Migrations-Tabelle") nicht migriert. Begründung: Duplikat zu `pipeline.md`/`architecture.md`/Journal-Verlauf oder historisches Migrations-Artefakt. Falls die Promptotyping-Methodologie als eigenständiges Stück Dokumentation gewollt ist, wäre `docs/methodology.md` der richtige Ort — bewusst auf Anfrage offen gelassen.
+
+**Offen:** Keine direkten Folgepunkte aus dem Refactor. Weiterhin offen aus der Projekt-Roadmap: WCAG-Vollaudit auf der Live-Site (axe-Pass), Matomo-URL als CI-Secret hinterlegen, Knowledge-Doc-CI-Verhalten festlegen (strict vs. auto-commit), Custom-Domain-Entscheidung.
+
+**Nächster Einstieg:** Auswahl aus den vier Phase-15-Restposten oben — der einfachste ist Matomo-URL als CI-Secret, weil dafür nur das GitHub-Repo-Secret zu setzen und der Workflow zu verdrahten ist; alle anderen brauchen redaktionelle oder externe Entscheidungen.
+
+---
+
 ## 2026-05-12 — Monorepo-Schnitt: TEI-Korpus + Schema in ride-static eingezogen
 
 **Ziel:** Den TEI-Korpus aus `i-d-e/ride` ins eigene Repo holen, damit ride-static nicht mehr von einem zweiten Checkout abhängt, und die Issue-Metadaten dabei direkt neben den TEI-Dateien gruppieren.
