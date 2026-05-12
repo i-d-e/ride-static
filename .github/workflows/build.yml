@@ -2,17 +2,12 @@
 # requirements.md N10 (one workflow file) and pipeline.md "GitHub Actions
 # workflow (Phase 15)".
 #
-# Status: SKELETON. Steps marked "Phase 8+" are placeholders that fail
-# loudly until the corresponding pipeline phase lands. The deploy chain
-# (upload-pages-artifact + deploy-pages) is the modern Actions-based
-# Pages flow — no /docs folder, no committed build output.
-#
-# Triggers:
-#   - push to main on changes that affect TEI sources, content, or pipeline
-#   - manual dispatch from the Actions tab
-#
-# The ride corpus is checked out as a sibling at ../ride so that the
-# REPO_ROOT.parent / "ride" pattern in scripts/*.py works unchanged in CI.
+# The TEI corpus and schema now live in this repo under issues/{N}/reviews/
+# and schema/. Per-issue pictures still live in i-d-e/ride under
+# issues/issue{NN}/{slug}/pictures/ and are pulled in via the asset pipeline.
+# The picture sibling is checked out alongside so REPO_ROOT.parent / "ride"
+# resolves at build time; when pictures move into this repo too, the second
+# checkout can drop.
 
 name: build
 
@@ -26,18 +21,18 @@ on:
       - "static/**"
       - "config/**"
       - "content/**"
+      - "issues/**"
+      - "schema/**"
       - "tests/**"
       - "requirements.txt"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
-# Pages deploys need exactly these permissions; nothing else.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Don't queue overlapping deploys; the latest push always wins.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -51,7 +46,10 @@ jobs:
         with:
           path: ride-static
 
-      - name: Checkout ride corpus (sibling)
+      # Pictures still live in the i-d-e/ride sibling repo. The asset
+      # pipeline reads them via REPO_ROOT.parent / "ride" / "issues" / ...
+      # When pictures move into ride-static, drop this step.
+      - name: Checkout ride pictures (sibling, pictures only)
         uses: actions/checkout@v4
         with:
           repository: i-d-e/ride
@@ -64,9 +62,6 @@ jobs:
           cache: pip
           cache-dependency-path: ride-static/requirements.txt
 
-      # WeasyPrint links Pango/Cairo at import time. The Ubuntu runner
-      # ships a partial GTK stack; install the WeasyPrint-listed runtime
-      # libs explicitly so `import weasyprint` succeeds in CI.
       - name: Install WeasyPrint system libraries
         run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
 
@@ -74,7 +69,6 @@ jobs:
         working-directory: ride-static
         run: pip install -r requirements.txt
 
-      # Cache the 4 MB TEI P5 subset between runs; pipeline.md "Re-deployment flow".
       - name: Cache TEI P5 subset
         uses: actions/cache@v4
         with:
@@ -85,7 +79,6 @@ jobs:
         working-directory: ride-static
         run: python -m pytest -q
 
-      # Tier 1 — independent extractors. Could parallelise; sequential is cheap and ordered.
       - name: Discovery scripts (Tier 1)
         working-directory: ride-static
         run: |
@@ -109,33 +102,11 @@ jobs:
           python scripts/render_data.py
           python scripts/render_schema.py
 
-      # Phase 13 lives here once it lands: pre-build RelaxNG + Schematron validation
-      # against ../ride/schema/ride.odd, with a per-file report.
-      # - name: Pre-build validation (Phase 13)
-      #   working-directory: ride-static
-      #   run: python -m src.validate
-
-      # Phase 8+ — the actual site build.
-      # base-url is the path prefix under which Pages serves the site. For
-      # https://<owner>.github.io/<repo>/ this is "/<repo>" (the implicit
-      # GitHub-Pages-project-page convention). When a custom domain is
-      # configured (e.g. https://ride.i-d-e.de/), drop the flag so paths
-      # resolve from the root instead.
-      - name: Build site (Phase 8+)
+      - name: Build site
         working-directory: ride-static
-        run: |
-          if [ -f src/build.py ] || python -c "import src.build" 2>/dev/null; then
-            python -m src.build --base-url=/${{ github.event.repository.name }} --pdf
-          else
-            echo "::warning::src.build is not implemented yet (Phase 8). Emitting placeholder site/."
-            mkdir -p site
-            echo "<!doctype html><title>ride-static</title><h1>build pending</h1>" > site/index.html
-          fi
+        run: python -m src.build --base-url=/${{ github.event.repository.name }} --pdf
 
-      # Phase 11 — Pagefind index. Indexes site/ after the build, writes the
-      # client-side runtime under site/pagefind/. Picked up by static/js/pagefind.js
-      # via the data-pagefind-ui container in base.html.
-      - name: Build Pagefind index (Welle 9)
+      - name: Build Pagefind index
         working-directory: ride-static
         run: npx -y pagefind --site site
 

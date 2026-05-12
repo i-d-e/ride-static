@@ -22,7 +22,7 @@ from lxml import etree
 from _tei import TEI_NS, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-ODD = REPO_ROOT.parent / "ride" / "schema" / "ride.odd"
+ODD = REPO_ROOT / "schema" / "ride.odd"
 OUT_DIR = REPO_ROOT / "inventory"
 ODD_SUMMARY_OUT = OUT_DIR / "odd-summary.json"
 

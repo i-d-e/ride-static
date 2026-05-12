@@ -25,6 +25,7 @@ from src.model.block import Paragraph
 from src.model.inline import Emphasis, Reference, Text
 from src.model.review import Review
 from src.model.section import Section
+from src._corpus import find_tei
 from src.render.corpus_dump import (
     LICENCE_NAME,
     LICENCE_URL,
@@ -34,7 +35,7 @@ from src.render.corpus_dump import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Fixture helpers ──────────────────────────────────────────────────
@@ -246,7 +247,7 @@ def test_real_corpus_review_round_trips_through_json():
     """
     from src.parser.review import parse_review
 
-    review = parse_review(CORPUS_DIR / "1641-tei.xml")
+    review = parse_review(find_tei("1641"))
     dump = to_corpus_dump([review], base_url="https://ride.i-d-e.de")
 
     # Round-trip through JSON.

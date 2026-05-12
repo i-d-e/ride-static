@@ -48,7 +48,7 @@ python -m pytest tests/
 ### Build the site
 
 ```sh
-python -m src.build                                # parses ride/tei_all/, renders site/
+python -m src.build                                # parses issues/*/reviews/, renders site/
 python -m src.build --pdf                          # also produces a per-review PDF via WeasyPrint
 python -m src.build --linkcheck                    # probe external bibliography URLs (slow)
 python -m src.build --matomo-url URL --matomo-site-id ID   # emit cookieless tracker snippet
@@ -63,8 +63,8 @@ For local preview after a build: `python -m http.server -d site/` is sufficient.
 A single workflow file `.github/workflows/build.yml` per [[requirements#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI sources, Markdown texts, pipeline code) and via `workflow_dispatch`.
 
 ```
-1. Checkout ride-static (this repo)
-2. Checkout ride at sibling path ../ride
+1. Checkout ride-static (this repo) — TEI corpus ships under issues/{N}/reviews/
+2. Checkout i-d-e/ride at sibling path ../ride — picture assets only
 3. Setup Python 3.11
 4. Install dependencies (lxml, jinja2, pytest, weasyprint, requests)
 5. Run pytest
@@ -74,9 +74,10 @@ A single workflow file `.github/workflows/build.yml` per [[requirements#N10 Sing
 9. Deploy to target (see "Deployment target" below)
 ```
 
-The `ride` repo is checked out as a sibling so the path-resolution
-pattern in `scripts/*.py` (`REPO_ROOT.parent / "ride" / ...`) works
-unchanged in CI.
+The picture assets still live in the sibling `i-d-e/ride` repo;
+`src/parser/assets.py` reads them via `REPO_ROOT.parent / "ride"` and
+degrades cleanly when the sibling is absent. When pictures move into
+this repo too, step 2 drops.
 
 Cache `inventory/_cache/p5subset.xml` between runs to avoid re-downloading the 4 MB TEI P5 source on every build.
 
@@ -184,7 +185,7 @@ The build is split into fifteen sequential phases. Each phase produces one commi
 | 6 | Bibliography + Questionnaire | `BibEntry`, `Questionnaire` dataclasses + parsers; aggregates for tags, reviewers, reviewed resources. **Stage 2.C done.** | R1 (Bibliographie, Factsheet, Tags), R6, R7, R8, [[requirements#A2 Datenquellen]] |
 | 7 | Ref-Resolver + Asset-Pipeline | `Reference.bucket` ∈ {local, criteria, external, orphan} via `src/parser/refs_resolver.py`; image copy + URL rewrite via `src/parser/assets.py`. Wayback-Hint deferred → Phase 13. **done** | R1 (cross-refs, K-refs), [[requirements#R17 Stabile URLs]] |
 | 8 | HTML — Rezensionsseiten | Per-review HTML via Jinja; citation export (BibTeX, CSL-JSON); TEI + PDF download links; Open-Graph metadata; Copy-Link auf Absätze; Tooltip-Vorschau für Cross-Refs; vier kleine JS-Module; **done bis Welle 6** inklusive: visual refresh am Mockup (Welle 4: Tagline-Header, Sans-Serif-Body, IDE/RIDE-Logo, mockup-aligned Farben #333/#0d6efd, R2-Citation mit Mikrokopie, ISSN-Footer); CSS-Konsolidierung (Welle 5: Spacing-Tokens, Panel-Komponente, ride-prose-Rhythmik, font-feature-settings, Soft-Cap auf 1000 Zeilen angehoben); Issue-Page als Rich-Entry-Liste mit Wordcloud-Thumbnails (Welle 6) | R1, [[requirements#R2 Rezension zitieren]], [[requirements#R3 Rezension herunterladen]], [[requirements#R13 Sharing]], [[interface]] |
-| 9 | Editorialschicht | Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers (About-Untermenü) · Call for Reviews · Submitting a Review · Projects for Review · RIDE Award (Reviewers-Untermenü) · Imprint · Reviewing Criteria — alles als Markdown mit Frontmatter unter `content/`; Home-Widgets unter `content/home/*.md`; per-issue YAML config unter `content/issues/{N}.yaml`; consistency check against TEI headers; globale Navigation aus `config/navigation.yaml`. **done bis Welle 6**: alle 12 Editorial-Stubs mit echten Texten von ride.i-d-e.de befüllt (About, Editorial, Team, Peer-Reviewers, Imprint), 5 Home-Widgets (Welcome, News, Call for Reviews, Open Data, Follow us), 22 Issue-YAML-Configs gescrapt | [[requirements#R10 Statische Inhalte pflegen]], [[requirements#R11 Issue-Metadaten pflegen]], [[requirements#R11.5 Globale Navigation pflegen]], [[requirements#A3 Redaktionelle Texte]] |
+| 9 | Editorialschicht | Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers (About-Untermenü) · Call for Reviews · Submitting a Review · Projects for Review · RIDE Award (Reviewers-Untermenü) · Imprint · Reviewing Criteria — alles als Markdown mit Frontmatter unter `content/`; Home-Widgets unter `content/home/*.md`; per-issue YAML config unter `issues/{N}/metadata.yaml`; consistency check against TEI headers; globale Navigation aus `config/navigation.yaml`. **done bis Welle 6**: alle 12 Editorial-Stubs mit echten Texten von ride.i-d-e.de befüllt (About, Editorial, Team, Peer-Reviewers, Imprint), 5 Home-Widgets (Welcome, News, Call for Reviews, Open Data, Follow us), 22 Issue-YAML-Configs gescrapt | [[requirements#R10 Statische Inhalte pflegen]], [[requirements#R11 Issue-Metadaten pflegen]], [[requirements#R11.5 Globale Navigation pflegen]], [[requirements#A3 Redaktionelle Texte]] |
 | 10 | Aggregations- und Übersichtsseiten | Issue-Übersicht, Issue-Ansicht (Welle 6: Rich-Entry-Liste mit Wordcloud-Thumbnails, Citation, Abstract-Excerpt; Lead-Satz statt dl-Tabelle), Tag-Übersicht, Reviewer-Liste + Detailseiten, Reviewed-Resources-Tabelle, Data-Charts (R9: drei inline-SVG Bar-Charts, eine pro Kriterienset, aggregiert nach Top-Level-Section über das echte Korpus; `value="3"`-Anomalie wird ausgewiesen). **done.** | [[requirements#R4 Issue-Ansicht]], [[requirements#R5 Issue-Übersicht]], [[requirements#R6 Tag-Aggregation]], [[requirements#R7 Reviewed Resources]], [[requirements#R8 Reviewer-Liste]], [[requirements#R9 Data-Charts]] |
 | 11 | Pagefind-Suche | Build-time index; client-side runtime with context highlighting; im Navbar verankert (interface.md §4). **done** (Welle 9) — `data-pagefind-body` auf Review-Wrapper, Facetten-Filter (Issue, Tag, Reviewer) als hidden spans, lazy-mount via IntersectionObserver. CI baut den Index nach `python -m src.build` mit `npx pagefind --site site`. | [[requirements#R12 Volltextsuche]], [[requirements#A4 Volltextsuche]] |
 | 12 | Maschinenschnittstellen | OAI-PMH static snapshot; JSON-LD per page (DOI als kanonischer @id); full corpus JSON dump; sitemap with `schema.org/ScholarlyArticle`. **done** | [[requirements#R15 Maschinenschnittstellen]], [[requirements#A5 Maschinenschnittstellen]] |

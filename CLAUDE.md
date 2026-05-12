@@ -8,7 +8,7 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 
 ## Hard rules
 
-- **TDD with real-corpus drive.** Every script and parser module ships with pytest coverage. **Integration tests use the real corpus** (`../ride/tei_all/*.xml`) — parse a real review and assert the resulting domain shape, rather than constructing `Review`/`Section`/`Block` instances directly from synthetic dataclass values. Synthetic-from-dataclass construction is technical debt: it locks tests to the model contract while bypassing the parser, hiding parser regressions. **Pure-function unit tests** (regex, classifier, formatter) may use synthetic inputs because the function signature is the only data form richer than that — document this in the test docstring. **Edge cases that genuinely do not exist in the corpus** (truly unparseable URLs, future-proofing branches) keep a synthetic fixture but the docstring names the case as an explicit exception. Real-corpus tests skip cleanly when `../ride/` is absent so the unit suite runs on a fresh clone.
+- **TDD with real-corpus drive.** Every script and parser module ships with pytest coverage. **Integration tests use the real corpus** (`issues/{N}/reviews/*-tei.xml`) — parse a real review and assert the resulting domain shape, rather than constructing `Review`/`Section`/`Block` instances directly from synthetic dataclass values. Synthetic-from-dataclass construction is technical debt: it locks tests to the model contract while bypassing the parser, hiding parser regressions. **Pure-function unit tests** (regex, classifier, formatter) may use synthetic inputs because the function signature is the only data form richer than that — document this in the test docstring. **Edge cases that genuinely do not exist in the corpus** (truly unparseable URLs, future-proofing branches) keep a synthetic fixture but the docstring names the case as an explicit exception. Real-corpus tests skip cleanly when the corpus is absent so the unit suite runs on a partial checkout.
 - **`knowledge/` is a clean Obsidian-style vault — Markdown plus referenced image attachments.** Generated JSON belongs in `inventory/`. Cross-references inside the vault use `[[wikilink]]` notation. Hand-written filenames are lowercase. Image attachments (e.g. `image-workflow.png`) live next to the Markdown that references them, the conventional Obsidian-vault layout.
 - **`inventory/` is gitignored** (visible, no leading dot). Always regeneratable from scripts.
 - **Anomalies are explicit.** Known data quirks (no `<back>`, `<num value="3">`, `<list rend="numbered">`, etc. — see `knowledge/data.md`) become named branches in the parser. Unknown ones must raise.
@@ -30,8 +30,12 @@ ride-static/
     render/, build.py     html, pdf, refs, assets, build CLI
   templates/html/         Jinja templates
   static/                 css/, js/, fonts/
-  config/                 element-mapping.yaml + per-issue YAML configs
+  config/                 element-mapping.yaml, navigation.yaml
   content/                editorial Markdown: about, imprint, criteria, reviewers
+  issues/{N}/             TEI corpus, grouped per issue
+    metadata.yaml         editorially curated issue metadata (DOI, editors, …)
+    reviews/*-tei.xml     the TEI review files for this issue
+  schema/                 ride.odd + ride.rng — RIDE TEI ODD + compiled RelaxNG
   inventory/              Generated JSON artifacts — gitignored
     _cache/               Cached upstream downloads (e.g. p5subset.xml)
   knowledge/              Obsidian-style vault, .md only, wikilinks for cross-refs
@@ -64,13 +68,14 @@ Cross-references inside `knowledge/` use **Obsidian wikilinks** (`[[filename]]` 
 
 Generated docs (`data.md`, `schema.md`) must not be edited by hand — changes go into `scripts/render_data.py` / `render_schema.py`. Hand-written docs are the only place where wikilinks may be added directly.
 
-Source corpus lives in the **sibling** directory `../ride/`:
+The TEI corpus and schema live **inside this repo**:
 
-- `../ride/tei_all/*.xml` — 107 reviews
-- `../ride/schema/ride.odd` — RIDE-specific TEI ODD
-- `../ride/issues/` — per-issue dirs with images
+- `issues/{N}/reviews/*-tei.xml` — 111 reviews, grouped by issue number (`biblScope @n`)
+- `issues/{N}/metadata.yaml` — per-issue editorial metadata (DOI, editors, contribution order, …)
+- `schema/ride.odd` — RIDE-specific TEI ODD
+- `schema/ride.rng` — compiled RelaxNG used by `src/validate.py`
 
-Scripts dereference this via `REPO_ROOT.parent / "ride" / ...`.
+Path lookups go through `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, …). Per-issue **pictures** still live in the sibling repo `i-d-e/ride` under `../ride/issues/issue{NN}/{slug}/pictures/`; the asset pipeline reads them via `REPO_ROOT.parent / "ride"` and degrades cleanly when the sibling is absent. When pictures move into this repo too, that fallback drops.
 
 ## Stage 0/1 outputs
 

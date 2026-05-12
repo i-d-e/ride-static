@@ -23,9 +23,8 @@ from typing import Iterable, Optional
 from lxml import etree
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_DIR = REPO_ROOT.parent / "ride"
-DEFAULT_TEI_DIR = RIDE_DIR / "tei_all"
-DEFAULT_RNG = RIDE_DIR / "schema" / "ride.rng"
+DEFAULT_TEI_DIR = REPO_ROOT / "issues"
+DEFAULT_RNG = REPO_ROOT / "schema" / "ride.rng"
 
 
 # Documented corpus quirks. The corpus has substantial pre-existing
@@ -137,13 +136,13 @@ def validate_corpus(
     if not rng_path.exists():
         raise FileNotFoundError(
             f"RelaxNG schema not found: {rng_path}. "
-            "Phase 13 expects ../ride/schema/ride.rng to be present."
+            "Expected schema/ride.rng in the repo root."
         )
     rng_doc = etree.parse(str(rng_path))
     rng_validator = etree.RelaxNG(rng_doc)
 
     report = ValidationReport()
-    files = sorted(tei_dir.glob("*-tei.xml"))
+    files = sorted(tei_dir.glob("**/*-tei.xml"))
     for f in files:
         report.files_checked += 1
         findings = validate_file(f, rng_validator)

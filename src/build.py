@@ -1,6 +1,6 @@
 """Build CLI — ``python -m src.build``.
 
-Walks the sibling ``../ride/tei_all/`` corpus, parses every TEI file
+Walks the in-repo ``issues/*/reviews/`` corpus, parses every TEI file
 into a :class:`~src.model.review.Review`, and writes the full static
 site tree under ``site/``: per-review HTML at
 ``issues/{issue}/{review_id}/index.html`` plus the original TEI as a
@@ -57,6 +57,7 @@ from src.render.issues_config import (
     IssueConfigError,
     discover_issue_configs,
     validate_issue_configs,
+    validate_review_locations,
 )
 from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
@@ -64,7 +65,10 @@ from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 from src.validate import validate_corpus
 
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
+# Issue-Bilder bleiben (vorerst) im Schwester-Repo ../ride/. Die Asset-Pipeline
+# degradiert sauber, wenn der Pfad fehlt — fehlende Bilder erscheinen im
+# Build-Report, brechen den Build aber nicht ab.
 RIDE_ROOT = REPO_ROOT.parent / "ride"
 SITE_DIR = REPO_ROOT / "site"
 STATIC_DIR = REPO_ROOT / "static"
@@ -286,7 +290,7 @@ def _render_aggregations(
 
 
 def _iter_corpus(corpus_dir: Path, limit: Optional[int]) -> Iterable[Path]:
-    files = sorted(corpus_dir.glob("*.xml"))
+    files = sorted(corpus_dir.glob("**/*-tei.xml"))
     return files[:limit] if limit else files
 
 
@@ -305,7 +309,7 @@ def build(
     if not corpus_dir.exists():
         raise FileNotFoundError(
             f"Corpus directory not found: {corpus_dir}. "
-            f"In CI, ride is checked out as a sibling at ../ride."
+            "Expected issues/{N}/reviews/*.xml in the repo."
         )
 
     out_root.mkdir(parents=True, exist_ok=True)
@@ -329,6 +333,18 @@ def build(
             print(f"parse failed: {path.name}: {exc}", file=sys.stderr)
 
     rendered = [r for _, r in parsed]
+
+    # Folder ↔ biblScope @n check. The TEI header is the canonical source
+    # for issue membership; the folder layout is convenience. Mismatch
+    # means an editor dropped a TEI in the wrong issues/{N}/ folder —
+    # the build would otherwise quietly render it under the header's
+    # issue, surprising the editor. Surface it as a hard error.
+    location_errors = validate_review_locations(parsed)
+    if location_errors:
+        raise IssueConfigError(
+            "TEI file location does not match its biblScope @n:\n  - "
+            + "\n  - ".join(location_errors)
+        )
 
     # Issue YAML configs — loaded once, validated against the parsed corpus.
     # R11: inconsistencies break the build with a clear error.

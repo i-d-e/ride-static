@@ -13,6 +13,7 @@ from src.render.issues_config import (
     order_reviews,
     parse_issue_config,
     validate_issue_configs,
+    validate_review_locations,
 )
 
 
@@ -93,8 +94,12 @@ def test_discover_issue_configs_empty_when_dir_missing(tmp_path: Path):
 
 
 def test_discover_issue_configs_loads_all(tmp_path: Path):
-    (tmp_path / "1.yaml").write_text("issue: 1\n", encoding="utf-8")
-    (tmp_path / "2.yaml").write_text("issue: 2\nstatus: rolling\n", encoding="utf-8")
+    (tmp_path / "1").mkdir()
+    (tmp_path / "2").mkdir()
+    (tmp_path / "1" / "metadata.yaml").write_text("issue: 1\n", encoding="utf-8")
+    (tmp_path / "2" / "metadata.yaml").write_text(
+        "issue: 2\nstatus: rolling\n", encoding="utf-8"
+    )
     configs = discover_issue_configs(tmp_path)
     assert set(configs.keys()) == {"1", "2"}
     assert configs["2"].is_rolling
@@ -157,3 +162,83 @@ def test_order_reviews_falls_back_to_id_sort_without_config():
     revs = [_review("ride.13.7", "13"), _review("ride.13.1", "13")]
     out = order_reviews("13", revs, None)
     assert [r.id for r in out] == ["ride.13.1", "ride.13.7"]
+
+
+# ── validate_review_locations ───────────────────────────────────────
+
+
+def _place(corpus_root: Path, issue: str, slug: str) -> Path:
+    """Create an empty TEI file at issues/{issue}/reviews/{slug}-tei.xml."""
+    p = corpus_root / issue / "reviews" / f"{slug}-tei.xml"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("<TEI/>", encoding="utf-8")
+    return p
+
+
+def test_validate_review_locations_clean_when_folder_matches_biblscope(tmp_path: Path):
+    """File at issues/22/reviews/ + Review.issue='22' = silent pass."""
+    path = _place(tmp_path, "22", "arendt")
+    review = _review("ride.22.1", "22")
+    assert validate_review_locations([(path, review)], corpus_root=tmp_path) == []
+
+
+def test_validate_review_locations_flags_wrong_folder(tmp_path: Path):
+    """File at issues/5/reviews/ but biblScope says issue 22 — must surface."""
+    path = _place(tmp_path, "5", "arendt")
+    review = _review("ride.22.1", "22")
+    errors = validate_review_locations([(path, review)], corpus_root=tmp_path)
+    assert len(errors) == 1
+    assert "arendt-tei.xml" in errors[0]
+    assert "issues/5/reviews/" in errors[0]
+    assert "'22'" in errors[0]
+
+
+def test_validate_review_locations_flags_missing_reviews_subdir(tmp_path: Path):
+    """File at issues/22/foo-tei.xml (no reviews/ subdir) — unexpected layout."""
+    path = tmp_path / "22" / "foo-tei.xml"
+    path.parent.mkdir(parents=True)
+    path.write_text("<TEI/>", encoding="utf-8")
+    review = _review("ride.22.1", "22")
+    errors = validate_review_locations([(path, review)], corpus_root=tmp_path)
+    assert len(errors) == 1
+    assert "unexpected path" in errors[0]
+
+
+def test_validate_review_locations_skips_files_outside_corpus(tmp_path: Path):
+    """Synthetic test paths outside the corpus root fall through silently."""
+    path = tmp_path / "elsewhere" / "foo-tei.xml"
+    path.parent.mkdir(parents=True)
+    path.write_text("<TEI/>", encoding="utf-8")
+    review = _review("ride.22.1", "22")
+    # corpus_root is a sibling tree the file is not in
+    other_root = tmp_path / "issues"
+    other_root.mkdir()
+    assert validate_review_locations([(path, review)], corpus_root=other_root) == []
+
+
+def test_validate_review_locations_collects_multiple_errors(tmp_path: Path):
+    """All mismatches reported, not just the first — editor sees the full list."""
+    p1 = _place(tmp_path, "5", "arendt")
+    p2 = _place(tmp_path, "7", "bayeux")
+    errors = validate_review_locations(
+        [
+            (p1, _review("ride.22.1", "22")),
+            (p2, _review("ride.20.3", "20")),
+        ],
+        corpus_root=tmp_path,
+    )
+    assert len(errors) == 2
+
+
+def test_validate_review_locations_real_corpus_is_clean():
+    """Every TEI in the shipped corpus must live in the folder its
+    biblScope @n points to. Catches regressions of the migration mapping."""
+    from src._corpus import iter_tei_files
+    from src.parser.review import parse_review
+
+    files = list(iter_tei_files())
+    if not files:
+        pytest.skip("no corpus present")
+    parsed = [(p, parse_review(p)) for p in files]
+    errors = validate_review_locations(parsed)
+    assert errors == [], "\n".join(errors)

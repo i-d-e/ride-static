@@ -28,7 +28,7 @@ from src.render.sitemap import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Pure formatter ───────────────────────────────────────────────────
@@ -221,7 +221,7 @@ def test_real_corpus_sitemap_round_trips_through_xml():
 
     reviews = tuple(
         parse_review(p)
-        for p in sorted(CORPUS_DIR.glob("*.xml"))[:20]
+        for p in sorted(CORPUS_DIR.glob("**/*.xml"))[:20]
     )
     issues = sorted({r.issue for r in reviews if r.issue})
     entries = collect_entries(

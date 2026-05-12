@@ -27,11 +27,11 @@ from lxml import etree
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_DIR = REPO_ROOT.parent / "ride"
+RIDE_DIR = REPO_ROOT
 DEFAULT_RNG = RIDE_DIR / "schema" / "ride.rng"
 
 needs_corpus = pytest.mark.skipif(
-    not (RIDE_DIR / "tei_all").is_dir(), reason="../ride/ corpus not available"
+    not (REPO_ROOT / "issues").is_dir(), reason="corpus not present"
 )
 needs_schema = pytest.mark.skipif(
     not DEFAULT_RNG.exists(), reason="ride.rng schema not available"
@@ -85,7 +85,7 @@ def test_real_corpus_validation_produces_a_report() -> None:
     returns a ValidationReport whose counts add up correctly."""
     report = validate_corpus()
     assert isinstance(report, ValidationReport)
-    assert report.files_checked == 107
+    assert report.files_checked == 111
     # files_valid + files_with_errors should equal files_checked
     # (warnings don't count against valid; only XML parse errors do).
     assert report.files_valid + report.files_with_errors == report.files_checked
@@ -105,7 +105,7 @@ def test_real_corpus_validation_to_dict_round_trips() -> None:
     payload = report.to_dict()
     # Round-trip through JSON to confirm everything is serialisable.
     json.dumps(payload, ensure_ascii=False)
-    assert payload["files_checked"] == 107
+    assert payload["files_checked"] == 111
     assert isinstance(payload["findings"], list)
     if payload["findings"]:
         first = payload["findings"][0]

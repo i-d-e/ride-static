@@ -30,6 +30,37 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-05-12 — Monorepo-Schnitt: TEI-Korpus + Schema in ride-static eingezogen
+
+**Ziel:** Den TEI-Korpus aus `i-d-e/ride` ins eigene Repo holen, damit ride-static nicht mehr von einem zweiten Checkout abhängt, und die Issue-Metadaten dabei direkt neben den TEI-Dateien gruppieren.
+
+**Erledigt:**
+- 111 TEI-Reviews aus `i-d-e/ride/tei_all/` per `biblScope @n` ausgewertet und in `issues/{N}/reviews/{slug}-tei.xml` einsortiert; Schema (`ride.odd` + `ride.rng`) liegt nun unter `schema/` im Repo-Root.
+- 22 YAML-Issue-Configs von `content/issues/{N}.yaml` nach `issues/{N}/metadata.yaml` umgezogen; `content/issues/` entfernt.
+- Neues Helfer-Modul `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, `SCHEMA_RNG`, `corpus_available`) ersetzt den verteilten `REPO_ROOT.parent / "ride" / "tei_all"`-Pattern.
+- Alle Pfad-Konstanten in `scripts/{inventory,structure,sections,refs,ids,taxonomy,odd_extract}.py`, `src/build.py`, `src/validate.py`, `src/render/issues_config.py` umgestellt; Globs auf `**/*.xml` bzw. `*/reviews/*.xml` / `*/metadata.yaml`.
+- 21 Test-Dateien automatisiert auf `find_tei("slug")` + neue Globs migriert; Skip-Mechanismus von `test_parser_assets.py` zeigt jetzt auf den Bilder-Sibling.
+- CI (`.github/workflows/build.yml`) verschlankt: `i-d-e/ride` wird nur noch wegen der Picture-Assets als Sibling geklont; alle anderen Schritte greifen auf das in-repo TEI-/Schema-Layout zu.
+- Doku synchronisiert: `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, `docs/extending.md`, `knowledge/architecture.md`, `knowledge/pipeline.md` — Layout-Tabellen, Stakeholder-Eingangspunkte, Hard-Rule-Quote, "107 reviews"→"111 reviews".
+- Tests: 468 passed, 7 skipped (die Asset-Picture-Tests, weil `../ride/` in der Sandbox fehlt).
+
+**Entscheidungen:**
+- **Per-Issue-Layout `issues/{N}/{metadata.yaml, reviews/*-tei.xml}` statt flachem `corpus/tei_all/`.** Begründung: alles zu einem Issue an einem Ort, Editor sieht Metadaten und Reviews nebeneinander; YAML-Membership wäre eine zweite Wahrheit gegenüber `biblScope @n`, darum bleibt die TEI-Header-Zuordnung kanonisch.
+- **Schema unter `schema/` im Root, nicht unter `corpus/schema/`.** Begründung: das Schema ist Validierungs-Vertrag, nicht Korpus-Inhalt — gleiche Trennung wie zwischen `src/` und `tests/`.
+- **Pictures (~437 MB, 888 Dateien) bleiben vorerst im Sibling `i-d-e/ride`.** Begründung: Repo-Größe und Klon-Zeit; LFS-Quota würde belastet. Die Asset-Pipeline degradiert sauber, wenn Sibling fehlt; CI klont den Sibling weiterhin nur für Bilder.
+- **`src/_corpus.py` als zentrale Wahrheit für Pfade.** Begründung: vor der Migration war `REPO_ROOT.parent / "ride" / "tei_all"` in ~35 Dateien dupliziert; bei der nächsten Layout-Änderung muss nur dieses Modul angefasst werden.
+- **CI: zweiter Checkout bleibt, aber explizit als "pictures only" dokumentiert.** Wenn die Bilder migriert werden, fällt der Step weg.
+
+**Offen:**
+- Bilder-Migration: 437 MB in 22 Issue-Ordnern, vermutlich via Git-LFS. Eigene Entscheidung in einer separaten Session.
+- `RIDE_ROOT` in `src/build.py` und `_RIDE_ROOT` in `tests/test_parser_assets.py` zeigen noch auf den Sibling — kann erst entfallen, wenn die Bilder hier liegen.
+- Knowledge-Doku-CI: Drift zwischen generiertem `knowledge/data.md` und aktuellem Korpus könnte auffliegen, wenn CI strict läuft (4 neue Reviews seit Phase 10-Refresh).
+- Phase 15.B (WCAG-Audit, Matomo-Secrets, Custom-Domain) weiterhin offen — unabhängig von dieser Umstrukturierung.
+
+**Nächster Einstieg:** Lokal `python -m src.build` ohne `../ride/` laufen lassen und prüfen, dass der AssetReport sauber alle fehlenden Bilder meldet statt zu crashen. Wenn das durchläuft, ist die Layout-Migration end-to-end verifiziert.
+
+---
+
 ## 2026-04-29 — Phase 10-Rest: Data-Charts (R9) live
 
 **Ziel:** Den letzten inhaltlichen Brocken aus Phase 10 abräumen — aggregierte Bar-Charts auf `/data/charts/` aus dem realen Korpus statt des seit Welle 6 stehenden Placeholder-Markdown.
