@@ -93,8 +93,12 @@ def test_discover_issue_configs_empty_when_dir_missing(tmp_path: Path):
 
 
 def test_discover_issue_configs_loads_all(tmp_path: Path):
-    (tmp_path / "1.yaml").write_text("issue: 1\n", encoding="utf-8")
-    (tmp_path / "2.yaml").write_text("issue: 2\nstatus: rolling\n", encoding="utf-8")
+    (tmp_path / "1").mkdir()
+    (tmp_path / "2").mkdir()
+    (tmp_path / "1" / "metadata.yaml").write_text("issue: 1\n", encoding="utf-8")
+    (tmp_path / "2" / "metadata.yaml").write_text(
+        "issue: 2\nstatus: rolling\n", encoding="utf-8"
+    )
     configs = discover_issue_configs(tmp_path)
     assert set(configs.keys()) == {"1", "2"}
     assert configs["2"].is_rolling

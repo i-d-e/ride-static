@@ -21,10 +21,10 @@ from src.render.redirects import EDITORIAL_REDIRECTS, write_redirects
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -102,7 +102,7 @@ def test_write_redirects_handles_missing_source_file(tmp_path: Path) -> None:
 @needs_corpus
 def test_real_corpus_every_review_gets_a_redirect(tmp_path: Path) -> None:
     """Every TEI review in the corpus must produce a legacy-URL stub."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))[:30]  # slice for speed
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))[:30]  # slice for speed
     reviews = tuple(parse_review(f) for f in files)
     write_redirects(reviews, tmp_path)
     # For each review, the stub at /issues/issue-{N}/{slug}/index.html exists

@@ -2,9 +2,9 @@
 
 Static-site generator for [ride.i-d-e.de](https://ride.i-d-e.de) — *RIDE. A review journal for digital editions and resources*, published by the Institut für Dokumentologie und Editorik (IDE).
 
-The pipeline reads 107 TEI XML reviews under `../ride/tei_all/`, a small editorial Markdown layer under `content/`, and one YAML configuration per issue. From those inputs, a single GitHub Actions workflow produces a complete `site/` tree — per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, sitemap. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
+The pipeline reads 111 TEI XML reviews under `issues/{N}/reviews/`, a small editorial Markdown layer under `content/`, and one `metadata.yaml` per issue. From those inputs, a single GitHub Actions workflow produces a complete `site/` tree — per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, sitemap. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
 
-The project replaces the previous eXist-based dynamic site. It is written in Python with Jinja templates. Every script and parser module ships with pytest fixtures, plus one optional smoke test against the real corpus that skips when the sibling repository is absent.
+The project replaces the previous eXist-based dynamic site. It is written in Python with Jinja templates. Every script and parser module ships with pytest fixtures plus real-corpus integration tests that drive off the in-repo TEI files.
 
 ## Where to look
 
@@ -48,7 +48,7 @@ python scripts/inventory.py            # one of eleven discovery scripts
 python -m src.build                    # build the static site (Phase 8+)
 ```
 
-The corpus is expected at `../ride/`, configured via the path-resolution pattern documented in `CLAUDE.md`. The build is reproducible: each run records a `build-info.json` with corpus version, schema version, and commit hash.
+The corpus lives inside this repo under `issues/{N}/reviews/`; per-issue picture assets are still pulled from the sibling `i-d-e/ride` repo. The build is reproducible: each run records a `build-info.json` with corpus version, schema version, and commit hash.
 
 ## Status
 

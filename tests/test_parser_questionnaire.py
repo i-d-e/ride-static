@@ -23,15 +23,16 @@ from lxml import etree
 
 from src.model.questionnaire import Questionnaire, QuestionnaireAnswer
 from src.parser.questionnaire import parse_questionnaires
+from src._corpus import find_tei
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -203,7 +204,7 @@ def test_parse_questionnaire_taxonomy_without_xml_base():
 def test_smoke_real_corpus_questionnaire_count() -> None:
     """The corpus inventory reports ~20053 ``<num>`` elements across 110
     ``<taxonomy>`` blocks. The parser should reach the same magnitude."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     total_taxonomies = 0
     total_answers = 0
     anomaly_value_3_seen = False
@@ -232,7 +233,7 @@ def test_real_corpus_collationtools_carries_three_taxonomies() -> None:
     """collationtools-tei.xml is the corpus's richest multi-taxonomy
     review (three taxonomies per the corpus probe). Pinning it
     concretely guards against drift in the multi-taxonomy code path."""
-    path = RIDE_TEI_DIR / "collationtools-tei.xml"
+    path = find_tei("collationtools")
     if not path.exists():
         pytest.skip("collationtools-tei.xml not in corpus")
     tree = etree.parse(str(path))
@@ -250,7 +251,7 @@ def test_real_corpus_value_3_anomaly_review_pinned() -> None:
     """varitext-tei.xml carries the ``<num value="3">`` anomaly per the
     corpus probe. The parser preserves the value verbatim — Phase 13
     validation will surface it as a build warning."""
-    path = RIDE_TEI_DIR / "varitext-tei.xml"
+    path = find_tei("varitext")
     if not path.exists():
         pytest.skip("varitext-tei.xml not in corpus")
     tree = etree.parse(str(path))

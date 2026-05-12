@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # WeasyPrint import is wrapped — both ImportError (package missing) and
@@ -39,7 +39,7 @@ needs_weasyprint = pytest.mark.skipif(
 )
 needs_corpus = pytest.mark.skipif(
     not CORPUS_DIR.exists(),
-    reason="../ride/tei_all corpus not present",
+    reason="corpus not present",
 )
 
 
@@ -94,7 +94,7 @@ def test_pdf_for_real_corpus_review_renders_to_a_valid_pdf(tmp_path: Path) -> No
 
     env = make_env()
     chosen = None
-    for sample in sorted(CORPUS_DIR.glob("*.xml")):
+    for sample in sorted(CORPUS_DIR.glob("**/*.xml")):
         review = parse_review(sample)
         if review.doi:
             chosen = review

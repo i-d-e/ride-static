@@ -1,6 +1,6 @@
 """TEI corpus inventory for ride-static.
 
-Walks all TEI/XML files under ride/tei_all/ and emits structured JSON
+Walks all TEI/XML files under issues/*/reviews/ and emits structured JSON
 inventories used as the source of truth for knowledge/data.md.
 
 Outputs (in inventory/ at repo root):
@@ -22,7 +22,7 @@ from lxml import etree
 from _tei import TEI_NS, XML_LANG_ATTR, XML_NS, attr_localname, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+TEI_DIR = REPO_ROOT / "issues"
 OUT_DIR = REPO_ROOT / "inventory"
 
 MAX_SAMPLES_PER_ELEMENT = 3
@@ -78,7 +78,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
     licences: Counter = Counter()
     editor_orcids: set[str] = set()
 
-    files = sorted(tei_dir.glob("*.xml"))
+    files = sorted(tei_dir.glob("**/*.xml"))
     if not files:
         raise SystemExit(f"No .xml files in {tei_dir}")
 

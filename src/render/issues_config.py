@@ -2,8 +2,9 @@
 
 Issue metadata that is editorially curated (DOI, editors, status,
 display title, free-text description, optional contribution order)
-lives as YAML files under ``content/issues/{n}.yaml``. The loader
-returns one :class:`IssueConfig` per file.
+lives as YAML files under ``issues/{n}/metadata.yaml`` — next to the
+TEI reviews for that issue. The loader returns one :class:`IssueConfig`
+per file.
 
 Consistency with the TEI corpus (R11 acceptance criterion: "Inkonsistenzen
 brechen den Build") is checked by :func:`validate_issue_configs`. The
@@ -44,7 +45,7 @@ import yaml
 from src.model.review import Review
 from src.render.html import REPO_ROOT
 
-CONTENT_ISSUES_DIR = REPO_ROOT / "content" / "issues"
+ISSUES_DIR = REPO_ROOT / "issues"
 
 _VALID_STATUS = {"regular", "rolling"}
 _KNOWN_FIELDS = {
@@ -113,7 +114,9 @@ def parse_issue_config(path: Path) -> IssueConfig:
         raise ValueError(f"{path.name}: contribution_order must be a list of review IDs")
     order = tuple(str(rid) for rid in raw_order) if raw_order else None
 
-    issue_no = str(raw.get("issue") or path.stem)
+    # Issue number defaults to the YAML's parent directory (issues/{N}/metadata.yaml).
+    # Falls back to ``path.stem`` for backward compatibility with flat YAMLs.
+    issue_no = str(raw.get("issue") or path.parent.name or path.stem)
     pub_date = raw.get("publication_date")
     if pub_date is not None:
         pub_date = str(pub_date)
@@ -148,13 +151,15 @@ def _parse_editor(entry, file_label: str) -> IssueEditor:
     )
 
 
-def discover_issue_configs(content_dir: Path = CONTENT_ISSUES_DIR) -> dict[str, IssueConfig]:
-    """Load every ``content/issues/*.yaml``. Returns a mapping issue → config."""
+def discover_issue_configs(content_dir: Path = ISSUES_DIR) -> dict[str, IssueConfig]:
+    """Load every ``issues/*/metadata.yaml``. Returns a mapping issue → config."""
     if not content_dir.exists():
         return {}
     return {
         cfg.issue: cfg
-        for cfg in (parse_issue_config(p) for p in sorted(content_dir.glob("*.yaml")))
+        for cfg in (
+            parse_issue_config(p) for p in sorted(content_dir.glob("*/metadata.yaml"))
+        )
     }
 
 

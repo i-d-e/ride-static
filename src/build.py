@@ -1,6 +1,6 @@
 """Build CLI — ``python -m src.build``.
 
-Walks the sibling ``../ride/tei_all/`` corpus, parses every TEI file
+Walks the in-repo ``issues/*/reviews/`` corpus, parses every TEI file
 into a :class:`~src.model.review.Review`, and writes the full static
 site tree under ``site/``: per-review HTML at
 ``issues/{issue}/{review_id}/index.html`` plus the original TEI as a
@@ -64,7 +64,10 @@ from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 from src.validate import validate_corpus
 
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
+# Issue-Bilder bleiben (vorerst) im Schwester-Repo ../ride/. Die Asset-Pipeline
+# degradiert sauber, wenn der Pfad fehlt — fehlende Bilder erscheinen im
+# Build-Report, brechen den Build aber nicht ab.
 RIDE_ROOT = REPO_ROOT.parent / "ride"
 SITE_DIR = REPO_ROOT / "site"
 STATIC_DIR = REPO_ROOT / "static"
@@ -286,7 +289,7 @@ def _render_aggregations(
 
 
 def _iter_corpus(corpus_dir: Path, limit: Optional[int]) -> Iterable[Path]:
-    files = sorted(corpus_dir.glob("*.xml"))
+    files = sorted(corpus_dir.glob("**/*-tei.xml"))
     return files[:limit] if limit else files
 
 
@@ -305,7 +308,7 @@ def build(
     if not corpus_dir.exists():
         raise FileNotFoundError(
             f"Corpus directory not found: {corpus_dir}. "
-            f"In CI, ride is checked out as a sibling at ../ride."
+            "Expected issues/{N}/reviews/*.xml in the repo."
         )
 
     out_root.mkdir(parents=True, exist_ok=True)

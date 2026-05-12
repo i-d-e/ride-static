@@ -30,9 +30,10 @@ from src.model.review import (
 )
 from src.model.section import Section
 from src.render.jsonld import to_jsonld, to_jsonld_string
+from src._corpus import find_tei
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Fixture helpers ──────────────────────────────────────────────────
@@ -266,7 +267,7 @@ def test_real_corpus_review_round_trips_through_jsonld():
     """
     from src.parser.review import parse_review
 
-    review = parse_review(CORPUS_DIR / "1641-tei.xml")
+    review = parse_review(find_tei("1641"))
     data = to_jsonld(review, base_url="https://ride.i-d-e.de")
 
     assert data["@type"] == "ScholarlyArticle"

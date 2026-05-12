@@ -37,7 +37,7 @@ from src.render.html import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Fixture builders ─────────────────────────────────────────────────
@@ -563,7 +563,7 @@ def test_matomo_snippet_omitted_when_only_url_set():
 def test_smoke_render_first_corpus_review_without_raising():
     from src.parser.review import parse_review
 
-    sample = sorted(CORPUS_DIR.glob("*.xml"))[0]
+    sample = sorted(CORPUS_DIR.glob("**/*.xml"))[0]
     review = parse_review(sample)
     html = render_review(review)
     assert "<!doctype html>" in html

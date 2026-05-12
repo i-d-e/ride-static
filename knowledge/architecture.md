@@ -14,8 +14,8 @@ as its inputs land.
 
 | Role | What they do | Where they enter the system |
 |---|---|---|
-| **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `config/issues/{n}.yaml`, the TEI submission process upstream of `../ride/`. |
-| **Reviewers** | Author reviews in TEI per `ride.odd`. | `../ride/tei_all/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
+| **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `issues/{N}/metadata.yaml`, the TEI submission process upstream. |
+| **Reviewers** | Author reviews in TEI per `ride.odd`. | `issues/{N}/reviews/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
 | **Readers** | Read reviews, follow citations, search across the corpus, cite reviews in their own work. | The deployed site — review pages, aggregation pages (tags, reviewers, resources), the search box, the `Cite` button per review. |
 | **Indexers / harvesters** | Pull metadata into discovery layers (DOI, Google Scholar, ScholarLed, library catalogues). | `/api/corpus.json`, `/oai/`, `/sitemap.xml`, JSON-LD per review page, stable URLs per [[url-scheme|docs/url-scheme.md]]. |
 | **Maintainers (this project)** | Add new TEI elements, change visual design, fix anomalies, ship new phases. | `src/parser/`, `src/render/`, `templates/`, `config/element-mapping.yaml`, `knowledge/` for design-intent decisions. |
@@ -36,9 +36,11 @@ Two axes of stakeholder load shape the architecture:
 ## Inputs and outputs
 
 **Inputs**
-- `../ride/tei_all/*.xml` — review files (canonical source).
-- `../ride/schema/ride.odd` — RIDE schema customisation.
+- `issues/{N}/reviews/*-tei.xml` — review files (canonical source, grouped per issue).
+- `issues/{N}/metadata.yaml` — editorial issue metadata (DOI, editors, contribution order).
+- `schema/ride.odd` + `schema/ride.rng` — RIDE schema customisation and compiled RelaxNG.
 - `inventory/*.json` — corpus knowledge (regenerated from the above).
+- `../ride/issues/issue{NN}/{slug}/pictures/` — per-issue picture assets, still in the sibling repo until they migrate too.
 
 **Outputs**
 - `site/` — HTML pages, CSS, fonts, JS, images.
@@ -55,7 +57,8 @@ Two axes of stakeholder load shape the architecture:
 
 ```
             ┌───────────────────────────────┐
-            │  ride/tei_all/*.xml + ride.odd │   (read-only source)
+            │  issues/{N}/reviews/*.xml +    │   (read-only source)
+            │  schema/ride.odd               │
             └──────────────┬─────────────────┘
                            │
           ┌────────────────▼────────────────┐
@@ -150,7 +153,7 @@ Beside the per-review render path, three **content loaders** feed the rest of th
 
 - **`render/navigation.py`** — parses `config/navigation.yaml` into immutable `NavItem` tuples, then resolves data-driven children (today only `children_kind: issues`, which builds the Issues dropdown from the corpus). The resolved tuple lives in `SiteConfig.navigation` and is handed to every template via the render context.
 - **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim.
-- **`render/issues_config.py`** — loads `content/issues/{N}.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
+- **`render/issues_config.py`** — loads `issues/{N}/metadata.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
 
 These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[requirements#A3 Editorialer Pflegepfad]].
 
@@ -261,7 +264,7 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **Domain model first.** Templates and renderers never see raw TEI.
 - **Inventory-driven.** Anything the parser does is informed by `inventory/`. New elements or attributes that appear in the corpus must show up in the inventory before they are handled.
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones raise.
-- **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
+- **TDD with real-corpus drive.** Integration tests parse real TEI files from `issues/{N}/reviews/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
 - **Build-info trinity (N4).** The build commit + date land in three places from a single `BuildInfo` dataclass: HTML footer (`<code>{commit_short}</code>` plus `data-commit` / `data-build-date` attributes), `site/api/build-info.json` (`build.commit_short`, `build.date`), and a `console.info` banner that fires once per page load when devtools are open. Three manifestations, one source — debugging any one of them surfaces the others. The console banner is gated on `site.build_info.commit_short`, so dev builds without git stay silent.
 - **Licence per machine artefact (N6).** A single constant pair `LICENCE_NAME` / `LICENCE_URL` in `src/render/corpus_dump.py` feeds the top-level `licence` field in both `corpus.json` and `build-info.json`; `<dc:rights>` in OAI-PMH is sourced from the per-review TEI `licence` value. Consumers downloading any of the JSON / XML artefacts know the terms without inferring from the footer.
