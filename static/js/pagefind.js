@@ -1,6 +1,6 @@
 // pagefind.js — Pagefind UI bootstrap.
 //
-// interface.md §11 / requirements.md R12. Welle 9 wires Pagefind into
+// interface.md §11 / specification.md R12. Welle 9 wires Pagefind into
 // the #ride-search container in the navbar. The CI build runs
 // `npx pagefind --site site` after `python -m src.build`, which writes
 // the runtime to /pagefind/ and the UI bundle to /pagefind/pagefind-ui.js.

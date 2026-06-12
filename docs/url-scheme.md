@@ -1,6 +1,6 @@
 # URL scheme
 
-Versioned definition of the URL scheme. Anchored to `requirements.md` clauses R17 (stable URLs) and A1 (rolling issue URL reservation).
+Versioned definition of the URL scheme. Anchored to `specification.md` clauses R17 (stable URLs) and A1 (rolling issue URL reservation).
 
 ## Scheme version
 
@@ -10,7 +10,7 @@ Versioned definition of the URL scheme. Anchored to `requirements.md` clauses R1
 
 The site is hosted on GitHub Pages. The base is one of:
 
-- `https://<owner>.github.io/<repo>/` — default while the custom domain decision is pending (see `requirements.md` §8).
+- `https://<owner>.github.io/<repo>/` — default while the custom domain decision is pending (see `specification.md` §8).
 - `https://ride.i-d-e.de/` — once the custom domain is configured.
 
 Internal links are always relative to the site root (`/`); the base prefix is added at deploy time.

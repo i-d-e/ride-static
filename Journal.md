@@ -30,6 +30,36 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-12 — Redaktioneller Zielworkflow: Abgleich, Staging-Dokument, Trigger-Verkabelung
+
+**Ziel:** Den Zielworkflow der Redaktion (ride-editors → Testumgebung → Freischaltung) gegen die gebaute Pipeline abgleichen und die entscheidungsrobusten Teile sofort umsetzen.
+
+**Erledigt:**
+- **Abgleich Zielworkflow vs. Pipeline:** Schritt 2 (Freischaltung per Git-Move nach `ride`, Issue-Einrichtung via YAML, automatischer Voll-Rebuild) ist abgedeckt; Schritt 1 (passwortgeschützte Testumgebung) ist unbeplant. Live-Factsheet-Seiten (`…/factsheet/`) rendern den **vollständigen** Fragebogen als eigene Unterseite — unser Sidebar-Apparat zeigt nur Aggregate; Legacy-`/factsheet/`-URLs fehlen in `src/render/redirects.py` (R17-Lücke).
+- **`knowledge/staging.md` angelegt** (status: draft): Anforderung, Problemstellung, fünf Lösungsoptionen (unverlinkte „Hinterseite", lokal [verworfen], IDE-Server, Zugriffsschutz-Dienst, privates Repo [nur als PDF-Teilbaustein tauglich]), Bestandsaufnahme der Repos, Umsetzungsvorschlag als Entscheidungsvorlage, Gesprächsagenda. In `INDEX.md`-Tabelle und `specification.md §9` verankert.
+- **Bestandsaufnahme:** `i-d-e/ride-editors` existiert, ist privat, trägt die Konvention `issue-{name}/{slug}/` mit `{slug}-tei.xml`, `pictures/`, `{slug}-wordcloud.png`; publizierte Beiträge verbleiben dort (Dubletten-Befund `tei-publisher` → Dedupe-Pflicht). Weder `ride` noch `ride-editors` haben Workflows.
+- **Trigger-Verkabelung umgesetzt:** `build.yml` nimmt `repository_dispatch` (`corpus-updated`, `editors-updated`) an; Sender-Vorlagen plus Installationsanleitung (Token-Secret `RIDE_STATIC_DISPATCH_TOKEN`) unter `docs/upstream-workflows/`. `ride` hat Default-Branch `master` — Vorlage deckt beide ab.
+- **README-Anleitung:** neuer Abschnitt „Editorial workflow" (Publikations-Schritte, Issue-YAML-Beispiel, Wordcloud-Konvention, lokale Vorschau); veraltete Stellen korrigiert (specification.md statt requirements.md, 473 Tests, Status Phase 14/15). 473 Tests grün.
+- **Lane-Drift entdeckt und aufgelöst:** Die Frage „wieso gibt es den Branch?" deckte auf, dass `origin/main` seit 2026-05-12 fünf Commits voraus war (Monorepo-Schnitt: TEI-Korpus + Schema in ride-static; Doku-Refactor mit statusfreien Plan-Dokumenten; Ordner-Layout-Check), während der Vault-Refactor nur lokal lag. `origin/main` in den Branch gemerged, fünf Konflikte aufgelöst (build.yml, Journal, README, architecture, pipeline): statusfreie Tabellen und Monorepo-Inhalte von origin/main, Vault-Umbenennung, Method-Sektion und staging-Verankerung vom Branch.
+- **Monorepo-Anpassung der Tagesarbeit:** staging.md (§1, §5–§7: publiziertes Korpus liegt in ride-static, `i-d-e/ride` nur noch Bilder, Dublettenprüfung gegen `issues/*/reviews/`), Sender-Vorlage für `ride` auf Bilder-Updates umgestellt, README-Editorial-Workflow auf origin/main-Basis mit ride-editors-Herkunft/Wordcloud/Vorschau-Abschnitt, Korpuszahlen in specification/INDEX/interface auf 111, Test-Docstrings auf in-repo-Korpus. `data.md`/`schema.md` gegen das neue Layout regeneriert; empirische Pins in architecture.md am Korpus verifiziert und aktualisiert (111/111 Abstract-Sections im front, Questionnaire-Verteilung 109/1/1). **479 Tests grün.**
+
+**Entscheidungen:**
+- **Wordclouds bleiben manuell geliefert** — die Redaktion erzeugt sie mit einem Gestaltungswerkzeug (geformte Clouds); programmatische Generierung würde den visuellen Charakter zerstören. Lieferkonvention faktisch geklärt: `{slug}-wordcloud.png` liegt bereits in `ride-editors`, wird bei Publikation nach `static/images/wordclouds/{slug}.png` kopiert.
+- **Draft-Mechanik (unverlinkte Vorschau im öffentlichen Build) zurückgestellt** — die Varianten-Wahl will der User erst mit den Editorinnen diskutieren; nur entscheidungsrobuste Bausteine (Dispatch, Anleitung) wurden gebaut. Wichtig: `ride-editors` ist privat, eine öffentliche Vorschau machte Inhalt erstmals vor Freischaltung zugänglich (Gesprächspunkt in `staging.md §8`).
+- **Glossar nur im INDEX:** Die von origin/main eingeführte „Eigenbegriffe"-Sektion in `architecture.md` durch einen Verweis auf das INDEX-Glossar ersetzt — eine Definitionsstelle pro Begriff, Geschwister verlinken (Vault-Konvention). Beide Seiten hatten `prozess-und-stand.md` unabhängig aufgelöst; das INDEX-Glossar ist die reichere Fassung.
+- **Statusfreie Plan-Dokumente übernommen:** origin/main hatte alle done/partial/Welle-Marker aus Phasenplan und Stages-Tabelle entfernt („static plan, not a tracker"); diese Linie gilt jetzt auch für die zusammengeführte Fassung. Status lebt im Journal (laufend) und im README (Feature-Stand).
+
+**Offen:**
+- **Factsheet-Parität:** Feld-Abgleich Live-Factsheet vs. Domänenmodell (ORCID, Reviewer-E-Mail, Personnel-Listen, Date of last access), Entscheidung eigene Unterseite `/issues/{N}/{id}/factsheet/`, Redirect-Erweiterung für Legacy-`/factsheet/`-URLs.
+- **Staging-Entscheidung** mit der Redaktion (Agenda in `staging.md §8`); danach Draft-Mechanik nach Vorschlag `staging.md §7` bauen.
+- **Sender-Workflow installieren:** `ride-trigger-build.yml` nach `i-d-e/ride` kopieren plus Zugriffstoken-Secret anlegen (manuell, braucht Repo-Admin). Seit dem Monorepo-Schnitt betrifft das nur noch Bilder-Pushes — ohne den Sender erscheinen neue Abbildungen erst beim nächsten anderweitigen Build.
+- **Bild-URL-Konvention für neue TEI** (wp-content-Form vs. relativer Pfad als neuer Sonderfall-Branch) — mit Redaktion klären.
+- Restposten aus 2026-05-09: `interface.md`-Spaltung, `site/`-Eincheck-Frage, WCAG-Vollaudit, Matomo-CI-Secrets.
+
+**Nächster Einstieg:** Factsheet-Parität: Live-Factsheet (`https://ride.i-d-e.de/issues/issue-21/makingandknowing/factsheet/`) Feld für Feld gegen `src/model/questionnaire.py` und `src/parser/questionnaire.py` stellen und die Lückenliste in `specification.md` als R-Klausel-Ergänzung formulieren.
+
+---
+
 ## 2026-05-12 — Doku-Refactor: README schlanker, Status-Single-Source, build() zerlegt
 
 **Ziel:** Dokumentations- und Code-Refactor in vier Schritten: README straffen, das nicht-deklarierte Duplikat `prozess-und-stand.md` auflösen, Status-Marker aus den Plan-Dokumenten ziehen, `build()`-Funktion zerlegen.
@@ -81,6 +111,35 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 - Phase 15.B (WCAG-Audit, Matomo-Secrets, Custom-Domain) weiterhin offen — unabhängig von dieser Umstrukturierung.
 
 **Nächster Einstieg:** Lokal `python -m src.build` ohne `../ride/` laufen lassen und prüfen, dass der AssetReport sauber alle fehlenden Bilder meldet statt zu crashen. Wenn das durchläuft, ist die Layout-Migration end-to-end verifiziert.
+
+---
+
+## 2026-05-09 — Knowledge-Vault auf Promptotyping-Konvention gehoben
+
+**Ziel:** Den `knowledge/`-Ordner als sauberen Promptotyping-Vault refactoren — Frontmatter-Pflichtkern durchziehen, Funktionsabbildung sauber stellen, Hybrid-Dokument `prozess-und-stand.md` auflösen, INDEX als Navigationsknoten anlegen. Parallel das Promptotyping-Paper im Obsidian-Vault auf den heutigen Stand der Konvention bringen.
+
+**Erledigt:**
+- **Paper-Patches** in `Pollin 2026 - Promptotyping ...md` (Obsidian-Vault): neue Sektion 3.5 *Two Modes of Promptotyping* mit Research Lead Agent als Begriff für Multi-Agent-Forschungsorganisation; §3.3 Vault-Prinzip mit drei strukturellen Commitments (function before filename, inclusion by trigger, diagnostic decoupling) statt der ursprünglich gelisteten acht Funktionen — Zahl raus, strukturelles Argument rein; §3.3 Generated-vs-curated Distinction (deterministisch generierte Knowledge-Documents als Build-Stage); §6.2 horizontale Autonomie-Dimension für Multi-Agent-Mode; Conclusion auf vier Beiträge erweitert; Abstract synchronisiert.
+- **Frontmatter-Lift** auf alle sechs bleibenden `knowledge/`-Dateien (Pflichtkern: title, project, method, status, created, updated, version, plus topics aus dem Inhalt destilliert und related für Geschwister-Verlinkung). Generierte Dokumente (`data.md`, `schema.md`) behalten ihr `generated:`/`source:`/`inputs:`-Frontmatter zusätzlich.
+- **`requirements.md` → `specification.md` umbenannt** via `git mv`, Wikilinks mit `replace_all` über die vier betroffenen Knowledge-Files plus zwei Wikilink-Treffer in `src/render/pdf.py`. Dazu 11 Prosa-/Docstring-Erwähnungen von `requirements.md` in Code-Files (`src/build.py`, `src/model/{questionnaire,review}.py`, `src/parser/datasets.py`, `src/render/{charts,editorial,html,navigation}.py`, `tests/test_render_navigation.py`) per sed-Lauf gezogen. **473 Tests grün** nach jedem Schritt.
+- **`knowledge/INDEX.md`** angelegt: Lead, Dokumentenmatrix in Funktions-Reihenfolge (Material → Substance → Construction → Form → Genesis), vier Lesepfade (Onboarding, Korpus-Anomalie, TEI-Element-Rendering, Build reproduzieren), Konventions-Verweis mit Diagnose-Triage, sechs-Begriff-Glossar (Promptotyping, Wissensdokument, Sonderfall-Branch, Element-Mapping, K-Ref, Apparate-Block), drei begründete Lücken in „Was fehlt und warum".
+- **`prozess-und-stand.md` aufgelöst**, sektion-für-sektion gegen Zielstellen geprüft: Glossar im INDEX, Ausgangslage redundant zu `specification.md §1`, Architektur-Überblick redundant zu `architecture.md *Layers*`, Domänenmodell und Sonderfälle redundant zu `architecture.md *Domain model*`, Interface redundant zu `interface.md`, Phasenplan redundant zu `pipeline.md`, Output redundant zu `architecture.md *Inputs and outputs*`, Stand redundant zu Journal, Pflege redundant zu CONTRIBUTING. **Drei Inhalte gerettet:** Personenliste (Scholger, Vogeler, Dumont, Henny) nach `specification.md §3 Rollen`; Promptotyping-Methode-Anker als neue Sektion `architecture.md *Method — Promptotyping vault*` (drei Absätze: zwei-schichtige Wissensbasis aus deterministisch generierter und hand-kuratierter Schicht); 19-zeilige Migrationstabelle nach `specification.md §8 Migrationsvertrag (heute → künftig)` plus Erweiterung von §9 *Offene Fragen* um redaktionelle Schnittstelle und Komponenten-Detailfragen. **`image-workflow.png`** als visueller Anker in `architecture.md *Layers*` integriert. Datei mit `git rm` gelöscht.
+
+**Entscheidungen:**
+- **Function before filename als strukturelles Argument, nicht Funktions-Liste mit Zähler.** Frühe Paper-Fassung listete acht Funktionen; ide-/User-Einwand: Zahl ist Beifang, kein Argument. Korrektur auf drei Commitments (function before filename, inclusion by trigger, diagnostic decoupling). Die acht Funktionen werden im Paper nicht mehr als Set präsentiert — sie sind illustrative Beispiele für eine offene Liste.
+- **`requirements.md` umbenannt zu `specification.md`** statt nur Topic ergänzen. Konvention führt `specification.md` als kanonischen Träger der Substanz-Funktion; Umbenennung war mit `git mv` und replace_all in einem Schritt machbar, history bleibt erhalten via `RM`-Status. `aliases: [requirements]` im Frontmatter als Migrationspuffer.
+- **`design.md`/`ui.md`-Spaltung als spätere Aktion offen gelassen.** Heutige Lage: `interface.md` trägt Designhaltung (4 Prinzipien) plus UI-Realisierung (Layout, Seitentypen, Komponenten, Typografie, A11y) gemeinsam. Spaltung in `design.md` (haltung, agent value source) plus `ui.md` (realisierung) wäre konvention-konformer und würde `CLAUDE.md` einen sauberen Werte-Anker geben — aber invasiv genug, um in eigener Session zu landen. INDEX markiert die Lücke explizit.
+- **`prozess-und-stand.md` vollständig auflösen statt zu `overview.md` reduzieren.** Eine Funktion pro auffindbarer Stelle ist Konvention; ein Hybrid-Dokument widerspricht dem. Der Migrationsvertrag-Tabellen-Inhalt ist substanziell und gehört zur Funktion „Substanz" in `specification.md`, nicht in einen Zwischen-Träger.
+
+**Offen:**
+- **`interface.md` spalten in `design.md` + `ui.md`.** Funktional klar trennbar: Designhaltung ist projektübergreifend stabil und Werteebene für `CLAUDE.md`; UI-Realisierung ist konkret, ändert sich mit jedem neuen Seitentyp. Splitting ist Find/Replace über Wikilinks plus `CLAUDE.md`-Sektion, mittlerer Aufwand.
+- **`architecture.md` und `pipeline.md` explizit als gespaltene Bauweise koppeln.** Frontmatter trägt `related:` schon, aber Lead-Block-Hinweis am Kopf jeder Datei fehlt — soll dem Leser sagen, dass beide gemeinsam die Funktion „Bauweise" tragen.
+- **`CLAUDE.md` referenziert `design.md` als Werteebene.** Wartet auf die Interface-Spaltung.
+- **Konvention im Vault** (`Konvention Promptotyping Documents.md` unter `Vault Operations/Konventionen/`) trägt noch die Acht-Funktionen-Tabelle als Hauptträger. Sollte parallel zum Paper-Patch auf das strukturelle Argument umgebaut werden — Tabelle als Illustration, nicht als Hauptaussage.
+- **`README.md` ist veraltet** (sagt „88 tests, < 1 s", Status-Block auf Phase 7). Korrektur auf 473 Tests und Phase 14/15 wäre trivial.
+- **`site/` ist eingecheckt** — viele PNG-Figures unter `site/issues/.../figures/`, widerspricht der „komplett regenerierbar"-Linie. Entweder per `git rm --cached -r site/` rauswerfen (wenn versehentlich kommittiert) oder im README begründen.
+
+**Nächster Einstieg:** Wenn der Knowledge-Refactor weitergeht: `interface.md` in `design.md` + `ui.md` spalten — `interface.md §2` (Designhaltung) wandert nach `design.md` (kompakt, 1–2 Bildschirme), `§3` ff. (Layout, Seitentypen, Typografie, A11y) wandern nach `ui.md`. `CLAUDE.md` bekommt eine kurze Designprinzipien-Sektion, die aus `design.md` ableitet (drei imperative Sätze) und die Anweisung „vor UI-Generierung knowledge/design.md lesen". Wenn nicht weiter im Knowledge-Refactor: Phase 15 Restposten (WCAG-Vollaudit über die Live-Site mit axe-DevTools, oder Matomo-URL/Site-ID als CI-Secrets in `.github/workflows/build.yml` verdrahten).
 
 ---
 

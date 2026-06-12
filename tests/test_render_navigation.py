@@ -186,7 +186,7 @@ def test_resolve_navigation_unknown_kind_raises() -> None:
 
 
 def test_real_navigation_yaml_carries_five_top_level_items() -> None:
-    """Spec pin: requirements.md R11.5 + interface.md §4 mandate five
+    """Spec pin: specification.md R11.5 + interface.md §4 mandate five
     top-level entries — About, Issues, Data, Reviewers, Reviewing Criteria.
     """
     items = load_navigation(NAV_PATH)

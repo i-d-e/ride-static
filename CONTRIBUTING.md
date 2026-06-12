@@ -45,7 +45,7 @@ These are the project's non-negotiables. Codified for clarity, not for ceremony.
 
 | Question | Source of truth |
 |---|---|
-| What does the product do? | `knowledge/requirements.md` |
+| What does the product do? | `knowledge/specification.md` |
 | How does it look and behave? | `knowledge/interface.md` |
 | How is it architected? | `knowledge/architecture.md` |
 | In what order is it built? | `knowledge/pipeline.md` Phasenplan |

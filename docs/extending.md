@@ -1,6 +1,6 @@
 # Extending ride-static
 
-How to add a new TEI element, attribute, or render variant. Anchored to `requirements.md` clause N2 (four extension levels) and `architecture.md` section "Element-Mapping (declarative)".
+How to add a new TEI element, attribute, or render variant. Anchored to `specification.md` clause N2 (four extension levels) and `architecture.md` section "Element-Mapping (declarative)".
 
 ## The two extension paths
 

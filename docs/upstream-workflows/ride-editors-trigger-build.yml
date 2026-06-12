@@ -1,0 +1,29 @@
+# Sender workflow for i-d-e/ride-editors — install as
+# .github/workflows/trigger-site-build.yml in that repository, but only
+# once the preview environment decision is made (knowledge/staging.md in
+# ride-static). Until the build consumes drafts, the event triggers a
+# rebuild that changes nothing.
+#
+# Notifies ride-static that work-in-progress reviews changed, so the
+# preview regenerates. Requires the secret RIDE_STATIC_DISPATCH_TOKEN
+# (a fine-grained PAT for i-d-e/ride-static with Contents: Read and
+# write); see docs/upstream-workflows/README.md in ride-static.
+
+name: trigger-site-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Review folders follow the convention issue-{name}/{slug}/…;
+      # archive/ and repository-level documentation stay silent.
+      - "issue-*/**"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify ride-static (editors-updated)
+        env:
+          GH_TOKEN: ${{ secrets.RIDE_STATIC_DISPATCH_TOKEN }}
+        run: gh api repos/i-d-e/ride-static/dispatches -f event_type=editors-updated

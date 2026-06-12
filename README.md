@@ -46,17 +46,20 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
 
 ## Editorial workflow
 
-### Add a review to an existing issue
+Reviews are prepared in the private companion repository `i-d-e/ride-editors`. Its convention: one folder per issue (`issue-{name}/`), inside it one folder per review (`{slug}/`) holding the TEI file `{slug}-tei.xml`, the figure images in `pictures/`, and the article image `{slug}-wordcloud.png`, next to working material (submissions, versions, peer review). Publishing a review means carrying these three pieces over, as described below.
 
-1. Write the review as TEI per `schema/ride.odd`, including in `<fileDesc>`:
+### Publish a review (from ride-editors)
+
+1. Finish the TEI in `ride-editors`. Figure references keep the canonical URL form `https://ride.i-d-e.de/wp-content/uploads/issue_{N}/{slug}/pictures/{file}`; the build rewrites them to the static site at build time. The `<fileDesc>` carries the issue number:
    ```xml
    <seriesStmt>
      <biblScope unit="issue" n="22"/>   <!-- ← matches issues/22/ -->
    </seriesStmt>
    ```
-2. Drop the file at `issues/{N}/reviews/{slug}-tei.xml`.
-3. Run `python -m pytest tests/test_validate.py` and `python -m src.build` locally; the validator pins drift against `schema/ride.rng`, the build raises if `biblScope @n` and the directory disagree.
-4. Commit, push, CI deploys.
+2. Copy the TEI file into this repository at `issues/{N}/reviews/{slug}-tei.xml`. The directory number and `biblScope @n` must match — the build stops with a clear error if they disagree.
+3. Copy the images into the picture repository `i-d-e/ride` at `issues/issue{NN}/{slug}/pictures/` (two-digit issue number on disk, e.g. `issue05`, `issue22`). The pictures are the only part that still lives outside this repository, because of their size.
+4. Copy the wordcloud into this repository as `static/images/wordclouds/{slug}.png` (or `.jpg`) — same file as in `ride-editors`, renamed to the bare slug. A missing wordcloud is not an error; the issue page simply shows no thumbnail for that entry.
+5. Optionally check locally: `python -m pytest tests/test_validate.py` and `python -m src.build`. Then commit and push — CI rebuilds and deploys the whole site. An issue grows review by review (rolling release); every push republishes everything, so nothing can go stale.
 
 ### Add a new issue
 
@@ -82,6 +85,17 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
    Only `issue:` is required. Schema (`src/render/issues_config.py`): `title`, `doi`, `status` (`regular`/`rolling`), `publication_date`, `description`, `editors[]`, `contribution_order[]`. Typos in field names break the build (no silent fail).
 2. Add the first reviews under `issues/{N}/reviews/` as above.
 3. The home page and issue-overview pages pick the new issue up on the next build; no further wiring needed.
+
+### Preview before publication
+
+How unpublished reviews are shown to authors and the IDE for final checking is an open editorial decision — the options (password-protected hosting vs. publicly built but unlisted pages) and a concrete proposal are written up in `knowledge/staging.md`. Until that is decided, a preview is generated locally: copy the draft TEI into `issues/{N}/reviews/` in a local working copy (without committing), then
+
+```sh
+python -m src.build --pdf
+python -m http.server -d site
+```
+
+shows the complete site, draft included, at `http://localhost:8000/`.
 
 ### Edit an editorial page (About, Imprint, Criteria, …)
 
@@ -122,7 +136,9 @@ Stage-0/1 introspection lives in `scripts/`. Each script exposes `run(...)` for 
 
 ## Deploy workflow
 
-Single workflow at `.github/workflows/build.yml`. Triggers on push to `main` (TEI / content / code paths) and on manual `workflow_dispatch`. It checks out this repo plus `i-d-e/ride` for picture assets, installs Python + WeasyPrint system libs, runs pytest and the discovery scripts, runs `python -m src.build --pdf`, builds the Pagefind index, and deploys `site/` to GitHub Pages.
+Single workflow at `.github/workflows/build.yml`. Triggers on push to `main` (TEI / content / code paths), on manual `workflow_dispatch`, and on a notification from a companion repository (GitHub `repository_dispatch`): a push to `i-d-e/ride` (picture updates) or `i-d-e/ride-editors` (work in progress) can rebuild this site, because those pushes do not reach this repository on their own. The notification needs a small one-time setup per companion repository — one workflow file plus one access token; copy-ready templates and instructions are in `docs/upstream-workflows/`.
+
+The workflow checks out this repo plus `i-d-e/ride` for picture assets, installs Python + WeasyPrint system libs, runs pytest and the discovery scripts, runs `python -m src.build --pdf`, builds the Pagefind index, and deploys `site/` to GitHub Pages.
 
 The second checkout is the only remaining external dependency; it can drop once the ~437 MB of picture assets migrate into this repo (Git-LFS likely needed).
 
@@ -132,12 +148,12 @@ The second checkout is the only remaining external dependency; it can drop once 
 - `CLAUDE.md` — repository layout, script outputs, project conventions.
 - `docs/extending.md` — adding a TEI element or render variant.
 - `docs/url-scheme.md` — versioned URL contract.
-- `knowledge/` — Obsidian-style vault: corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`requirements.md`, `interface.md`). Cross-references use `[[wikilink]]` notation.
+- `knowledge/` — Obsidian-style vault with its own index (`knowledge/INDEX.md`): corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`specification.md`, `interface.md`, `staging.md`). Cross-references use `[[wikilink]]` notation.
 - `Journal.md` — session-by-session decisions and current entry point.
 
 ## Status
 
-Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision. Current state and next entry point are in `Journal.md`.
+Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (`knowledge/staging.md`). Current state and next entry point are in `Journal.md`.
 
 ## Licence
 

@@ -2,7 +2,7 @@
 
 Test-data philosophy per CLAUDE.md hard rule:
 
-* Integration cases parse a real review from ``../ride/tei_all/`` and
+* Integration cases parse a real review from ``issues/{N}/reviews/`` and
   assert against actual corpus values. The four named anchors —
   ``1641-tei.xml`` (rich, normal divs, two-level nesting, abstract in
   front, bibliography in back), ``phi-tei.xml`` (body-wrap with ``<p>``),

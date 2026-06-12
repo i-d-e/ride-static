@@ -1,7 +1,7 @@
 """Tests for the top-level ``parse_review`` entry point.
 
 Test data philosophy: integration tests parse real reviews from
-``../ride/tei_all/``. There are no synthetic-from-XML fixtures here —
+``issues/{N}/reviews/``. There are no synthetic-from-XML fixtures here —
 ``parse_review`` is the entry point for the whole parser, and any
 fixture small enough to write would also be small enough to mask
 real-corpus surprises. A corpus-wide smoke confirms all 107 reviews

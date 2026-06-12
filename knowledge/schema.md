@@ -1,5 +1,5 @@
 ---
-generated: 2026-04-28
+generated: 2026-06-12
 source: scripts/render_schema.py
 inputs:
   - inventory/odd-summary.json

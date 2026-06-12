@@ -7,7 +7,7 @@ inside the ``<catDesc>`` of leaf categories encode the review's
 boolean answers.
 
 The Frontend's Factsheet (``interface.md`` §5) renders the per-criterion
-selected leaves; the Data page (``requirements.md`` R9) aggregates
+selected leaves; the Data page (``specification.md`` R9) aggregates
 across reviews. Both consumers iterate ``Review.questionnaires``.
 
 The boolean schema admits ``"0"`` and ``"1"``. One corpus occurrence
@@ -61,7 +61,7 @@ class TaxonomySection:
     coarse top-level sections (``aims``, ``content``, ``data_modelling``
     etc. for text-collections; section headings like "Documentation"
     or "Aims and methods" for digital-editions and tools). The Data-
-    Charts page (``requirements.md`` R9) aggregates per top-level
+    Charts page (``specification.md`` R9) aggregates per top-level
     section, so the renderer needs the leaf→section mapping that the
     raw :class:`Questionnaire` does not carry. Built once per criteria
     URL by :func:`src.parser.questionnaire.parse_taxonomy_sections`

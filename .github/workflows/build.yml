@@ -1,13 +1,22 @@
 # Single-workflow build and deploy for ride.i-d-e.de — per
-# requirements.md N10 (one workflow file) and pipeline.md "GitHub Actions
+# specification.md N10 (one workflow file) and pipeline.md "GitHub Actions
 # workflow (Phase 15)".
 #
-# The TEI corpus and schema now live in this repo under issues/{N}/reviews/
+# The TEI corpus and schema live in this repo under issues/{N}/reviews/
 # and schema/. Per-issue pictures still live in i-d-e/ride under
 # issues/issue{NN}/{slug}/pictures/ and are pulled in via the asset pipeline.
 # The picture sibling is checked out alongside so REPO_ROOT.parent / "ride"
 # resolves at build time; when pictures move into this repo too, the second
 # checkout can drop.
+#
+# Triggers:
+#   - push to main (TEI corpus, content, pipeline code — see paths below)
+#   - manual dispatch from the Actions tab
+#   - repository_dispatch from the two companion repositories, whose pushes
+#     do not reach this repo on their own: i-d-e/ride (picture updates)
+#     fires `corpus-updated`, i-d-e/ride-editors (work in progress) fires
+#     `editors-updated`. Each carries a one-file sender workflow;
+#     templates and install steps live in docs/upstream-workflows/.
 
 name: build
 
@@ -27,6 +36,8 @@ on:
       - "requirements.txt"
       - ".github/workflows/build.yml"
   workflow_dispatch:
+  repository_dispatch:
+    types: [corpus-updated, editors-updated]
 
 permissions:
   contents: read

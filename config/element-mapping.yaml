@@ -55,7 +55,7 @@ blocks:
     css_class: ride-table
     # Flat tables only (rows × cols = 1 × N). Header cells via TableCell.is_header,
     # detected from @role="label" by the parser. The template emits <th scope="col">
-    # to satisfy WCAG 2.2 AA (interface.md §9, requirements.md N5).
+    # to satisfy WCAG 2.2 AA (interface.md §9, specification.md N5).
 
   Figure:
     template: blocks/figure.html
@@ -103,7 +103,7 @@ inlines:
       orphan:   ride-ref--orphan
     # Bucket assignment happens in Phase 7 (Ref-Resolver). The four-bucket logic is
     # specified in pipeline.md "Cross-cutting concerns" and acceptance-tested
-    # against requirements.md R1.
+    # against specification.md R1.
 
   Note:
     template: inlines/note.html
@@ -123,7 +123,7 @@ extensibility:
   # Strategy when the parser encounters an element name with no mapping entry. In
   # development, prefer `raise` to catch unhandled elements early. In production,
   # `warn-and-render-text` keeps the build green and surfaces the issue in the
-  # build report (requirements.md N7).
+  # build report (specification.md N7).
   unknown_element_strategy: warn-and-render-text
 
   # When true, attribute values not enumerated in this mapping (e.g. a new

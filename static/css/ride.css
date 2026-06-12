@@ -7,7 +7,7 @@
  * Constraints (interface.md §12):
  *   - one stylesheet, no preprocessor, no build step
  *   - target ≤ 800 lines total when Phase 8 lands
- *   - WCAG 2.2 AA per requirements.md N5
+ *   - WCAG 2.2 AA per specification.md N5
  *
  * Sections (in order):
  *   1. Design tokens (custom properties)

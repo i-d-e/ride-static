@@ -8,7 +8,7 @@ the marker ``<!-- ride:charts -->`` appears, so the markdown stays
 human-curatable but the data view is always derived from the parsed
 corpus.
 
-Per ``requirements.md`` R9 the charts:
+Per ``specification.md`` R9 the charts:
 
 * are produced at build time, no runtime backend
 * preserve at least the visualisations the legacy site had — one bar

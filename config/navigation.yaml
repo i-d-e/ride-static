@@ -1,4 +1,4 @@
-# Globale Navigation, gemäß requirements.md R11.5 und interface.md §4.
+# Globale Navigation, gemäß specification.md R11.5 und interface.md §4.
 #
 # Fünf Top-Level-Einträge: About / Issues / Data / Reviewers / Reviewing Criteria.
 # Templates rendern aus dieser Datei via src.render.navigation. Hinzufügen
