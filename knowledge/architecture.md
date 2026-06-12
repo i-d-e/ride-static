@@ -35,6 +35,10 @@ related:
 >
 > Anchored to [[specification]] (product spec). Visual and interaction design is in [[interface]]. The phased build plan is in [[pipeline#Phasenplan]].
 
+## Eigenbegriffe
+
+Project-internal terms (*Promptotyping*, *Wissensdokument*, *Sonderfall-Branch*, *Element-Mapping*, *K-Ref*, *Apparate-Block*) are defined once, in the vault glossary at [[INDEX#Glossary]] — sibling documents link there instead of redefining them. The two most load-bearing for this document, *Sonderfall-Branch* and *Element-Mapping*, are introduced in context in the [Domain model](#domain-model) and [Element-Mapping](#element-mapping-declarative) sections below.
+
 ## Stakeholders and how they touch the system
 
 The architecture is shaped by who uses it and where they enter. The
@@ -44,8 +48,8 @@ as its inputs land.
 
 | Role | What they do | Where they enter the system |
 |---|---|---|
-| **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `config/issues/{n}.yaml`, the TEI submission process upstream of `../ride/`. |
-| **Reviewers** | Author reviews in TEI per `ride.odd`. | `../ride/tei_all/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
+| **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `issues/{N}/metadata.yaml`, the TEI submission process upstream. |
+| **Reviewers** | Author reviews in TEI per `ride.odd`. | `issues/{N}/reviews/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
 | **Readers** | Read reviews, follow citations, search across the corpus, cite reviews in their own work. | The deployed site — review pages, aggregation pages (tags, reviewers, resources), the search box, the `Cite` button per review. |
 | **Indexers / harvesters** | Pull metadata into discovery layers (DOI, Google Scholar, ScholarLed, library catalogues). | `/api/corpus.json`, `/oai/`, `/sitemap.xml`, JSON-LD per review page, stable URLs per [[url-scheme|docs/url-scheme.md]]. |
 | **Maintainers (this project)** | Add new TEI elements, change visual design, fix anomalies, ship new phases. | `src/parser/`, `src/render/`, `templates/`, `config/element-mapping.yaml`, `knowledge/` for design-intent decisions. |
@@ -66,9 +70,11 @@ Two axes of stakeholder load shape the architecture:
 ## Inputs and outputs
 
 **Inputs**
-- `../ride/tei_all/*.xml` — review files (canonical source).
-- `../ride/schema/ride.odd` — RIDE schema customisation.
+- `issues/{N}/reviews/*-tei.xml` — review files (canonical source, grouped per issue).
+- `issues/{N}/metadata.yaml` — editorial issue metadata (DOI, editors, contribution order).
+- `schema/ride.odd` + `schema/ride.rng` — RIDE schema customisation and compiled RelaxNG.
 - `inventory/*.json` — corpus knowledge (regenerated from the above).
+- `../ride/issues/issue{NN}/{slug}/pictures/` — per-issue picture assets, still in the sibling repo until they migrate too.
 
 **Outputs**
 - `site/` — HTML pages, CSS, fonts, JS, images.
@@ -89,7 +95,8 @@ The pipeline forms four productive layers, each transforming the format of its i
 
 ```
             ┌───────────────────────────────┐
-            │  ride/tei_all/*.xml + ride.odd │   (read-only source)
+            │  issues/{N}/reviews/*.xml +    │   (read-only source)
+            │  schema/ride.odd               │
             └──────────────┬─────────────────┘
                            │
           ┌────────────────▼────────────────┐
@@ -184,11 +191,11 @@ Beside the per-review render path, three **content loaders** feed the rest of th
 
 - **`render/navigation.py`** — parses `config/navigation.yaml` into immutable `NavItem` tuples, then resolves data-driven children (today only `children_kind: issues`, which builds the Issues dropdown from the corpus). The resolved tuple lives in `SiteConfig.navigation` and is handed to every template via the render context.
 - **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim.
-- **`render/issues_config.py`** — loads `content/issues/{N}.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
+- **`render/issues_config.py`** — loads `issues/{N}/metadata.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
 
 These three sources mean "edit Markdown / YAML, push, deploy" works without touching templates or Python — the editorial workflow promise from [[specification#A3 Editorialer Pflegepfad]].
 
-The build itself runs in **two passes** (since Welle 3): first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
+The build itself runs in **two passes**: first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
 
 ```
 templates/html/
@@ -295,7 +302,7 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 - **Domain model first.** Templates and renderers never see raw TEI.
 - **Inventory-driven.** Anything the parser does is informed by `inventory/`. New elements or attributes that appear in the corpus must show up in the inventory before they are handled.
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones raise.
-- **TDD with real-corpus drive.** Integration tests parse real TEI files from `../ride/tei_all/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
+- **TDD with real-corpus drive.** Integration tests parse real TEI files from `issues/{N}/reviews/`; pure-function unit tests use synthetic inputs only when the function signature is the only richer data form. Synthetic-from-dataclass construction of `Review`/`Section`/`Block` is technical debt — it bypasses the parser. Detail in `CLAUDE.md` Hard rules.
 - **Knowledge is committed; inventory is not.** `knowledge/*.md` is part of the repo (so a fresh clone can read the corpus knowledge); `inventory/*.json` is regeneratable and gitignored.
 - **Build-info trinity (N4).** The build commit + date land in three places from a single `BuildInfo` dataclass: HTML footer (`<code>{commit_short}</code>` plus `data-commit` / `data-build-date` attributes), `site/api/build-info.json` (`build.commit_short`, `build.date`), and a `console.info` banner that fires once per page load when devtools are open. Three manifestations, one source — debugging any one of them surfaces the others. The console banner is gated on `site.build_info.commit_short`, so dev builds without git stay silent.
 - **Licence per machine artefact (N6).** A single constant pair `LICENCE_NAME` / `LICENCE_URL` in `src/render/corpus_dump.py` feeds the top-level `licence` field in both `corpus.json` and `build-info.json`; `<dc:rights>` in OAI-PMH is sourced from the per-review TEI `licence` value. Consumers downloading any of the JSON / XML artefacts know the terms without inferring from the footer.
@@ -341,19 +348,19 @@ ride-static/
 
 A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phasenplan]] and is the single source of truth for ordering, scope per phase, and requirement mapping. The four stages below group those phases.
 
-| Stage | Phases | Status |
-|---|---|---|
-| Discovery + Knowledge | scripts/, knowledge/ | done |
-| Domain model | 1–6 | done (Stage 2.A–2.C) |
-| Site rendering | 7–10 | done; Data-Charts (R9, Phase 10-Rest) pending |
-| Search, APIs, validation, PDF | 11–14 | done |
-| Deploy + Ops | 15 | partial — GH Actions + Contact + Matomo-config + Lizenzen + WCAG-Polish gelandet; offen: WCAG-Vollaudit, Matomo-URL in CI-Secret, Custom-Domain-Entscheidung |
+| Stage | Phases |
+|---|---|
+| Discovery + Knowledge | scripts/, knowledge/ |
+| Domain model | 1–6 |
+| Site rendering | 7–10 |
+| Search, APIs, validation, PDF | 11–14 |
+| Deploy + Ops | 15 |
 
 ## Method — Promptotyping vault
 
 Implementation is preceded by a knowledge base that serves as context for an agentic build process with Claude Code. It is not part of the productive pipeline but its precondition. The base has two functionally distinct layers.
 
-The first layer is **deterministically generated** and describes corpus reality and the schema in use. Eleven Python scripts under `scripts/` traverse the 107 TEI files plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: 107 full reviews plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
+The first layer is **deterministically generated** and describes corpus reality and the schema in use. Eleven Python scripts under `scripts/` traverse the 111 TEI files plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: 111 full reviews plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
 
 The second layer is **hand-curated** and fixes specification, architecture, interface, and build sequence: [[specification]], [[architecture]] (this document), [[interface]], [[pipeline]]. Both layers cross-reference each other through wikilinks. Every clause in [[specification]] has its empirical foundation in [[data]] or [[schema]]; every anomaly catalogued in [[data]] has a named handler in [[architecture]] or a documented exception. A third layer adds session-by-session narration through [Journal](../Journal.md) at the repository root — five fixed fields per entry (Ziel / Erledigt / Entscheidungen / Offen / Nächster Einstieg) that mediate between memory, git history, and project conventions.
 

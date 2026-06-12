@@ -41,10 +41,10 @@ from src.render.charts import (
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -243,7 +243,7 @@ def test_render_charts_block_with_empty_inputs_is_empty():
 @needs_corpus
 def test_collect_sections_finds_every_criteria_url_in_corpus():
     """The four corpus criteria URLs each yield a non-empty section list."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     parsed = []
     for f in files:
         try:
@@ -266,7 +266,7 @@ def test_real_corpus_charts_block_carries_three_sets_and_anomaly():
     """Render the block from the real corpus and pin its corpus-level
     invariants: three logical criteria sets, the value=3 anomaly is
     reported, and review_count totals match the questionnaire count."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     reviews = []
     parsed = []
     for f in files:
@@ -312,7 +312,7 @@ def test_real_corpus_aggregation_has_no_other_bucket():
     same URL within one review (carlyle-addams-tei.xml carries two,
     rev1-* and rev2-*) and (b) union across files. Both invariants
     are exercised here against the full corpus."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     parsed = []
     reviews = []
     for f in files:
@@ -341,7 +341,7 @@ def test_real_corpus_data_charts_page_substitutes_marker(tmp_path):
     validator — that path is exercised by tests/test_render_editorial.py."""
     from src.render.editorial import parse_editorial, render_editorial
 
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     parsed = []
     reviews = []
     for f in files[:30]:

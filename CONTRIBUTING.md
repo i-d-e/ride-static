@@ -4,19 +4,17 @@ Goal of this document: any new contributor reaches a productive state within hal
 
 ## Setup
 
-Requirements: Python 3.11, git, a checkout of the sibling corpus repo at `../ride/`.
+Requirements: Python 3.11, git.
 
 ```sh
 git clone <this-repo>
-git clone <ride-corpus-repo> ../ride        # the TEI source corpus
-
 cd ride-static
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python -m pytest tests/
 ```
 
-If `../ride/` is not present, the parser still runs and 87 of 88 tests pass — only the real-corpus smoke test skips. Discovery scripts in `scripts/` need `../ride/` to do anything useful.
+The TEI corpus ships in this repo under `issues/{N}/reviews/`, no separate clone is needed. Per-issue **picture assets** still live in `i-d-e/ride`; clone it as a sibling (`git clone <ride-corpus-repo> ../ride`) only if you need figures to render in the local build — the pipeline degrades cleanly without it.
 
 ## Repository layout
 
@@ -36,7 +34,7 @@ See `CLAUDE.md` for the layout reference. In short:
 
 These are the project's non-negotiables. Codified for clarity, not for ceremony.
 
-- **TDD.** Every script and parser module ships with pytest using synthetic TEI fixtures. The parser also has one real-corpus smoke test that skips when `../ride/` is absent.
+- **TDD.** Every script and parser module ships with pytest. Integration tests drive off the real corpus shipped under `issues/{N}/reviews/`; pure-function unit tests may use synthetic inputs.
 - **`knowledge/` stays clean.** Hand-written and generated `.md` only. No JSON, no scripts, no notebooks. Cross-references between knowledge docs use `[[wikilink]]` notation.
 - **`inventory/` is gitignored.** Always regeneratable from scripts. Never edit by hand.
 - **Anomalies are explicit.** Known data quirks become named branches in the parser. Unknown ones must raise.
@@ -61,7 +59,7 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 
 **Commits.** Short title in the form `Area: what changed`, e.g. `Parser: integrate body into parse_review`. Body is optional — use it when the *why* needs explaining. Sign with the standard `Co-Authored-By` trailer if pair-coding with an agent.
 
-**Tests.** Synthetic fixtures live inline in test files. Real-corpus smoke tests skip via `pytest.skip` when `../ride/` is absent. Each new script or parser module gets its own `tests/test_<name>.py`. Assert exact output paths when scripts write files (see `tests/test_odd_extract.py` for the canonical example).
+**Tests.** Synthetic fixtures live inline in test files. Real-corpus tests find files via `src._corpus.find_tei("slug")` or iterate via `iter_tei_files()`. Each new script or parser module gets its own `tests/test_<name>.py`. Assert exact output paths when scripts write files (see `tests/test_odd_extract.py` for the canonical example).
 
 **Type hints.** Domain types are immutable: `@dataclass(frozen=True)` with `tuple[...]` for sequences (hashability). Optional fields default to `None`, never to mutable defaults.
 

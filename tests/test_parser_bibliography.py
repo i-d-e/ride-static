@@ -23,15 +23,16 @@ from lxml import etree
 from src.model.bibliography import BibEntry
 from src.model.inline import Reference, Text
 from src.parser.bibliography import parse_bibl, parse_bibliography
+from src._corpus import find_tei
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -180,7 +181,7 @@ def test_smoke_real_corpus_aggregate_bibl_count() -> None:
     """The corpus inventory reports 1389 ``<bibl>``s inside ``<listBibl>``.
     The bibliography parser should reach approximately that magnitude
     when run across all 107 reviews."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     total = 0
     no_back_count = 0
     for f in files:
@@ -204,7 +205,7 @@ def test_real_corpus_bibliography_rich_review_yields_many_entries() -> None:
     The choice of review is whichever has the largest <listBibl> in
     the corpus — discovered at test time so the test stays robust to
     editorial drift."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
     best_path = None
     best_count = 0
     for f in files:
@@ -228,7 +229,7 @@ def test_real_corpus_no_back_reviews_yield_empty_bibliography() -> None:
     """The seven no-back reviews per knowledge/data.md must each
     produce an empty bibliography tuple. Pin a concrete one to make
     the test specific."""
-    [path] = (p for p in [RIDE_TEI_DIR / "tustep-tei.xml"] if p.exists())
+    [path] = (p for p in [find_tei("tustep")] if p.exists())
     tree = etree.parse(str(path))
     text_el = tree.getroot().find(f"{{{TEI}}}text")
     assert text_el.find(f"{{{TEI}}}back") is None, "tustep should be a no-back review"

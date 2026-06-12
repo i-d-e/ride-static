@@ -16,9 +16,10 @@ import pytest
 
 from src.model.review import Affiliation, Author, Editor, Person, RelatedItem, Review
 from src.parser.review import parse_review
+from src._corpus import find_tei
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 
 FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -204,13 +205,13 @@ def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
     assert reviewed.last_accessed == "2023-11-15"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
 def test_related_item_title_extracted_from_real_corpus() -> None:
     """1641 carries '1641 Depositions' as the canonical reviewed-work
     title in <bibl>/<title>; the parser exposes it on RelatedItem.title
     so the byline cite can show just the title rather than the flat
     bibl_text dump that includes every <respStmt> sibling."""
-    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    r = parse_review(find_tei("1641"))
     reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
     assert reviewed.title == "1641 Depositions"
 
@@ -221,10 +222,10 @@ def test_review_is_immutable(fixture_path: Path) -> None:
         r.id = "different"  # type: ignore[misc]
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
 def test_smoke_real_corpus_smallest_file() -> None:
     """Parse the smallest review in the real corpus end-to-end without errors."""
-    smallest = sorted(RIDE_TEI_DIR.glob("*.xml"), key=lambda p: p.stat().st_size)[0]
+    smallest = sorted(RIDE_TEI_DIR.glob("**/*.xml"), key=lambda p: p.stat().st_size)[0]
     r = parse_review(smallest)
     assert r.id.startswith("ride.")
     assert r.issue.isdigit()
@@ -236,7 +237,7 @@ def test_smoke_real_corpus_smallest_file() -> None:
     assert any(ri.type == "reviewed_resource" for ri in r.related_items)
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
 def test_doi_extracted_from_publicationStmt_in_real_corpus() -> None:
     """Pin the canonical DOI shape: <publicationStmt>/<idno type="DOI">.
 
@@ -245,24 +246,24 @@ def test_doi_extracted_from_publicationStmt_in_real_corpus() -> None:
     @type, not by position, so the order can drift without breaking
     extraction. 1641-tei.xml is the rich-metadata reference fixture.
     """
-    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    r = parse_review(find_tei("1641"))
     assert r.doi == "10.18716/ride.a.5.4"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
 def test_reviewed_resource_carries_uri_and_last_accessed_in_real_corpus() -> None:
     """The reviewed_resource RelatedItem in 1641 holds the reviewed work's
     URL as <bibl>/<idno type="URI"> and the last-accessed date as
     <bibl>/<date type="accessed">. Both must surface on the dataclass for
     the rendered "(Last Accessed: …)" suffix in the review header
     (interface.md §5)."""
-    r = parse_review(RIDE_TEI_DIR / "1641-tei.xml")
+    r = parse_review(find_tei("1641"))
     reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
     assert "http://1641.tcd.ie" in reviewed.bibl_targets
     assert reviewed.last_accessed == "2017-02-01"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="sibling ride/ corpus not available")
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
 def test_doi_consistent_across_three_corpus_reviews() -> None:
     """Three independently-authored reviews exercise the same parse path."""
     cases = {
@@ -271,7 +272,7 @@ def test_doi_consistent_across_three_corpus_reviews() -> None:
         "bayeux-tei.xml": "10.18716/ride.a.20.3",
     }
     for filename, expected_doi in cases.items():
-        r = parse_review(RIDE_TEI_DIR / filename)
+        r = parse_review(find_tei(filename))
         assert r.doi == expected_doi, f"{filename}: expected {expected_doi}, got {r.doi}"
 
 

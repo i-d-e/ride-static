@@ -42,10 +42,10 @@ from src.parser.inlines import parse_inlines
 TEI = "http://www.tei-c.org/ns/1.0"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -348,7 +348,7 @@ def test_smoke_real_corpus_first_ten_heads_parse() -> None:
     ten across alphabetically-first reviews and confirm they parse without
     raising."""
     seen = 0
-    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("**/*-tei.xml")):
         tree = etree.parse(str(f))
         for head in tree.iter("{%s}head" % TEI):
             inlines = parse_inlines(head)
@@ -366,7 +366,7 @@ def test_smoke_real_corpus_crosssref_normalised() -> None:
     ``crossref``."""
     import copy
     found = False
-    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("**/*-tei.xml")):
         tree = etree.parse(str(f))
         for ref in tree.iter("{%s}ref" % TEI):
             if ref.get("type") == "crosssref":
@@ -403,7 +403,7 @@ def test_smoke_real_corpus_inline_kinds_distribution() -> None:
     """
     BLOCK_TAGS = {f"{{{TEI}}}{t}" for t in ("p", "list", "table", "figure", "cit", "quote", "div")}
     seen = {"Text": 0, "Emphasis": 0, "Highlight": 0, "Reference": 0, "Note": 0, "InlineCode": 0}
-    for f in sorted(RIDE_TEI_DIR.glob("*-tei.xml")):
+    for f in sorted(RIDE_TEI_DIR.glob("**/*-tei.xml")):
         tree = etree.parse(str(f))
         for host in tree.iter("{%s}head" % TEI, "{%s}p" % TEI):
             # Skip <p> elements that contain block-level children; those

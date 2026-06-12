@@ -27,11 +27,11 @@ from src.render.navigation import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+RIDE_TEI_DIR = REPO_ROOT / "issues"
 NAV_PATH = REPO_ROOT / "config" / "navigation.yaml"
 
 needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="../ride/ corpus not available"
+    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -221,7 +221,7 @@ def test_real_navigation_yaml_reviewing_criteria_is_leaf_only() -> None:
 def test_real_corpus_resolves_issues_submenu() -> None:
     """Resolve the live navigation YAML against a slice of the corpus
     so YAML drift, parser drift, and resolver drift each surface here."""
-    files = sorted(RIDE_TEI_DIR.glob("*-tei.xml"))[:30]
+    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))[:30]
     reviews = tuple(parse_review(f) for f in files)
     items = load_navigation(NAV_PATH)
     resolved = resolve_navigation(items, reviews=reviews)

@@ -76,7 +76,7 @@ Required when the new element has different semantics, not just different appear
 
 5. **CSS.** Add `.ride-diplomatic` styles to `static/css/ride.css`.
 
-6. **Real-corpus smoke test.** If the new element appears in the corpus, run the parser against `../ride/tei_all/` and confirm no exception.
+6. **Real-corpus smoke test.** If the new element appears in the corpus, run the parser against `issues/*/reviews/` and confirm no exception.
 
 That is the full ceremony. Six files touched, none of them surprising.
 
@@ -115,10 +115,10 @@ Figure URL rewriting and image copying live in `src/parser/assets.py::rewrite_fi
 
 ## Validation
 
-After any extension, run the full test suite. Real-corpus smoke tests in `tests/test_parser_*.py` exercise all 107 reviews when `../ride/` is present. Per the test data philosophy in `CLAUDE.md`, integration tests should drive off real corpus reviews; only pure-function unit tests (regex, classifier) may use synthetic inputs.
+After any extension, run the full test suite. Real-corpus smoke tests in `tests/test_parser_*.py` exercise all 111 reviews shipped under `issues/{N}/reviews/`. Per the test data philosophy in `CLAUDE.md`, integration tests should drive off real corpus reviews; only pure-function unit tests (regex, classifier) may use synthetic inputs.
 
 ```sh
 python -m pytest tests/ -v
 ```
 
-A clean run means no element raised, the mapping is consistent, and all 107 reviews parse end-to-end with their references classified.
+A clean run means no element raised, the mapping is consistent, and all 111 reviews parse end-to-end with their references classified.

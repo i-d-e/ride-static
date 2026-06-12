@@ -29,16 +29,17 @@ from src.model.inline import Emphasis, Highlight, Note, Reference
 from src.model.review import Review
 from src.parser.refs_resolver import classify_target, resolve_references
 from src.parser.review import parse_review
+from src._corpus import find_tei
 
 
-_RIDE = Path(__file__).resolve().parent.parent.parent / "ride" / "tei_all"
+_RIDE = Path(__file__).resolve().parent.parent / "issues"
 
 # Two real corpus reviews chosen for their bucket coverage:
 # - bayeux: 78 local / 55 external / 3 orphan; has figure-in-cell pattern,
 #   mailto: target, bibliography with @ref_target.
 # - 1641: 9 figures all present on disk, external refs (Wayback URLs).
-_BAYEUX = _RIDE / "bayeux-tei.xml"
-_REVIEW_1641 = _RIDE / "1641-tei.xml"
+_BAYEUX = find_tei("bayeux")
+_REVIEW_1641 = find_tei("1641")
 
 
 # -- Pure classify_target unit tests --------------------------------------
@@ -95,7 +96,7 @@ def test_classify_none_when_no_target():
 
 
 pytestmark_corpus = pytest.mark.skipif(
-    not _RIDE.exists(), reason="../ride/ corpus not present"
+    not _RIDE.exists(), reason="corpus not present"
 )
 
 
@@ -227,7 +228,7 @@ def test_resolver_classifies_every_corpus_ref() -> None:
     ``None`` when the source ``<ref>`` had no ``@target``)."""
     valid = {"local", "criteria", "external", "orphan", None}
     bucket_counts: dict[object, int] = {}
-    for f in sorted(_RIDE.glob("*-tei.xml")):
+    for f in sorted(_RIDE.glob("**/*-tei.xml")):
         review = parse_review(f)
         for ref in _all_references(review):
             assert ref.bucket in valid, f"{f.name}: bucket={ref.bucket!r} target={ref.target!r}"
@@ -303,7 +304,7 @@ def test_resolver_descends_through_emphasis_and_note() -> None:
     walker must recurse into ``Note.children``.
     """
     found_nested = False
-    for f in sorted(_RIDE.glob("*-tei.xml"))[:20]:  # 20 reviews suffice
+    for f in sorted(_RIDE.glob("**/*-tei.xml"))[:20]:  # 20 reviews suffice
         review = parse_review(f)
         for note in review.notes:
             for inline in note.children:

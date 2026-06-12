@@ -25,7 +25,7 @@ from lxml import etree
 from _tei import XML_ID_ATTR, is_tei_element, localname
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+TEI_DIR = REPO_ROOT / "issues"
 OUT_DIR = REPO_ROOT / "inventory"
 
 # Format patterns extracted from ride.odd's Schematron. Keys are element
@@ -42,7 +42,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
         raise SystemExit(f"TEI dir not found: {tei_dir}")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    files = sorted(tei_dir.glob("*.xml"))
+    files = sorted(tei_dir.glob("**/*.xml"))
     if not files:
         raise SystemExit(f"No .xml files in {tei_dir}")
 

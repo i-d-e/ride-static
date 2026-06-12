@@ -21,7 +21,7 @@ the right, and a four-item footer.
 - **Not the production stack.** The actual site uses vanilla CSS with
   custom properties (no Bootstrap, no preprocessor) and native
   `<details>` for the dropdowns (no Bootstrap JS). The decision to
-  drop Bootstrap is documented in [knowledge/prozess-und-stand.md].
+  drop Bootstrap is documented in [knowledge/interface.md].
 - **Not editable for production effect.** Changing the mockup files
   has no effect on the deployed site. Production templates live in
   `templates/html/` and `static/css/`.
@@ -53,4 +53,3 @@ deleted — keep it for now as the visual reference.
 [knowledge/specification.md]: ../knowledge/specification.md
 [knowledge/architecture.md]: ../knowledge/architecture.md
 [knowledge/data.md]: ../knowledge/data.md
-[knowledge/prozess-und-stand.md]: ../knowledge/prozess-und-stand.md

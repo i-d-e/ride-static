@@ -56,6 +56,60 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-05-12 — Doku-Refactor: README schlanker, Status-Single-Source, build() zerlegt
+
+**Ziel:** Dokumentations- und Code-Refactor in vier Schritten: README straffen, das nicht-deklarierte Duplikat `prozess-und-stand.md` auflösen, Status-Marker aus den Plan-Dokumenten ziehen, `build()`-Funktion zerlegen.
+
+**Erledigt:**
+- README.md von 245 auf 144 Zeilen reduziert. Raus: Repository-Layout-Duplikat zu CLAUDE.md, Pointer-Tabelle zu CONTRIBUTING.md, Development-Setup zu CONTRIBUTING.md, vollständige Discovery-Skript-Tabelle zu CLAUDE.md, CI-Schritte 1.–10. zu Fließsatz. Status-Absatz in Feature-Sprache statt Phasen-Nummern. Two-pass-Beschreibung zu validate → parse → render präzisiert.
+- `knowledge/prozess-und-stand.md` (443 Zeilen, nicht in CLAUDE.md-Vault-Layout deklariert) gelöscht. Glossar-Terms Promptotyping + Wissensdokument als neue Sektion „Eigenbegriffe" nach `architecture.md` migriert; Sonderfall-Branch und Element-Mapping waren bereits inline erklärt und brauchten keine separate Definition. Fehlattribuierter Bootstrap-Link in `mockup/README.md` von `prozess-und-stand.md` auf `interface.md` (`:53`) umgehängt.
+- Status-Single-Source festgelegt: `Journal.md` = laufende Wahrheit, `README.md` Status-Absatz = zeitstempelfreier Feature-Stand für Außenstehende, `pipeline.md` Phasenplan = statischer Plan ohne Tracker-Marker. Alle `**done**`, `**partial**`, `Welle X`, `seit Welle X`-Marker aus `pipeline.md` Phasenplan, `architecture.md` (Stages-Tabelle-Status-Spalte + „since Welle 3"-Marker), `interface.md` (fünf „seit Welle X"-Vorkommen, Wordcloud-Sektion-3-Anmerkung), `requirements.md` entfernt. Sentinel-Satz in `pipeline.md` über der Phasenplan-Tabelle: „This table is the static plan, not a tracker."
+- `src/build.py`: `build()` von 144 auf 97 Zeilen gekürzt durch fünf neue Helper — `_run_parse_pass`, `_check_corpus_consistency`, `_run_render_pass`, `_run_validation_layer`, `_print_build_summary`. Funktion liest jetzt als Neun-Schritt-Sequenz mit benannten Aufrufen.
+- 479 Tests grün nach jedem der vier Schritte.
+
+**Entscheidungen:**
+- Plan-Dokumente bleiben zeitstempel- und statusfrei. Wenn eine Phase erweitert wird, wird die Phasenplan-Zeile umgeschrieben (Plan-Update), nicht mit Statusmarkern ergänzt. Begründung: vier Single-Sources-of-Truth fürs Status garantieren Drift.
+- `build()` als Paket (`src/build/__init__.py`) verworfen — innere Faktorierung in einer Datei reicht, kein Import-Overhead. Begründung: die Helper sind klein und werden nur einmal aufgerufen, ein Paket würde Indirection ohne Gegenwert addieren.
+- `_write_build_info` als einziger test-extern referenzierter Helper-Name beibehalten ([tests/test_build.py:13](tests/test_build.py#L13)).
+- Methodologie-Inhalt aus `prozess-und-stand.md` („Methodisches Vorgehen und Wissensbasis", „Phasenplan-Tabelle", „Komponenten-Migrations-Tabelle") nicht migriert. Begründung: Duplikat zu `pipeline.md`/`architecture.md`/Journal-Verlauf oder historisches Migrations-Artefakt. Falls die Promptotyping-Methodologie als eigenständiges Stück Dokumentation gewollt ist, wäre `docs/methodology.md` der richtige Ort — bewusst auf Anfrage offen gelassen.
+
+**Offen:** Keine direkten Folgepunkte aus dem Refactor. Weiterhin offen aus der Projekt-Roadmap: WCAG-Vollaudit auf der Live-Site (axe-Pass), Matomo-URL als CI-Secret hinterlegen, Knowledge-Doc-CI-Verhalten festlegen (strict vs. auto-commit), Custom-Domain-Entscheidung.
+
+**Nächster Einstieg:** Auswahl aus den vier Phase-15-Restposten oben — der einfachste ist Matomo-URL als CI-Secret, weil dafür nur das GitHub-Repo-Secret zu setzen und der Workflow zu verdrahten ist; alle anderen brauchen redaktionelle oder externe Entscheidungen.
+
+---
+
+## 2026-05-12 — Monorepo-Schnitt: TEI-Korpus + Schema in ride-static eingezogen
+
+**Ziel:** Den TEI-Korpus aus `i-d-e/ride` ins eigene Repo holen, damit ride-static nicht mehr von einem zweiten Checkout abhängt, und die Issue-Metadaten dabei direkt neben den TEI-Dateien gruppieren.
+
+**Erledigt:**
+- 111 TEI-Reviews aus `i-d-e/ride/tei_all/` per `biblScope @n` ausgewertet und in `issues/{N}/reviews/{slug}-tei.xml` einsortiert; Schema (`ride.odd` + `ride.rng`) liegt nun unter `schema/` im Repo-Root.
+- 22 YAML-Issue-Configs von `content/issues/{N}.yaml` nach `issues/{N}/metadata.yaml` umgezogen; `content/issues/` entfernt.
+- Neues Helfer-Modul `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, `SCHEMA_RNG`, `corpus_available`) ersetzt den verteilten `REPO_ROOT.parent / "ride" / "tei_all"`-Pattern.
+- Alle Pfad-Konstanten in `scripts/{inventory,structure,sections,refs,ids,taxonomy,odd_extract}.py`, `src/build.py`, `src/validate.py`, `src/render/issues_config.py` umgestellt; Globs auf `**/*.xml` bzw. `*/reviews/*.xml` / `*/metadata.yaml`.
+- 21 Test-Dateien automatisiert auf `find_tei("slug")` + neue Globs migriert; Skip-Mechanismus von `test_parser_assets.py` zeigt jetzt auf den Bilder-Sibling.
+- CI (`.github/workflows/build.yml`) verschlankt: `i-d-e/ride` wird nur noch wegen der Picture-Assets als Sibling geklont; alle anderen Schritte greifen auf das in-repo TEI-/Schema-Layout zu.
+- Doku synchronisiert: `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, `docs/extending.md`, `knowledge/architecture.md`, `knowledge/pipeline.md` — Layout-Tabellen, Stakeholder-Eingangspunkte, Hard-Rule-Quote, "107 reviews"→"111 reviews".
+- Tests: 468 passed, 7 skipped (die Asset-Picture-Tests, weil `../ride/` in der Sandbox fehlt).
+
+**Entscheidungen:**
+- **Per-Issue-Layout `issues/{N}/{metadata.yaml, reviews/*-tei.xml}` statt flachem `corpus/tei_all/`.** Begründung: alles zu einem Issue an einem Ort, Editor sieht Metadaten und Reviews nebeneinander; YAML-Membership wäre eine zweite Wahrheit gegenüber `biblScope @n`, darum bleibt die TEI-Header-Zuordnung kanonisch.
+- **Schema unter `schema/` im Root, nicht unter `corpus/schema/`.** Begründung: das Schema ist Validierungs-Vertrag, nicht Korpus-Inhalt — gleiche Trennung wie zwischen `src/` und `tests/`.
+- **Pictures (~437 MB, 888 Dateien) bleiben vorerst im Sibling `i-d-e/ride`.** Begründung: Repo-Größe und Klon-Zeit; LFS-Quota würde belastet. Die Asset-Pipeline degradiert sauber, wenn Sibling fehlt; CI klont den Sibling weiterhin nur für Bilder.
+- **`src/_corpus.py` als zentrale Wahrheit für Pfade.** Begründung: vor der Migration war `REPO_ROOT.parent / "ride" / "tei_all"` in ~35 Dateien dupliziert; bei der nächsten Layout-Änderung muss nur dieses Modul angefasst werden.
+- **CI: zweiter Checkout bleibt, aber explizit als "pictures only" dokumentiert.** Wenn die Bilder migriert werden, fällt der Step weg.
+
+**Offen:**
+- Bilder-Migration: 437 MB in 22 Issue-Ordnern, vermutlich via Git-LFS. Eigene Entscheidung in einer separaten Session.
+- `RIDE_ROOT` in `src/build.py` und `_RIDE_ROOT` in `tests/test_parser_assets.py` zeigen noch auf den Sibling — kann erst entfallen, wenn die Bilder hier liegen.
+- Knowledge-Doku-CI: Drift zwischen generiertem `knowledge/data.md` und aktuellem Korpus könnte auffliegen, wenn CI strict läuft (4 neue Reviews seit Phase 10-Refresh).
+- Phase 15.B (WCAG-Audit, Matomo-Secrets, Custom-Domain) weiterhin offen — unabhängig von dieser Umstrukturierung.
+
+**Nächster Einstieg:** Lokal `python -m src.build` ohne `../ride/` laufen lassen und prüfen, dass der AssetReport sauber alle fehlenden Bilder meldet statt zu crashen. Wenn das durchläuft, ist die Layout-Migration end-to-end verifiziert.
+
+---
+
 ## 2026-05-09 — Knowledge-Vault auf Promptotyping-Konvention gehoben
 
 **Ziel:** Den `knowledge/`-Ordner als sauberen Promptotyping-Vault refactoren — Frontmatter-Pflichtkern durchziehen, Funktionsabbildung sauber stellen, Hybrid-Dokument `prozess-und-stand.md` auflösen, INDEX als Navigationsknoten anlegen. Parallel das Promptotyping-Paper im Obsidian-Vault auf den heutigen Stand der Konvention bringen.

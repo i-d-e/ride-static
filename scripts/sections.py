@@ -22,7 +22,7 @@ from lxml import etree
 from _tei import TEI_NS, XML_ID_ATTR, localname, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-TEI_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+TEI_DIR = REPO_ROOT / "issues"
 OUT_DIR = REPO_ROOT / "inventory"
 
 HEAD_TEXT_LEN = 200
@@ -69,7 +69,7 @@ def run(tei_dir: Path, out_dir: Path) -> dict[str, Any]:
     type_counter: Counter = Counter()
     missing_head = [0]
 
-    files = sorted(tei_dir.glob("*.xml"))
+    files = sorted(tei_dir.glob("**/*.xml"))
     if not files:
         raise SystemExit(f"No .xml files in {tei_dir}")
 

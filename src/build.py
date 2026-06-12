@@ -1,6 +1,6 @@
 """Build CLI — ``python -m src.build``.
 
-Walks the sibling ``../ride/tei_all/`` corpus, parses every TEI file
+Walks the in-repo ``issues/*/reviews/`` corpus, parses every TEI file
 into a :class:`~src.model.review.Review`, and writes the full static
 site tree under ``site/``: per-review HTML at
 ``issues/{issue}/{review_id}/index.html`` plus the original TEI as a
@@ -57,6 +57,7 @@ from src.render.issues_config import (
     IssueConfigError,
     discover_issue_configs,
     validate_issue_configs,
+    validate_review_locations,
 )
 from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
@@ -64,7 +65,10 @@ from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 from src.validate import validate_corpus
 
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
+# Issue-Bilder bleiben (vorerst) im Schwester-Repo ../ride/. Die Asset-Pipeline
+# degradiert sauber, wenn der Pfad fehlt — fehlende Bilder erscheinen im
+# Build-Report, brechen den Build aber nicht ab.
 RIDE_ROOT = REPO_ROOT.parent / "ride"
 SITE_DIR = REPO_ROOT / "site"
 STATIC_DIR = REPO_ROOT / "static"
@@ -286,36 +290,22 @@ def _render_aggregations(
 
 
 def _iter_corpus(corpus_dir: Path, limit: Optional[int]) -> Iterable[Path]:
-    files = sorted(corpus_dir.glob("*.xml"))
+    files = sorted(corpus_dir.glob("**/*-tei.xml"))
     return files[:limit] if limit else files
 
 
-def build(
-    corpus_dir: Path = CORPUS_DIR,
-    out_root: Path = SITE_DIR,
-    limit: Optional[int] = None,
-    base_url: str = "",
-    validate: bool = True,
-    linkcheck: bool = False,
-    matomo_url: str = "",
-    matomo_site_id: str = "",
-    pdf: bool = False,
-) -> int:
-    """Run the build. Returns the number of review pages written."""
-    if not corpus_dir.exists():
-        raise FileNotFoundError(
-            f"Corpus directory not found: {corpus_dir}. "
-            f"In CI, ride is checked out as a sibling at ../ride."
-        )
+def _run_parse_pass(
+    corpus_dir: Path,
+    limit: Optional[int],
+    out_root: Path,
+) -> tuple[list[tuple[Path, Review]], list[AssetReport], list[tuple[Path, Exception]]]:
+    """Walk every TEI under ``issues/{N}/reviews/``, parse it, and copy
+    its referenced figures. Per-file failures are collected, not raised,
+    so one broken TEI does not block the rest of the build.
 
-    out_root.mkdir(parents=True, exist_ok=True)
-    site = _site_config(
-        base_url=base_url,
-        matomo_url=matomo_url,
-        matomo_site_id=matomo_site_id,
-    )
-    env = make_env()
-
+    Returns ``(parsed, asset_reports, failed)`` where ``parsed`` is a
+    list of ``(path, Review)`` pairs in corpus-iteration order.
+    """
     parsed: list[tuple[Path, Review]] = []
     asset_reports: list[AssetReport] = []
     failed: list[tuple[Path, Exception]] = []
@@ -324,28 +314,57 @@ def build(
             review, report = _parse_one(path, out_root, ride_root=RIDE_ROOT)
             parsed.append((path, review))
             asset_reports.append(report)
-        except Exception as exc:  # noqa: BLE001 — we want to keep building on per-file failure
+        except Exception as exc:  # noqa: BLE001 — keep building on per-file failure
             failed.append((path, exc))
             print(f"parse failed: {path.name}: {exc}", file=sys.stderr)
+    return parsed, asset_reports, failed
 
-    rendered = [r for _, r in parsed]
 
-    # Issue YAML configs — loaded once, validated against the parsed corpus.
-    # R11: inconsistencies break the build with a clear error.
+def _check_corpus_consistency(
+    parsed: list[tuple[Path, Review]],
+    rendered: tuple[Review, ...],
+) -> dict:
+    """Validate that the parsed corpus is self-consistent and return the
+    loaded issue YAML configs.
+
+    Two checks, both hard errors:
+
+    - **Folder ↔ ``biblScope @n``.** The TEI header is the canonical
+      source for issue membership; the folder layout is convenience. A
+      mismatch means an editor dropped a TEI in the wrong
+      ``issues/{N}/`` folder — the build would otherwise quietly render
+      it under the header's issue, surprising the editor.
+    - **Issue YAML ↔ corpus** (R11). Per-issue ``metadata.yaml`` must
+      agree with what the TEI corpus actually contains.
+    """
+    location_errors = validate_review_locations(parsed)
+    if location_errors:
+        raise IssueConfigError(
+            "TEI file location does not match its biblScope @n:\n  - "
+            + "\n  - ".join(location_errors)
+        )
+
     issue_configs = discover_issue_configs()
-    issue_errors = validate_issue_configs(issue_configs, tuple(rendered))
+    issue_errors = validate_issue_configs(issue_configs, rendered)
     if issue_errors:
         raise IssueConfigError(
             "issue YAML and TEI corpus disagree:\n  - "
             + "\n  - ".join(issue_errors)
         )
+    return issue_configs
 
-    # Navigation YAML resolved against the corpus so the Issues dropdown
-    # carries the most recent issues. Re-bind site so all subsequent
-    # render calls see the populated navigation tuple.
-    site = _site_with_navigation(site, tuple(rendered))
 
-    # Render pass — every HTML write happens after navigation is resolved.
+def _run_render_pass(
+    parsed: list[tuple[Path, Review]],
+    env,
+    site: SiteConfig,
+    out_root: Path,
+    failed: list[tuple[Path, Exception]],
+) -> None:
+    """Render every parsed Review to its per-review page. Per-file render
+    failures are appended to ``failed`` (mutated in place) so the build
+    finishes and reports them rather than aborting on one bad TEI.
+    """
     for path, review in parsed:
         try:
             _render_review(path, review, env, site, out_root)
@@ -353,47 +372,51 @@ def build(
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
 
-    editorials = _render_editorials(env, site, out_root, parsed=parsed)
-    home_widgets = discover_home_widgets()
-    aggregations = _render_aggregations(
-        tuple(rendered), env, site, out_root,
-        issue_configs=issue_configs,
-        home_widgets=home_widgets,
-    )
 
-    _copy_static(out_root)
-    sitemap_written = _write_sitemap(tuple(rendered), site, out_root)
-    _write_corpus_dump(tuple(rendered), site, out_root)
-    oai_files = _write_oai_pmh_snapshot(tuple(rendered), site, out_root)
-    redirect_count = write_redirects(tuple(rendered), out_root, base_url=site.base_url)
-
-    pdf_count = 0
-    pdf_failed: list[tuple[str, str]] = []
-    if pdf:
-        pdf_count, pdf_failed = _render_pdfs(parsed, out_root)
-
-    # Phase 13 / Welle 10: validation + link-probe + aggregated build report.
+def _run_validation_layer(
+    corpus_dir: Path,
+    reviews: tuple[Review, ...],
+    validate: bool,
+    linkcheck: bool,
+):
+    """Run the optional pre-build validation (RelaxNG against
+    ``schema/ride.rng``) and post-build link probe. Either can be off;
+    both return report objects that are fed into ``build-info.json``.
+    """
     validation_report = None
     if validate:
         try:
             validation_report = validate_corpus(corpus_dir, RIDE_ROOT / "schema" / "ride.rng")
         except FileNotFoundError as exc:
             print(f"validation skipped: {exc}", file=sys.stderr)
+
     link_report = None
     if linkcheck:
         from src.linkcheck import probe_links
 
-        link_report = probe_links(tuple(rendered))
-    _write_build_info(
-        out_root=out_root,
-        site=site,
-        reviews=tuple(rendered),
-        asset_reports=asset_reports,
-        failed=failed,
-        validation_report=validation_report,
-        link_report=link_report,
-    )
+        link_report = probe_links(reviews)
+    return validation_report, link_report
 
+
+def _print_build_summary(
+    *,
+    failed: list,
+    editorials: int,
+    aggregations: int,
+    sitemap_written: bool,
+    oai_files: int,
+    redirect_count: int,
+    validation_report,
+    link_report,
+    pdf: bool,
+    pdf_count: int,
+    pdf_failed: list,
+    asset_reports: list,
+) -> None:
+    """Print the one-line-per-artefact summary to stdout, plus per-review
+    failure detail to stderr. All files are already written; this only
+    reports what happened.
+    """
     if failed:
         print(f"\n{len(failed)} files failed to render", file=sys.stderr)
 
@@ -413,13 +436,112 @@ def build(
             f"{len(validation_report.findings)} findings"
         )
     if link_report:
-        print(f"Linkcheck: {link_report.alive} alive, {link_report.dead} dead "
-              f"({link_report.probed} probed)")
+        print(
+            f"Linkcheck: {link_report.alive} alive, {link_report.dead} dead "
+            f"({link_report.probed} probed)"
+        )
     if pdf:
         print(f"PDF: {pdf_count} rendered, {len(pdf_failed)} failed")
     print("Wrote api/build-info.json")
 
     _print_asset_summary(asset_reports)
+
+
+def build(
+    corpus_dir: Path = CORPUS_DIR,
+    out_root: Path = SITE_DIR,
+    limit: Optional[int] = None,
+    base_url: str = "",
+    validate: bool = True,
+    linkcheck: bool = False,
+    matomo_url: str = "",
+    matomo_site_id: str = "",
+    pdf: bool = False,
+) -> int:
+    """Run the build. Returns the number of review pages written.
+
+    The flow is parse → consistency-check → render → aux-pages →
+    machine-artefacts → optional-PDF → validation-layer → summary. Each
+    step is a named helper so this function reads as a sequence and not
+    as a script.
+    """
+    if not corpus_dir.exists():
+        raise FileNotFoundError(
+            f"Corpus directory not found: {corpus_dir}. "
+            "Expected issues/{N}/reviews/*.xml in the repo."
+        )
+
+    out_root.mkdir(parents=True, exist_ok=True)
+    site = _site_config(
+        base_url=base_url,
+        matomo_url=matomo_url,
+        matomo_site_id=matomo_site_id,
+    )
+    env = make_env()
+
+    # Parse every TEI; collect Reviews, asset reports, and parse failures.
+    parsed, asset_reports, failed = _run_parse_pass(corpus_dir, limit, out_root)
+    rendered = tuple(r for _, r in parsed)
+
+    # Consistency: folder ↔ biblScope @n; issue YAML ↔ corpus. Hard errors.
+    issue_configs = _check_corpus_consistency(parsed, rendered)
+
+    # Navigation YAML resolved against the parsed corpus, then re-bound
+    # onto site so every subsequent render call sees the populated Issues
+    # dropdown.
+    site = _site_with_navigation(site, rendered)
+
+    # Per-review HTML — render failures append to `failed`.
+    _run_render_pass(parsed, env, site, out_root, failed)
+
+    # Editorial pages, aggregation pages, static asset tree.
+    editorials = _render_editorials(env, site, out_root, parsed=parsed)
+    home_widgets = discover_home_widgets()
+    aggregations = _render_aggregations(
+        rendered, env, site, out_root,
+        issue_configs=issue_configs,
+        home_widgets=home_widgets,
+    )
+    _copy_static(out_root)
+
+    # Machine-readable artefacts and legacy-URL redirects.
+    sitemap_written = _write_sitemap(rendered, site, out_root)
+    _write_corpus_dump(rendered, site, out_root)
+    oai_files = _write_oai_pmh_snapshot(rendered, site, out_root)
+    redirect_count = write_redirects(rendered, out_root, base_url=site.base_url)
+
+    # Optional PDF pass (Phase 14). Skipped silently when WeasyPrint is
+    # unavailable on the host (typical Windows dev).
+    pdf_count, pdf_failed = _render_pdfs(parsed, out_root) if pdf else (0, [])
+
+    # Validation + linkcheck + aggregated build-info.json (Phase 13).
+    validation_report, link_report = _run_validation_layer(
+        corpus_dir, rendered, validate, linkcheck
+    )
+    _write_build_info(
+        out_root=out_root,
+        site=site,
+        reviews=rendered,
+        asset_reports=asset_reports,
+        failed=failed,
+        validation_report=validation_report,
+        link_report=link_report,
+    )
+
+    _print_build_summary(
+        failed=failed,
+        editorials=editorials,
+        aggregations=aggregations,
+        sitemap_written=sitemap_written,
+        oai_files=oai_files,
+        redirect_count=redirect_count,
+        validation_report=validation_report,
+        link_report=link_report,
+        pdf=pdf,
+        pdf_count=pdf_count,
+        pdf_failed=pdf_failed,
+        asset_reports=asset_reports,
+    )
 
     return len(rendered)
 

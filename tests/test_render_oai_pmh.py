@@ -40,7 +40,7 @@ from src.render.oai_pmh import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT.parent / "ride" / "tei_all"
+CORPUS_DIR = REPO_ROOT / "issues"
 
 NS = {
     "oai": "http://www.openarchives.org/OAI/2.0/",
@@ -314,7 +314,7 @@ def test_real_corpus_oai_snapshot_is_well_formed(tmp_path):
     from src.parser.review import parse_review
 
     reviews = [
-        parse_review(p) for p in sorted(CORPUS_DIR.glob("*.xml"))[:10]
+        parse_review(p) for p in sorted(CORPUS_DIR.glob("**/*.xml"))[:10]
     ]
     written = write_oai_pmh(
         reviews,
