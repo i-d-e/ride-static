@@ -35,7 +35,7 @@ canonical knowledge documents:
   ratio 1150 / 720 / 280 / 60, three-part global header with tagline
   and search-in-navbar, sidebar reordering with DOI line, citation
   format with the explanatory micro-copy, footer items
-- [knowledge/requirements.md] — R2 with the canonical citation
+- [knowledge/specification.md] — R2 with the canonical citation
   format, R10 with the eleven editorial Markdown pages, R11.5 for the
   navigation YAML
 - [knowledge/architecture.md] — `Review.doi` and
@@ -50,7 +50,7 @@ After Welle 3 ships, this folder is purely historical and could be
 deleted — keep it for now as the visual reference.
 
 [knowledge/interface.md]: ../knowledge/interface.md
-[knowledge/requirements.md]: ../knowledge/requirements.md
+[knowledge/specification.md]: ../knowledge/specification.md
 [knowledge/architecture.md]: ../knowledge/architecture.md
 [knowledge/data.md]: ../knowledge/data.md
 [knowledge/prozess-und-stand.md]: ../knowledge/prozess-und-stand.md

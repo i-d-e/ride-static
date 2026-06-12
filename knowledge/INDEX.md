@@ -8,14 +8,15 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-05-09
-updated: 2026-05-09
-version: 0.1
+updated: 2026-06-12
+version: 0.2
 language: en
 related:
   - "[[specification]]"
   - "[[architecture]]"
   - "[[interface]]"
   - "[[pipeline]]"
+  - "[[staging]]"
   - "[[data]]"
   - "[[schema]]"
 ---
@@ -35,6 +36,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[specification]] | Substance — 17 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
+| [[staging]] | Substance — pre-publication review environment, solution options, decision open | when the staging decision advances |
 | [[interface]] | Form — design stance, six page types, parallel apparate, WCAG | when design decisions are revised |
 | [Journal](../Journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 

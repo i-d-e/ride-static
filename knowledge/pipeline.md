@@ -8,14 +8,15 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-04-29
-version: 0.1
+updated: 2026-06-12
+version: 0.2
 topics:
   - "[[Static Site Generation]]"
 related:
   - "[[specification]]"
   - "[[architecture]]"
   - "[[interface]]"
+  - "[[staging]]"
   - "[[data]]"
 ---
 
@@ -81,7 +82,7 @@ For local preview after a build: `python -m http.server -d site/` is sufficient.
 
 ## GitHub Actions workflow (Phase 15)
 
-A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI sources, Markdown texts, pipeline code) and via `workflow_dispatch`.
+A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI sources, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch` from the content repositories: a push to `i-d-e/ride` (publication) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per content repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see [[staging]].
 
 ```
 1. Checkout ride-static (this repo)
@@ -190,6 +191,7 @@ Strict is cleaner; pick before Phase 15.
 - Custom domain vs. `<owner>.github.io/<repo>` ([[specification#8 Offene Fragen]]).
 - Distribution path for large artifacts ([[specification#8 Offene Fragen]]).
 - Reach of the WordPress-to-TEI consolidation ([[specification#8 Offene Fragen]]).
+- Pre-publication preview environment — options and proposal in [[staging]], decision with the editorial team.
 
 ## Phasenplan
 

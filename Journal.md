@@ -30,6 +30,32 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-12 — Redaktioneller Zielworkflow: Abgleich, Staging-Dokument, Trigger-Verkabelung
+
+**Ziel:** Den Zielworkflow der Redaktion (ride-editors → Testumgebung → Freischaltung) gegen die gebaute Pipeline abgleichen und die entscheidungsrobusten Teile sofort umsetzen.
+
+**Erledigt:**
+- **Abgleich Zielworkflow vs. Pipeline:** Schritt 2 (Freischaltung per Git-Move nach `ride`, Issue-Einrichtung via YAML, automatischer Voll-Rebuild) ist abgedeckt; Schritt 1 (passwortgeschützte Testumgebung) ist unbeplant. Live-Factsheet-Seiten (`…/factsheet/`) rendern den **vollständigen** Fragebogen als eigene Unterseite — unser Sidebar-Apparat zeigt nur Aggregate; Legacy-`/factsheet/`-URLs fehlen in `src/render/redirects.py` (R17-Lücke).
+- **`knowledge/staging.md` angelegt** (status: draft): Anforderung, Problemstellung, fünf Lösungsoptionen (unverlinkte „Hinterseite", lokal [verworfen], IDE-Server, Zugriffsschutz-Dienst, privates Repo [nur als PDF-Teilbaustein tauglich]), Bestandsaufnahme der Repos, Umsetzungsvorschlag als Entscheidungsvorlage, Gesprächsagenda. In `INDEX.md`-Tabelle und `specification.md §9` verankert.
+- **Bestandsaufnahme:** `i-d-e/ride-editors` existiert, ist privat, trägt die Konvention `issue-{name}/{slug}/` mit `{slug}-tei.xml`, `pictures/`, `{slug}-wordcloud.png`; publizierte Beiträge verbleiben dort (Dubletten-Befund `tei-publisher` → Dedupe-Pflicht). Weder `ride` noch `ride-editors` haben Workflows.
+- **Trigger-Verkabelung umgesetzt:** `build.yml` nimmt `repository_dispatch` (`corpus-updated`, `editors-updated`) an; Sender-Vorlagen plus Installationsanleitung (Token-Secret `RIDE_STATIC_DISPATCH_TOKEN`) unter `docs/upstream-workflows/`. `ride` hat Default-Branch `master` — Vorlage deckt beide ab.
+- **README-Anleitung:** neuer Abschnitt „Editorial workflow" (Publikations-Schritte, Issue-YAML-Beispiel, Wordcloud-Konvention, lokale Vorschau); veraltete Stellen korrigiert (specification.md statt requirements.md, 473 Tests, Status Phase 14/15). 473 Tests grün.
+
+**Entscheidungen:**
+- **Wordclouds bleiben manuell geliefert** — die Redaktion erzeugt sie mit einem Gestaltungswerkzeug (geformte Clouds); programmatische Generierung würde den visuellen Charakter zerstören. Lieferkonvention faktisch geklärt: `{slug}-wordcloud.png` liegt bereits in `ride-editors`, wird bei Publikation nach `static/images/wordclouds/{slug}.png` kopiert.
+- **Draft-Mechanik (unverlinkte Vorschau im öffentlichen Build) zurückgestellt** — die Varianten-Wahl will der User erst mit den Editorinnen diskutieren; nur entscheidungsrobuste Bausteine (Dispatch, Anleitung) wurden gebaut. Wichtig: `ride-editors` ist privat, eine öffentliche Vorschau machte Inhalt erstmals vor Freischaltung zugänglich (Gesprächspunkt in `staging.md §8`).
+
+**Offen:**
+- **Factsheet-Parität:** Feld-Abgleich Live-Factsheet vs. Domänenmodell (ORCID, Reviewer-E-Mail, Personnel-Listen, Date of last access), Entscheidung eigene Unterseite `/issues/{N}/{id}/factsheet/`, Redirect-Erweiterung für Legacy-`/factsheet/`-URLs.
+- **Staging-Entscheidung** mit der Redaktion (Agenda in `staging.md §8`); danach Draft-Mechanik nach Vorschlag `staging.md §7` bauen.
+- **Sender-Workflows installieren:** `ride-trigger-build.yml` nach `i-d-e/ride` kopieren plus PAT-Secret anlegen (manuell, braucht Repo-Admin).
+- **Bild-URL-Konvention für neue TEI** (wp-content-Form vs. relativer Pfad als neuer Sonderfall-Branch) — mit Redaktion klären.
+- Restposten aus 2026-05-09: `interface.md`-Spaltung, `site/`-Eincheck-Frage, WCAG-Vollaudit, Matomo-CI-Secrets.
+
+**Nächster Einstieg:** Factsheet-Parität: Live-Factsheet (`https://ride.i-d-e.de/issues/issue-21/makingandknowing/factsheet/`) Feld für Feld gegen `src/model/questionnaire.py` und `src/parser/questionnaire.py` stellen und die Lückenliste in `specification.md` als R-Klausel-Ergänzung formulieren.
+
+---
+
 ## 2026-05-09 — Knowledge-Vault auf Promptotyping-Konvention gehoben
 
 **Ziel:** Den `knowledge/`-Ordner als sauberen Promptotyping-Vault refactoren — Frontmatter-Pflichtkern durchziehen, Funktionsabbildung sauber stellen, Hybrid-Dokument `prozess-und-stand.md` auflösen, INDEX als Navigationsknoten anlegen. Parallel das Promptotyping-Paper im Obsidian-Vault auf den heutigen Stand der Konvention bringen.

@@ -6,7 +6,7 @@
     - knowledge/interface.md §8 (lang propagation down to inline level)
     - knowledge/interface.md §9 (skip link, focus, sprache, kontrast)
     - knowledge/interface.md §12 (CSS one file, JS four small modules)
-    - knowledge/requirements.md R13 (Open-Graph), R15 (JSON-LD), N5 (a11y)
+    - knowledge/specification.md R13 (Open-Graph), R15 (JSON-LD), N5 (a11y)
     - knowledge/architecture.md §Renderers (templates see only domain objects)
 
   Variables expected in render context (Phase 8 wires them):
@@ -35,7 +35,7 @@
   <meta name="description" content="{{ page_description }}">
   {%- endif %}
 
-  {#- Open-Graph: per requirements.md R13 (Sharing) so social previews look sensible. -#}
+  {#- Open-Graph: per specification.md R13 (Sharing) so social previews look sensible. -#}
   <meta property="og:type" content="{{ og.type if og and og.type else 'article' }}">
   <meta property="og:title" content="{{ page_title }}">
   {%- if page_description %}
@@ -62,7 +62,7 @@
 
   {% block head_extra %}{% endblock %}
 
-  {#- JSON-LD per requirements.md R15. Per-review pages emit ScholarlyArticle;
+  {#- JSON-LD per specification.md R15. Per-review pages emit ScholarlyArticle;
       other pages may leave this block empty or emit WebSite/Organization. -#}
   {% block schema %}
   {%- if json_ld %}
@@ -104,7 +104,7 @@
 
   {#- Global navigation: five top-level entries from config/navigation.yaml.
       Dropdown items use native <details> so the menu works without JS
-      (interface.md §4, requirements.md R11.5). The summary is the
+      (interface.md §4, specification.md R11.5). The summary is the
       click target; submenu items live inside the same <details>.
       The search container on the right mounts the Pagefind UI in
       static/js/pagefind.js. Without JS or before Pagefind has loaded,
@@ -154,7 +154,7 @@
   <footer class="ride-footer" role="contentinfo">
     <div class="ride-shell">
       {% block footer %}
-      {#- Footer items per requirements.md R10 acceptance: licence,
+      {#- Footer items per specification.md R10 acceptance: licence,
           brand-with-year, ISSN, imprint link. Build-info per N4 stays
           maschinenlesbar als data-Attribut + HTML-Kommentar — sichtbar
           aber nicht prominent, damit der öffentliche Footer nicht nach

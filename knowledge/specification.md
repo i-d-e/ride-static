@@ -8,8 +8,8 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-04-29
-version: 0.1
+updated: 2026-06-12
+version: 0.2
 topics:
   - "[[Requirements Engineering]]"
   - "[[User Stories]]"
@@ -305,6 +305,6 @@ Drei Bereiche sind im Lauf der Implementierung zu klären.
 
 **Zweitens, Komponenten-Detailfragen aus den Stakeholder-Notizen.** Diese sind in der Migrationstabelle (§8) pro Komponente verortet und brauchen redaktionelle Antworten. Sie betreffen vor allem die Auswahllogik der Startseiten-Beiträge, die Befüllung der Hauptnavigation, die Sichtbarkeit von „first / last updated", den Statuswechsel bei Rolling Issues und die Reichweite der Konsolidierung statischer Textfragmente.
 
-**Drittens, Infrastruktur und Reichweite.** Domain und Hosting-Pfad — eigene Domain versus `username.github.io/repo` — prägen das URL-Schema und damit die Stabilitätszusage in N3 und R17. Auslieferung großer Artefakte (OAI-PMH-Dump, ältere PDF-Versionen) über GitHub Pages oder GitHub Releases ist offen; Letzteres entlastet das Pages-Repository bei wachsendem Korpus. Reichweite der Konsolidierung in A2 — ob neben den Tags auch andere heute in WordPress liegende redaktionelle Fragmente in TEI oder Markdown überführt werden — ist redaktionell zu entscheiden.
+**Drittens, Infrastruktur und Reichweite.** Domain und Hosting-Pfad — eigene Domain versus `username.github.io/repo` — prägen das URL-Schema und damit die Stabilitätszusage in N3 und R17. Auslieferung großer Artefakte (OAI-PMH-Dump, ältere PDF-Versionen) über GitHub Pages oder GitHub Releases ist offen; Letzteres entlastet das Pages-Repository bei wachsendem Korpus. Reichweite der Konsolidierung in A2 — ob neben den Tags auch andere heute in WordPress liegende redaktionelle Fragmente in TEI oder Markdown überführt werden — ist redaktionell zu entscheiden. Die vom redaktionellen Zielworkflow geforderte passwortgeschützte Begutachtungsumgebung vor der Freischaltung ist mit Problemstellung und Lösungsoptionen in [[staging]] festgehalten; die Entscheidung ist offen.
 
 Die Antworten der ersten beiden Bereiche prägen direkt den Validierungsschritt aus Phase 13, der entweder vor oder nach dem Push platziert werden kann, sowie eine mögliche Konversionsschicht vor der Korpusanalyse, die heute nicht im Phasenplan steht, aber als optionale Vorstufe nachträglich ergänzbar wäre. Die Antworten des dritten Bereichs prägen Phase 15.

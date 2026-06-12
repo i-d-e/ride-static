@@ -1,0 +1,26 @@
+# Sender workflow for i-d-e/ride — install as
+# .github/workflows/trigger-site-build.yml in that repository.
+#
+# Notifies ride-static that the published corpus changed, so the live
+# site rebuilds. Requires the secret RIDE_STATIC_DISPATCH_TOKEN (a
+# fine-grained PAT for i-d-e/ride-static with Contents: Read and write);
+# see docs/upstream-workflows/README.md in ride-static.
+
+name: trigger-site-build
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "tei_all/**"
+      - "issues/**"
+      - "schema/**"
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify ride-static (corpus-updated)
+        env:
+          GH_TOKEN: ${{ secrets.RIDE_STATIC_DISPATCH_TOKEN }}
+        run: gh api repos/i-d-e/ride-static/dispatches -f event_type=corpus-updated

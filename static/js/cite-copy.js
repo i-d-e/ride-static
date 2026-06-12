@@ -1,6 +1,6 @@
 // cite-copy.js — copy BibTeX or CSL-JSON for the current review.
 //
-// requirements.md R2 (Rezension zitieren). The review template embeds
+// specification.md R2 (Rezension zitieren). The review template embeds
 // pre-generated citation strings in two hidden <script> blocks:
 //   <script type="application/x-bibtex" class="ride-cite-data" data-format="bibtex">…</script>
 //   <script type="application/json"     class="ride-cite-data" data-format="csl-json">…</script>

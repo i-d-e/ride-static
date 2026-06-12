@@ -1,5 +1,5 @@
 # Single-workflow build and deploy for ride.i-d-e.de — per
-# requirements.md N10 (one workflow file) and pipeline.md "GitHub Actions
+# specification.md N10 (one workflow file) and pipeline.md "GitHub Actions
 # workflow (Phase 15)".
 #
 # Status: SKELETON. Steps marked "Phase 8+" are placeholders that fail
@@ -10,6 +10,11 @@
 # Triggers:
 #   - push to main on changes that affect TEI sources, content, or pipeline
 #   - manual dispatch from the Actions tab
+#   - repository_dispatch from the content repositories: the corpus lives
+#     in i-d-e/ride, work-in-progress in i-d-e/ride-editors, and neither
+#     push reaches this repo on its own. Each content repo carries a
+#     one-file sender workflow (template: docs/upstream-workflows/) that
+#     fires `corpus-updated` (ride) or `editors-updated` (ride-editors).
 #
 # The ride corpus is checked out as a sibling at ../ride so that the
 # REPO_ROOT.parent / "ride" pattern in scripts/*.py works unchanged in CI.
@@ -30,6 +35,8 @@ on:
       - "requirements.txt"
       - ".github/workflows/build.yml"
   workflow_dispatch:
+  repository_dispatch:
+    types: [corpus-updated, editors-updated]
 
 # Pages deploys need exactly these permissions; nothing else.
 permissions:
