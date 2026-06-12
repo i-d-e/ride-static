@@ -5,7 +5,7 @@ Two layers:
 1. Synthetic fixtures — small Review instances built in code, rendered
    to HTML, asserted against expected markers. Independent of the corpus.
 2. Real-corpus smoke test — parse and render up to N reviews from
-   ``../ride/tei_all/`` end-to-end. Skips when the corpus is absent.
+   ``issues/{N}/reviews/`` end-to-end. Skips when the corpus is absent.
 
 Tests assert the *contract* (right elements, classes, anchors), not the
 exact HTML; templates can evolve without forcing test rewrites.
@@ -559,7 +559,7 @@ def test_matomo_snippet_omitted_when_only_url_set():
 # ── Real-corpus smoke ────────────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="../ride/tei_all not present")
+@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="in-repo corpus not present")
 def test_smoke_render_first_corpus_review_without_raising():
     from src.parser.review import parse_review
 

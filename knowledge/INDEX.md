@@ -31,7 +31,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 
 | Document | Function | Update rhythm |
 |---|---|---|
-| [[data]] | Material — empirical reality of the TEI corpus (107 reviews) | regenerated when corpus changes (script-driven) |
+| [[data]] | Material — empirical reality of the TEI corpus (111 reviews) | regenerated when corpus changes (script-driven) |
 | [[schema]] | Material — `ride.odd` customisations and schema-vs-corpus diff | regenerated when ODD changes (script-driven) |
 | [[specification]] | Substance — 17 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |

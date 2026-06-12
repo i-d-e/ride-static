@@ -29,7 +29,7 @@ related:
 
 ## 1. Zweck und Scope
 
-Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus 107 TEI-XML-Rezensionen, einem schmalen Bestand redaktioneller Markdown-Texte und einer pro Issue gepflegten Konfiguration erzeugt wird.
+Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus 111 TEI-XML-Rezensionen, einem schmalen Bestand redaktioneller Markdown-Texte und einer pro Issue gepflegten Konfiguration erzeugt wird.
 
 Das Projekt *ride-static* mit seinen acht Pipeline-Phasen deckt den Inhaltsbereich ab. Dieses Requirements-Dokument erweitert den Scope auf die vollständige Site und benennt vier weitere Funktionsbereiche, die als eigene Bauabschnitte nach Abschluss von Phase 8 anschließen.
 

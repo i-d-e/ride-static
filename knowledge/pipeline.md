@@ -82,7 +82,7 @@ For local preview after a build: `python -m http.server -d site/` is sufficient.
 
 ## GitHub Actions workflow (Phase 15)
 
-A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI sources, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch` from the content repositories: a push to `i-d-e/ride` (publication) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per content repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see [[staging]].
+A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI corpus, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch`, a cross-repository notification, from the two companion repositories whose pushes do not reach this repo on their own: a push to `i-d-e/ride` (picture assets) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per companion repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see [[staging]].
 
 ```
 1. Checkout ride-static (this repo) — TEI corpus ships under issues/{N}/reviews/

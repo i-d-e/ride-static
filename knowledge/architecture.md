@@ -140,8 +140,8 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
   - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[specification#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
-  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 105 reviews carry one taxonomy, 2 reviews carry two or three.
-  - `front: tuple[Section, ...]` — **always carries the abstract** (107/107 reviews have exactly one Section with `type="abstract"` here, zero in body)
+  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 109 reviews carry one taxonomy, one carries two, one carries three.
+  - `front: tuple[Section, ...]` — **always carries the abstract** (111/111 reviews have exactly one Section with `type="abstract"` here, zero in body)
   - `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
   - `figures: tuple[Figure, ...]`, `notes: tuple[Note, ...]` — corpus-order aggregates feeding the parallel apparate sub-blocks ([[interface#6]])
   - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)

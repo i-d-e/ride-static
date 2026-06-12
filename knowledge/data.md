@@ -1,19 +1,5 @@
 ---
-title: Data — RIDE TEI Structure Reference
-project:
-  name: ride-static
-  repository: https://github.com/i-d-e/ride-static
-method:
-  name: Promptotyping
-  url: https://dhcraft.org/excellence/blog/Promptotyping
-status: active
-created: 2026-04-28
-updated: 2026-04-29
-version: 0.1
-topics:
-  - "[[TEI]]"
-  - "[[Corpus Analysis]]"
-generated: 2026-04-28
+generated: 2026-06-12
 source: scripts/render_data.py
 inputs:
   - inventory/elements.json
@@ -25,10 +11,6 @@ inputs:
   - inventory/ids.json
   - inventory/refs.json
   - inventory/taxonomy.json
-related:
-  - "[[schema]]"
-  - "[[architecture]]"
-  - "[[specification]]"
 ---
 
 # RIDE TEI Structure Reference
@@ -69,7 +51,7 @@ Beyond `K`, dangling-prefix families to expect are: `#abb…`, `#appendix…`, `
 RIDE reviews fill a structured questionnaire driven by a shared `<taxonomy>` embedded in `<encodingDesc>/<classDecl>`. Each taxonomy is identified by its `@xml:base` (the canonical criteria URL on i-d-e.de). The corpus uses the following criteria sets:
 
 - `http://www.i-d-e.de/criteria-text-collections-version-1-0` — 282 categories, depth 5, used by 10 taxonomy embedding(s).
-- `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1` — 224 categories, depth 3, used by 73 taxonomy embedding(s).
+- `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1` — 224 categories, depth 3, used by 77 taxonomy embedding(s).
 - `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections…` — 282 categories, depth 5, used by 10 taxonomy embedding(s).
 - `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/` — 245 categories, depth 3, used by 17 taxonomy embedding(s).
 
@@ -127,7 +109,6 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 #### `<publicationStmt>`
 - Appears under `TEI/teiHeader/fileDesc`.
 - Children: `[publisher, date, idno, idno, idno, availability]` (always).
-- The three `<idno>` children carry distinct `@type` values: `URI` (the live page on `ride.i-d-e.de`), `DOI` (the article DOI, e.g. `10.18716/ride.a.5.4`), and `archive` (the PDF archive URL on the GitHub `i-d-e/ride` repository). The DOI is the canonical persistent identifier per [[specification#R2 Rezension zitieren]] and feeds `Review.doi`.
 
 #### `<seriesStmt>`
 - Appears under `TEI/teiHeader/fileDesc`.
@@ -156,8 +137,8 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 - Appears under `TEI/teiHeader/encodingDesc/classDecl`.
 - Common children: `category`, `desc`.
 - Attributes:
-  - `@xml:base` — always; values: `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/`, `http://www.i-d-e.de/criteria-text-collections-version-1-0`
-  - `@n` — rare; values seen: `rev2` | `rev1` | `rev3`
+  - `@xml:base` — always; values: `http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/`, `http://www.i-d-e.de/criteria-text-collections-version-1-0`, `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/`
+  - `@n` — rare; values seen: `rev2` | `rev3` | `rev1`
   - `@m` — rare; always `rev1`
 
 #### `<category>`
@@ -251,14 +232,14 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 
 #### `<div>`
 - Appears under `TEI/text/body`, `TEI/text/body/div`, `TEI/text/front`.
-- Common children: `p`, `head`, `div`, `listBibl`, `table`, `figure`.
+- Common children: `p`, `head`, `div`, `listBibl`, `table`.
 - Attributes:
   - `@xml:id` — usually; open (free identifier or URL)
   - `@type` — occasionally; values seen: `abstract` | `bibliography` | `appendix`
 
 #### `<head>`
 - Appears under `TEI/text/body/div`, `TEI/text/body/div/p/figure`, `TEI/text/body/div/div`.
-- Common children: `emph`, `ref`, `note`, `code`, `hi`, `mod`.
+- Common children: `emph`, `ref`, `note`, `code`, `affiliation`, `hi`.
 - Attributes:
   - `@type` — often; always `legend`
 
@@ -267,7 +248,7 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 
 #### `<p>`
 - Appears under `TEI/text/body/div`, `TEI/text/body/div/div`, `TEI/teiHeader/fileDesc/sourceDesc`.
-- Common children: `emph`, `note`, `ref`, `figure`, `code`, `list`.
+- Common children: `emph`, `ref`, `note`, `figure`, `code`, `list`.
 - Attributes:
   - `@xml:id` — usually; open (free identifier or URL)
   - `@rend` — rare; always `Metadata-Categories`
@@ -286,7 +267,7 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
   - `@n` — rare; values seen: `1` | `2` | `3` | `4`
 
 #### `<table>`
-- Appears under `TEI/text/body/div/div/div`, `TEI/text/body/div/p`, `TEI/text/body/div/div/p`.
+- Appears under `TEI/text/body/div/div/div`, `TEI/text/body/div/div/p`, `TEI/text/body/div/p`.
 - Common children: `row`, `head`.
 - Attributes:
   - `@xml:id` — occasionally; always `table1`
@@ -366,13 +347,13 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 - Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/table/row/cell`.
 - Leaf — text content only.
 - Attributes:
-  - `@rend` — always; values: `sup`, `bold`, `subscript`, `underline superscript`, `underline subscript` (and others)
+  - `@rend` — always; values: `sup`, `bold`, `italic`, `Hyperlink`, `annotation_reference` (and others)
   - `@style` — rare; always `font-family:EB Garamond;font-size:9pt`
   - `@xml:space` — rare; always `preserve`
 
 #### `<note>`
 - Appears under `TEI/text/body/div/p`, `TEI/text/body/div/div/p`, `TEI/text/body/div/div/div/p`.
-- Common children: `ref`, `emph`, `code`, `hi`, `p`, `lb`.
+- Common children: `ref`, `emph`, `code`, `hi`, `mod`, `lb`.
 - Attributes:
   - `@xml:id` — always; open (free identifier or URL)
 
@@ -403,7 +384,7 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 - Appears under `TEI/teiHeader/fileDesc/seriesStmt`.
 - Leaf — text content only.
 - Attributes:
-  - `@n` — always; values seen: `6` | `15` | `5` | `8` | `20` | `17` | `14` | `2` | `16` | `12` | `18` | `1` | `7` | `11` | `3` | `9` | `4` | `13` | `10` | `19` | `22` | `21`
+  - `@n` — always; values seen: `6` | `15` | `1` | `10` | `11` | `12` | `13` | `14` | `16` | `17` | `18` | `2` | `20` | `21` | `3` | `4` | `5` | `7` | `8` | `9` | `19` | `22`
   - `@unit` — always; always `issue`
 
 #### `<idno>`
@@ -417,7 +398,7 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 - Leaf — text content only.
 - Attributes:
   - `@type` — often; values seen: `publication` | `accessed`
-  - `@when` — often; values: `2017-09`, `2022-12`, `2017-02`, `2018-02`, `2014-12` (and others)
+  - `@when` — often; values: `2017-09`, `2022-12`, `2014-06`, `2019-06`, `2020-01` (and others)
 
 #### `<publisher>`
 - Appears under `TEI/teiHeader/fileDesc/publicationStmt`.
@@ -502,8 +483,8 @@ Cases where the empirical corpus does not match `ride.odd`. Each item is either 
 ### Editorial markup
 
 #### `<mod>`
-- Appears under `TEI/text/body/div/div/p`, `TEI/text/body/div/div/p/figure/head`, `TEI/text/body/div/p`.
-- Children: typically `[subst, note]`; sometimes `[del, note]`.
+- Appears under `TEI/text/body/div/div/p`, `TEI/text/body/div/p/note`, `TEI/text/body/div/div/p/figure/head`.
+- Children: typically `[subst, note]`; sometimes `[note]`.
 - Attributes:
   - `@change` — always; values: `#revision1`, `#revision2`, `#revision3`, `#revision4`, `#revision5` (and others)
   - `@n` — always; values seen: `i` | `ii` | `iii` | `iv` | `v` | `vi`

@@ -43,8 +43,11 @@ eine Begutachtungsphase vor:
 - Änderungen an der TEI-Datei lösen automatisch eine Aktualisierung aller
   generierten Ansichten aus.
 - Nach Abschluss der Begutachtung wandert der Beitrag von `ride-editors`
-  in das publizierte Korpus (`ride`) und wird damit Teil des öffentlichen
-  Builds.
+  in das publizierte Korpus und wird damit Teil des öffentlichen Builds.
+  Im Workflow-Papier heißt das Ziel-Repository noch `ride`; seit dem
+  Monorepo-Schnitt vom 2026-05-12 liegt das publizierte Korpus in
+  `ride-static` selbst unter `issues/{N}/reviews/`, nur die Abbildungen
+  verbleiben in `i-d-e/ride` (siehe §6).
 
 RIDE publiziert im Rolling-Release-Modus: Issues werden beitragsweise
 gefüllt, ein Issue kann teilveröffentlicht sein. Die Begutachtungsumgebung
@@ -107,8 +110,8 @@ sie nur über die direkte URL (oder über das Repository selbst).
 Die Vorschau wird nur lokal erzeugt und nicht bereitgestellt.
 
 - **Verworfen,** weil mehrere externe Personen korrekturlesen: AutorInnen
-  und IDE haben keinen Zugriff auf eine lokale Arbeitsumgebung mit
-  Build-Toolchain. Verfehlt Anforderung 1.
+  und IDE haben keine lokale Arbeitsumgebung mit den nötigen
+  Build-Werkzeugen. Verfehlt Anforderung 1.
 
 ### 4.3 Geschützter Bereich auf dem IDE-Server
 
@@ -164,18 +167,25 @@ Passwortschutz. Bearbeitung und Begutachtung finden ohnehin dort statt.
 
 Drei Bausteine braucht jede der Optionen 4.1, 4.3 und 4.4:
 
-1. **Overlay-Build.** Die Vorschau baut nicht den Einzelbeitrag, sondern
-   die ganze Site: publiziertes Korpus auschecken, eingereichte TEI-Dateien
-   aus `ride-editors` in das Korpus überlagern, regulärer `src.build`-Lauf.
-   AutorInnen sehen ihren Beitrag im echten Site-Kontext, renderidentisch
-   zur Produktion (Anforderung 2).
-2. **Trigger-Verkabelung.** Der Build-Workflow liegt in `ride-static` und
-   reagierte bislang nur auf Pushes in dieses Repository. **Umgesetzt
-   (2026-06-12):** `build.yml` nimmt `repository_dispatch`-Events
-   (`corpus-updated`, `editors-updated`) entgegen; Sender-Vorlagen für
-   `ride` und `ride-editors` liegen unter `docs/upstream-workflows/` und
-   werden je einmalig im Quell-Repository installiert (eine Datei, ein
-   Token-Secret) — siehe [[pipeline#GitHub Actions workflow (Phase 15)]].
+1. **Vorschau als vollständiger Site-Build.** Die Vorschau baut nicht den
+   Einzelbeitrag, sondern die ganze Site: Die eingereichten TEI-Dateien
+   aus `ride-editors` werden zusätzlich in den Korpusbaum
+   `issues/{N}/reviews/` gelegt, dann läuft der reguläre Build. AutorInnen
+   sehen ihren Beitrag so im echten Site-Kontext, mit demselben Parser,
+   denselben Vorlagen und demselben PDF wie die spätere Produktion
+   (Anforderung 2).
+2. **Benachrichtigung zwischen den Repositories.** Der Build-Workflow
+   liegt in `ride-static` und reagierte bislang nur auf Änderungen in
+   diesem Repository. **Umgesetzt (2026-06-12):** `build.yml` nimmt jetzt
+   `repository_dispatch` entgegen — GitHubs Mechanismus, mit dem ein
+   Repository den Workflow eines anderen anstoßen kann. Ein Push in
+   `i-d-e/ride` (Bilder) oder `ride-editors` (Arbeitsstand) kann damit
+   den Site-Build auslösen. Pro Quell-Repository ist das eine einmalige
+   Einrichtung: eine Workflow-Datei kopieren, ein Zugriffstoken
+   hinterlegen; Vorlagen und Anleitung unter `docs/upstream-workflows/` —
+   siehe [[pipeline#GitHub Actions workflow (Phase 15)]]. Die
+   Freischaltung selbst (Push in `ride-static`) braucht keine
+   Benachrichtigung; sie baut direkt.
 3. **Sichtbarkeit von `ride-editors`.** Soll der Begutachtungsschutz mehr
    als Nichtverlinkung sein, muss `ride-editors` privat bleiben (Stand
    2026-06: das Repository ist privat); der Checkout im Build-Workflow
@@ -183,10 +193,18 @@ Drei Bausteine braucht jede der Optionen 4.1, 4.3 und 4.4:
 
 ## 6. Bestandsaufnahme der vorhandenen Repositories (2026-06-12)
 
-Für den Umsetzungsvorschlag in §7 erhoben:
+Für den Umsetzungsvorschlag in §7 erhoben; Stand nach dem
+Monorepo-Schnitt vom 2026-05-12:
 
-- **`i-d-e/ride`** (öffentlich): hält `tei_all/`, `schema/`, `issues/`
-  (Bilder). Keine GitHub-Actions-Workflows vorhanden.
+- **`i-d-e/ride-static`** (öffentlich, dieses Repository): Build-Pipeline
+  und publiziertes Korpus in einem — `issues/{N}/reviews/*-tei.xml`,
+  `issues/{N}/metadata.yaml`, `schema/`. Ein Push hierher baut und
+  deployt die Site direkt.
+- **`i-d-e/ride`** (öffentlich): hält nur noch die Abbildungen unter
+  `issues/issue{NN}/{slug}/pictures/` (~437 MB; aus Größengründen noch
+  nicht ins Monorepo übernommen). TEI-Korpus und Schema liegen seit dem
+  Monorepo-Schnitt nicht mehr maßgeblich hier. Keine
+  GitHub-Actions-Workflows vorhanden.
 - **`i-d-e/ride-editors`** (privat): existiert bereits und trägt eine
   klare Ablagekonvention — pro Issue ein Ordner (`issue-{name}/`), darin
   pro Beitrag ein Ordner `{slug}/` mit `{slug}-tei.xml`, `pictures/` und
@@ -197,9 +215,10 @@ Für den Umsetzungsvorschlag in §7 erhoben:
 - **Befund Dublette:** bereits publizierte Beiträge verbleiben nach der
   Publikation in `ride-editors` (Beispiel: `tei-publisher` liegt dort
   samt finalem PDF und ist zugleich im publizierten Korpus). Jede
-  Vorschau-Mechanik muss deshalb gegen das publizierte Korpus
-  deduplizieren: existiert die Review-ID in `tei_all/`, gewinnt die
-  publizierte Fassung, der Eintrag in `ride-editors` wird ignoriert.
+  Vorschau-Mechanik braucht deshalb eine Dublettenprüfung gegen das
+  publizierte Korpus: existiert die Review-ID bereits unter
+  `issues/*/reviews/`, gewinnt die publizierte Fassung, der Eintrag in
+  `ride-editors` wird ignoriert.
 
 ## 7. Umsetzungsvorschlag (Entscheidungsvorlage)
 
@@ -209,34 +228,38 @@ PDF-Rückspiel-Baustein aus 4.5 für die IDE-interne Prüfung; Upgrade auf
 Vorschau ändert, nicht die Build-Mechanik. Konkret:
 
 1. **Draft-Quelle.** Der Build erhält eine zweite, optionale Korpusquelle
-   `../ride-editors`. Discovery folgt der vorhandenen Konvention
-   (`issue-*/{slug}/{slug}-tei.xml`, `archive/` ausgenommen); gefundene
-   Beiträge werden als Draft markiert und gegen das publizierte Korpus
-   dedupliziert (§6). In CI wird `ride-editors` nur ausgecheckt, wenn ein
-   Zugriffstoken als Secret hinterlegt ist; fehlt es, baut die Site wie
-   bisher — der Draft-Pfad ist strikt additiv.
+   `../ride-editors`. Die Suche nach Beiträgen folgt der vorhandenen
+   Ordner-Konvention (`issue-*/{slug}/{slug}-tei.xml`, `archive/`
+   ausgenommen); gefundene Beiträge werden als Entwurf markiert und per
+   Dublettenprüfung gegen das publizierte Korpus abgeglichen (§6). In CI
+   wird `ride-editors` nur ausgecheckt, wenn ein Zugriffstoken hinterlegt
+   ist; fehlt es, baut die Site wie bisher — der Entwurfs-Pfad ist strikt
+   additiv.
 2. **Asymmetrische Fehlerbehandlung.** Parse-Fehler in einem Draft
    erzeugen eine Warnung und überspringen den Beitrag; sie dürfen den
    öffentlichen Build niemals brechen. Parse-Fehler im publizierten
    Korpus bleiben harte Fehler.
-3. **Vorschau-Flächen.** Drafts rendern unter `/drafts/{id}/` (HTML, PDF,
-   Abbildungen aus dem `pictures/`-Ordner des Draft-Verzeichnisses, per
+3. **Vorschau-Flächen.** Entwürfe rendern unter `/drafts/{id}/` (HTML,
+   PDF, Abbildungen aus dem `pictures/`-Ordner des Entwurfs, per
    Dateinamen aufgelöst), dazu eine unverlinkte Indexseite `/drafts/` als
-   einzige Einstiegs-URL für die Redaktion. Draft-Seiten tragen ein
-   sichtbares Vorschau-Banner, `noindex`-Metadaten und keinen
-   Pagefind-Index-Anker.
+   einzige Einstiegs-URL für die Redaktion. Entwurfs-Seiten tragen einen
+   sichtbaren Vorschau-Hinweis, `noindex`-Metadaten (Anweisung an
+   Suchmaschinen, die Seite nicht aufzunehmen) und bleiben aus dem
+   Suchindex der Site ausgenommen.
 4. **Ausschluss-Flächen.** Drafts erscheinen nicht in: Issue-Ansicht und
    Issue-Übersicht, Tag-/Reviewer-/Resources-Aggregationen, Data-Charts,
    Suchindex, Sitemap, OAI-PMH, `corpus.json`, Navigation, Redirects.
    Technisch: die Aggregations- und Schnittstellen-Renderer erhalten
    ausschließlich die publizierte Liste; Drafts laufen als getrennte
    Liste nur durch Seiten-Render und Asset-Kopie.
-5. **Freischaltung** bleibt der Git-Move: TEI und `pictures/` von
-   `ride-editors` nach `ride`, Wordcloud nach
-   `static/images/wordclouds/{id}.png` in `ride-static`, bei Bedarf
-   Issue-YAML anlegen. Der Dispatch-Trigger baut die Site neu; die
-   Draft-URL verschwindet, die kanonische URL `/issues/{N}/{id}/`
-   entsteht.
+5. **Freischaltung** bleibt ein Verschieben von Dateien: das TEI aus
+   `ride-editors` nach `issues/{N}/reviews/` in diesem Repository, die
+   Bilder nach `i-d-e/ride` (`issues/issue{NN}/{slug}/pictures/`), die
+   Wordcloud nach `static/images/wordclouds/{id}.png`; bei einem neuen
+   Issue zusätzlich `issues/{N}/metadata.yaml` anlegen. Der TEI-Push
+   baut die Site direkt neu, der Bilder-Push stößt den Build über die
+   Benachrichtigung aus §5 an. Die Vorschau-URL verschwindet, die
+   kanonische URL `/issues/{N}/{id}/` entsteht.
 
 **Bereits umgesetzt** (entscheidungsrobust, 2026-06-12): die
 Trigger-Verkabelung (§5 Punkt 2) und die Bedienungs-Anleitung im

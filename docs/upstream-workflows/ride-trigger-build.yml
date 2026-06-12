@@ -1,10 +1,12 @@
 # Sender workflow for i-d-e/ride — install as
 # .github/workflows/trigger-site-build.yml in that repository.
 #
-# Notifies ride-static that the published corpus changed, so the live
-# site rebuilds. Requires the secret RIDE_STATIC_DISPATCH_TOKEN (a
-# fine-grained PAT for i-d-e/ride-static with Contents: Read and write);
-# see docs/upstream-workflows/README.md in ride-static.
+# i-d-e/ride holds the figure images for the published reviews. This
+# workflow notifies ride-static when images change, so the site rebuilds
+# and copies the new files in. Requires the secret
+# RIDE_STATIC_DISPATCH_TOKEN (a fine-grained personal access token for
+# i-d-e/ride-static with Contents: Read and write); see
+# docs/upstream-workflows/README.md in ride-static.
 
 name: trigger-site-build
 
@@ -12,9 +14,10 @@ on:
   push:
     branches: [master, main]
     paths:
-      - "tei_all/**"
+      # Only the picture tree matters for the site build; the historic
+      # tei_all/ and schema/ copies in this repository are no longer the
+      # canonical source (they moved into ride-static in May 2026).
       - "issues/**"
-      - "schema/**"
 
 jobs:
   dispatch:

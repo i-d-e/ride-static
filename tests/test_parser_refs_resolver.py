@@ -6,7 +6,7 @@ Test data philosophy:
   inputs because the function takes a string and a frozenset — there
   is no real-data form richer than that.
 * **Integration tests** for ``resolve_references`` drive entirely off
-  the real RIDE corpus (``../ride/tei_all/*.xml``). Each test parses
+  the real RIDE corpus (``issues/*/reviews/*.xml``). Each test parses
   a real review and asserts a property of the resolved output. Tests
   skip cleanly when the corpus is absent so CI stays green on a
   fresh clone.
