@@ -107,12 +107,17 @@ def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem
                 if t:
                     targets.append(t)
 
-        # Last-accessed date for online sources.
+        # Dates inside <bibl>: type="accessed" is the last-access date for
+        # online sources, type="publication" is the reviewed work's own
+        # publication date (both shapes appear in the corpus).
         last_accessed: Optional[str] = None
+        publication_date: Optional[str] = None
         for date_el in findall(ri_el, ".//t:date"):
-            if attr(date_el, "type") == "accessed":
+            dtype = attr(date_el, "type")
+            if dtype == "accessed" and last_accessed is None:
                 last_accessed = itertext(date_el) or None
-                break
+            elif dtype == "publication" and publication_date is None:
+                publication_date = itertext(date_el) or None
 
         # Canonical title — first <title> directly under <bibl>.
         title: Optional[str] = None
@@ -139,6 +144,7 @@ def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem
             bibl_targets=tuple(targets),
             xml_id=attr(ri_el, "xml:id"),
             last_accessed=last_accessed,
+            publication_date=publication_date,
             title=title,
             personnel=tuple(personnel),
         ))

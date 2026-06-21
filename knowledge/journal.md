@@ -30,6 +30,27 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — Factsheet-Paritaet verifiziert, reviewed-resource Publikationsdatum ergaenzt
+
+**Ziel:** Das Factsheet (R18) Feld für Feld gegen die Live-Seite stellen, die im alten register geführte Lückenliste prüfen, reale Restlücken schließen.
+
+**Erledigt:**
+- Live-Factsheet (issue-21/makingandknowing) vollständig gegen das gerenderte Factsheet verglichen (Skript `C:/tmp/ride_factsheet_parity.py`). Die als offen geführten Lücken (Reviewer-ORCID, E-Mail, Affiliation, Date-of-Last-Access, Personnel-Rollenlisten) sind längst implementiert und gerendert; die Liste war veraltet (Stand der Factsheet-Session weiter unten).
+- Eine reale Restlücke geschlossen: die rezensierte Ressource trägt in der TEI `<date type="publication">` (makingandknowing 2020), der Parser zog bisher nur `type="accessed"`. `RelatedItem.publication_date` ergänzt (Modell), im Parser extrahiert (`metadata.py`), im Factsheet zwischen URI und Last accessed gerendert (`factsheet.html`).
+- Verifiziert: volle Suite 534 passed / 2 skipped (zwei neue Tests: Parser-Korpus-Pin makingandknowing == 2020, Render-Anzeige). Render-Spur zeigt `Published 2020` im reviewed-resource-Block.
+
+**Entscheidungen:**
+- Fix als treuer additiver Paritäts-Fix gesichert statt vorgelegt: er gibt ein in TEI-Quelle und Live-Seite vorhandenes Feld wieder, reversibel, durch Test belegt, keine redaktionelle oder strittige Wahl.
+- Kein Fix für die Live-Differenz Publikationsdatum gegen Last Updated: die TEI trägt nur `2026-05`, die Live-Anzeige `Mar 2026` stammt aus WordPress-Metadaten außerhalb der Quelle; wir geben die Quelle treu wieder, das ist keine Lücke auf unserer Seite.
+
+**Offen:**
+- Rigoroser Abgleich der Personnel-Zählung und der Questionnaire-Sektionsüberschriften braucht das rohe Live-HTML, nicht den zusammengefassten WebFetch; bewusst nicht aus dem Fetch behauptet.
+- M3 Editorial-Reconciliation und value=1 (R9, R1) unverändert operator-gated.
+
+**Nächster Einstieg:** M3 Reconciliation-Vorschlag je divergierender Editorialseite ausarbeiten (`contact`, `imprint`, `data`), oder auf die Operator-Entscheidungen zu URL-Scheme und value=1 warten.
+
+---
+
 ## 2026-06-21 — Editorial-Paritaetsaudit: M3 ist Reconciliation, nicht Quelltausch
 
 **Ziel:** Den in der Vorsession als Nächster Einstieg notierten Cutover-Spurschritt umsetzen, das editoriale TEI-HTML gegen die bisherige Markdown-Ausgabe diffen, um vor jeder Freigabe zu zeigen, welche Seiten sich beim Cutover ändern.

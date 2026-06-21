@@ -69,6 +69,11 @@ class RelatedItem:
     bibl_targets: tuple[str, ...] = field(default_factory=tuple)
     xml_id: Optional[str] = None
     last_accessed: Optional[str] = None
+    publication_date: Optional[str] = None
+    """``<date type="publication">`` from inside ``<bibl>`` — the reviewed
+    work's own publication date (e.g. ``"2020"``). Distinct from the review's
+    ``Review.publication_date``; feeds the Factsheet "Reviewed resource" block
+    (R18). None when the relatedItem carries no publication date."""
     title: Optional[str] = None
     """First ``<title>`` directly under ``<bibl>`` — the canonical title
     of the reviewed work or criteria document. Templates use this for

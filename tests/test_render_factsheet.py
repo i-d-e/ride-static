@@ -62,6 +62,7 @@ def _review_with_factsheet(**overrides) -> Review:
         bibl_text="The reviewed project",
         bibl_targets=("https://example.org/project",),
         last_accessed="2023-11-15",
+        publication_date="2020",
         title="The Reviewed Project",
         personnel=(("Editor", "Smith, Pamela"), ("Programmer", "Catapano, Terry")),
     )
@@ -153,6 +154,13 @@ def test_render_factsheet_shows_question_and_selection():
     assert "Yes" in html  # selected answer
     # K-ref link resolved against the taxonomy URL.
     assert "http://example.org/criteria-v1#K1.2" in html
+
+
+def test_render_factsheet_shows_reviewed_resource_publication_date():
+    html = render_factsheet(_review_with_factsheet())
+    # The reviewed work's own publication date (R18 parity with the live
+    # factsheet), distinct from the review's publication_date in the header.
+    assert "2020" in html
 
 
 def test_render_factsheet_shows_personnel_name():

@@ -78,6 +78,10 @@
         <dt>{{ site.strings.uri | default('URI') }}</dt>
         <dd><a href="{{ reviewed.bibl_targets[0] }}" rel="noopener noreferrer">{{ reviewed.bibl_targets[0] }}</a></dd>
         {%- endif %}
+        {%- if reviewed.publication_date %}
+        <dt>{{ site.strings.published | default('Published') }}</dt>
+        <dd>{{ reviewed.publication_date }}</dd>
+        {%- endif %}
         {%- if reviewed.last_accessed %}
         <dt>{{ site.strings.last_accessed | default('Last accessed') }}</dt>
         <dd>{{ reviewed.last_accessed }}</dd>

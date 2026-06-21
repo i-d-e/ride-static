@@ -184,6 +184,7 @@ def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
           <bibl>
             <title>Reviewed Edition</title>
             <idno type="URI">https://example.org/edition</idno>
+            <date type="publication">2020</date>
             <date type="accessed">2023-11-15</date>
           </bibl>
         </relatedItem>
@@ -203,6 +204,19 @@ def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
     assert reviewed.title == "Reviewed Edition"
     assert "https://example.org/edition" in reviewed.bibl_targets
     assert reviewed.last_accessed == "2023-11-15"
+    assert reviewed.publication_date == "2020"  # <date type="publication">
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+def test_reviewed_resource_publication_date_from_real_corpus() -> None:
+    """The makingandknowing review (issue 21) carries the reviewed work's
+    own publication date as <bibl>/<date type="publication">2020</date>.
+    The live RIDE factsheet shows it; the parser must keep it distinct from
+    the review's own publication_date and from the last-accessed date."""
+    r = parse_review(find_tei("makingandknowing"))
+    reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
+    assert reviewed.publication_date == "2020"
+    assert reviewed.last_accessed == "2025-05-05"
 
 
 @pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
