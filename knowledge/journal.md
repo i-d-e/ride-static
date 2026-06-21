@@ -30,6 +30,31 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — Editorialseiten komplett (16/16): TEI-Migration plus verbatim Code
+
+**Ziel:** Die im Eintrag unten als latenter Befund offene Editorial-Migration abschließen. Die drei wegen einer Profilentscheidung zurückgestellten Seiten (writing-guidelines, publishing-policy, criteria) nach TEI überführen, das Seitenprofil nur so weit erweitern, wie der reale Inhalt es erzwingt. Plus Rundenpflicht: Journal kanonisch nach `knowledge/journal.md`.
+
+**Erledigt:**
+- **Profilentscheidung am Inhalt getroffen statt vorgelegt.** publishing-policy und criteria sind reine Prosa, passen ohne Profilumbau in div/head/p/list plus ref/hi (Commit 4a25fcb). Das einzige Bild auf criteria (`seal-1.png`, leerer Linktext) ist WordPress-Dekoration und entfällt aus der TEI-Quelle, reversibel. Kein figure/graphic im Seitenprofil, weil kein Seitenbestand ein Inhaltsbild trägt.
+- **writing-guidelines erzwingt verbatim Code:** die Live-Quelle trägt ein TEI-Header- und ein Python-Beispiel als Blöcke plus Inline-Erwähnungen von Elementen und Attributen. Seitenprofil minimal erweitert um Block `<eg>` (rendert zu `<pre><code>`, Whitespace erhalten) und Inline `<code>`, in Schema, Modell (CodeBlock, Code), Parser und Renderer (Commit ba22e8b). 16/16 Editorialseiten als TEI.
+- **Schema-Verifikationslücke geschlossen:** neuer `tests/test_pages_schema.py` validiert jede `pages/*.xml` gegen `ride-pages.rng`, parametrisiert je Seite. Vorher trug keine Testzeile den Schema-Anspruch der Seiten.
+- **Verifiziert (verify, not trust):** volle Suite 532 passed / 2 skipped (vorher 513/2; +16 Seiten-Schemavalidierung in M1, +3 writing-guidelines plus Code-Tests in M2). writing-guidelines real geparst: voller Header, zwei korrekt dedentete CodeBlocks, Inline-Code rendert, zwei `<pre><code>`-Blöcke. Live-Quell-URLs gegen die Live-Site bestätigt (`publishing-policies/`, `reviewers/catalogue-criteria-.../`, `reviewers/writing-guidelines/`).
+- **Journal kanonisch:** `Journal.md` nach `knowledge/journal.md` umgezogen (git mv, Historie erhalten), Verweise in CLAUDE.md, CONTRIBUTING.md, README.md, INDEX.md, architecture.md, pipeline.md nachgezogen.
+
+**Entscheidungen:**
+- **Seal als Chrome verworfen, nicht modelliert.** Ein dekoratives Badge mit leerem Linktext rechtfertigt keine figure/graphic-Familie im bewusst minimalen Seitenprofil; bei Bedarf über Template oder CSS reintegrierbar. Dokumentiert statt still gedroppt.
+- **Code als `<eg>` plus inline `<code>`, nicht egXML oder figure.** TEI-idiomatisch für literale Beispiele, schema-minimal; die Caption bleibt als folgender `<p>` wie auf der Quellseite, kein Caption-Slot am eg nötig.
+- **writing-guidelines wortgetreu aus der Live-Quelle**, da nicht in `content/` vorhanden; die übrigen zwei aus `content/*.md` als Repo-Quelle. Verbatim-Korrektheit der writing-guidelines ist vor dem Cutover noch menschlich gegen die Live-Seite zu prüfen.
+
+**Offen:**
+- **Build-Cutover** (pages/ in den Build, TEI-Präzedenz vor content/*.md) unverändert verhaltensändernd und nicht verdrahtet. Push nach main deployt automatisch, also operator-gated mit Render-Spur. Hängt zusätzlich an der URL-Scheme-Entscheidung (flach vs WP-verschachtelt) und der About-Landing-Frage.
+- **value=1-Zählfehler** in charts.py (R9) und Sidebar (R1) weiter operator-gated (Befund in `reports/klaerung-ride-static.md`), keine Änderung.
+- **writing-guidelines Verbatim-Sichtung** durch die Redaktion gegen die Live-Seite vor dem Cutover.
+
+**Nächster Einstieg:** Build-Cutover scopen und als Spur vorbereiten. Den `pages/`-Renderpfad in `src/build.py` vor `content/*.md` schalten, einen Voll-Build lokal erzeugen, das editoriale HTML gegen die bisherige Markdown-Ausgabe diffen, damit die Spur exakt zeigt, welche Seiten sich ändern. Nicht nach main, bis Operator-Freigabe und URL-Scheme-Entscheidung vorliegen.
+
+---
+
 ## 2026-06-21 — Factsheet-Parität: R18-Kontrakt plus Factsheet-Vollseite (R18)
 
 **Ziel:** Die im Eintrag 2026-06-12 als „Nächster Einstieg" notierte Factsheet-Parität umsetzen — das Live-Factsheet rendert den vollständigen Fragebogen als eigene Unterseite, ride-static zeigt bislang nur eine Aggregat-Box in der Sidebar. Ziel war die Volldarstellung unter `/issues/{N}/{id}/factsheet/`, in einem Zug inklusive Bau und Redirects.

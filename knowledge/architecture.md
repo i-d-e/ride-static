@@ -164,8 +164,9 @@ The TEI element `<bibl>` lives at three sites in the corpus and is parsed by thr
 
 - **`Page`** — one per editorial page, parsed from `pages/<slug>.xml` (separate from the per-review path)
   - header metadata: `slug`, `title`, `source_url`, `licence`, `journal_title`, `editors`
-  - a body tree of `Section`, `Para`, `BulletList`, `ListItem`, `Table`, `Row`, `Cell`
-  - inline nodes `Text`, `Ref`, `PersName`, `Email`, `Hi`, `Lb`
+  - a body tree of `Section`, `Para`, `BulletList`, `ListItem`, `Table`, `Row`, `Cell`, `CodeBlock`
+  - inline nodes `Text`, `Ref`, `PersName`, `Email`, `Hi`, `Lb`, `Code`
+  - `CodeBlock` (`<eg>` → `<pre><code>`) and `Code` (inline `<code>`) carry the verbatim code examples on writing-guidelines; they are the only profile growth beyond prose, no `figure`/`graphic` since no page carries a content image
   - produced by `src/parser/page.py` (`parse_page`, `discover_pages`; read-only), validated against `schema/ride-pages.rng`
 
 The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[specification#R1 Rezension lesen]]:
@@ -340,6 +341,7 @@ ride-static/
     pipeline.md             build & deploy plan with 15-phase plan
     specification.md        product spec, R/N/A clauses
     interface.md            visual & interaction design
+    journal.md              session-by-session record
   docs/
     extending.md            how to add a new TEI element
     url-scheme.md           versioned URL contract
@@ -347,7 +349,6 @@ ride-static/
   site/                     Build output, gitignored
   README.md
   CONTRIBUTING.md
-  Journal.md                session-by-session record
   CLAUDE.md                 project conventions
 ```
 
@@ -369,6 +370,6 @@ Implementation is preceded by a knowledge base that serves as context for an age
 
 The first layer is **deterministically generated** and describes corpus reality and the schema in use. Eleven Python scripts under `scripts/` traverse the 111 TEI files plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: 111 full reviews plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
 
-The second layer is **hand-curated** and fixes specification, architecture, interface, and build sequence: [[specification]], [[architecture]] (this document), [[interface]], [[pipeline]]. Both layers cross-reference each other through wikilinks. Every clause in [[specification]] has its empirical foundation in [[data]] or [[schema]]; every anomaly catalogued in [[data]] has a named handler in [[architecture]] or a documented exception. A third layer adds session-by-session narration through [Journal](../Journal.md) at the repository root — five fixed fields per entry (Ziel / Erledigt / Entscheidungen / Offen / Nächster Einstieg) that mediate between memory, git history, and project conventions.
+The second layer is **hand-curated** and fixes specification, architecture, interface, and build sequence: [[specification]], [[architecture]] (this document), [[interface]], [[pipeline]]. Both layers cross-reference each other through wikilinks. Every clause in [[specification]] has its empirical foundation in [[data]] or [[schema]]; every anomaly catalogued in [[data]] has a named handler in [[architecture]] or a documented exception. A third layer adds session-by-session narration through [Journal](journal.md) — five fixed fields per entry (Ziel / Erledigt / Entscheidungen / Offen / Nächster Einstieg) that mediate between memory, git history, and project conventions.
 
 This is the form of organisation that the convention for [Promptotyping Documents](https://dhcraft.org/excellence/blog/Promptotyping) describes as a project-centred research vault. The reading heuristic — function before filename, inclusion by trigger rather than checklist, diagnostic decoupling between function and type — is documented in [[INDEX]].

@@ -186,7 +186,7 @@ Akzeptanzkriterien
   - **Reviewers-Untermenü:** Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020
   - **Footer-/Standalone:** Imprint · Reviewing Criteria
   - „List of Reviewers" wird **nicht** als Editorialseite geführt, sondern aus der TEI-Aggregation auf `/reviewers/` erzeugt (R8)
-- Der Großteil der Seiten ist von der Live-RIDE-WordPress-Site wortgetreu nach TEI konvertiert; drei Seiten (writing-guidelines, publishing-policy, criteria) stehen wegen einer Profilentscheidung zu Code und Bildern noch aus. Der Build-Cutover, also `pages/` in den Build zu rendern, ist noch nicht verdrahtet; bis dahin rendert der Build diese Seiten weiter aus `content/*.md`
+- Alle 16 Editorialseiten sind von der Live-RIDE-WordPress-Site wortgetreu nach TEI konvertiert und gegen `schema/ride-pages.rng` validiert. Die Profilentscheidung ist getroffen: das Seitenprofil trägt zusätzlich verbatim Code (Block `<eg>`, inline `<code>`, erzwungen durch writing-guidelines), Bilder werden nicht modelliert, weil kein Seitenbestand ein Inhaltsbild führt (das dekorative Seal auf criteria entfällt als Chrome). Der Build-Cutover, also `pages/` in den Build zu rendern, ist noch nicht verdrahtet; bis dahin rendert der Build diese Seiten weiter aus `content/*.md`
 - Im Footer jeder Seite stehen sichtbar: Lizenz-Kürzel, Markenname mit aktuellem Jahr, ISSN (`2363-4952`), Link auf Imprint and Privacy
 - Im globalen Header steht die Site-Tagline „A Review Journal for Scholarly Digital Editions and Resources" als Untertitel zur Marke RIDE
 
@@ -315,7 +315,7 @@ Die folgende Tabelle bildet jede heutige Komponente der RIDE-Site auf den geplan
 | Tracking | Matomo mit Cookie-Snippets | Matomo cookielos, ohne Consent-Banner | 15 | — |
 | Social-Buttons | Vorhanden | Entfallen zugunsten von Open-Graph-Metadaten und Copy-Link | 8 | Eigene Iteration zu einer Social-Media-Strategie? |
 | OAI-PMH | Dynamisch | Statischer Snapshot mit Query-String-Routing, Dublin-Core-Mindestmetadaten | 12 | — |
-| Statische Texte (WordPress) | In WordPress gepflegt | Nach TEI unter `pages/` als alleiniger Quelle überführt, validiert gegen `schema/ride-pages.rng`; löst die Markdown-Pflege ab (A3, R10). Großteil konvertiert, drei Seiten (writing-guidelines, publishing-policy, criteria) wegen Profilentscheidung zu Code und Bildern offen; Build-Cutover noch nicht verdrahtet | Vor 9 (redaktionell) | Entschieden zugunsten TEI als alleiniger Quelle |
+| Statische Texte (WordPress) | In WordPress gepflegt | Nach TEI unter `pages/` als alleiniger Quelle überführt, validiert gegen `schema/ride-pages.rng`; löst die Markdown-Pflege ab (A3, R10). Alle 16 Seiten konvertiert, Profil um verbatim Code (`<eg>`/`<code>`) erweitert, keine Bilder modelliert; Build-Cutover noch nicht verdrahtet | Vor 9 (redaktionell) | Entschieden zugunsten TEI als alleiniger Quelle |
 
 ## 9. Offene Fragen
 

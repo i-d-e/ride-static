@@ -38,13 +38,13 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[staging]] | Substance — pre-publication review environment, solution options, decision open | when the staging decision advances |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
-| [Journal](../Journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
+| [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.
 
 ## Reading paths
 
-**Onboarding a new contributor.** [README.md](../README.md) → [[specification]] → [[architecture]] → [[interface]] → [Journal](../Journal.md). Establishes what the project is, what it must do, how it is built, how it should look, and where it currently stands. About one hour for someone with TEI background.
+**Onboarding a new contributor.** [README.md](../README.md) → [[specification]] → [[architecture]] → [[interface]] → [Journal](journal.md). Establishes what the project is, what it must do, how it is built, how it should look, and where it currently stands. About one hour for someone with TEI background.
 
 **Understanding a corpus anomaly in code.** [[data]] (find the anomaly in *Document patterns* or *Reference resolution*) → [[architecture]] *Domain model* (which parser branch handles it) → the parser file under `src/parser/` itself. The empirical observation drives the named code path.
 
@@ -54,7 +54,7 @@ The two generated documents (`data`, `schema`) carry `generated:`, `source:`, an
 
 ## Convention
 
-This knowledge base follows the Promptotyping Documents convention: Markdown with frontmatter, wikilinks as connective tissue, function before filename, and inclusion by trigger rather than checklist. The convention regulates frontmatter schema and reading heuristic. The diagnostic rule applies here: output factually wrong → check Knowledge documents; output formally wrong → check `CLAUDE.md` (Action layer); decision logic unclear → check [Journal](../Journal.md) (Process layer).
+This knowledge base follows the Promptotyping Documents convention: Markdown with frontmatter, wikilinks as connective tissue, function before filename, and inclusion by trigger rather than checklist. The convention regulates frontmatter schema and reading heuristic. The diagnostic rule applies here: output factually wrong → check Knowledge documents; output formally wrong → check `CLAUDE.md` (Action layer); decision logic unclear → check [Journal](journal.md) (Process layer).
 
 ## Glossary
 

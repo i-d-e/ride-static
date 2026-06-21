@@ -198,7 +198,7 @@ Strict is cleaner; pick before Phase 15.
 
 The build is split into fifteen sequential phases. Each phase produces one commit, has synthetic test fixtures plus a real-corpus smoke test, and respects the TDD rule from `CLAUDE.md`. Each row maps to the [[specification]] clauses it satisfies.
 
-This table is the static plan, not a tracker. What is currently live and what is open lives in `Journal.md` (running ledger) and `README.md` (feature stand).
+This table is the static plan, not a tracker. What is currently live and what is open lives in `knowledge/journal.md` (running ledger) and `README.md` (feature stand).
 
 | # | Phase | Output | Requirements |
 |---|---|---|---|

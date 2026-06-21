@@ -149,11 +149,11 @@ The second checkout is the only remaining external dependency; it can drop once 
 - `docs/extending.md` — adding a TEI element or render variant.
 - `docs/url-scheme.md` — versioned URL contract.
 - `knowledge/` — Obsidian-style vault with its own index (`knowledge/INDEX.md`): corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`specification.md`, `interface.md`, `staging.md`). Cross-references use `[[wikilink]]` notation.
-- `Journal.md` — session-by-session decisions and current entry point.
+- `knowledge/journal.md` — session-by-session decisions and current entry point.
 
 ## Status
 
-Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (`knowledge/staging.md`). Current state and next entry point are in `Journal.md`.
+Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (`knowledge/staging.md`). Current state and next entry point are in `knowledge/journal.md`.
 
 ## Licence
 

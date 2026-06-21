@@ -51,7 +51,7 @@ These are the project's non-negotiables. Codified for clarity, not for ceremony.
 | In what order is it built? | `knowledge/pipeline.md` Phasenplan |
 | What's in the corpus? | `knowledge/data.md` |
 | What's in the schema? | `knowledge/schema.md` |
-| What was decided when? | `Journal.md` |
+| What was decided when? | `knowledge/journal.md` |
 
 If a documented decision conflicts with the code, fix the code. If the code is right and the doc is stale, fix the doc in the same PR.
 
@@ -75,7 +75,7 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 
 ## Running a session with Claude Code
 
-Claude reads `CLAUDE.md` automatically and the journal entries in `Journal.md` when a session starts. Append a new dated entry to `Journal.md` at the end of each working session — five fields, two to four lines each. The format is documented at the top of `Journal.md`.
+Claude reads `CLAUDE.md` automatically and the journal entries in `knowledge/journal.md` when a session starts. Append a new dated entry to `knowledge/journal.md` at the end of each working session — five fields, two to four lines each. The format is documented at the top of `knowledge/journal.md`.
 
 ## Licence
 
