@@ -30,6 +30,35 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — M3 Build-Cutover als Default-aus-Schalter, Reconciliation-Spur, URL-Scheme zurueckgemeldet
+
+**Ziel:** order-Iteration: M3 Build-Cutover bauen (pages/-TEI mit Vorrang vor content/*.md), als lokale nicht-gepushte Render-Spur, M4 scopen, die als entschieden markierten Punkte umsetzen.
+
+**Erledigt:**
+- TEI-Editorialvorrang in `src/build.py::_render_editorials` implementiert, hinter Schalter `tei_editorials` (Default `False`), plus CLI `--tei-editorials` und Durchreichung in `build()`. Default rendert unveraendert die 16 `content/*.md` (deployt exakt wie bisher). Mit Schalter: alle 16 `pages/*.xml` via `discover_pages()/render_page()` mit Vorrang, Markdown-Fallback nur fuer nicht von TEI gedeckte Slugs (about, data/charts, data/questionnaires, plus Umbenennungs-Waisen projects-for-review, submitting-a-review). 16 TEI + 5 Fallback = 21 Seiten.
+- Renderpfad-Tests `tests/test_render_editorial_precedence.py` (3): Default rendert Markdown und keine TEI-only-Slugs; TEI-Modus rendert alle 16 TEI-Slugs plus generator-nativen Fallback (21); bei geteiltem Slug gewinnt TEI (criteria-HTML unterscheidet sich).
+- Voller lokaler TEI-Build als Spur nach `C:/tmp/ride-site-tei` (nicht ins Repo, `site/` ist gitignored): 111 Review-Seiten, 16/16 TEI-Editorialseiten im Output, writing-guidelines mit verbatim `<pre><code>`.
+- Per-Seite-Reconciliation-Diff TEI gegen Markdown nach `forschungsleitstelle/reports/audit-ride-static-cutover-diff.md` (Operator-Spur, nicht nach main). Befund: contact TEI-Stub (142 Zeichen) gegen volle Markdown-Seite; imprint Piwik gegen Matomo; data divergierende Endpunkte; editorial/team/imprint TEI deutlich voller; criteria/publishing-policy/peer-reviewers/ethical-code/ride-award nahezu gleich.
+- Verifiziert: volle Suite 539 passed / 2 skipped; `python -m src.build --tei-editorials` erzeugt sauberen Voll-Build mit 16/16 TEI-Seiten.
+
+**Entscheidungen:**
+- Cutover als Default-aus-Schalter statt direkter Umverdrahtung. Begruendung: die order verlangt zugleich „pages-Vorrang verdrahten" und „NICHT nach main pushen, weil Push deployt" sowie „alles in main". Nur ein Default-aus-Schalter vereinbart alle drei: Code gesichert nach main, Deploy unveraendert, Live-Gang = spaeterer Default-Flip (operator-gated).
+- Diff als Reconciliation gefuehrt, nicht als Aequivalenzbeweis. Begruendung: das Editorial-Audit (dacde82) hat die Aequivalenzannahme bereits widerlegt; ein Byte-Diff kann keine Aequivalenz zeigen, weil die Quellbestaende verschiedene Dokumente sind. Der Diff liefert stattdessen die per-Seite-Entscheidungsgrundlage.
+- URL-Scheme NICHT eigenmaechtig umgebaut. Begruendung: die order-Anweisung „WP-Pfade spiegeln, damit externe Links gueltig bleiben" erreicht ihr erklaertes Ziel nicht (die simplen Spiegel-Pfade wie /reviewers/criteria/ sind keine real existierenden Live-URLs; die echten langen Live-Slugs liegen schon als Redirects vor), bricht den gepinnten R17-Vertrag (docs/url-scheme.md v1, Editorial flach) und ist nach aussen wirkend. Nach der Entscheidungsgrenze zurueck an den Operator als `klaerung-ride-static.md`.
+
+**Offen:**
+- URL-Scheme (klaerung): flach beibehalten plus Redirects (Ist, erfuellt das Ziel) gegen echte WP-Spiegelung (lange Live-Slugs als kanonische Pfade). Operator-Entscheidung, blockiert die Redirect-Finalisierung (M5) und den Live-Cutover.
+- contact-Reconciliation: der TEI-Stub ist inhaltlich aermer als die Markdown-Seite; vor dem Cutover zu fuellen oder die Markdown-Seite zu behalten.
+- value=1 (M4) bleibt operator-gated, nur gescoped.
+
+**Nächster Einstieg:** Auf die URL-Scheme-Entscheidung warten; bei „flach" die Redirect-Strecke (M5) finalisieren und EDITORIAL_REDIRECTS um die fuenf neuen/umbenannten Slugs ergaenzen; sonst die per-Seite-contact/imprint/data-Reconciliation als Vorlage ausarbeiten.
+
+## M4 value=1-Korrektur (gescoped, nicht gebaut)
+
+R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/factsheet.html`) zaehlen heute flach `<num value="1">` als „Ja". Korrekt ist die echte Ja-Rate ueber `Questionnaire.questions`/`selected`: pro binaerer Frage zaehlt, ob die Ja-Option gewaehlt ist, kategoriale (nicht-binaere) Fragen separat ausweisen statt in die Ja-Rate mischen. Befund und drei Optionen in `reports/klaerung-ride-static.md`, Lane-Empfehlung Option 1. Gruen-Kriterium fuer den Bau: ein Test, der eine kategoriale Auswahl nicht als Ja zaehlt, und die Sidebar-/Charts-Zahl gegen eine handgerechnete Ja-Rate eines Korpus-Reviews pinnt. Operator-gated, erst nach Freigabe bauen.
+
+---
+
 ## 2026-06-21 — TEI-Konsumtions-Audit, Element-Coverage-Lock eingezogen
 
 **Ziel:** Die Frage „kommt alles aus dem TEI im Frontend an" belastbar beantworten, nicht feldweise sondern systematisch über die volle Element-Inventur beider Korpora.

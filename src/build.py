@@ -38,6 +38,7 @@ from src.parser.datasets import (
     aggregate_reviewers,
     aggregate_tags,
 )
+from src.parser.page import discover_pages
 from src.parser.review import parse_review
 from src.render.aggregations import (
     render_index,
@@ -62,6 +63,7 @@ from src.render.issues_config import (
 )
 from src.render.navigation import load_navigation, resolve_navigation
 from src.render.oai_pmh import write_oai_pmh
+from src.render.page import render_page
 from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 from src.validate import validate_corpus
@@ -174,33 +176,66 @@ def _render_editorials(
     site: SiteConfig,
     out_root: Path,
     parsed: Optional[list] = None,
+    tei_editorials: bool = False,
 ) -> int:
-    """Render every ``content/*.md`` page to ``site/{slug}/index.html``.
+    """Render the editorial pages to ``site/{slug}/index.html``.
+
+    Two editorial source sets coexist. The default path renders the
+    legacy ``content/*.md`` pages (this is what deploys). With
+    ``tei_editorials`` the build switches to the TEI editorial set under
+    ``pages/*.xml`` via :func:`discover_pages` / :func:`render_page`: each
+    TEI page takes precedence at its slug, and any Markdown editorial
+    whose slug no TEI page produces is rendered as a fallback so no page
+    disappears — the generator-native ``about``, ``data/charts``,
+    ``data/questionnaires``, plus the rename-orphans (``projects-for-
+    review``, ``submitting-a-review``) that the gated URL reconciliation
+    will turn into redirects. This is the M3 build-cutover; it is off by
+    default so a push does not deploy it. The live switch is the
+    operator-gated flip of the default.
 
     ``parsed`` is the build's ``[(path, review), …]`` list. When given
     and the editorial page is the Data-Charts placeholder
-    (``data/charts``), the chart marker is substituted by inline SVG
-    bar charts derived from the parsed corpus (R9). All other pages
-    render unchanged."""
+    (``data/charts``), the chart marker is substituted by inline SVG bar
+    charts derived from the parsed corpus (R9)."""
     from src.render.charts import render_charts_block
 
     written = 0
     chart_html = ""
-    for page in discover_editorials():
-        if page.slug == "data/charts" and parsed and not chart_html:
+
+    def _chart_for(slug: str) -> str:
+        nonlocal chart_html
+        if slug == "data/charts" and parsed and not chart_html:
             chart_html = render_charts_block(
                 tuple(r for _, r in parsed), parsed_paths=parsed
             )
-        page_dir = out_root / page.slug
+        return chart_html if slug == "data/charts" else ""
+
+    def _write(slug: str, html: str) -> None:
+        nonlocal written
+        page_dir = out_root / slug
         page_dir.mkdir(parents=True, exist_ok=True)
-        html = render_editorial(
-            page,
-            site=site,
-            env=env,
-            chart_html=chart_html if page.slug == "data/charts" else "",
-        )
         (page_dir / "index.html").write_text(html, encoding="utf-8")
         written += 1
+
+    if tei_editorials:
+        covered: set[str] = set()
+        for page in discover_pages():
+            _write(page.slug, render_page(page, site=site, env=env))
+            covered.add(page.slug)
+        for page in discover_editorials():
+            if page.slug in covered:
+                continue  # TEI page wins at this slug
+            _write(
+                page.slug,
+                render_editorial(page, site=site, env=env, chart_html=_chart_for(page.slug)),
+            )
+        return written
+
+    for page in discover_editorials():
+        _write(
+            page.slug,
+            render_editorial(page, site=site, env=env, chart_html=_chart_for(page.slug)),
+        )
     return written
 
 
@@ -465,6 +500,7 @@ def build(
     matomo_url: str = "",
     matomo_site_id: str = "",
     pdf: bool = False,
+    tei_editorials: bool = False,
 ) -> int:
     """Run the build. Returns the number of review pages written.
 
@@ -503,7 +539,9 @@ def build(
     _run_render_pass(parsed, env, site, out_root, failed)
 
     # Editorial pages, aggregation pages, static asset tree.
-    editorials = _render_editorials(env, site, out_root, parsed=parsed)
+    editorials = _render_editorials(
+        env, site, out_root, parsed=parsed, tei_editorials=tei_editorials
+    )
     home_widgets = discover_home_widgets()
     aggregations = _render_aggregations(
         rendered, env, site, out_root,
@@ -751,6 +789,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
     parser.add_argument("--matomo-url", default="", help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking")
     parser.add_argument("--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set")
+    parser.add_argument("--tei-editorials", action="store_true", help="Render editorial pages from pages/*.xml (TEI) with precedence over content/*.md — the M3 build-cutover. Off by default so a deploy keeps shipping the Markdown editorials.")
     args = parser.parse_args(argv)
 
     if bool(args.matomo_url) != bool(args.matomo_site_id):
@@ -764,6 +803,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         matomo_url=args.matomo_url,
         matomo_site_id=args.matomo_site_id,
         pdf=args.pdf,
+        tei_editorials=args.tei_editorials,
     )
     print(f"Wrote {written} review pages to {SITE_DIR}")
     return 0
