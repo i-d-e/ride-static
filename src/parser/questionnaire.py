@@ -246,7 +246,7 @@ def _is_question(cat: etree._Element) -> bool:
 
 
 def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQuestion:
-    label, question_text, criteria_ref = _question_texts(q_cat)
+    label, question_text, criteria_ref, criteria_ref_label = _question_texts(q_cat)
     selected: list[str] = []
     anomaly = False
 
@@ -281,18 +281,21 @@ def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQ
         question_label=label,
         question_text=question_text,
         criteria_ref=criteria_ref,
+        criteria_ref_label=criteria_ref_label,
         selected=tuple(selected),
         anomaly=anomaly,
     )
 
 
-def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str]]:
-    """Resolve (short_label, full_text, criteria_ref) for a question.
+def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str], Optional[str]]:
+    """Resolve (short_label, full_text, criteria_ref, criteria_ref_label).
 
     The descriptive ``<catDesc>`` children of a question (those without a
     ``<num>``) carry the texts. The short-label catDesc holds an optional
-    ``<ref @target>`` K-ref; the question-text catDesc is the longest plain
-    description. Either may be absent; the xml:id is the last-resort label.
+    ``<ref @target>`` K-ref; ``criteria_ref`` is its target, ``criteria_ref_label``
+    its visible text ("cf. Catalogue 1.2"). The question-text catDesc is the
+    longest plain description. Either may be absent; the xml:id is the
+    last-resort label.
     """
     descs = [
         cd
@@ -300,11 +303,13 @@ def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str]]:
         if cd.find("t:num", NS) is None
     ]
     criteria_ref: Optional[str] = None
+    criteria_ref_label: Optional[str] = None
     texts: list[str] = []
     for cd in descs:
         ref = cd.find("t:ref", NS)
         if ref is not None and criteria_ref is None:
             criteria_ref = attr(ref, "target")
+            criteria_ref_label = "".join(ref.itertext()).strip() or None
         # Label text excludes the K-ref boilerplate ("cf. Catalogue …").
         own = _catdesc_text_without_ref(cd)
         texts.append(own)
@@ -316,7 +321,7 @@ def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str]]:
     question_text = max(texts, key=len) if texts else ""
     if question_text == label and len(texts) > 1:
         question_text = texts[1]
-    return label, question_text, criteria_ref
+    return label, question_text, criteria_ref, criteria_ref_label
 
 
 def _catdesc_text_without_ref(cat_desc: etree._Element) -> str:

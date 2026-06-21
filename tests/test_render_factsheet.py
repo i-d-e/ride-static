@@ -26,6 +26,7 @@ from src.parser.review import parse_review
 from src.render.factsheet import (
     criteria_link,
     group_personnel,
+    humanize_label,
     render_factsheet,
     reviewed_resource,
 )
@@ -122,6 +123,17 @@ def test_criteria_link_resolves_and_guards():
     assert criteria_link("http://e.org/c", "#K1.2") == "http://e.org/c#K1.2"
     assert criteria_link("", "#K1.2") is None
     assert criteria_link("http://e.org/c", None) is None
+
+
+def test_humanize_label():
+    # xml:id-style headings (text-collections) get humanised …
+    assert humanize_label("general_information") == "General information"
+    assert humanize_label("data-modelling") == "Data modelling"
+    assert humanize_label("aims") == "Aims"
+    # … prose headings (digital-editions) keep their wording.
+    assert humanize_label("Documentation") == "Documentation"
+    assert humanize_label("Aims and methods") == "Aims and methods"
+    assert humanize_label("") == ""
 
 
 # ── Render contract ───────────────────────────────────────────────────

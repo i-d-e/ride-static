@@ -55,6 +55,20 @@ def group_personnel(item: Optional[RelatedItem]) -> list[tuple[str, list[str]]]:
     return [(role, by_role[role]) for role in order]
 
 
+def humanize_label(label: str) -> str:
+    """Humanise an xml:id-style section label (``general_information`` →
+    "General information"). Labels already in prose (containing a space)
+    keep their wording; only the first letter is capitalised. The
+    text-collections criteria sets carry section headings as xml:ids,
+    while the digital-editions sets carry prose ``catDesc`` headings.
+    """
+    if not label:
+        return label
+    if " " not in label:
+        label = label.replace("_", " ").replace("-", " ")
+    return label[:1].upper() + label[1:]
+
+
 def criteria_link(criteria_url: str, criteria_ref: Optional[str]) -> Optional[str]:
     """Resolve a ``#K1.2`` K-ref against the taxonomy's criteria URL.
 
@@ -85,6 +99,7 @@ def render_factsheet(
         reviewed=item,
         personnel_groups=group_personnel(item),
         criteria_link=criteria_link,
+        humanize_label=humanize_label,
         page_lang=review.language or site.default_language,
         page_title=f"{review.title} — Factsheet" if review.title else "Factsheet",
         page_url=(

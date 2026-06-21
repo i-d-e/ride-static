@@ -64,6 +64,10 @@ class QuestionnaireQuestion:
     criteria_ref: Optional[str]
     selected: tuple[str, ...]
     anomaly: bool = False
+    criteria_ref_label: Optional[str] = None
+    """Visible text of the short-label ``<ref>`` (e.g. ``"cf. Catalogue 1.2"``).
+    Renderers prefer it over the raw ``criteria_ref`` target as link text;
+    None when the question carries no K-ref."""
 
 
 @dataclass(frozen=True)

@@ -121,14 +121,14 @@
         {%- for question in q.questions %}
           {%- if question.section_label != ns.section %}
             {%- set ns.section = question.section_label %}
-            <h3 class="ride-questionnaire__section">{{ question.section_label }}</h3>
+            <h3 class="ride-questionnaire__section">{{ humanize_label(question.section_label) }}</h3>
           {%- endif %}
           <div class="ride-question">
             <p class="ride-question__label">
               {{ question.question_label }}
               {%- set href = criteria_link(q.criteria_url, question.criteria_ref) %}
               {%- if href %}
-                <a class="ride-question__criteria-ref" href="{{ href }}" rel="noopener noreferrer">{{ question.criteria_ref }}</a>
+                <a class="ride-question__criteria-ref" href="{{ href }}" rel="noopener noreferrer">{{ question.criteria_ref_label or question.criteria_ref }}</a>
               {%- endif %}
             </p>
             {%- if question.question_text and question.question_text != question.question_label %}

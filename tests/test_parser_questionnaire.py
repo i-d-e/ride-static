@@ -416,6 +416,7 @@ def test_real_corpus_makingandknowing_first_question() -> None:
     assert first.question_label == "Bibliographic description"
     assert "Yes" in first.selected
     assert first.criteria_ref == "#K1.2"
+    assert first.criteria_ref_label == "cf. Catalogue 1.2"
 
 
 @needs_corpus
