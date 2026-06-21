@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Writing Guidelines</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/reviewers/writing-guidelines/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>RIDE transforms submitted reviews into XML documents adhering to the TEI standard. You can submit your review in any common and accessible text format (for instance an Open Office, Libre Office, or Word Document). While writing your review, please observe the following rules on formatting and editing:</p>
+      <div>
+        <head>Structure of the review</head>
+        <list>
+          <item>Every review should include an <hi rend="bold">abstract</hi> (one paragraph) in English. The abstract should not be an introduction to the review but rather a concise summary of its content and findings.</item>
+          <item>Format the <hi rend="bold">title</hi> as heading 1 (the title of your review should usually be the name of the project you are reviewing – without the addition 'review of…' – but can also be formulated freely – see the <ref target="https://ride.i-d-e.de/issues/">existing issues</ref> for examples).</item>
+          <item>Structure the document using <hi rend="bold">headings</hi> 2-3 (don't use levels below 3). Second order headings will be used to generate a Table of Contents (ToC) in the HTML presentation of the review. If you decide against the use of headings, the review will start with the heading "Review" (e.g. <ref target="https://ride.i-d-e.de/issues/issue-1/nietzschesource/">https://ride.i-d-e.de/issues/issue-1/nietzschesource/</ref>). If you decide to use headings, please start right at the beginning of the review with a second level-heading (exceptionally, you can also start with a quote, see e.g. <ref target="https://ride.i-d-e.de/issues/issue-5/beckettarchive/">https://ride.i-d-e.de/issues/issue-5/beckettarchive/</ref>, or with a short introductory paragraph clarifying the status of the review, see e.g. <ref target="https://ride.i-d-e.de/issues/issue-6/litteraturbanken-the-swedish-literature-bank/">https://ride.i-d-e.de/issues/issue-6/litteraturbanken-the-swedish-literature-bank/</ref>).</item>
+          <item>The minimum <hi rend="bold">length</hi> of a paragraph is two (better three) sentences.</item>
+          <item>Every review must include a list of relevant <hi rend="bold">references</hi> (see also section on "<ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#bibliography">Bibliography</ref>" below).</item>
+          <item>Come up with a number of <hi rend="bold">keywords</hi> that describe what aspects of the reviewed project you deal with in particular. These keywords will be used to tag your review (see <ref target="http://ride.i-d-e.de/by-tag/">existing tags</ref> as examples).</item>
+        </list>
+      </div>
+      <div>
+        <head>Proof reading</head>
+        <list>
+          <item>Please check the language of your review before submitting. We recommend the following tools, for example: <ref target="https://app.grammarly.com/">Grammarly</ref>, <ref target="https://www.deepl.com">DeepL (Translate and Write)</ref>.</item>
+        </list>
+      </div>
+      <div>
+        <head>General aspects of formatting</head>
+        <list>
+          <item>Use a Unicode font.</item>
+          <item>You may use italics to highlight words or phrases.</item>
+          <item>You may not use text colors other than black.</item>
+          <item>You can use footnotes (they will be transformed into endnotes in the HTML presentation and the PDF version of the review).</item>
+          <item>You can include <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#quotations">blockquotes</ref>, <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#lists">lists</ref>, <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#tables">tables</ref>, <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#pictures">pictures</ref>, <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#code_examples">code examples</ref>, and <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#links">links</ref> in your review. Please see the corresponding recommendations for their use below.</item>
+          <item>Footnotes, figure captions, code example captions, and references end with a full stop.</item>
+          <item>Please consider the <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#bibliography">Bibliography</ref> section below.</item>
+        </list>
+      </div>
+      <div>
+        <head>Quotations</head>
+        <list>
+          <item>For quotes, please use the quotation marks that are common in the language you write your review in.</item>
+          <item>Mark gaps in quotes with square brackets and three dots: […].</item>
+          <item>You can use blockquotes. Please do not add quotation marks to blockquotes. Indicate the source of the blockquote directly after it (see e.g. <ref target="https://ride.i-d-e.de/issues/issue-10/alfred-escher-briefedition/#p12">https://ride.i-d-e.de/issues/issue-10/alfred-escher-briefedition/#p12</ref>).</item>
+        </list>
+      </div>
+      <div>
+        <head>Lists</head>
+        <list>
+          <item>In your review, you can use lists with bullet points, numbers, or other kinds of labels for the list items.</item>
+          <item>Lists can have sublists.</item>
+          <item>Lists cannot have any caption or number identifying them.</item>
+        </list>
+      </div>
+      <div>
+        <head>Tables</head>
+        <list>
+          <item>You can include tables in your review, which can have a table heading and a first row with column headings.</item>
+          <item>Add a caption and a number identifying them.</item>
+          <item>Reference the table from the text (e.g. "see table 1").</item>
+        </list>
+      </div>
+      <div>
+        <head>Pictures</head>
+        <p>RIDE welcomes pictures and especially <hi rend="bold">screenshots</hi> of reviewed projects that help the reader to understand what the project is or is not doing. Screenshots serve a documentary function, making available to the reader the state of a certain aspect of the project under review. While editions are expected to change their appearance in the future, the review will remain stable.</p>
+        <list>
+          <item>If you want to include pictures in your review, please number them in the order they are supposed to appear in the review and name them as follows: picture-1.png, picture-2.png, etc.</item>
+          <item>We prefer pictures in the PNG format.</item>
+          <item>Please send your pictures as image files in a separate zip file.</item>
+          <item>Please make sure that the quality of your screenshots is appropriate for online publications.</item>
+          <item>Please insert the pictures into your review and add a number and a caption to every picture, eg. "Fig. 1: Caption."</item>
+          <item><hi rend="italic">!important</hi> Due to the formatting in WordPress (the CMS we use to publish your review in HTML) it can happen that image and text are not always next to each other. Therefore every figure should be referenced from the text in the language of your review, e. g. "(see fig. 1 / siehe Abb. 1)" or "As fig. 1 shows…" / "Wie in Abb. 1 zu sehen, …".</item>
+        </list>
+      </div>
+      <div>
+        <head>Code examples</head>
+        <p>We welcome code examples in your review. You can cite code either directly in the text or as blocks. Inline code citations can for example be mentions of XML elements or attributes (e.g. "Referring strings are encoded with the element <code>&lt;rs&gt;</code> and described further with <code>@type</code>."). The use of blocks is recommended if the code examples are longer or have a more complex structure, for example:</p>
+        <eg><![CDATA[
+<teiHeader>
+    <fileDesc>
+        <titleStmt>Digital Thoreau</titleStmt>
+    </fileDesc>
+</teiHeader>
+]]></eg>
+        <p>Code 1: TEI Header.</p>
+        <eg><![CDATA[
+if $title == "Review":
+    print("this is probably a review")
+else:
+    print("this may be something else")
+]]></eg>
+        <p>Code 2: Condition for reviews.</p>
+        <p>In general:</p>
+        <list>
+          <item>Inline code examples do not need to be highlighted with quotation marks, but we recommend to use an own font for them (e.g. Courier), which facilitates that we recognize them for the editing process (in the TEI of the review code examples are marked up).</item>
+          <item>Block code examples need to be enhanced by descriptive captions, e.g. "Code 1: Caption for this code example".</item>
+          <item>Block code examples can also be referenced from the text (e.g. "see Code 1" / "siehe Code 1" / etc.); however, since they are embedded in the flow of paragraphs, they do not necessarily need to be pointed to.</item>
+          <item>In block code examples, line breaks are preserved and also whitespaces/tabs can be preserved, especially if they are significant for the code.</item>
+          <item>We do not support special font colors for displaying code.</item>
+        </list>
+      </div>
+      <div>
+        <head>Links</head>
+        <p>Obviously, RIDE allows and encourages the use of links to other resources in the web (web pages, APIs, documents, files, etc.). In a review, links can serve a variety of functions, for example to point to specific sites that are discussed in the review or just be part of bibliographic references. Depending on what the links are about, we recommend different strategies. It is the aim of RIDE to keep reviews transparent and comprehensible even if the digital resources that are reviewed change over time. On the other hand reviews encoded in TEI and published in HTML should make use of the possibility to point to other web resources directly and in a dynamic way. These two goals are sometimes conflicting ones. To cover both aspects, we have some recommendations to give you some guidance and still leave room for your style of using links:</p>
+        <p>In general:</p>
+        <list>
+          <item>Please provide complete links including the protocol (http, https).</item>
+          <item>Links can be explicitly mentioned in the text, e.g. in order to name the landing page of the project under review or another one, but should not be spelled out in the text in other cases.</item>
+          <item>Links can be embedded in the text by linking words or passages of text to some other destination.</item>
+          <item>Links can also be given explicitly or be embedded in footnotes.</item>
+          <item>Explicit links can be part of bibliographic references.</item>
+        </list>
+        <p>Important:</p>
+        <list>
+          <item>If you cite links of the resource under review or other resources because you discuss the details of the corresponding website(s) – e.g. their content, structure, design, etc. – , they should be <hi rend="bold">archived</hi> (see instructions on how to archive links below). You can embed archived links in the text <ref target="https://web.archive.org/web/20210228175136/http://www.pessoadigital.pt/en/index.html">like this</ref> or include them in footnotes or references. Archiving such links makes sure that the discussion of the resource in your review can be followed even if the web addresses of the resource have changed or do no longer exist. This happens more often than you might expect! – for example when a resource is updated technically, relaunched, moved, or abandoned for some reason.</item>
+          <item>Exceptions to the previous recommendation are pages that have their own <ref target="https://en.wikipedia.org/wiki/DOI">DOI</ref> or a <ref target="https://en.wikipedia.org/wiki/Permalink">permalink</ref> for which it can be assumed that they will be permanently accessible. However, please note that even a general DOI can point to a site with changing content or comprise a whole set of sites which can change.</item>
+          <item>If you cite links as part of bibliographic references or just as general references to other resources, sites, or projects (e.g. "an example of a free encyclopedia is <ref target="https://www.wikipedia.org/">Wikipedia</ref>"), you do not need to archive them. In case you embed such links in the text, just leave them as they are. If you use them in footnotes or references, we recommend adding the date when you accessed the links, in the form '<hi rend="bold">Accessed: Date</hi>' (see the <ref target="https://ride.i-d-e.de/reviewers/writing-guidelines/#bibliography">Bibliography</ref> section below for details). If you accessed all those links on the same day, you can also indicate a general accessed-date in a footnote at the beginning of your review (e.g. "All links accessed on …") – please observe that sites that you discuss should still be archived!</item>
+        </list>
+        <div>
+          <head>How to archive links:</head>
+          <p>To <hi rend="bold">archive links</hi>, please use the <ref target="http://archive.org/web/">archive.org 'Save Page Now'-service</ref>. With this, a snapshot of a page can be created which is versioned and persists over time. In order to create a snapshot, navigate to <ref target="http://archive.org/web/">http://archive.org/web/</ref> and enter the link in the 'Save a Page' form. This will create a snapshot and refer you to the saved page. Please use the link of this saved page instead of the original link in your written review. For archived links, no "Accessed"-date, which is usually required in the bibliographic accounting of web-links, needs to be indicated. Example:</p>
+          <p>Original link: <ref target="http://www.pessoadigital.pt/en/index.html">http://www.pessoadigital.pt/en/index.html</ref></p>
+          <p>Snapshot link: <ref target="https://web.archive.org/web/20210228175136/http://www.pessoadigital.pt/en/index.html">https://web.archive.org/web/20210228175136/http://www.pessoadigital.pt/en/index.html</ref></p>
+          <p><hi rend="bold">Caveat</hi>: Unfortunately, not every page is archivable using the 'Save a Page' service. Some server configurations are incompatible with the service and sometimes the application itself will make it impossible to refer to a specific page. Please always check whether the snapshot really contains the data you try to archive. Should you be unable to create a usable snapshot, revert to the 'Accessed: Date' method outlined below in the section on bibliography or include a screenshot if appropriate.</p>
+        </div>
+      </div>
+      <div>
+        <head>Bibliography</head>
+        <p>RIDE reviews require the provision of a bibliography. RIDE uses the <hi rend="bold">Chicago Author-Date style</hi>. A short summary can be found <ref target="http://library.williams.edu/citing/styles/chicago2.php">here</ref>.</p>
+        <p>Some examples for in-text citations:</p>
+        <list>
+          <item>Direct citation with page: These notes and scribbles are commonly referred to as 'marginalia' and are the first traces of what John Bryant calls 'the moment of artistic creation' (Bryant 1991, 5).</item>
+          <item>Direct citation, several authors, without page: But for the autodidact Herman Melville reading served as "the means and impetus for his phenomenal literary achievements" (Olsen-Smith, Norberg, and Marnon 2008).</item>
+          <item>Indirect citation, two references with pages: It was considered a useful reading aid that allowed the reader a better comprehension of a given text (Hooks 2012, 636; Blair 2003, 11).</item>
+        </list>
+        <p>Some examples for entries in the bibliography:</p>
+        <list>
+          <item><hi rend="bold">Book</hi>: Cowen, Wilson Walker. 1987. <hi rend="italic">Melville's Marginalia.</hi> New York: Garland.</item>
+          <item><hi rend="bold">Chapter in an edited book</hi>: Hooks, Adam G. 2012. "Marginalia." In <hi rend="italic">The Encyclopedia of English Renaissance Literature</hi>, edited by Garret A. Sullivan, Jr. and Alan Stewart, 636–637. London: Wiley-Blackwell.</item>
+          <item><hi rend="bold">Journal Article</hi>: Bryant, John. 1991. "Melville's 'Typee' Manuscript and the Limits of Historicism." <hi rend="italic">Modern Language Studies</hi>, 21 (2): 3–10.</item>
+          <item><hi rend="bold">Website (archived, subpage)</hi>: Olsen-Smith, Steven, Peter Norberg, and Dennis C. Marnon. 2008. "Online Catalog of Books and Documents Owned, Borrowed and Consulted by Herman Melville." Melville's Marginalia Online. <ref target="http://web.archive.org/web/20140805084911/http://melvillesmarginalia.org/m.php?p=userinterface_new">http://web.archive.org/web/20140805084911/http://melvillesmarginalia.org/m.php?p=userinterface_new</ref>.</item>
+          <item><hi rend="bold">Website (accessed-date, whole website)</hi>: Sepúlveda, Pedro, Ulrike Henny-Krahmer, and Jorge Uribe, eds. 2017. <hi rend="italic">Digital Edition of Fernando Pessoa. Projects and Publications</hi>. Accessed February 28, 2021. <ref target="http://www.pessoadigital.pt/en/index.html">http://www.pessoadigital.pt/en/index.html</ref>.</item>
+        </list>
+        <p>For further examples please consult external documentation of the <ref target="http://library.williams.edu/citing/styles/chicago2.php">Chicago-Author-Date</ref> style.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

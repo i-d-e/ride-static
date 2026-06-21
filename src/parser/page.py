@@ -8,6 +8,7 @@ block-level indentation whitespace is dropped (insignificant).
 """
 from __future__ import annotations
 
+import textwrap
 from pathlib import Path
 
 import lxml.etree as ET
@@ -15,6 +16,8 @@ import lxml.etree as ET
 from src.model.page import (
     BulletList,
     Cell,
+    Code,
+    CodeBlock,
     Email,
     Hi,
     Lb,
@@ -34,7 +37,7 @@ from src.render.html import REPO_ROOT
 PAGES_DIR = REPO_ROOT / "pages"
 TEI_NS = "http://www.tei-c.org/ns/1.0"
 
-_BLOCK_TAGS = {"div", "p", "list", "table"}
+_BLOCK_TAGS = {"div", "p", "list", "table", "eg"}
 
 
 def _local(tag) -> str:
@@ -65,6 +68,8 @@ def _parse_inlines(el) -> tuple:
             out.append(PersName(name="".join(ch.itertext()), ref=ch.get("ref")))
         elif tag == "email":
             out.append(Email("".join(ch.itertext())))
+        elif tag == "code":
+            out.append(Code("".join(ch.itertext())))
         elif tag == "hi":
             out.append(Hi(rend=ch.get("rend"), children=_parse_inlines(ch)))
         elif tag == "lb":
@@ -114,6 +119,11 @@ def _parse_block(el):
             if _local(r.tag) == "row"
         )
         return Table(rows=rows)
+    if tag == "eg":
+        # Verbatim example. Drop the indentation the source uses to align the
+        # block with the surrounding XML; keep the code's own relative layout.
+        raw = "".join(el.itertext())
+        return CodeBlock(text=textwrap.dedent(raw).strip("\n"))
     return None
 
 

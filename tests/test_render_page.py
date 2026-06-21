@@ -89,6 +89,33 @@ def test_text_is_escaped(tmp_path):
     assert "a < b & c" not in html
 
 
+CODE_SAMPLE = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader><fileDesc>
+    <titleStmt><title>Code</title></titleStmt>
+    <publicationStmt><publisher>X</publisher></publicationStmt>
+    <sourceDesc><p>born digital</p></sourceDesc>
+  </fileDesc></teiHeader>
+  <text><body>
+    <p>Use <code>&lt;rs&gt;</code> and <code>@type</code>.</p>
+    <eg><![CDATA[
+<teiHeader>
+    <fileDesc/>
+</teiHeader>
+]]></eg>
+  </body></text>
+</TEI>
+"""
+
+
+def test_code_renders_inline_and_block(tmp_path):
+    html = render_page_body(parse_page(_write(tmp_path, CODE_SAMPLE)))
+    assert "<code>&lt;rs&gt;</code>" in html
+    assert "<code>@type</code>" in html
+    # Block code escapes its angle brackets inside <pre><code>.
+    assert "<pre><code>&lt;teiHeader&gt;\n    &lt;fileDesc/&gt;\n&lt;/teiHeader&gt;</code></pre>" in html
+
+
 @needs_corpus
 def test_render_ethical_code_full_page():
     page = parse_page(PAGES_DIR / "ethical-code.xml")

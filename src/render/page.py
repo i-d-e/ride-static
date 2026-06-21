@@ -18,6 +18,8 @@ from jinja2 import Environment
 
 from src.model.page import (
     BulletList,
+    Code,
+    CodeBlock,
     Email,
     Hi,
     Lb,
@@ -66,6 +68,8 @@ def _inlines_html(nodes: tuple) -> str:
                 out.append(f'<span class="ride-persname">{name}</span>')
         elif isinstance(n, Ref):
             out.append(f'<a href="{_esc(n.target)}">{_inlines_html(n.children)}</a>')
+        elif isinstance(n, Code):
+            out.append(f"<code>{_txt(n.value)}</code>")
         elif isinstance(n, Hi):
             tag = _HI_TAG.get(n.rend or "", "span")
             out.append(f"<{tag}>{_inlines_html(n.children)}</{tag}>")
@@ -91,6 +95,8 @@ def _block_html(block, level: int) -> str:
             cells = "".join(f"<td>{_inlines_html(c.inlines)}</td>" for c in r.cells)
             rows += f"<tr>{cells}</tr>\n"
         return f"<table>\n{rows}</table>\n"
+    if isinstance(block, CodeBlock):
+        return f"<pre><code>{_txt(block.text)}</code></pre>\n"
     return ""
 
 

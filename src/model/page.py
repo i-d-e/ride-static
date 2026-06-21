@@ -52,7 +52,14 @@ class Hi:
     children: tuple["Inline", ...] = ()
 
 
-Inline = Union[Text, Lb, Email, PersName, Ref, Hi]
+@dataclass(frozen=True)
+class Code:
+    """Inline verbatim code (<code>): an element or attribute mention."""
+
+    value: str
+
+
+Inline = Union[Text, Lb, Email, PersName, Ref, Hi, Code]
 
 
 # ── Block nodes ───────────────────────────────────────────────────────
@@ -89,12 +96,19 @@ class Table:
 
 
 @dataclass(frozen=True)
+class CodeBlock:
+    """A verbatim code example (<eg>); whitespace inside ``text`` is kept."""
+
+    text: str
+
+
+@dataclass(frozen=True)
 class Section:
     head: tuple[Inline, ...]
     blocks: tuple["Block", ...]
 
 
-Block = Union[Section, Para, BulletList, Table]
+Block = Union[Section, Para, BulletList, Table, CodeBlock]
 
 
 # ── Page ──────────────────────────────────────────────────────────────
@@ -131,6 +145,8 @@ def inline_text(nodes: tuple[Inline, ...]) -> str:
             parts.append(n.value)
         elif isinstance(n, PersName):
             parts.append(n.name)
+        elif isinstance(n, Code):
+            parts.append(n.value)
         elif isinstance(n, (Ref, Hi)):
             parts.append(inline_text(n.children))
     return "".join(parts)
@@ -147,6 +163,8 @@ def block_text(block: Block) -> str:
         return "".join(
             inline_text(c.inlines) for r in block.rows for c in r.cells
         )
+    if isinstance(block, CodeBlock):
+        return block.text
     return ""
 
 

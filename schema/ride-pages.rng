@@ -4,8 +4,10 @@
 
   Governs the non-review pages migrated from the RIDE WordPress site
   (About, Reviewers, Data, Reviewing Criteria, …). Deliberately small and
-  uniform: the body is div/head/p/list/table, the inline set is
-  ref/persName/email/hi. The teiHeader is a reduced projection of the
+  uniform: the body is div/head/p/list/table plus eg (verbatim code
+  block), the inline set is ref/persName/email/code/hi. The eg/code pair
+  was added for the writing-guidelines page, whose source carries literal
+  TEI and code examples. The teiHeader is a reduced projection of the
   review header (schema/ride.rng): same publisher, journal seriesStmt,
   licence and idno conventions, without the reviewer, issue scope,
   reviewed-resource note or questionnaire taxonomy.
@@ -84,6 +86,7 @@
       <ref name="p"/>
       <ref name="list"/>
       <ref name="table"/>
+      <ref name="eg"/>
     </choice>
   </define>
 
@@ -126,6 +129,15 @@
     </element>
   </define>
 
+  <!-- Verbatim block code example (TEI <eg>): whitespace-significant text,
+       a caption is carried by the following <p>, as on the source page. -->
+  <define name="eg">
+    <element name="eg">
+      <optional><attribute name="rend"/></optional>
+      <text/>
+    </element>
+  </define>
+
   <!-- Mixed inline content: text interleaved with inline elements. -->
   <define name="inline">
     <zeroOrMore>
@@ -147,6 +159,7 @@
         <text/>
       </element>
       <element name="email"><text/></element>
+      <element name="code"><text/></element>
       <element name="hi">
         <optional><attribute name="rend"/></optional>
         <ref name="inline"/>

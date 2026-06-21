@@ -17,6 +17,8 @@ import pytest
 
 from src.model.page import (
     BulletList,
+    Code,
+    CodeBlock,
     Email,
     Hi,
     Lb,
@@ -158,6 +160,43 @@ def test_lb_contributes_no_text(tmp_path):
     page = parse_page(_write(tmp_path, SAMPLE))
     # The line break joins the two lines without inserting a space.
     assert "breaksecond line" in page_text(page)
+
+
+SAMPLE_CODE = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader><fileDesc>
+    <titleStmt><title>Code Page</title></titleStmt>
+    <publicationStmt><publisher>X</publisher></publicationStmt>
+    <sourceDesc><p>born digital</p></sourceDesc>
+  </fileDesc></teiHeader>
+  <text><body>
+    <p>Encode with <code>&lt;rs&gt;</code> and <code>@type</code>.</p>
+    <eg><![CDATA[
+<teiHeader>
+    <fileDesc/>
+</teiHeader>
+]]></eg>
+    <p>Code 1: TEI Header.</p>
+  </body></text>
+</TEI>
+"""
+
+
+def test_code_inline_and_block(tmp_path):
+    page = parse_page(_write(tmp_path, SAMPLE_CODE))
+    # Inline <code> mentions in the lead paragraph, verbatim.
+    lead = page.blocks[0]
+    codes = [n for n in lead.inlines if isinstance(n, Code)]
+    assert [c.value for c in codes] == ["<rs>", "@type"]
+    # Block <eg>: dedented, surrounding newlines trimmed, inner layout kept.
+    cb = page.blocks[1]
+    assert isinstance(cb, CodeBlock)
+    assert cb.text == "<teiHeader>\n    <fileDesc/>\n</teiHeader>"
+    # The caption is the following paragraph, not part of the code block.
+    assert isinstance(page.blocks[2], Para)
+    assert inline_text(page.blocks[2].inlines) == "Code 1: TEI Header."
+    # Code text reaches the text projection (fidelity checks see it).
+    assert "<teiHeader>" in page_text(page)
 
 
 # ── Real corpus ───────────────────────────────────────────────────────
