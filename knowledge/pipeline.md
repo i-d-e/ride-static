@@ -182,7 +182,7 @@ Strict is cleaner; pick before Phase 15.
 | PDF engine | WeasyPrint, with own print stylesheet | [[specification#A6 PDF-Pfad]] |
 | Search engine | Pagefind, build-time index, client-side runtime | [[specification#A4 Volltextsuche]] |
 | Hosting platform | GitHub Pages | [[specification#2 Plattform und Architekturgrundsätze]] |
-| Editorial format | Markdown with frontmatter, in-repo | [[specification#A3 Redaktionelle Texte]] |
+| Editorial format | TEI under `pages/` (A3); `content/*.md` legacy-active until the build cutover | [[specification#A3 Redaktionelle Texte]] |
 | Tag source of truth | TEI only; WordPress retired post-consolidation | [[specification#A2 Datenquellen]] |
 | Machine APIs | OAI-PMH + JSON-LD + JSON dump + sitemap with `schema.org/ScholarlyArticle` | [[specification#A5 Maschinenschnittstellen]] |
 

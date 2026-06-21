@@ -45,7 +45,7 @@ Build läuft in einem Linux-Runner mit Python und Node-Toolchain. Externe Biblio
 
 URL-Struktur folgt der Verzeichnisstruktur des Deploy-Branches. Headers, Redirects und 404-Handling sind nur in dem Maß möglich, das GitHub Pages bietet.
 
-Drei übergreifende Architekturgrundsätze gelten in allen Bereichen. Die Pipeline ist read-only gegenüber TEI; sie schreibt niemals zurück. TEI ist die einzige Quelle der Wahrheit für strukturierte Inhalte. Redaktionelle Texte werden als Markdown im Repository gepflegt und sind ohne Programmierkenntnisse änderbar.
+Drei übergreifende Architekturgrundsätze gelten in allen Bereichen. Die Pipeline ist read-only gegenüber TEI; sie schreibt niemals zurück. TEI ist die einzige Quelle der Wahrheit für strukturierte Inhalte, auch für die redaktionellen Editorialseiten, die als TEI unter `pages/` gepflegt werden (A3, R10). Bis zum Build-Cutover rendert der Build diese Seiten weiter aus den bestehenden `content/*.md`; die Home-Widgets und das Issue-YAML bleiben als Markdown bzw. YAML programmierkenntnisfrei änderbar.
 
 ## 3. Rollen
 
