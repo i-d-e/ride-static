@@ -216,6 +216,59 @@ def test_related_item_title_extracted_from_real_corpus() -> None:
     assert reviewed.title == "1641 Depositions"
 
 
+def test_related_item_personnel_from_respStmt(tmp_path: Path) -> None:
+    """The reviewed_resource's project contributors come from
+    <bibl>/<respStmt> as (resp, persName) pairs — order preserved,
+    duplicates across roles kept (Factsheet People block, R18)."""
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xml:id="ride.99.51">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt><title>R</title><author><name>A</name></author></titleStmt>
+      <publicationStmt>
+        <date when="2024-01-01">2024</date>
+        <idno type="DOI">10.example/z</idno>
+        <availability><licence target="https://x">x</licence></availability>
+      </publicationStmt>
+      <seriesStmt><editor>E</editor><biblScope n="99"/></seriesStmt>
+      <notesStmt>
+        <relatedItem type="reviewed_resource">
+          <bibl>
+            <title>Reviewed Edition</title>
+            <respStmt><resp>Editor</resp><persName>Smith, Pamela</persName></respStmt>
+            <respStmt><resp>Programmer</resp><persName>Catapano, Terry</persName></respStmt>
+            <respStmt><resp>Editor</resp><persName>Smith, Pamela</persName></respStmt>
+          </bibl>
+        </relatedItem>
+      </notesStmt>
+      <sourceDesc><p>x</p></sourceDesc>
+    </fileDesc>
+    <profileDesc><langUsage><language ident="en">English</language></langUsage></profileDesc>
+  </teiHeader>
+  <text><body><div><p>x</p></div></body></text>
+</TEI>
+"""
+    p = tmp_path / "personnel-shape.xml"
+    p.write_text(xml, encoding="utf-8")
+    r = parse_review(p)
+    [reviewed] = r.related_items
+    assert reviewed.personnel == (
+        ("Editor", "Smith, Pamela"),
+        ("Programmer", "Catapano, Terry"),
+        ("Editor", "Smith, Pamela"),  # duplicate kept verbatim
+    )
+
+
+@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+def test_related_item_personnel_from_real_corpus() -> None:
+    """makingandknowing lists its project people in <respStmt>; the parser
+    surfaces ('Editor', 'Smith, Pamela') and a Programmer among them."""
+    r = parse_review(find_tei("makingandknowing"))
+    reviewed = next(ri for ri in r.related_items if ri.type == "reviewed_resource")
+    assert ("Editor", "Smith, Pamela") in reviewed.personnel
+    assert any(resp == "Programmer" for resp, _ in reviewed.personnel)
+
+
 def test_review_is_immutable(fixture_path: Path) -> None:
     r = parse_review(fixture_path)
     with pytest.raises(Exception):

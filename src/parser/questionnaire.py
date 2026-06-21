@@ -16,8 +16,13 @@ from typing import Optional
 
 from lxml import etree
 
-from src.model.questionnaire import Questionnaire, QuestionnaireAnswer, TaxonomySection
-from src.parser.common import NS, TEI_NS, attr
+from src.model.questionnaire import (
+    Questionnaire,
+    QuestionnaireAnswer,
+    QuestionnaireQuestion,
+    TaxonomySection,
+)
+from src.parser.common import NS, TEI_NS, attr, itertext
 
 
 def parse_questionnaires(
@@ -35,6 +40,26 @@ def parse_questionnaires(
         return ()
     taxonomies = root.findall(".//t:teiHeader//t:taxonomy", NS)
     return tuple(_parse_taxonomy(t) for t in taxonomies)
+
+
+def parse_questionnaire_questions(
+    root: Optional[etree._Element],
+) -> tuple[tuple[str, tuple[QuestionnaireQuestion, ...]], ...]:
+    """Per ``<taxonomy>``, the question-by-question view for the Factsheet
+    full page (R18).
+
+    Returns one ``(criteria_url, questions)`` pair per taxonomy, in
+    document order, so a review with several taxonomies yields several
+    blocks. ``()`` for missing input. Kept as a standalone walker (rather
+    than folded only into :class:`Questionnaire`) so the renderer and tests
+    can reach the question structure without re-reading the flat answers.
+    """
+    if root is None:
+        return ()
+    taxonomies = root.findall(".//t:teiHeader//t:taxonomy", NS)
+    return tuple(
+        (attr(t, "xml:base") or "", _parse_questions(t)) for t in taxonomies
+    )
 
 
 def _parse_taxonomy(tax: etree._Element) -> Questionnaire:
@@ -65,7 +90,11 @@ def _parse_taxonomy(tax: etree._Element) -> Questionnaire:
         if value is None:
             continue
         answers.append(QuestionnaireAnswer(category_xml_id=xid, value=value))
-    return Questionnaire(criteria_url=criteria_url, answers=tuple(answers))
+    return Questionnaire(
+        criteria_url=criteria_url,
+        answers=tuple(answers),
+        questions=_parse_questions(tax),
+    )
 
 
 def parse_taxonomy_sections(
@@ -161,3 +190,162 @@ def _find_num_in_any_catdesc(cat: etree._Element) -> Optional[etree._Element]:
         if num is not None:
             return num
     return None
+
+
+# ── Question-by-question view (R18) ───────────────────────────────────
+
+
+def _parse_questions(tax: etree._Element) -> tuple[QuestionnaireQuestion, ...]:
+    """Walk a ``<taxonomy>`` into one :class:`QuestionnaireQuestion` per
+    criterion, carrying section, labels, K-ref and resolved selection.
+
+    The corpus runs two taxonomy shapes. The digital-editions/tools sets
+    nest Yes/No option leaves under each question category; the
+    text-collections set carries the ``<num>`` directly in a question's
+    own ``<catDesc>`` for binary criteria and uses (often label-less)
+    option leaves for categorical ones. One walker handles both: a
+    question is any category that bears question text or holds option
+    leaves, and selection is read from whichever shape applies.
+    """
+    questions: list[QuestionnaireQuestion] = []
+    for top_cat in tax.findall("t:category", NS):
+        section_label = _section_label(top_cat)
+        for q_cat in _iter_question_categories(top_cat):
+            questions.append(_build_question(q_cat, section_label))
+    return tuple(questions)
+
+
+def _iter_question_categories(section: etree._Element):
+    """Yield the question-level categories under a top-level section.
+
+    A question category either carries question text in a ``<catDesc>``
+    or directly holds option leaves; a leaf option (only a ``<num>`` /
+    short label, no nested category) is never a question. Walks one level
+    of nesting beyond the immediate children to reach text-collections
+    sections that wrap their questions in an extra intermediate category.
+    """
+    for child in section.findall("t:category", NS):
+        if _is_question(child):
+            yield child
+        elif child.find("t:category", NS) is not None:
+            # Intermediate wrapper — descend one level for its questions.
+            for grandchild in child.findall("t:category", NS):
+                if _is_question(grandchild):
+                    yield grandchild
+
+
+def _is_question(cat: etree._Element) -> bool:
+    """A category is a question when it has option-leaf children or carries
+    its own answer ``<num>`` alongside descriptive text."""
+    has_option_children = any(
+        _find_num_in_any_catdesc(sub) is not None
+        for sub in cat.findall("t:category", NS)
+    )
+    has_own_num = _find_num_in_any_catdesc(cat) is not None
+    return has_option_children or has_own_num
+
+
+def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQuestion:
+    label, question_text, criteria_ref = _question_texts(q_cat)
+    selected: list[str] = []
+    anomaly = False
+
+    option_cats = [
+        sub
+        for sub in q_cat.findall("t:category", NS)
+        if _find_num_in_any_catdesc(sub) is not None
+    ]
+    if option_cats:
+        # Nested option leaves (Yes/No or categorical). One label each.
+        for opt in option_cats:
+            num = _find_num_in_any_catdesc(opt)
+            value = num.get("value") if num is not None else None
+            if value == "3":
+                anomaly = True
+                continue
+            if value == "1":
+                selected.append(_option_label(opt))
+    else:
+        # Inline-num binary question (text-collections boolean shape).
+        num = _find_num_in_any_catdesc(q_cat)
+        value = num.get("value") if num is not None else None
+        if value == "3":
+            anomaly = True
+        elif value == "1":
+            selected.append("Yes")
+        elif value == "0":
+            selected.append("No")
+
+    return QuestionnaireQuestion(
+        section_label=section_label,
+        question_label=label,
+        question_text=question_text,
+        criteria_ref=criteria_ref,
+        selected=tuple(selected),
+        anomaly=anomaly,
+    )
+
+
+def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str]]:
+    """Resolve (short_label, full_text, criteria_ref) for a question.
+
+    The descriptive ``<catDesc>`` children of a question (those without a
+    ``<num>``) carry the texts. The short-label catDesc holds an optional
+    ``<ref @target>`` K-ref; the question-text catDesc is the longest plain
+    description. Either may be absent; the xml:id is the last-resort label.
+    """
+    descs = [
+        cd
+        for cd in q_cat.findall("t:catDesc", NS)
+        if cd.find("t:num", NS) is None
+    ]
+    criteria_ref: Optional[str] = None
+    texts: list[str] = []
+    for cd in descs:
+        ref = cd.find("t:ref", NS)
+        if ref is not None and criteria_ref is None:
+            criteria_ref = attr(ref, "target")
+        # Label text excludes the K-ref boilerplate ("cf. Catalogue …").
+        own = _catdesc_text_without_ref(cd)
+        texts.append(own)
+
+    texts = [t for t in texts if t]
+    label = texts[0] if texts else (attr(q_cat, "xml:id") or "")
+    # The full question text is the longest descriptive catDesc, which is
+    # the question prompt in both shapes; falls back to the label.
+    question_text = max(texts, key=len) if texts else ""
+    if question_text == label and len(texts) > 1:
+        question_text = texts[1]
+    return label, question_text, criteria_ref
+
+
+def _catdesc_text_without_ref(cat_desc: etree._Element) -> str:
+    """catDesc text with any nested ``<ref>`` content removed."""
+    parts: list[str] = []
+    if cat_desc.text:
+        parts.append(cat_desc.text)
+    for child in cat_desc:
+        if etree.QName(child).localname == "ref":
+            if child.tail:
+                parts.append(child.tail)
+            continue
+        parts.append("".join(child.itertext()))
+        if child.tail:
+            parts.append(child.tail)
+    text = "".join(parts)
+    import re
+
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _option_label(opt: etree._Element) -> str:
+    """Label of a leaf option: its first non-num catDesc text, else the
+    suffix of its xml:id (``selection_language`` → "language")."""
+    for cd in opt.findall("t:catDesc", NS):
+        if cd.find("t:num", NS) is not None:
+            continue
+        text = _catdesc_text_without_ref(cd)
+        if text:
+            return text
+    xid = attr(opt, "xml:id") or ""
+    return xid.rsplit("_", 1)[-1] if xid else "(option)"

@@ -75,6 +75,14 @@ class RelatedItem:
     the byline cite; ``bibl_text`` keeps the flat itertext for fallback
     and for the JSON-LD/OAI-PMH ``name`` literal."""
 
+    personnel: tuple[tuple[str, str], ...] = field(default_factory=tuple)
+    """The reviewed project's contributors from ``<bibl>/<respStmt>``,
+    each a ``(resp, persName)`` pair (e.g. ``("Editor", "Smith, Pamela")``).
+    Document order is preserved and duplicates are kept verbatim, because
+    the corpus repeats persons across roles. Feeds the Factsheet "People"
+    block (R18); empty for criteria relatedItems and reviewed resources
+    that carry no respStmt."""
+
 
 @dataclass(frozen=True)
 class Review:

@@ -49,6 +49,13 @@
         </dd>
       </dl>
     {%- endfor -%}
+
+    {#- Link to the full Factsheet page (R18). Relative to the review's
+        own URL, so it resolves to /issues/{N}/{id}/factsheet/. The
+        aggregate above is unchanged; this is purely additive. -#}
+    <p class="ride-factsheet__full-link">
+      <a href="factsheet/">{{ strings.get('full_factsheet', 'Full factsheet') }}</a>
+    </p>
   </section>
   {%- endif -%}
 {%- endmacro -%}

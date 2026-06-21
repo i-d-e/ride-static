@@ -17,7 +17,8 @@ it to an integer and losing the signal.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,36 @@ class QuestionnaireAnswer:
 
 
 @dataclass(frozen=True)
+class QuestionnaireQuestion:
+    """One question of a taxonomy with its resolved selection.
+
+    Feeds the question-by-question Factsheet full page (R18). Unlike the
+    flat :class:`QuestionnaireAnswer` tuple, this carries the human-readable
+    structure the taxonomy holds but the answer-level model discards:
+    section heading, short label, full question text, K-ref criteria target,
+    and the *labels* of the leaf options the review actually selected.
+
+    ``selected`` is the labels of leaf options whose ``<num>`` is ``"1"``,
+    in document order: empty when nothing was selected, one entry for a
+    binary question (Yes/No), several for a categorical question that
+    permits multiple answers (e.g. "Subject", "Document era"). ``anomaly``
+    is set when any leaf carried the ``value="3"`` non-evaluated marker
+    (per R9); such leaves never count as selected.
+
+    ``criteria_ref`` is the raw ``<ref @target>`` of the short label
+    (e.g. ``"#K1.2"``); renderers resolve it against the taxonomy's
+    ``criteria_url`` to build the external criteria link.
+    """
+
+    section_label: str
+    question_label: str
+    question_text: str
+    criteria_ref: Optional[str]
+    selected: tuple[str, ...]
+    anomaly: bool = False
+
+
+@dataclass(frozen=True)
 class Questionnaire:
     """One ``<taxonomy>`` instance from a review's ``<classDecl>``.
 
@@ -46,10 +77,16 @@ class Questionnaire:
     ``answers`` is an ordered tuple of :class:`QuestionnaireAnswer`,
     in document order — i.e. in the order the categories appear in
     the criteria set.
+
+    ``questions`` is the question-by-question view used by the Factsheet
+    full page (R18): the same taxonomy seen one criterion at a time, with
+    labels, full text, K-ref and resolved selection. Empty by default so
+    existing call-sites and the flat ``answers`` consumers are untouched.
     """
 
     criteria_url: str
     answers: tuple[QuestionnaireAnswer, ...]
+    questions: tuple[QuestionnaireQuestion, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)

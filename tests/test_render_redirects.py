@@ -52,6 +52,26 @@ def test_write_redirects_emits_per_review_stub(tmp_path: Path) -> None:
     assert 'rel="canonical"' in html
 
 
+def test_write_redirects_emits_factsheet_stub(tmp_path: Path) -> None:
+    """The legacy factsheet sub-page redirects to the new factsheet path (R18)."""
+    review = _stub_review("22", "ride.22.1", "arendt-tei.xml")
+    write_redirects((review,), tmp_path)
+    legacy = tmp_path / "issues" / "issue-22" / "arendt" / "factsheet" / "index.html"
+    assert legacy.exists()
+    html = legacy.read_text(encoding="utf-8")
+    assert 'http-equiv="refresh"' in html
+    assert "/issues/22/ride.22.1/factsheet/" in html
+
+
+def test_write_redirects_factsheet_stub_carries_base_url(tmp_path: Path) -> None:
+    review = _stub_review("5", "ride.5.4", "1641-tei.xml")
+    write_redirects((review,), tmp_path, base_url="/ride-static")
+    html = (
+        tmp_path / "issues" / "issue-5" / "1641" / "factsheet" / "index.html"
+    ).read_text(encoding="utf-8")
+    assert "/ride-static/issues/5/ride.5.4/factsheet/" in html
+
+
 def test_write_redirects_emits_per_issue_stub(tmp_path: Path) -> None:
     review = _stub_review("13", "ride.13.1", "wega-tei.xml")
     write_redirects((review,), tmp_path)

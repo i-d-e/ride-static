@@ -9,7 +9,9 @@ Three URL families need redirecting:
 1. **Per-review URLs.** ``/issues/issue-{N}/{slug}/`` →
    ``/issues/{N}/{review_id}/``. The slug is the TEI filename stem
    (``arendt`` for ``arendt-tei.xml``); review-id is parsed from
-   ``<TEI/@xml:id>``.
+   ``<TEI/@xml:id>``. The legacy factsheet sub-page
+   ``/issues/issue-{N}/{slug}/factsheet`` redirects to its new
+   ``/issues/{N}/{review_id}/factsheet/`` (R18).
 2. **Per-issue URLs.** ``/issues/issue-{N}/`` → ``/issues/{N}/``.
 3. **Editorial URLs.** A static map under
    :data:`EDITORIAL_REDIRECTS` covers the live menu's stable paths
@@ -110,6 +112,11 @@ def write_redirects(
         write_at(
             f"issues/issue-{review.issue}/{slug}",
             f"/issues/{review.issue}/{review.id}/",
+        )
+        # Legacy factsheet URL (R18) → new factsheet sub-page.
+        write_at(
+            f"issues/issue-{review.issue}/{slug}/factsheet",
+            f"/issues/{review.issue}/{review.id}/factsheet/",
         )
 
     for issue_no in seen_issues:

@@ -52,6 +52,7 @@ from src.render.aggregations import (
 )
 from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL, to_corpus_dump_string
 from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
+from src.render.factsheet import render_factsheet
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
     IssueConfigError,
@@ -135,6 +136,13 @@ def _render_review(
 
     html = render_review(review, site=site, env=env)
     (page_dir / "index.html").write_text(html, encoding="utf-8")
+
+    # Factsheet full page (R18) — /issues/{N}/{id}/factsheet/index.html.
+    factsheet_dir = page_dir / "factsheet"
+    factsheet_dir.mkdir(parents=True, exist_ok=True)
+    (factsheet_dir / "index.html").write_text(
+        render_factsheet(review, site=site, env=env), encoding="utf-8"
+    )
 
     # Drop the original TEI alongside, per specification.md R3 (download).
     target_xml = page_dir / f"{review.id or path.stem}.xml"

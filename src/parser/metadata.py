@@ -121,6 +121,18 @@ def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem
             if title_el is not None:
                 title = itertext(title_el) or None
 
+        # Reviewed-project contributors from <bibl>/<respStmt> — one
+        # (resp, persName) pair each, document order, duplicates kept
+        # (the corpus repeats persons across roles).
+        personnel: list[tuple[str, str]] = []
+        if bibl_el is not None:
+            for resp_stmt in findall(bibl_el, "t:respStmt"):
+                resp = itertext(find(resp_stmt, "t:resp"))
+                for pers in findall(resp_stmt, "t:persName"):
+                    name = itertext(pers)
+                    if resp or name:
+                        personnel.append((resp, name))
+
         out.append(RelatedItem(
             type=attr(ri_el, "type") or "",
             bibl_text=itertext(bibl_el) if bibl_el is not None else itertext(ri_el),
@@ -128,5 +140,6 @@ def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem
             xml_id=attr(ri_el, "xml:id"),
             last_accessed=last_accessed,
             title=title,
+            personnel=tuple(personnel),
         ))
     return out

@@ -22,7 +22,10 @@ import pytest
 from lxml import etree
 
 from src.model.questionnaire import Questionnaire, QuestionnaireAnswer
-from src.parser.questionnaire import parse_questionnaires
+from src.parser.questionnaire import (
+    parse_questionnaire_questions,
+    parse_questionnaires,
+)
 from src._corpus import find_tei
 
 
@@ -258,3 +261,180 @@ def test_real_corpus_value_3_anomaly_review_pinned() -> None:
     qs = parse_questionnaires(tree.getroot())
     values = {a.value for q in qs for a in q.answers}
     assert "3" in values, "varitext-tei.xml should carry a value='3' answer"
+
+
+# -- Question-by-question view (R18) --------------------------------------
+
+
+def test_parse_questions_yes_no_shape():
+    """Digital-editions shape: question category with two label catDescs
+    (short label + K-ref, then full text) and Yes/No option leaves."""
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category>
+                    <catDesc>Documentation</catDesc>
+                    <category xml:id="se001">
+                      <catDesc>Bibliographic description <ref target="#K1.2">cf. Catalogue 1.2</ref></catDesc>
+                      <catDesc>Is it possible to describe the project bibliographically?</catDesc>
+                      <category xml:id="se002">
+                        <catDesc>Yes</catDesc>
+                        <catDesc><num type="boolean" value="1"/></catDesc>
+                      </category>
+                      <category xml:id="se003">
+                        <catDesc>No</catDesc>
+                        <catDesc><num type="boolean" value="0"/></catDesc>
+                      </category>
+                    </category>
+                  </category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    blocks = parse_questionnaire_questions(root)
+    assert len(blocks) == 1
+    url, questions = blocks[0]
+    assert url == "http://example.org/c"
+    assert len(questions) == 1
+    q = questions[0]
+    assert q.section_label == "Documentation"
+    assert q.question_label == "Bibliographic description"
+    assert "bibliographically" in q.question_text
+    assert q.criteria_ref == "#K1.2"
+    assert q.selected == ("Yes",)
+    assert q.anomaly is False
+
+
+def test_parse_questions_categorical_multiple_selected():
+    """Categorical question: several option leaves with value=1 are all
+    reported as selected, label derived from the xml:id suffix when the
+    leaf carries no own label catDesc."""
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category xml:id="composition">
+                    <category xml:id="selection">
+                      <catDesc><ref target="#K3.1">cf. Catalogue 3.1</ref></catDesc>
+                      <catDesc>What selection criteria were chosen?</catDesc>
+                      <category xml:id="selection_language"><catDesc><num value="1"/></catDesc></category>
+                      <category xml:id="selection_author"><catDesc><num value="0"/></catDesc></category>
+                      <category xml:id="selection_genre"><catDesc><num value="1"/></catDesc></category>
+                    </category>
+                  </category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    _, questions = parse_questionnaire_questions(root)[0]
+    assert len(questions) == 1
+    assert questions[0].selected == ("language", "genre")
+
+
+def test_parse_questions_value_3_marks_anomaly_not_selected():
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category xml:id="q1">
+                    <catDesc>Quality check</catDesc>
+                    <category xml:id="q1a"><catDesc>Yes</catDesc><catDesc><num value="3"/></catDesc></category>
+                  </category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    _, questions = parse_questionnaire_questions(root)[0]
+    assert questions[0].anomaly is True
+    assert questions[0].selected == ()
+
+
+def test_parse_questions_inline_num_binary_shape():
+    """Text-collections shape: the question category carries the <num>
+    directly with no option children; value=1 maps to a Yes selection."""
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category xml:id="general_information">
+                    <category xml:id="bibl_desc">
+                      <catDesc><ref target="#K1.1">cf. Catalogue 1.1</ref></catDesc>
+                      <catDesc>Can the collection be identified bibliographically?</catDesc>
+                      <catDesc><num type="boolean" value="1"/></catDesc>
+                    </category>
+                  </category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    _, questions = parse_questionnaire_questions(root)[0]
+    assert len(questions) == 1
+    assert questions[0].selected == ("Yes",)
+    assert questions[0].criteria_ref == "#K1.1"
+
+
+def test_parse_questions_root_none_yields_empty():
+    assert parse_questionnaire_questions(None) == ()
+
+
+@needs_corpus
+def test_real_corpus_makingandknowing_first_question() -> None:
+    """The Factsheet contract pin: the first question of makingandknowing
+    is 'Bibliographic description' with 'Yes' selected and K-ref #K1.2."""
+    tree = etree.parse(str(find_tei("makingandknowing")))
+    blocks = parse_questionnaire_questions(tree.getroot())
+    assert len(blocks) == 1
+    url, questions = blocks[0]
+    assert questions, "makingandknowing should yield questions"
+    first = questions[0]
+    assert first.section_label == "Documentation"
+    assert first.question_label == "Bibliographic description"
+    assert "Yes" in first.selected
+    assert first.criteria_ref == "#K1.2"
+
+
+@needs_corpus
+def test_real_corpus_collationtools_three_question_blocks() -> None:
+    """A review with three taxonomies yields three question blocks."""
+    path = find_tei("collationtools")
+    if not path.exists():
+        pytest.skip("collationtools-tei.xml not in corpus")
+    tree = etree.parse(str(path))
+    blocks = parse_questionnaire_questions(tree.getroot())
+    assert len(blocks) == 3
+    assert all(questions for _, questions in blocks)
+
+
+@needs_corpus
+def test_real_corpus_questionnaire_carries_questions() -> None:
+    """``parse_questionnaires`` now populates the per-taxonomy ``questions``
+    field used by the Factsheet full page."""
+    tree = etree.parse(str(find_tei("makingandknowing")))
+    qs = parse_questionnaires(tree.getroot())
+    assert qs[0].questions, "Questionnaire.questions should be populated"
+    assert any("Yes" in q.selected for q in qs[0].questions)
