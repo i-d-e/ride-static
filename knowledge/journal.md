@@ -30,6 +30,28 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — TEI-Konsumtions-Audit, Element-Coverage-Lock eingezogen
+
+**Ziel:** Die Frage „kommt alles aus dem TEI im Frontend an" belastbar beantworten, nicht feldweise sondern systematisch über die volle Element-Inventur beider Korpora.
+
+**Erledigt:**
+- Audit gebaut und ausgeführt (`C:/tmp/ride_tei_consumption_audit.py`, Wegwerf): jeder Element- und Attributpfad aus `pages/*.xml` (27 distinkte Elemente) und `issues/**/*.xml` (77 distinkte) gegen die Referenzmenge aller `src/parser/*.py` gestellt. Roh-Trefferliste in `C:/tmp/ride-tei-consumption-audit.md`.
+- Jeden Treffer am echten TEI trianguliert und geklärt. Ergebnis: kein still verschluckter Inhaltsträger. `add`/`subst` (je 5x) sitzen immer in `<mod>`, das in `PASSTHROUGH_TEXT` steht; ihr Text überlebt über `itertext` (Laufzeit bestätigt: melville „Houghton library" ist im geparsten Body). `gloss` (880x) und `desc` (417x) sind leere Platzhalter `<gloss/>`/`<desc/>` in `catDesc`. Der Rest (`publisher`, `sourceDesc`, `classDecl`, `encodingDesc`, `revisionDesc`, `change`, `listChange`, `space`, diverse `@`-Attribute) ist teiHeader-Verwaltung oder Präsentationsmarkup, das kein Journal-Frontend rendert.
+- Aus dem Einmal-Audit eine dauerhafte Absicherung gemacht: `tests/test_tei_coverage.py`. Lock prüft, dass die Korpus-Element-Inventur Teilmenge einer bewusst klassifizierten Universumsmenge (`KNOWN_ELEMENTS`, je Element eine Zieldestination surfaced/passthrough/header/placeholder/presentational) ist. Ein neues, nie klassifiziertes Element macht den Test rot und erzwingt eine Einordnung.
+- Verifiziert: volle Suite 536 passed / 2 skipped (zwei neue Tests).
+
+**Entscheidungen:**
+- Test als interner, maschinengrüner, additiver Coverage-Lock autonom gesichert statt nur als Befund dokumentiert (Prinzip Drift fixen statt wegdokumentieren): die belastbare Antwort auf „wird alles getestet" ist, es testbar zu machen, nicht einmal von Hand zu prüfen.
+- Lock bewusst auf Element-Granularität begrenzt. Attributwert-Diskriminierung (welche `@type`-Werte von `<date>` gelesen werden, `num/@value`-Semantik) liegt darunter und bleibt Sache der feldweisen Parser/Render-Tests. Genau dort saßen die zwei bekannten Punkte (reviewed-resource publication_date, value=1), nicht auf Elementebene.
+
+**Offen:**
+- Attributwert-Ebene hat keinen analogen Lock. Ob ein solcher lohnt oder die feldweisen Tests genügen, ist offen.
+- Editorial-Seitenkörper (`src/model/page.py`) hat weiterhin keinen element-mapping-Kontrakt wie der Review-Body, nur Schema-Validierung plus Unit-Tests; der neue Coverage-Lock deckt ihn jetzt mit ab.
+
+**Nächster Einstieg:** M3-Reconciliation-Vorschlag je divergierender Editorialseite (`contact`, `imprint`, `data`) als Operator-Entscheidungsvorlage, oder auf die Operator-Entscheidungen zu URL-Scheme und value=1 warten.
+
+---
+
 ## 2026-06-21 — Factsheet-Paritaet verifiziert, reviewed-resource Publikationsdatum ergaenzt
 
 **Ziel:** Das Factsheet (R18) Feld für Feld gegen die Live-Seite stellen, die im alten register geführte Lückenliste prüfen, reale Restlücken schließen.
