@@ -30,6 +30,28 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — Editorial-Paritaetsaudit: M3 ist Reconciliation, nicht Quelltausch
+
+**Ziel:** Den in der Vorsession als Nächster Einstieg notierten Cutover-Spurschritt umsetzen, das editoriale TEI-HTML gegen die bisherige Markdown-Ausgabe diffen, um vor jeder Freigabe zu zeigen, welche Seiten sich beim Cutover ändern.
+
+**Erledigt:**
+- Paritätsaudit über alle Editorialseiten, je Slug Body-Vergleich beider Renderstrecken (Text, Links, Überschriften). Befund und Lagebild je Seite in `reports/audit-ride-static-editorial-paritaet.md` (Leitstelle), Rohlauf und Skript unter `C:/tmp`.
+- Renderer als treu belegt: `publishing-policy` ist über beide Pfade byteidentisch; die Divergenz aller anderen Seiten liegt im Inhalt der Quellbestände, nicht im Rendering.
+- Lokale Sichtungsspur aller 16 TEI-Seiten gerendert und auf Port 8791 serviert (Wegwerf, `C:/tmp/ride-preview`), für die Verbatim-Sichtung der writing-guidelines.
+
+**Entscheidungen:**
+- M3 neu gefasst, kein mechanischer Cutover, sondern Editorial-Reconciliation. Die frühere Äquivalenz-Annahme (in Reports und im Nächsten Einstieg der Vorsession) war falsch und ist hiermit offen korrigiert.
+- Architekturtrennung autonom festgehalten: die generator-nativen Seiten `data`, `data/charts`, `data/questionnaires`, `about` bleiben auf der Generatorseite und werden nicht durch TEI ersetzt; das ist Tatsache, keine redaktionelle Wahl.
+
+**Offen:**
+- Redaktionelle Einzelentscheidung je divergierender Seite (`contact` Stub gegen voll, `imprint` Piwik gegen Matomo samt Schutztext, `data` Zusammenführung der neuen Endpunkte).
+- Slug-Entscheidungen `submitting-a-review` gegen `submission-guidelines` und der `projects-for-review`-Split, zugleich die URL-Scheme-Frage.
+- value=1-Zählfehler (R9, R1) unverändert operator-gated.
+
+**Nächster Einstieg:** Factsheet-Paritätsanalyse als nächster autonomer Schritt, das Live-Factsheet Feld für Feld gegen `src/model/questionnaire.py` und `src/parser/questionnaire.py` stellen und die Lückenliste als R-Klausel-Ergänzung formulieren; reiner Analyse- und Spezifikationsschritt, ohne redaktionellen Input umsetzbar.
+
+---
+
 ## 2026-06-21 — Editorialseiten komplett (16/16): TEI-Migration plus verbatim Code
 
 **Ziel:** Die im Eintrag unten als latenter Befund offene Editorial-Migration abschließen. Die drei wegen einer Profilentscheidung zurückgestellten Seiten (writing-guidelines, publishing-policy, criteria) nach TEI überführen, das Seitenprofil nur so weit erweitern, wie der reale Inhalt es erzwingt. Plus Rundenpflicht: Journal kanonisch nach `knowledge/journal.md`.
