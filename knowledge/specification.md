@@ -69,7 +69,7 @@ Die folgenden sechs Entscheidungen liegen allen Anforderungen zugrunde und sind 
 
 **A2 Datenquellen.** TEI ist alleinige Quelle für Tags, Reviewer-Liste, reviewed resources und alle aus Rezensionen ableitbaren Aggregate. Vor dem ersten Produktiv-Build läuft eine einmalige redaktionelle Konsolidierung der WordPress-Tags in TEI; danach wird WordPress als Tag-Quelle abgeschaltet.
 
-**A3 Redaktionelle Texte.** About, Impressum, Review Criteria und Reviewer-Profile werden als Markdown im Repository gepflegt, mit Frontmatter für Titel, Sprache und Stand. Reviewer-Profile sind optional; existiert keine Markdown-Datei, wird die Reviewer-Detailseite rein aus TEI-Aggregation erzeugt.
+**A3 Redaktionelle Texte.** About, Impressum, Review Criteria und die übrigen Editorialseiten werden als TEI unter `pages/` gepflegt, eine TEI-Datei je Seite, validiert gegen `schema/ride-pages.rng`; TEI ist damit die alleinige Quelle auch dieser Seiten und löst die bisherige Markdown-Pflege ab. Reviewer-Profile sind optional; existiert keine eigene Editorialseite, wird die Reviewer-Detailseite rein aus TEI-Aggregation erzeugt.
 
 **A4 Volltextsuche.** Pagefind erzeugt zur Build-Zeit einen Suchindex; Suche läuft client-seitig im Browser, mit Kontextausschnitten und Highlighting.
 
@@ -177,14 +177,16 @@ Akzeptanzkriterien
 **R10 Statische Inhalte pflegen.** Als Editorin will ich die editorialen Seiten der Site niedrigschwellig pflegen, ohne Build-Tooling oder Programmierwissen.
 
 Akzeptanzkriterien
-- Pflegeformat ist Markdown mit Frontmatter, gemäß A3
+- Pflegeformat ist TEI unter `pages/` als `pages/<slug>.xml`, eine TEI-Datei je Seite, gemäß A3; die bisherige Markdown-Pflege unter `content/` wird abgelöst
+- Jede Seite validiert gegen `schema/ride-pages.rng`, ein minimales RELAX-NG-Profil mit reduziertem teiHeader (publisher, seriesStmt mit Journaltitel und Managing Editors, availability/licence, `idno type="URI"` als kanonische URL) und schmaler Body-Grammatik (div/head, p, list/item, table/row/cell; inline ref, persName, email, hi, lb)
 - Bearbeitung über die GitHub-Web-UI ist möglich
 - Push auf `main` triggert automatisch einen neuen Build und ein Deployment
-- Die folgenden editorialen Seiten existieren als jeweils eigene Markdown-Datei unter `content/`:
+- Die folgenden editorialen Seiten existieren als jeweils eigene TEI-Datei unter `pages/`:
   - **About-Untermenü:** Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers
   - **Reviewers-Untermenü:** Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020
   - **Footer-/Standalone:** Imprint · Reviewing Criteria
-  - „List of Reviewers" wird **nicht** als Markdown geführt, sondern aus der TEI-Aggregation auf `/reviewers/` erzeugt (R8)
+  - „List of Reviewers" wird **nicht** als Editorialseite geführt, sondern aus der TEI-Aggregation auf `/reviewers/` erzeugt (R8)
+- Der Großteil der Seiten ist von der Live-RIDE-WordPress-Site wortgetreu nach TEI konvertiert; drei Seiten (writing-guidelines, publishing-policy, criteria) stehen wegen einer Profilentscheidung zu Code und Bildern noch aus. Der Build-Cutover, also `pages/` in den Build zu rendern, ist noch nicht verdrahtet; bis dahin rendert der Build diese Seiten weiter aus `content/*.md`
 - Im Footer jeder Seite stehen sichtbar: Lizenz-Kürzel, Markenname mit aktuellem Jahr, ISSN (`2363-4952`), Link auf Imprint and Privacy
 - Im globalen Header steht die Site-Tagline „A Review Journal for Scholarly Digital Editions and Resources" als Untertitel zur Marke RIDE
 
@@ -313,7 +315,7 @@ Die folgende Tabelle bildet jede heutige Komponente der RIDE-Site auf den geplan
 | Tracking | Matomo mit Cookie-Snippets | Matomo cookielos, ohne Consent-Banner | 15 | — |
 | Social-Buttons | Vorhanden | Entfallen zugunsten von Open-Graph-Metadaten und Copy-Link | 8 | Eigene Iteration zu einer Social-Media-Strategie? |
 | OAI-PMH | Dynamisch | Statischer Snapshot mit Query-String-Routing, Dublin-Core-Mindestmetadaten | 12 | — |
-| Statische Texte (WordPress) | In WordPress gepflegt | In TEI oder Markdown überführt | Vor 9 (redaktionell) | Wieviel davon sauber in TEI überführen versus als Markdown-Editorial führen? |
+| Statische Texte (WordPress) | In WordPress gepflegt | Nach TEI unter `pages/` als alleiniger Quelle überführt, validiert gegen `schema/ride-pages.rng`; löst die Markdown-Pflege ab (A3, R10). Großteil konvertiert, drei Seiten (writing-guidelines, publishing-policy, criteria) wegen Profilentscheidung zu Code und Bildern offen; Build-Cutover noch nicht verdrahtet | Vor 9 (redaktionell) | Entschieden zugunsten TEI als alleiniger Quelle |
 
 ## 9. Offene Fragen
 

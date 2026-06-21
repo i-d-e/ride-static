@@ -37,7 +37,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[staging]] | Substance — pre-publication review environment, solution options, decision open | when the staging decision advances |
-| [[interface]] | Form — design stance, six page types, parallel apparate, WCAG | when design decisions are revised |
+| [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [Journal](../Journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.
@@ -86,6 +86,6 @@ A Markdown document under `knowledge/` that is either deterministically generate
 
 ## What is missing and why
 
-- **No `design.md` separate from `interface.md`.** The Form function is currently carried by a single document that holds both design stance (haltung, four principles) and UI realisation (layout, six page types, components, typography, accessibility). A future split into `design.md` (stance, agent value source) and `ui.md` (realisation) is a planned refactor; until then, [[interface]] carries both functions, with the design stance located in §2 *Designhaltung*.
-- **No `editorial-guidelines.md`.** The TEI editing happens in the sibling repository `../ride/`, not here. ride-static is read-only against TEI; editorial conventions belong upstream.
+- **No `design.md` separate from `interface.md`.** The Form function is currently carried by a single document that holds both design stance (haltung, four principles) and UI realisation (layout, seven page types, components, typography, accessibility). The seventh page type is the per-review factsheet full page under `/issues/{N}/{id}/factsheet/`, rendered via `src/render/factsheet.py`. A future split into `design.md` (stance, agent value source) and `ui.md` (realisation) is a planned refactor; until then, [[interface]] carries both functions, with the design stance located in §2 *Designhaltung*.
+- **No `editorial-guidelines.md`.** The TEI editing of reviews happens in the sibling repository `../ride/`, not here; review editorial conventions belong upstream. The editorial pages themselves are now fed from TEI in this repo: `pages/<slug>.xml` is the source, validated against `schema/ride-pages.rng`, parsed via `src/model/page.py` and `src/parser/page.py`, rendered via `src/render/page.py`. The build cutover (rendering `pages/` into the build) is not yet wired.
 - **No `agents.md` / `team.md`.** The project runs in single-agent mode (one Claude Code instance, one `CLAUDE.md`). Multi-agent organisation is not yet relevant for the scope of ride-static.

@@ -73,6 +73,7 @@ Two axes of stakeholder load shape the architecture:
 - `issues/{N}/reviews/*-tei.xml` — review files (canonical source, grouped per issue).
 - `issues/{N}/metadata.yaml` — editorial issue metadata (DOI, editors, contribution order).
 - `schema/ride.odd` + `schema/ride.rng` — RIDE schema customisation and compiled RelaxNG.
+- `pages/<slug>.xml` — editorial pages in TEI, validated against `schema/ride-pages.rng` (read-only source for the `Page` model).
 - `inventory/*.json` — corpus knowledge (regenerated from the above).
 - `../ride/issues/issue{NN}/{slug}/pictures/` — per-issue picture assets, still in the sibling repo until they migrate too.
 
@@ -140,12 +141,12 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
   - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[specification#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
-  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 109 reviews carry one taxonomy, one carries two, one carries three.
+  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 109 reviews carry one taxonomy, one carries two, one carries three. `Questionnaire` additionally carries `questions: tuple[QuestionnaireQuestion, ...]` — the per-question rows feeding the Factsheet-Vollseite (R18); each `QuestionnaireQuestion` carries `section_label`, `question_label`, `question_text`, `criteria_ref`, `selected`, `anomaly`, and `criteria_ref_label`.
   - `front: tuple[Section, ...]` — **always carries the abstract** (111/111 reviews have exactly one Section with `type="abstract"` here, zero in body)
   - `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
   - `figures: tuple[Figure, ...]`, `notes: tuple[Note, ...]` — corpus-order aggregates feeding the parallel apparate sub-blocks ([[interface#6]])
   - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
-  - `related_items: tuple[RelatedItem, ...]` — `RelatedItem` carries `type` ∈ {`reviewed_resource`, `reviewing_criteria`}, `bibl_text`, `bibl_targets: tuple[str, ...]`, and `last_accessed: Optional[str]` (the `<ref @when>` value for online sources, used in the rendered „(Last Accessed: …)" suffix per [[interface#5]]).
+  - `related_items: tuple[RelatedItem, ...]` — `RelatedItem` carries `type` ∈ {`reviewed_resource`, `reviewing_criteria`}, `bibl_text`, `bibl_targets: tuple[str, ...]`, `last_accessed: Optional[str]` (the `<ref @when>` value for online sources, used in the rendered „(Last Accessed: …)" suffix per [[interface#5]]), and `personnel: tuple[tuple[str, str], ...]` — `(resp, persName)`-pairs parsed from `bibl/respStmt`, feeding the Factsheet-Vollseite (R18).
 
 The TEI element `<bibl>` lives at three sites in the corpus and is parsed by three different paths into the same `BibEntry` shape (Phase 6.A unification): `<listBibl>/<bibl>` in `<back>` → `parse_bibliography` → `Review.bibliography`; `<cit>/<bibl>` inline in mixed content → `parse_bibl` from inside `parse_cit` → `Citation.bibl`; `<relatedItem>/<bibl>` in the header → `parse_related_items` → `Review.related_items` (this third path retains its own `RelatedItem` shape because the relatedItem wrapper carries `@type` semantics that BibEntry does not).
 
@@ -160,6 +161,12 @@ The TEI element `<bibl>` lives at three sites in the corpus and is parsed by thr
 - **`Block`** types: `Paragraph`, `List`, `Table`, `Figure`, `Citation`. Empirically verified against the corpus: `<note>` is always inline (1900+ occurrences, all under `<p>`/`<head>`/`<quote>`/`<item>`), `<code>` is always inline (727 occurrences, no children), `<head>` is consumed by the section parser as section heading, `<eg>` lives only inside `<figure>` (modelled as `Figure(kind="code_example")`).
 
 - **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`.
+
+- **`Page`** — one per editorial page, parsed from `pages/<slug>.xml` (separate from the per-review path)
+  - header metadata: `slug`, `title`, `source_url`, `licence`, `journal_title`, `editors`
+  - a body tree of `Section`, `Para`, `BulletList`, `ListItem`, `Table`, `Row`, `Cell`
+  - inline nodes `Text`, `Ref`, `PersName`, `Email`, `Hi`, `Lb`
+  - produced by `src/parser/page.py` (`parse_page`, `discover_pages`; read-only), validated against `schema/ride-pages.rng`
 
 The parser handles the known anomalies named in [[data]] and [[schema]] explicitly. The acceptance criteria for the rendered output sit in [[specification#R1 Rezension lesen]]:
 
@@ -315,7 +322,7 @@ ride-static/
   src/
     parser/                 TEI → domain
     model/                  domain types
-    render/                 html, pdf, refs, assets, citation, corpus_dump
+    render/                 html, pdf, refs, assets, citation, corpus_dump, factsheet, page
     build.py                Phase 8 build CLI: python -m src.build
   templates/html/           Jinja templates
   static/                   css/, js/, fonts/

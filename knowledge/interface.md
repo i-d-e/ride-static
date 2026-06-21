@@ -73,7 +73,7 @@ Die globale Navigation hat fünf Top-Level-Einträge:
 
 Die Dropdowns werden mit nativen `<details>`-Elementen umgesetzt (kein JavaScript-Framework, keine Bootstrap-Komponente); CSS gibt ihnen die Anmutung einer klassischen Hover-/Click-Navigation. Die Liste der Untermenüs ist in `config/navigation.yaml` konfigurierbar, sodass redaktionelle Erweiterungen ohne Template-Änderung möglich sind.
 
-Sechs Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** ist als fünfteiliger Vertikal-Stack gesetzt:
+Sieben Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** ist als fünfteiliger Vertikal-Stack gesetzt:
 
 1. **Lede-Sektion** — sr-only `<h1>` mit dem Site-Titel (für Screen-Reader und SEO), darunter eine Ein-Satz-Lede mit den Kennzahlen („A peer-reviewed journal of scholarly digital editions. 111 reviews across 22 issues.").
 2. **Lede-Panel** — das erste Home-Widget (`01-welcome`) wird als breites, rahmenloses Einleitungs-Panel auf hellgrauem Hintergrund (`--ride-bg-muted`) mit etwas größerem Lesefließtext gesetzt. Es trägt die zentrale Mission-Beschreibung des Journals.
@@ -85,7 +85,7 @@ Alle Home-Widgets liegen als Markdown unter `content/home/<NN-slug>.md` und werd
 
 Die **Issue-Übersicht** ist eine reine Liste der Issues, sortiert nach Erscheinungsdatum, mit Rolling-Issue-Markern. Die **Issue-Ansicht** ist als redaktionelle Liste statt als Karten-Grid gesetzt. Im Header ein Lead-Satz im Stil der Live-Site („Edited by … . {Date}{ – present (rolling release)}. DOI: …."), mit Daten aus `issues/{N}/metadata.yaml` (per-Issue-Konfiguration mit Title, DOI, Editors, Datum, Status). Pro Review folgt ein **Rich-Entry-Block** mit fünf Bestandteilen: Wordcloud-Thumbnail (160×160 px, lazy-loaded, Quelle `static/images/wordclouds/{review_id}.{png|jpg}`, fehlende Thumbnails klappen die Bildspalte über `:has()`-Fallback weg), großer Titel-Link, Edition-Citation kursiv mit URL und Last-Accessed-Datum, Reviewer-Inline mit Affiliation, Abstract-Excerpt auf etwa 360 Zeichen am Wortende getrimmt mit Unicode-Ellipse. Unter 720 Pixel schrumpft das Thumbnail auf 96×96 und der Titel auf h3-Größe.
 
-Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Imprint, Reviewing Criteria plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs, redaktionell gepflegt unter `content/*.md`) verwenden nur die Inhaltsspalte ohne Sidebar.
+Die **Rezensionsansicht** ist die Hauptansicht (Abschnitt 5). Die **Factsheet-Vollseite** (R18) ist ein eigener Seitentyp unter `/issues/{N}/{id}/factsheet/`, der den vollständigen Fragebogen pro Frage rendert: Kopfbereich mit Bibliografie und Reviewer, rezensierte Ressource, Personnel nach Rolle gruppiert und der Fragebogen nach Sektionen gegliedert. Sie ist die Vollform des in der Sidebar-Meta-Box als „Factsheet of this project" verlinkten Apparats (Abschnitt 5). **Aggregationsseiten** (Tags, Reviewer, Reviewed Resources, Data) tragen eine Sortier- und Filterleiste oben und eine Liste oder Tabelle als Inhalt. **Editorialseiten** (About, Imprint, Reviewing Criteria plus die acht weiteren editorialen Pages aus den About- und Reviewers-Untermenüs) werden aus TEI gespeist, Quelle ist `pages/<slug>.xml` (validiert gegen das Schema `schema/ride-pages.rng`); gerendert werden sie über dasselbe Template `editorial.html` wie zuvor und verwenden nur die Inhaltsspalte ohne Sidebar.
 
 ## 5. Rezensionsansicht im Detail
 
@@ -102,7 +102,7 @@ Der **Apparate-Block** (References, Figures, Notes) wird als drei klar getrennte
 Die **Sidebar** trägt vier Boxen in dieser Reihenfolge:
 
 1. **Table of Contents** — immer, mit den Section-Headings als Sprung-Anker.
-2. **Meta** — Published-Datum, DOI als Plaintext-Zeile, ein Link „Factsheet of this project" auf den separat verlinkten Factsheet-Apparat, ein Download-Link „XML of this review, including formal evaluation data", ein Download-Link „PDF of this review article", als letzte Zeile das Lizenz-Kürzel (z.B. „CC BY 4.0", abgeleitet aus der Lizenz-URL).
+2. **Meta** — Published-Datum, DOI als Plaintext-Zeile, ein Link „Factsheet of this project" auf die Factsheet-Vollseite unter `/issues/{N}/{id}/factsheet/` (R18, §4), ein Download-Link „XML of this review, including formal evaluation data", ein Download-Link „PDF of this review article", als letzte Zeile das Lizenz-Kürzel (z.B. „CC BY 4.0", abgeleitet aus der Lizenz-URL).
 3. **Citation Suggestion** — der Zitiervorschlag im Format `Surname, Forename (Year). "Title." RIDE {Issue}, ed. by {Editors}. DOI: {DOI}. Accessed: {Date}.`, gefolgt von einer italic-Mikrokopie „You can use the running numbers on the left side to refer to a specific paragraph." Direkt darunter die Kopier-Buttons für BibTeX und CSL-JSON.
 4. **Tags** — alphabetisch sortierte Liste der Keywords als Inline-Tag-Pillen, jeweils mit Link zur Tag-Detailseite.
 
