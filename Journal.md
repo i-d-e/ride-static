@@ -30,6 +30,31 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-21 — Factsheet-Parität: R18-Kontrakt plus Factsheet-Vollseite (R18)
+
+**Ziel:** Die im Eintrag 2026-06-12 als „Nächster Einstieg" notierte Factsheet-Parität umsetzen — das Live-Factsheet rendert den vollständigen Fragebogen als eigene Unterseite, ride-static zeigt bislang nur eine Aggregat-Box in der Sidebar. Ziel war die Volldarstellung unter `/issues/{N}/{id}/factsheet/`, in einem Zug inklusive Bau und Redirects.
+
+**Erledigt:**
+- **Feldabgleich Live-Factsheet vs. Domänenmodell** gegen den TEI-Header der Referenz-Review (makingandknowing) geerdet. Befund: Reviewer-Details (Name, ORCID, Affiliation, Ort, E-Mail), Titel, Erscheinungsdatum, DOI, Lizenz, RIDE-Issue-Editoren, Reviewed-Resource-Titel/URI/Abrufdatum, Kriterienlink und Keywords liegen bereits im Modell vor. Drei Lücken: das `Questionnaire`-Modell verwirft Frage-Label, Frage-Volltext und K-Ref (hält nur `category_xml_id`+`value`); `RelatedItem` erfasst die `respStmt`-Beteiligten des besprochenen Projekts (Personnel) nicht; beides war additiv zu ergänzen. „Last updated" hat im Korpus keine Entsprechung (kein `revisionDesc`), ISSN ist Footer-Konstante — beide nicht Teil der Seite.
+- **Selektions-Semantik am Korpus verifiziert** (111 Dateien): der `<num value>` kodiert die Auswahl, nicht einen fixen Options-Score. „Yes"-Leafs tragen sowohl value=1 (2153×) als auch value=0 (1086×); pro Frage ist die gewählte Antwort die Menge der Leaf-Optionen mit value=1 (binär genau eine, kategorial wie Subject/Document era mehrere). value=3 = Anomalie, nicht-bewertet.
+- **R18 als Spezifikations-Kontrakt** in `knowledge/specification.md` (§5.1) festgehalten, plus Legacy-Redirect-Kriterium unter R17 (Commit 3aac347, eigener Commit vor dem Bau).
+- **Bau (Commit bf279db):** neue dataclass `QuestionnaireQuestion` (Sektion, Label, Volltext, Kriterien-Ref, gewählte Antworten, Anomalie-Flag) plus `Questionnaire.questions`; `RelatedItem.personnel`; Parser-Erweiterungen in `questionnaire.py` (`parse_questionnaire_questions`) und `metadata.py` (respStmt). Neues Render-Modul `src/render/factsheet.py` und Template `templates/html/factsheet.html` (extends base.html, Blöcke Kopf / Reviewed resource / People / Questionnaire). `_render_review` schreibt zusätzlich `factsheet/index.html`; Sidebar-Partial additiv um „Full factsheet"-Link erweitert; `redirects.py` um Legacy-`/factsheet/`-Redirect. Tests in vier Dateien.
+- **Verifiziert (verify, not trust):** `python -m pytest -q` unabhängig nachgelaufen, 502 passed / 2 skipped (die zwei Skips vorbestehend, WeasyPrint fehlt). Inhaltlich beide Taxonomie-Familien geprüft: makingandknowing (Digital Editions, 49 Fragen, „Bibliographic description → Yes", Personnel Editor „Smith, Pamela") und varitext (Text Collections, 43 Fragen, Rolle „Designer" korrekt gruppiert). Voll-Build erzeugt 111 Factsheet-Seiten plus Redirect-Stubs.
+
+**Entscheidungen:**
+- **Volle Unterseite in einem Zug** (Operator-Entscheidung 2026-06-21), nicht nur Analyse oder nur Redirects. Reviewer-Kontaktdaten wie auf der Live-Site, inklusive E-Mail (über den bestehenden `obfuscate_mail`-Filter).
+- **Implementierung an einen Opus-Subagenten delegiert**, Orchestrierung und Abnahme beim Lane-Kopf — die Kopplung über Modell/Parser/Render/Template/Build/Redirects/Tests rechtfertigte einen fokussierten Implementierer mit frischem Kontext; das Ergebnis wurde gegen Git, Test-Suite und gerenderten Inhalt verifiziert.
+- **Sidebar-Aggregation nicht angefasst** — der Bau ist strikt additiv. Die bestehende Sidebar zählt value=1-Leafs als „yes", was tatsächlich gewählte Optionen zählt, nicht bejahte Fragen (ein gewähltes „No" ist auch value=1). Das ist ein latenter Fehler von R1/R9, dessen Behebung Tests und Data-Charts berührt und eine eigene Entscheidung braucht.
+
+**Offen:**
+- **Sidebar-`yes_count`-Semantik** (siehe oben) — eigener Punkt, betrifft R1 (Sidebar) und R9 (Data-Charts). Vor einer Korrektur zu entscheiden, ob die Charts dieselbe Zählung verwenden.
+- **Kosmetik Text-Collections-Familie:** Sektions-Labels erscheinen als xml:ids (`general_information`) statt menschenlesbar, weil diese Kriterienfamilie die Sektionsüberschrift nicht als `catDesc` führt; das Frage-Label trägt dort den vollen Frage-Volltext. Funktional korrekt, optisch verbesserbar.
+- Bekannte Restposten unverändert: Bild-URL-Konvention, Sender-Workflow-Installation, Staging-Variantenwahl (alle redaktions-/operator-gated).
+
+**Nächster Einstieg:** Operator-Sichtung der Factsheet-Seite im Browser; danach Entscheidung zur Sidebar-/Charts-Zählung. Falls die Text-Collections-Sektionslabels verbessert werden sollen, ein Label-Mapping oder eine xml:id-Humanisierung im Render.
+
+---
+
 ## 2026-06-12 — Redaktioneller Zielworkflow: Abgleich, Staging-Dokument, Trigger-Verkabelung
 
 **Ziel:** Den Zielworkflow der Redaktion (ride-editors → Testumgebung → Freischaltung) gegen die gebaute Pipeline abgleichen und die entscheidungsrobusten Teile sofort umsetzen.
