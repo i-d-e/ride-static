@@ -119,6 +119,23 @@ Akzeptanzkriterien
 - Reihenfolge der Beiträge ist über die Issue-Konfiguration einstellbar (siehe R11)
 - Bei Rolling Issue ist Status sichtbar markiert, gemäß A1
 
+**R18 Factsheet als eigene Seite.** Als Leserin will ich pro Rezension ein vollständiges Factsheet als eigene Unterseite unter `/issues/{N}/{id}/factsheet/`, das die bibliografischen Eckdaten, die Rezensentin, das besprochene Projekt mitsamt seinen Beteiligten und die vollständige, frageweise Fragebogenauswertung zeigt.
+
+Die Live-Site rendert das Factsheet als eigenständige Unterseite mit dem vollständigen Fragebogen; die heutige ride-static-Realisierung (R1, [[interface#5 Rezensionsansicht im Detail]]) zeigt nur eine Aggregat-Box in der Sidebar (Anzahl der „1"-Antworten gegen die Gesamtzahl). R18 ergänzt die knappe Sidebar-Fassung um die Volldarstellung, ohne sie zu ersetzen.
+
+Akzeptanzkriterien
+- Eigene Seite unter `/issues/{N}/{id}/factsheet/`, aus der Rezension verlinkt; die Sidebar-Box „Factsheet" verweist auf die Vollseite
+- Kopf: Titel, Rezensentin mit ORCID, Affiliation, Ort und, sofern im TEI vorhanden, E-Mail, dazu Erscheinungsdatum, DOI, Lizenz
+- Block „Reviewed resource": Titel, URI und Abrufdatum (`<date type="accessed">`) des besprochenen Projekts
+- Block „People": die Beteiligten des besprochenen Projekts, gruppiert nach Rolle (Editor, Programmer, Advisor, Contributor), aus `relatedItem[reviewed_resource]/bibl/respStmt` (`resp` plus `persName`)
+- Block „Questionnaire": die Fragebogenauswertung frageweise, gruppiert nach Sektion (etwa „Documentation"), je Frage Kurz-Label, Frage-Volltext, K-Ref-Kriterienlink und die gewählte Antwort (Yes/No/Not applicable); Anomalie `value=3` wird als nicht-bewertet ausgewiesen, konsistent mit R9
+- Footer wie auf allen Seiten (Lizenz, Marke, ISSN, Build-Datum)
+- Die Seite ist render-identisch zur Produktion (gleicher Parser, gleiche Templates) und wird ohne Laufzeit-Backend gebaut
+
+Datenmodell-Voraussetzung (Lücke gegen das heutige Modell): Das heutige `Questionnaire`-Modell (`src/model/questionnaire.py`) hält je Antwort nur `category_xml_id` und `value` und verwirft Frage-Label, Frage-Volltext und K-Ref. Die TEI-Taxonomie trägt diese Information vollständig: pro Frage-Kategorie zwei `<catDesc>` (Kurz-Label samt K-Ref-`<ref>` und Frage-Volltext), darunter die Antwort-Leafs „Yes"/„No"/„Not applicable" mit `<num>`. Für die frageweise Darstellung ist das Modell um die Frage-Ebene (Label, Volltext, Kriterien-Target, gewählte Antwort, Sektionszuordnung) zu erweitern. Ebenso erfasst `RelatedItem` heute nur `bibl_text` und `title`, nicht die `respStmt`-Beteiligten; für den Personnel-Block ist `RelatedItem` um eine rollengruppierte Personenliste zu erweitern. Reviewer-Details (Name, ORCID, Affiliation, Ort, E-Mail), Titel, Erscheinungsdatum, DOI, Lizenz, RIDE-Issue-Editoren, Reviewed-Resource-Titel/URI/Abrufdatum, Kriterienlink und Keywords liegen bereits im Modell vor und sind nur noch zu rendern.
+
+Nicht im TEI vorhanden, daher nicht Teil der Seite: „Last updated" (kein `<revisionDesc>` im Korpus; offene Frage in §8, Zeile „Beitrag"). ISSN ist Footer-Konstante (R10), kein Rezensionsfeld.
+
 ### 5.2 Aggregationsbereich
 
 **R5 Issue-Übersicht.** Als Leserin will ich eine Übersicht aller Issues, sortiert nach Erscheinungsdatum.
@@ -232,6 +249,7 @@ Akzeptanzkriterien
 - Anker innerhalb einer Rezension verwenden die `xml:id` der TEI-Quelle (siehe [[data#ID format conformance]] zur Garantie der Eindeutigkeit pro Datei)
 - URL-Schema reserviert ein optionales Versionssegment für spätere Snapshot-Strategie, gemäß A1
 - Spätere Umbenennungen erzeugen Meta-Refresh-Redirects auf den neuen Pfad
+- Legacy-Factsheet-URLs `/issues/issue-{N}/{slug}/factsheet/` erhalten einen Meta-Refresh-Redirect auf `/issues/{N}/{id}/factsheet/` (R18)
 
 ## 6. Nicht-funktionale Anforderungen
 
