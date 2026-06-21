@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Privacy and Imprint</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/copyright/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <head>Privacy</head>
+        <p>We take privacy issues extremely serious. RIDE does not use Google Analytics or any other such external service. We collect access data on our own server only and use <ref target="http://piwik.org/">Piwik</ref> for statistical data gathering and evaluation. If you have activated the ‘DoNotTrack’-feature in your browser, our Piwik setup will not record your visits. You can also opt out of our statistic efforts by <ref target="https://ide-vm.uni-koeln.de/piwik/index.php?module=CoreAdminHome&amp;action=optOut&amp;language=en">clicking here</ref> (this will set an opt-out cookie that Piwik looks for in order to determine whether or not access is to be recorded). Of course, all IP addresses are anonymised and the statistical data gathered is solely used by RIDE staff for improving our site.</p>
+      </div>
+      <div>
+        <head>Impressum</head>
+        <p>In accordance with German law, we publish the following Impressum:</p>
+        <p>Angaben gemäß § 5 TMG:</p>
+        <p>Institut für Dokumentologie und Editorik e. V.<lb/>Universität zu Köln<lb/>c/o CCeH<lb/>50923 Köln</p>
+        <div>
+          <head>Vertreten durch:</head>
+          <p>Alexander Czmiel (1. Vorsitzender)<lb/>Christiane Fritze (2. Vorsitzende)<lb/>Oliver Patrick Bilbo Duntze (Schatzmeister)</p>
+        </div>
+        <div>
+          <head>Kontakt:</head>
+          <p>Email: <email>info (at) i-d-e (dot) de</email><lb/>Email: <email>ride-editor (at) i-d-e (dot) de</email><lb/>Or use our <ref target="http://ride.i-d-e.de/about/contact/">contact page</ref>.</p>
+        </div>
+        <div>
+          <head>Registereintrag:</head>
+          <p>Eintragung im Vereinsregister.<lb/>Registergericht: Amtsgericht Berlin-Charlottenburg<lb/>Registernummer: VR31126B</p>
+          <p>The ISSN of RIDE is: <hi rend="bold">2363-4952</hi></p>
+        </div>
+      </div>
+      <div>
+        <head>Hinweise zur Datenverarbeitung</head>
+        <div>
+          <head>Name und Kontaktdaten des für die Verarbeitung Verantwortlichen sowie des betrieblichen Datenschutzbeauftragten</head>
+          <p>Diese Datenschutzhinweise gelten für die Datenverarbeitung durch:<lb/>Verantwortlicher: Institut für Dokumentologie und Editorik e. V.<lb/>Universität zu Köln<lb/>c/o CCeH<lb/>50923 Köln</p>
+          <p>Vertreten durch:</p>
+          <p>Alexander Czmiel (1. Vorsitzender)<lb/>Christiane Fritze (2. Vorsitzende)<lb/>Oliver Patrick Bilbo Duntze (Schatzmeister)</p>
+        </div>
+        <div>
+          <head>Erhebung und Speicherung personenbezogener Daten sowie Art und Zweck und deren Verwendung</head>
+          <p>Bei jedem Zugriff eines Nutzers auf das Internet-Angebotdes IDE und bei jedem Abruf einer Datei werden folgende Daten in einer Protokolldatei gespeichert:<lb/>• die IP-Adresse (diese wird unmittelbar nach dem Zugriff anonymisiert)<lb/>• Datum und Uhrzeit,<lb/>• aufgerufene Seite/Name der abgerufenen Datei,<lb/>• übertragene Datenmenge,<lb/>• Meldung, ob der Zugriff/Abruf erfolgreich war.<lb/>Zweck der Datenerhebung ist die Verbesserung des Angebots sowie die Erstellung von Nutzungsstatistiken, sowie zur Abwehr von Angriffen.<lb/>Rechtsgrundlage für die Datenverarbeitung ist Art. 6 Abs. 1 S. 1 lit. b DSGVO (Erforderlichkeit zur Wahrung berechtigter Interessen).<lb/>Diese Daten werden automatisch nach 14 Tagen gelöscht.<lb/>Desweiteren werden personenbezogene Daten bei Eintragung in den Newsletter, bei Ausfüllen des Kontaktformulars sowie des Questionnaires erhoben. Wir gehen davon aus, dass diese Daten freiwillig übermittelt werden. Die Nutzung des Webangebots des IDEs wird dadurch nicht beeinflusst. Rechtsgrundlage ist wohl DSGVO Art. 6 Abs. 1 lit. a (Einwilligung) und lit. b (Erfüllung eines Vertrags).<lb/>Die Speicherung erfolgt bis auf Widerruf/Abbestellung.</p>
+        </div>
+        <div>
+          <head>Weitergabe von Daten an Dritte</head>
+          <p>Eine Übermittlung Ihrer persönlichen Daten an Dritte findet nicht statt.</p>
+        </div>
+        <div>
+          <head>Betroffenenrechte</head>
+          <p>Sie haben das Recht:<lb/>• gemäß Art. 15 DSGVO Auskunft über Ihre von uns verarbeiteten personenbezogenen Daten zu verlangen;<lb/>• gemäß Art. 16 DSGVO unverzüglich die Berichtigung unrichtiger oder Vervollständigung Ihrer bei uns gespeicherten personenbezogenen Daten zu verlangen;<lb/>• gemäß Art. 17 DSGVO die Löschung Ihrer bei uns gespeicherten personenbezogenen Daten zu verlangen (außer in den in Art. 17 Abs. 3 DSGVO genannten Fällen);<lb/>• gemäß Art. 18 DSGVO die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen, soweit die Richtigkeit der Daten von Ihnen bestritten wird, die Verarbeitung unrechtmäßig ist, Sie aber deren Löschung ablehnen und wir die Daten nicht mehr benötigen, Sie jedoch diese zur Geltendmachung, Ausübung oder Verteidigung von Rechtsansprüchen benötigen oder Sie gemäß Art. 21 DSGVO Widerspruch gegen die Verarbeitung eingelegt haben;<lb/>• gemäß Art. 77 DSGVO sich bei einer Aufsichtsbehörde zu beschweren. In der Regel können Sie sich hierfür an die Aufsichtsbehörde Ihres üblichen Aufenthaltsortes oder unseres Standorts wenden.</p>
+        </div>
+        <div>
+          <head>Widerspruchsrecht</head>
+          <p>Da Ihre personenbezogenen Daten auf Grundlage von berechtigten Interessen gemäß Art. 6 Abs. 1 S. 1 lit. f DSGVO verarbeitet werden, haben Sie das Recht, gemäß Art. 21 DSGVO Widerspruch gegen die Verarbeitung Ihrer personenbezogenen Daten einzulegen, soweit dafür Gründe vorliegen, die sich aus Ihrer besonderen Situation ergeben.<lb/>Möchten Sie von Ihrem Widerspruchsrecht Gebrauch machen, genügt eine E-Mail an <email>info@i-d-e.de</email>.</p>
+        </div>
+        <div>
+          <head>Cookies oder ähnliches</head>
+          <p>Beim Aufruf einzelner Seiten werden so genannte temporäre Cookies verwendet, um die Navigation zu erleichtern. Diese Session Cookies beinhalten keine personenbezogenen Daten und verfallen nach Ablauf der Sitzung. Techniken, die es ermöglichen, das Zugriffsverhalten der Nutzer nachzuvollziehen, werden nicht eingesetzt.</p>
+        </div>
+        <div>
+          <head>Nutzung von Analysetools und sonstigen Werkzeugen wie Google Analytics, Matomo (vormals Piwik), etc:</head>
+          <p>Diese Website benutzt Matomo (vormals Piwik), eine Open-Source-Software zur statistischen Auswertung der Besucherzugriffe. Matomo verwendet sog. “Cookies”, Textdateien, die auf Ihrem Computer gespeichert werden und die eine Analyse der Benutzung der Website durch Sie ermöglichen. Die durch den Cookie erzeugten Informationen über Ihre Benutzung dieses Internetangebotes werden auf einem Server der Universität zu Köln in Deutschland gespeichert. Die IP-Adresse wird sofort nach der Verarbeitung und vor deren Speicherung anonymisiert.</p>
+          <p>Zweck der Datenerhebung ist die Verbesserung des Angebots sowie die Erstellung von Nutzungsstatistiken. Rechtsgrundlage für die Datenverarbeitung ist Art. 6 Abs. 1 S. 1 lit. b DSGVO (Erforderlichkeit zur Wahrung berechtigter Interessen).</p>
+          <p>Sie können sich hier entscheiden, ob in Ihrem Browser ein eindeutiger Webanalyse-Cookie abgelegt werden darf, um dem Betreiber der Website die Erfassung und Analyse verschiedener statistischer Daten zu ermöglichen. Wenn Sie sich dagegen entscheiden möchten, klicken Sie den folgenden Link, um den Matomo-Deaktivierungs-Cookie in Ihrem Browser abzulegen.</p>
+          <p>Ihr Besuch dieser Website wird aktuell von der Matomo Webanalyse erfasst. Klicken Sie <ref target="https://ide-vm.uni-koeln.de/piwik/index.php?module=CoreAdminHome&amp;action=optOut&amp;language=en">hier</ref> um Ihre Matomo-Einstellung zu ändern (opt-out).</p>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

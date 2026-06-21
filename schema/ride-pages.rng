@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ride-pages.rng — minimal RELAX NG profile for RIDE editorial pages (TEI).
+
+  Governs the non-review pages migrated from the RIDE WordPress site
+  (About, Reviewers, Data, Reviewing Criteria, …). Deliberately small and
+  uniform: the body is div/head/p/list/table, the inline set is
+  ref/persName/email/hi. The teiHeader is a reduced projection of the
+  review header (schema/ride.rng): same publisher, journal seriesStmt,
+  licence and idno conventions, without the reviewer, issue scope,
+  reviewed-resource note or questionnaire taxonomy.
+
+  Hand-written while the page profile is provisional (header detail is
+  postponed). Once body and header freeze, fold this into ride.odd and
+  derive the RNG, as ride.rng is derived today.
+-->
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         ns="http://www.tei-c.org/ns/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <start>
+    <element name="TEI">
+      <ref name="teiHeader"/>
+      <ref name="text"/>
+    </element>
+  </start>
+
+  <define name="teiHeader">
+    <element name="teiHeader">
+      <element name="fileDesc">
+        <element name="titleStmt">
+          <element name="title"><text/></element>
+        </element>
+        <element name="publicationStmt">
+          <element name="publisher"><text/></element>
+          <zeroOrMore>
+            <element name="idno">
+              <attribute name="type"/>
+              <text/>
+            </element>
+          </zeroOrMore>
+          <optional>
+            <element name="availability">
+              <element name="licence">
+                <attribute name="target"/>
+                <empty/>
+              </element>
+            </element>
+          </optional>
+        </element>
+        <optional>
+          <element name="seriesStmt">
+            <element name="title">
+              <optional><attribute name="level"/></optional>
+              <text/>
+            </element>
+            <zeroOrMore>
+              <element name="editor">
+                <optional><attribute name="role"/></optional>
+                <optional><attribute name="ref"/></optional>
+                <text/>
+              </element>
+            </zeroOrMore>
+          </element>
+        </optional>
+        <element name="sourceDesc">
+          <element name="p"><ref name="inline"/></element>
+        </element>
+      </element>
+    </element>
+  </define>
+
+  <define name="text">
+    <element name="text">
+      <element name="body">
+        <oneOrMore><ref name="block"/></oneOrMore>
+      </element>
+    </element>
+  </define>
+
+  <define name="block">
+    <choice>
+      <ref name="div"/>
+      <ref name="p"/>
+      <ref name="list"/>
+      <ref name="table"/>
+    </choice>
+  </define>
+
+  <define name="div">
+    <element name="div">
+      <element name="head"><ref name="inline"/></element>
+      <zeroOrMore><ref name="block"/></zeroOrMore>
+    </element>
+  </define>
+
+  <define name="p">
+    <element name="p"><ref name="inline"/></element>
+  </define>
+
+  <define name="list">
+    <element name="list">
+      <oneOrMore>
+        <element name="item">
+          <zeroOrMore>
+            <choice>
+              <text/>
+              <ref name="inlineElem"/>
+              <ref name="block"/>
+            </choice>
+          </zeroOrMore>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <define name="table">
+    <element name="table">
+      <oneOrMore>
+        <element name="row">
+          <oneOrMore>
+            <element name="cell"><ref name="inline"/></element>
+          </oneOrMore>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+
+  <!-- Mixed inline content: text interleaved with inline elements. -->
+  <define name="inline">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="inlineElem"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+
+  <define name="inlineElem">
+    <choice>
+      <element name="ref">
+        <attribute name="target"/>
+        <ref name="inline"/>
+      </element>
+      <element name="persName">
+        <optional><attribute name="ref"/></optional>
+        <text/>
+      </element>
+      <element name="email"><text/></element>
+      <element name="hi">
+        <optional><attribute name="rend"/></optional>
+        <ref name="inline"/>
+      </element>
+      <element name="lb"><empty/></element>
+    </choice>
+  </define>
+
+</grammar>

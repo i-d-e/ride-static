@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Editorial</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/editorial/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <head>State of play</head>
+        <p>In the past decades, many digital scholarly edition projects have been published and are available, often for free, online. Most of these editions are arguably the best editions of their documents or texts available, and many offer features that could and probably already do advance the research in the respective fields to a considerable degree. However, despite these facts digital editions are still often neglected by the established review institutions. Thus, editors of digital editions and their projects receive less credit and attention than their counterparts in the print-world, which forces these projects into the outskirts of the peer-control process, a cornerstone of academic excellence. As a consequence, scholars thinking of engaging in a digital edition project cannot rely on the criticism that projects similar to their own have received before in order to avoid related problems in their own work. Furthermore, continuous evaluation of projects is extremely important for a young discipline like Digital Humanities and for digital projects within Humanities disciplines in general, which is why projects should be evaluated not only at their beginning, but much more after their completion or even during their runtime.</p>
+        <p>In general, digital editions have a greater level of complexity than print editions. Editors not only have to care about the traditional issues like, for instance, textual transmission, paleography, textual criticism etc., but they also need to engage with questions concerning the methodology and new forms of publication, their functionalities and design, highly interdisciplinary and collaborative work, as well as the question how an edition can be designed and maintained in a sustainable way. All of these issues have been triggered by the possibilities and challenges of digital editions. These circumstances have, however, largely been neglected by traditional reviews and hence there is no forum for the critical evaluation of the methodology of digital edition projects.</p>
+      </div>
+      <div>
+        <head>Addressing the problems</head>
+        <p>In order to address these issues, in 2014, we have founded RIDE, a review journal dedicated to digital editions and resources. RIDE aims to direct attention to digital editions and to provide a forum in which expert peers criticise and discuss the efforts of digital editors in order to value their work and also to improve current practices and advance future developments. It does so by asking its reviewers to pay attention not only to the traditional virtues and vices of any edition, but also to the progressing methodology and its technical implications. Editors of existing digital editions will be able to improve their work by addressing criticism and digital editors in spe will be able to learn from previous problems both of a general nature as well as specific to their fields. Moreover, RIDE will help scholars working on the methodology and the development of the field of digital editing by collecting formal data about each project that is being reviewed. The reviews and factsheets also provide a snapshot of a project at the time of the review, so that later developments can be compared – an important feature in a world that is characterised by a much higher dynamic than the print-world exhibits. All this, we hope, contributes to the ongoing methodological discussions and help to establish a best practise editors can aim at as an ideal of a digital edition (aspects of this best practise, for example, touch on accuracy, citability, sustainability, long term preservation, documentation, transparency, etc.).</p>
+        <p>RIDE offers an open and interdisciplinary space for the exchange of theoretical, methodological, and practical considerations within the Digital Humanities. Reviews from all the fields of the Humanities are welcome and can be published in different languages. The aim is that the digital editions and other digital scholarly resources are reviewed in their entirety, including aspects of their content or field of application, but beyond that RIDE is especially intended as a journal which focuses on the methodological and technical aspect of the digital resources and which enables the exchange of ideas between disciplines in this respect. Also, as it is a dedicated review journal, the process of reviewing digital resources is in general reflected upon.</p>
+      </div>
+      <div>
+        <head>RIDE beyond digital scholarly editions</head>
+        <p>From the beginning, RIDE has been conceived of not only as a reviewing journal for digital scholarly editions but also for other kinds of resources with relevance for Digital Humanities, including data sets of different types, software and applications. In 2017 the focus of RIDE was widened up to digital text collections, which we define as digital resources that involve the collecting, structuring and enrichment of textual data from various humanities disciplines such as Literary Studies, Linguistics and History. Since 2020, RIDE is also dedicated to the reviewing of software, particularly of tools and environments for scholarly editing. For both sections, text collections and tools, the motivation for reviewing is the same as for digital scholarly editions: further the methodological discussions around these kinds of resources in the Digital Humanities, provide a venue for discussing best practices, questions of standardization and workflows as well as defining the state-of-the-art in both fields.</p>
+      </div>
+      <div>
+        <head>Methods</head>
+        <p>RIDE complies with the standards that have been developed for academic journals. Although we in principle regard digital editions, text collections and tools as open-ended projects, we will only review those projects that have reached a maturity expected of a scholarly publication. Reviewers are guided by catalogues of criteria that try to cover a great variety of potentially interesting aspects of the reviewed resources (see catalogue for <ref target="https://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1/">editions</ref>, <ref target="https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/">collections</ref> and <ref target="https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/">tools</ref>). Reviewers are asked to submit a substantial text that addresses the key features and problems of the reviewed project as well as to fill out a questionnaire that will accompany the written text as a factsheet.</p>
+        <p>On submission, reviews are blinded and referred to at least one peer-reviewer before a decision is made to either publish the review, to reject it, or to refer it back to the reviewer for improvement. RIDE publishes reviews in a variety of languages; all reviews, however, are accompanied by an English abstract. The reviews and questionnaires are encoded in XML/TEI and can be read in an HTML version on our webpage or downloaded as PDF; citability of reviews is currently achieved through persistent URLs und DOIs. Finally, we also<ref target="http://ride.i-d-e.de/data/"> visualize some of the data</ref> gathered from the questionnaires and offer<ref target="https://zenodo.org/record/4550708"> the datasets of each review via GitHub and Zenodo; the latter allows for citing the data in a specific version with an own DOI. </ref>Thus, we enable citation and long-term provision of our data and facilitate researchers with data for their own investigations and visualisations. Retrieval and re-use of the review metadata is also supported through an <ref target="https://ride.i-d-e.de/data/">OAI-interface</ref>.</p>
+      </div>
+      <div>
+        <head>Editorial board and institutional background</head>
+        <p>RIDE was founded by the<ref target="http://www.i-d-e.de"> Institute for Documentology and Scholarly Editing, IDE</ref> (hence its acronym RIDE: Review Journal of the IDE). Usually members of the institute are the editor(s) of RIDE issues, guest editors are welcomed as well. The <ref target="https://ride.i-d-e.de/about/team/">editorial board</ref> of the journal is formed by members of the IDE and other experts from the field of digital scholarly editing and Digital Humanities. The IDE has been an active part of the digital editing community as well as in the field of Digital Humanities for several years: it has guided and advised editors, organised a number of acclaimed summer schools on digital editing and contributed to the ongoing methodological debate in digital scholarly editing and other topics relevant to digital resources by a series of publications. You can learn more about the IDE on its<ref target="http://www.i-d-e.de"> webpage</ref>.</p>
+      </div>
+      <p><hi rend="italic">March 2021, Philipp Steinkrüger, Ulrike Henny-Krahmer, Frederike Neuber, and the members of the IDE.</hi></p>
+      <p><ref target="https://ride.i-d-e.de/archived-editorials/">Archive of earlier editorials</ref></p>
+    </body>
+  </text>
+</TEI>

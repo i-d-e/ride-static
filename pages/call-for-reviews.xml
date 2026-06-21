@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Call for Reviews</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/reviewers/call-for-reviews/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>RIDE is constantly calling for reviews on</p>
+      <list>
+        <item><ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/scholarly-editions/">scholarly digital editions</ref></item>
+        <item><ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/special-issue-text-collections/">digital text collections</ref></item>
+        <item><ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/tools-and-environments-for-digital-scholarly-editing/">tools and environments for scholarly editing</ref></item>
+      </list>
+      <p>and related digital resources.</p>
+      <p>We are particularly interested in reviews of some projects (see <ref target="http://ride.i-d-e.de/reviewers/suggested-projects-for-review/">Suggested Projects for Review</ref>). Please contact the <ref target="https://ride.i-d-e.de/about/newsletter/">managing editors</ref> if you would like to volunteer to review a project from the list or of your own choosing and include the project, your name and the institution you work for, as well as information regarding your qualification in the email. Please also check page with <ref target="http://ride.i-d-e.de/about/projects-currently-under-review/">Projects Currently under Review</ref> for projects that have already been assigned reviewers.</p>
+      <p>Publications will be licensed under CC-BY. RIDE does not charge submission, processing or publication fees of any sort.</p>
+      <div>
+        <head>Special Issues</head>
+        <p>A special issue focusing on <hi rend="bold"><hi rend="bold">Scholarly Digital Editions with a connection to Switzerland</hi></hi> has been active since April 2026. For more information, see the <ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/swiss-editions-en/">Call for Reviews</ref>. Contributions are welcome.</p>
+        <p>A special issue focusing on <hi rend="bold">Digital Scholarly Editions of Dramatic Texts and Related Theatrical Materials</hi> has been active since June 2025. For more information, see the <ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/drama-editions-en/">Call for Reviews</ref> (also available in <ref target="https://ride.i-d-e.de/reviewers/call-for-reviews/drama-editions-de/">German</ref>). Contributions are welcome.</p>
+        <p></p>
+      </div>
+    </body>
+  </text>
+</TEI>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Dissemination and Discussion</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/dissemination-discussion/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>RIDE and the Reviewing Criteria have been discussed in the context of the following <hi rend="bold">publications</hi>:</p>
+      <list>
+        <item><hi rend="bold">Henny-Krahmer, Ulrike </hi>(2024): “Rezensionen digitaler Ressourcen.” In: <hi rend="italic">Kompendium Computational Theology, Bd. 1: Forschungspraktiken in den Digital Humanities.</hi> Hrsg. von Christopher A. Nunn und Frederike van Oorschot. Heidelberg: heiBOOKS, 463-477. DOI: <ref target="https://doi.org/10.11588/heibooks.1459">https://doi.org/10.11588/heibooks.1459</ref>. DOI English version: <ref target="https://doi.org/10.11588/heibooks.1521">https://doi.org/10.11588/heibooks.1521</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike </hi>(2024): “10 Jahre RIDE – still enjoying the RIDE”. In: DHd-Blog. URL: <ref target="https://dhd-blog.org/?p=21078">https://dhd-blog.org/?p=21078</ref>.</item>
+        <item><hi rend="bold">Scholger, Martina; Neuber, Frederike; Henny-Krahmer, Ulrike </hi>(2024): “RIDE”. In: KONDE Weißbuch. Ed. by Selina Galka and Helmut W. Klug in collaboration with Susanne Höfer in the project “Enlarging ‘Weißbuch Digitale Edition'”. Handle: <ref target="https://www.digitale-edition.at/o:konde.271">hdl.handle.net/11471/562.50.271</ref>.</item>
+        <item><hi rend="bold">Resch, Claudia</hi> (2023): “Digitale Editionen aus der Perspektive von Expert:innen und User:innen — Rezensionen der Zeitschrift RIDE im Meta-Review.” In: <hi rend="italic">Digitale Edition in Österreich.</hi> Schriften des Instituts für Dokumentologie und Editorik, Bd. 16. Ed. by Roman Bleier and Helmut W. Klug, 37-54. Norderstedt: BoD. <ref target="http://nbn-resolving.de/urn:nbn:de:hbz:38-704476">http://nbn-resolving.de/urn:nbn:de:hbz:38-704476</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike; Sahle, Patrick </hi>(2022): “Nach den Büchern: Rezensionen digitaler Forschungsressourcen.” In: <hi rend="italic">H-Soz-Kult, Forum: Buchrezensionen in den Geschichtswissenschaften </hi>(<ref target="https://www.hsozkult.de/debate/id/diskussionen-5234">https://www.hsozkult.de/debate/id/diskussionen-5234</ref>). URL: <ref target="https://www.hsozkult.de/debate/id/diskussionen-5367">https://www.hsozkult.de/debate/id/diskussionen-5367</ref>.</item>
+        <item><hi rend="bold">Roeder, Torsten</hi> (2021): “Kann RIDE auch Musik­wissenschaft? Reviews musik­wissen­schaft­licher Editionen im Open-Access-Journal RIDE.” In: <hi rend="italic">musiconn.​kontrovers. Blog des FID Musikwissenschaft</hi>. URL: <ref target="https://kontrovers.musiconn.de/2021/12/23/rezensionen-4/">https://kontrovers.musiconn.de/2021/12/23/rezensionen-4/</ref>.</item>
+        <item><hi rend="bold">Resch, Claudia;  Rastinger, Nina</hi> (2020): “Digitale Editionen im Spannungsfeld zwischen Formalisierung und Interpretation: Rezensionen der Online-Zeitschrift RIDE als Gradmesser für die Zukunft.” In: <hi rend="italic">DHd 2020. Konferenzabstracts.</hi> Zenodo. DOI: <ref target="http://doi.org/10.5281/zenodo.4621960">10.5281/zenodo.4621960.</ref></item>
+        <item><hi rend="bold">Henny-Krahmer, Ulrike; Neuber, Frederike; Sahle, Patrick; Fischer, Franz</hi> (2018): “Nachlese zum Panel ‘Alles ist im Fluss – Ressourcen und Rezensionen in den Digital Humanities’ #dhd2018.” In: <hi rend="italic">DHd-Blog.</hi> URL: <ref target="https://dhd-blog.org/?p=9750">https://dhd-blog.org/?p=9750</ref>.</item>
+        <item><hi rend="bold">Henny, Ulrike</hi> (2018): “Reviewing von digitalen Editionen im Kontext der Evaluation digitaler Forschungsergebnisse.” In: <hi rend="italic">Digitale Metamorphose: Digital Humanities und Editionswissenschaft.</hi> Ed. by Roland S. Kamzelak and Timo Steyer. (= Sonderband der Zeitschrift für digitale Geisteswissenschaften, 2). DOI: <ref target="http://dx.doi.org/10.17175/sb002_006">10.17175/sb002_006</ref>.</item>
+        <item><hi rend="bold">Schnoepf, Markus</hi> (2013): “Evaluationskriterien für digitale Editionen und die reale Welt.” <hi rend="italic">HiN – Alexander Von Humboldt Im Netz. Internationale Zeitschrift für Humboldt-Studien</hi>, <hi rend="italic">14</hi>(27), 69-76. DOI: <ref target="https://doi.org/10.18443/182">10.18443/182.</ref></item>
+      </list>
+      <p>RIDE and the Reviewing Criteria have been <hi rend="bold">presented</hi> on the following occasions:</p>
+      <list>
+        <item><hi rend="bold">Geiger, Jonathan; Jascha Schmitz; Mareike Schumacher</hi> (eds., 2024): “RaDiHum20 spricht mit Ulrike, Frederike und Martina vom Review Journal for Digital Editions and Resources (RIDE).” <hi rend="italic">RaDiHum20.</hi> Podcast. 20.12.2024. URL: <ref target="https://radihum20.de/radihum20-spricht-mit-ride/">https://radihum20.de/radihum20-spricht-mit-ride/</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike; Tessa Gengnagel; Daniela Schulz</hi> (2022): “FAIRe Editionen – Kriterien und Evaluation”. Poster at the plenary meeting of the NFDI consortium Text+ on September 12, 2022 in Mannheim, Germany. (<ref target="https://zenodo.org/record/7248907">Poster</ref>)</item>
+        <item><hi rend="bold">Henny-Krahmer, Ulrike</hi> (2022): “Criteria for Evaluating Digital Scholarly Editions, Text Collections, and Tools in the Journal RIDE”. Contribution to the panel “Attribution and Assessment of Digital Humanities Outputs” at the conference <hi rend="italic">Building Digital Humanities</hi>. Online. 16.11.2022. (<ref target="https://web.archive.org/web/20221116135158/https://web.cvent.com/event/811e389e-78de-46cd-877d-b20b9ae9ed85/websitePage:712f5ca6-28c5-4b80-9207-b5271e7846ca?RefId=Complete%20Programme">Programme</ref> | <ref target="https://doi.org/10.5281/zenodo.7327338">Abstract &amp; Slides</ref>)</item>
+        <item><hi rend="bold">Henny-Krahmer, Ulrike; Frederike Neuber; Martina Scholger</hi> (2022): “Informationstechnologische Gedächtnisarbeit in der Rezensionszeitschrift RIDE” [Poster]. In <hi rend="italic">DHd 2022. Kulturen des digitalen Gedächtnisses. 8. Tagung des Verbands “Digital Humanities im deutschsprachigen Raum”</hi>, Potsdam. Zenodo. DOI: <ref target="https://doi.org/10.5281/zenodo.6322571">10.5281/zenodo.6322571</ref> (<ref target="https://zenodo.org/record/6328177">Abstrakt</ref> | <ref target="https://vimeo.com/687407048">Posterslam</ref>).</item>
+        <item><hi rend="bold">Henny-Krahmer, Ulrike</hi> (2022), participation in the online round table on “Ethics, Transparence and Expertise in academic journals”, organized by the First European Symposium of Social Science &amp; Humanities Journals, 21st February 2022. <ref target="https://web.archive.org/web/20221117222515/https://eu-ssh-journals.sciencesconf.org/resource/page/id/2">Programme</ref>.</item>
+        <item><hi rend="bold">Sahle, Patrick </hi>(2021): “Rezensionen in der digitalen Transformation. Ein Diskussionsforum von H-Soz-Kult, VHD und dem NFDI4Memory-Konsortium”, discussion panel at <hi rend="italic">“Deutungskämpfe” – 53. Deutscher Historikertag</hi>, 5th October 2021, München. <ref target="http://ride.i-d-e.de/wp-content/uploads/PodiumRezensionen-ext.pdf">Slides</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike</hi> (2020): “Evaluation digitaler Editionen. Kriterienkatalog(e) und das Rezensionsjournal RIDE”. Session at the Summer School <hi rend="italic">Coding the Sources – Digitales Edieren in den Geisteswissenschaften</hi> (Online Summerschool and Workshop, Lübeck/Online, 17.8. – 27.8.2020), 27.8.2020. <ref target="https://zenodo.org/record/4003683">Slides</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike; Henny-Krahmer, Ulrike; Sahle, Patrick; Fischer, Franz</hi> (2018): “Alles ist im Fluss – Ressourcen und Rezensionen in den Digital Humanities”, panel organization at <hi rend="italic">DHd2018</hi>, 28th February 2018, Cologne. Invited Speakers: Rüdiger Hohls, Anne Baillot, Christof Schöch, Jürgen Hermes. <ref target="http://ride.i-d-e.de/wp-content/uploads/RIDE-dhd-abs.pdf">Abstract</ref>, <ref target="http://ride.i-d-e.de/wp-content/uploads/Alles-ist-im-Fluss.pdf">Slides</ref>.</item>
+        <item><hi rend="bold">Steinkrüger, Philipp</hi> (2017): “Evaluation von Nachhaltigkeit im Review Journal für Digitale Editionen <hi rend="italic">RIDE</hi>“, panel contribution at <hi rend="italic">DHd2017</hi>. 17th February 2017, Bern. <ref target="http://ride.i-d-e.de/wp-content/uploads/DHd-Panel-9-Steinkrüger-Ride.pdf">Sildes</ref>.</item>
+        <item><hi rend="bold">Neuber, Frederike</hi> (2016): “Evaluationskriterien Digitaler Editionen”, teaching session at the Summer School <hi rend="italic">Digitale Edition</hi>, Centre for Information Modelling — Austrian Centre for Digital Humanities at the University of Graz. 9th September 2016, Graz. <ref target="http://ride.i-d-e.de/wp-content/uploads/Neuber_Evaluationskriterien.pdf">Slides</ref>.</item>
+        <item><hi rend="bold">Sahle, Patrick</hi> (2016): “Evaluating Digital Editions”, lecture at the École nationale des chartes, 2nd May 2016, Paris. <ref target="https://ephilolog.hypotheses.org/369">Abstract</ref>, <ref target="http://ride.i-d-e.de/wp-content/uploads/Evaluating-SDE-external.pdf">Slides</ref>.</item>
+        <item><hi rend="bold">Henny, Ulrike</hi> (2015): “Reviewing von digitalen Editionen”, presentation at the conference <hi rend="italic">Digitale Metamorphose. Digital Humanities und Editionswissenschaft</hi>, 3rd November 2015, Wolfenbüttel. <ref target="https://web.archive.org/web/20160722191613/http://www.mww-forschung.de:80/digitale-forschungsinfrastruktur/tagung-digitale-metamorphose/?menuopen=1">Programme</ref>, <ref target="https://prezi.com/o2yqhyyrdhz8/reviewing-von-digitalen-editionen">Slides</ref>.</item>
+        <item><hi rend="bold">Schnöpf, Markus</hi> (2015): “Digitale Editionen – Mindestanforderung und Best Practice”, presentation at the conference <hi rend="italic">Virtuelle Infrastrukturen für digitale Editionen. Entwicklungen, Perspektiven und Projekte,</hi> 12th November 2015, Gotha. <ref target="http://www.hsozkult.de/conferencereport/id/tagungsberichte-6575">Conference Report</ref></item>
+        <item><hi rend="bold">Steinkrüger, Philipp</hi> (2015): “On the evaluation of digital editions”, presentation at the workshop <hi rend="italic">Scholarship in Software – Software in Scholarship</hi>, 30th January 2015, Bern.</item>
+        <item><hi rend="bold">Fischer, Franz</hi> (2014): “Evaluating Digital Editions”, presentation at MMSDA/DiXiT Camp 1, 2nd May 2014, King’s College London. <ref target="http://dixit.uni-koeln.de/wp-content/uploads/2015/03/DiXiT-Camp1-MMSDA-Schedule.pdf">Schedule</ref>, <ref target="http://dixit.uni-koeln.de/wp-content/uploads/2015/04/Camp1-Franz_Fischer_-_Evaluating_Digital_Editions.pdf">Slides</ref>.</item>
+      </list>
+    </body>
+  </text>
+</TEI>

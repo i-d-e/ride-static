@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Suggested Projects for Review</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/reviewers/suggested-projects-for-review/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>We are very interested in reviews of the following projects (but of course you can also suggest a project that is not on this list). If you would like to contribute to RIDE, please contact the managing editors at ride-editor (at) i-d-e.de. For projects that are already under review, <ref target="http://ride.i-d-e.de/reviewers/projects-currently-under-review/">see here</ref>.</p>
+      <div>
+        <head>Digital Scholarly Editions</head>
+        <p>A</p>
+        <list>
+          <item><ref target="http://digitalathenaeus.org/">Digital Athenaeus</ref></item>
+        </list>
+        <p>B</p>
+        <list>
+          <item><ref target="https://mbda.berry.edu/">Martha Berry Digital Archive</ref></item>
+          <item><ref target="http://burckhardtsource.org/">BurckhardtSource</ref></item>
+          <item><ref target="http://www.lokalbericht.unibe.ch/">Hermann Burger: Lokalbericht</ref></item>
+          <item><ref target="http://www.livesandletters.ac.uk/bodley/bodley.html">The Diplomatic Correspondence of Thomas Bodley, 1585-1597</ref></item>
+        </list>
+        <p>C</p>
+        <list>
+          <item><ref target="http://www.sd-editions.com/CantApp/GP/">CantApp: The General Prologue. An Edition in an App</ref></item>
+          <item><ref target="https://capitularia.uni-koeln.de/">Capitularia</ref></item>
+          <item><ref target="http://digital.wustl.edu/stlcourtrecords/index.html">St. Louis Circuit Court Records</ref></item>
+        </list>
+        <p>D</p>
+        <list>
+          <item><ref target="https://dickensletters.com/">The Charles Dickens Letters Project</ref></item>
+          <item><ref target="http://www.digitalmishnah.umd.edu/">Digital Mishnah</ref></item>
+        </list>
+        <p>E</p>
+        <list>
+          <item><ref target="https://early-testimony.ehri-project.eu/">Early Holocaust Testimony</ref></item>
+          <item><ref target="http://www.earlystuartlibels.net/htdocs/index.html">Early Stuart Libels</ref></item>
+          <item><ref target="https://www.winnifredeatonarchive.org/index.html">The Winnifred Eaton Archive</ref></item>
+          <item><ref target="https://ntvmr.uni-muenster.de/ecm">Editio Critica Maior (ECM) im New Testament Virtual Manuscript Room</ref></item>
+          <item><ref target="http://erdmuthe.thulb.uni-jena.de/erdmuthe-digitale-edition/start.html">Erdmuthe, digitale Edition</ref></item>
+        </list>
+        <p>F</p>
+        <list>
+          <item><ref target="https://annefrankmanuscripten.org/">Anne Frank Manuscripten</ref></item>
+        </list>
+        <p>G</p>
+        <list>
+          <item><ref target="https://gotthelf-digital.ch/">Digitale Gesamtausgabe Jeremias Gotthelf</ref></item>
+          <item><ref target="http://guillelmus.uni-koeln.de/">Magistri Guillelmi Autissiodorensis Summa de officiis ecclesiaticis</ref></item>
+        </list>
+        <p>H</p>
+        <list>
+          <item><ref target="https://haeckel-briefwechsel-projekt.uni-jena.de/">Ernst Haeckel. Online-Briefedition</ref></item>
+          <item><ref target="https://hainhofer.hab.de/">Philipp Hainhofer. Reiseberichte &amp; Sammlungsbeschreibungen 1594–1636 </ref></item>
+          <item><ref target="https://humboldt.unibe.ch/text">Alexander von Humboldt – Sämtliche Schriften Digital</ref></item>
+          <item><ref target="http://digital.lib.uiowa.edu/leighhunt/">Leigh Hunt Letters</ref></item>
+          <item><ref target="http://charles-harpur.org/">The Charles Harpur Critical Archive (CHCA)</ref></item>
+          <item><ref target="http://haussknecht.thulb.uni-jena.de/carl-haussknecht.html">Der Botaniker Carl Haussknecht</ref></item>
+          <item><ref target="https://digi.ub.uni-heidelberg.de/de/ahd/index.html">Der arme Heinrich – digital</ref></item>
+        </list>
+        <p>I</p>
+        <list>
+          <item><ref target="https://iffland.bbaw.de/">August Wilhelm Ifflands dramaturgisches und administratives Archiv</ref></item>
+        </list>
+        <p>J</p>
+        <p>K</p>
+        <list>
+          <item><ref target="https://karlstadt-edition.org/">Karlstadt Edition</ref></item>
+          <item><ref target="https://gams.uni-graz.at/fercan">Keltische Götternamen in den Inschriften der römischen Provinz Germania Inferior</ref></item>
+          <item><ref target="https://kraus1933.ace.oeaw.ac.at/index.html">Karl Kraus 1933: Dritte Walpurgisnacht</ref></item>
+        </list>
+        <p>L</p>
+        <list>
+          <item><ref target="https://letters1916.ie/">Letters of 1916</ref></item>
+          <item><ref target="https://livingstoneonline.org/spectral-imaging/three-versions-the-1870-field-diary">Livingstone Online</ref></item>
+          <item><ref target="https://ldod.uc.pt/">Arquivo Livro do Desassossego (LdoD)</ref></item>
+        </list>
+        <p>M</p>
+        <list>
+          <item><ref target="http://www.martianus.mueze.lmu.de/index.htm">Glossae in Martianum</ref></item>
+          <item><ref target="https://dh.tcd.ie/martindiary/">The Diary of Mary Martin</ref></item>
+          <item><ref target="https://mrp.oeaw.ac.at/pages/index.html">Ministerratsprotokolle [der Regierungen der Habsburgermonarchie] 1848-1918</ref></item>
+        </list>
+        <p>O</p>
+        <p>P</p>
+        <list>
+          <item><ref target="http://www.pessoadigital.pt/en/index.html">Digital Edition of Fernando Pessoa, Projects and Publications</ref></item>
+          <item><ref target="http://www.faustodigital.com/">Fernando Pessoa: Fausto: uma existência digital</ref></item>
+          <item><ref target="http://www.oldbaileyonline.org/">Proceedings of the Old Bailey</ref></item>
+        </list>
+        <p>R</p>
+        <list>
+          <item><ref target="http://resources.huygens.knaw.nl/registershollandsegrafelijkheid">Registers van de Hollandse grafelijkheid 1299-1345</ref></item>
+        </list>
+        <p>S</p>
+        <list>
+          <item><ref target="https://schleiermacher-digital.de/">schleiermacher digital – Briefwechsel, Tageskalender, Vorlesungen von Friedrich Schleiermacher 1808–1834</ref></item>
+          <item><ref target="http://selbstzeugnisse.hab.de/">Selbstzeugnisse der Frühen Neuzeit in der Herzog August Bibliothek</ref></item>
+          <item><ref target="https://www.semper-edition.ch/">Gottfried Semper – Der Stil</ref></item>
+          <item><ref target="https://sozinianer.mni.thm.de/home">Die Sozinianischen Briefwechsel: Zwischen Theologie, frühmoderner Naturwissenschaft und politischer Korrespondenz</ref></item>
+          <item><ref target="http://spenserians.cath.vt.edu/">Spenser and the Tradition: English Poetry</ref></item>
+          <item><ref target="https://hipstas.github.io/spokenweb-anthology/">The SpokenWeb Digital Anthology</ref></item>
+          <item><ref target="https://sulzer-briefe.uni-halle.de/sb/index.html">Johann Georg Sulzer – Johann Jakob Bodmer: Briefwechsel. Online-Edition</ref></item>
+          <item><ref target="http://www.svea-pommern.de/">Svea-Pommern: Karten und Texte der schwedischen Landesaufnahme von Pommern 1692-1709</ref></item>
+        </list>
+        <p>T</p>
+        <list>
+          <item><ref target="https://arkivet.thorvaldsensmuseum.dk/en">The Thorvaldsens Museum Archives</ref></item>
+          <item><ref target="https://view.newsletter.degruyter.com/?qs=74acdbebc55e54646b3fae4a513e77951a1deaca086c2a14c784c6c851d29c495eaffe80591972730ad8875211ebd75c407ae40a6d4a4c1cdcfac8a26ff3f1f3ce6a206d1e7abdfa78c24761b453e765">Tillich Online</ref></item>
+        </list>
+        <p>V</p>
+        <list>
+          <item><ref target="http://vbd.humnet.unipi.it/">Vercelli Book Digitale</ref></item>
+          <item><ref target="http://vespasianodabisticciletters.unibo.it/">Vespasiano da Bisticci</ref></item>
+        </list>
+        <p>W</p>
+        <list>
+          <item><ref target="https://whitmanarchive.org/">The Walt Whitman Archive</ref></item>
+          <item><ref target="http://gams.uni-graz.at/context:wiesinger">Karl Wiesinger: Digitale Edition der Tagebücher (1961-1973)</ref></item>
+          <item><ref target="https://wn.ace.oeaw.ac.at/">Wittgensteins Neffe</ref></item>
+          <item><ref target="http://www.wittgensteinsource.org">Wittgenstein Source</ref></item>
+        </list>
+        <p>You may also take a look at <ref target="https://dig-ed-cat.acdh.oeaw.ac.at/">the catalog of digital editions by Greta Franzini</ref> or <ref target="http://www.digitale-edition.de">the catalog of digital editions by Patrick Sahle</ref>, which aim to provide (necessarily uncomplete) lists of digital scholarly editions available to date.</p>
+      </div>
+      <div>
+        <head>Digital Text Collections</head>
+        <list>
+          <item><ref target="http://alcidedigitale.fbk.eu/">Alcide.Un viaggio negli scritti di De Gasperi</ref></item>
+          <item><ref target="https://acdh.oeaw.ac.at/abacus/">Austrian Baroque Corpus (ABaC:us)</ref></item>
+          <item><ref target="http://archimedes2.mpiwg-berlin.mpg.de/archimedes_templates/project.htm">Archimedes Digital Research Library</ref></item>
+          <item><ref target="http://www.admyte.com/admyteonline/home.htm">Archivo Digital de Manuscritos  y Textos Espa</ref><ref target="http://www.bidiso.es/Emblematica/">ñ</ref><ref target="http://www.admyte.com/admyteonline/home.htm">oles (ADmyte)</ref></item>
+          <item><ref target="http://www.bidiso.es/Emblematica/">Biblioteca Digital de Emblemática Hispánica / Biblioteca Digital de Libros de Emblemas Traducidos al Español</ref></item>
+          <item><ref target="http://www.saavedrafajardo.org/">Biblioteca Saavedra Fajardo de pensamiento político hispánico</ref></item>
+          <item><ref target="http://www.cervantesvirtual.com">Biblioteca Virtual Miguel de Cervantes</ref></item>
+          <item><ref target="http://www.bidiso.es/Relaciones/">Catálogo y Biblioteca Digital de Relaciones de Sucesos</ref></item>
+          <item><ref target="https://cedema.org/">Centro de Documentacion de los Movimientos Armados (Cedema)</ref></item>
+          <item><ref target="http://www.corpuscharta.es">Corpus CHARTA</ref></item>
+          <item><ref target="http://www.corpuscodea.es/">Corpus de documentos Españoles Anteriores a 1800 (CODEA+2015)</ref></item>
+          <item><ref target="https://kolimo.uni-goettingen.de">Corpus of Literary Modernism (KOLIMO; beta)</ref></item>
+          <item><ref target="https://textgrid.de/en/digitale-bibliothek">Digital Library in TextGrid</ref></item>
+          <item><ref target="https://github.com/pruizf/disco">DISCO: Diachronic Spanish Sonnet Corpus</ref></item>
+          <item><ref target="http://www.chatkorpus.tu-dortmund.de/">Dortmunder Chat-Korpus</ref></item>
+          <item><ref target="http://quod.lib.umich.edu/e/eebogroup/">Early English Books Online</ref></item>
+          <item><ref target="http://www.laudatio-repository.org/repository/"><hi rend="bold">L</hi>ong-term <hi rend="bold">A</hi>ccess and <hi rend="bold">U</hi>sage of <hi rend="bold">D</hi>eeply <hi rend="bold">A</hi>nnotated Informa<hi rend="bold">tio</hi>n (LAUDATIO)</ref></item>
+          <item><ref target="https://www.oldbaileyonline.org//">Old Bailey Online</ref></item>
+          <item><ref target="https://voices.uchicago.edu/rsti/">Ras Shamra Tablet Inventory (RSTI)</ref></item>
+          <item><ref target="http://repertorium.at/">Repertorium digitaler Quellen zur österreichischen und deutschen Rechtsgeschichte in der Frühen Neuzeit</ref></item>
+          <item><ref target="https://romaninscriptionsofbritain.org/">Roman Inscriptions of Britain</ref></item>
+          <item><ref target="http://www.cet-e-quinhentos.com">Teatro de Autores Portugueses do Século XVI</ref> and <ref target="http://www.cet-e-seiscentos.com/">Teatro de Autores Portugueses do Século XVII</ref></item>
+        </list>
+        <p>More text collections can be found on dedicated lists and in catalogs, for example:</p>
+        <list>
+          <item><ref target="https://github.com/morethanbooks/Atlas-de-Datos">“Atlas de Datos”</ref>, edited by José Calvo Tello</item>
+          <item><ref target="http://wikis.fu-berlin.de/display/tdr/Korpora+und+Textdatenbanken">“Korpora und Textdatenbanken”</ref> on the Wiki Textdaten Romanistik</item>
+          <item><ref target="https://www.linguistik.hu-berlin.de/de/institut/professuren/korpuslinguistik/links/korpora_links">“Korpora”</ref> by the Institut für deutsche Sprache und Linguistik, Humboldt-Universität zu Berlin</item>
+          <item><ref target="https://www.clarin.eu/content/language-resource-inventory">“Language Resource Inventory”</ref> by CLARIN</item>
+          <item><ref target="https://www.mediaevum.de/textkorpora.htm">“Textkorpora im Internet”</ref> on Medievum.de</item>
+        </list>
+      </div>
+      <div>
+        <head>Tools and Environments for Digital Scholarly Editing</head>
+        <p>For projects that are already under review, <ref target="https://ride.i-d-e.de/reviewers/projects-currently-under-review/">see here</ref>. The following list is merely alphabetically and not comprehensive:</p>
+        <list>
+          <item>Annotation Studio &lt;<ref target="http://www.annotationstudio.org/">http://www.annotationstudio.org/</ref>&gt;</item>
+          <item>Apache OpenNLP &lt;<ref target="https://opennlp.apache.org/">https://opennlp.apache.org/</ref>&gt;</item>
+          <item>CATview &lt;<ref target="http://catview.uzi.uni-halle.de/">http://catview.uzi.uni-halle.de/</ref>&gt;</item>
+          <item>Classical Text Editor &lt;<ref target="http://cte.oeaw.ac.at/">http://cte.oeaw.ac.at/</ref>&gt;</item>
+          <item>CorrespSearch &lt;<ref target="https://correspsearch.net/">https://correspsearch.net/</ref>&gt;</item>
+          <item>CWRC-Writer &lt;<ref target="https://github.com/cwrc/CWRC-WriterBase">https://github.com/cwrc/CWRC-WriterBase</ref>&gt;</item>
+          <item>ekdosis – Typesetting TEI xml Compliant Critical Editions <ref target="https://gitlab.com/ralessi/ekdosis">https://gitlab.com/ralessi/ekdosis</ref></item>
+          <item>ecdosis &lt;<ref target="http://ecdosis.rocks">http://ecdosis.rocks</ref>&gt;</item>
+          <item>eLaborate &lt;<ref target="http://elaborate.huygens.knaw.nl/">http://elaborate.huygens.knaw.nl/</ref>&gt;</item>
+          <item>EFES (EpiDoc Front End Services) <ref target="https://github.com/EpiDoc/EFES">https://github.com/EpiDoc/EFES</ref></item>
+          <item>FreeLing 4.0 &lt;<ref target="http://nlp.lsi.upc.edu/freeling/">http://nlp.lsi.upc.edu/freeling/</ref>&gt;</item>
+          <item>FromThePage &lt;<ref target="https://fromthepage.com/">https://fromthepage.com/</ref>&gt;</item>
+          <item>FuD &lt;<ref target="https://fud.uni-trier.de/">https://fud.uni-trier.de/</ref>&gt;</item>
+          <item>heiEDITIONS &lt;<ref target="https://heieditions.github.io/">https://heieditions.github.io/</ref>&gt;</item>
+          <item>Image Markup Tool &lt;<ref target="https://image-markup-tool.software.informer.com/">https://image-markup-tool.software.informer.com/</ref>&gt;</item>
+          <item>InCritApp – Interactive Critical Apparatus <ref target="https://github.com/philkon/InCritApp">https://github.com/philkon/InCritApp</ref></item>
+          <item>Isilex &lt;<ref target="https://isilex.github.io/easy-xml/">https://isilex.github.io/easy-xml/</ref>&gt;</item>
+          <item>Kiln &lt;<ref target="http://kcl-ddh.github.io/kiln/">http://kcl-ddh.github.io/kiln/</ref>&gt;</item>
+          <item>LombardPress &lt;<ref target="http://lombardpress.org/">http://lombardpress.org/</ref>&gt;</item>
+          <item>ManuscriptDesk &lt;<ref target="https://manuscriptdesk.uantwerpen.be/md/Main_Page">https://manuscriptdesk.uantwerpen.be/md/Main_Page</ref>&gt;</item>
+          <item>MOM-CA &lt;<ref target="https://github.com/icaruseu/mom-ca/wiki">https://github.com/icaruseu/mom-ca/wiki</ref>&gt;</item>
+          <item>New Testament Virtual Manuscript Room (NTVMR) &lt;<ref target="http://ntvmr.uni-muenster.de/de/manuscript-workspace">http://ntvmr.uni-muenster.de/de/manuscript-workspace</ref>&gt;</item>
+          <item>Online Transcription Editor – OTE &lt;<ref target="https://tcdh.uni-trier.de/en/projekt/online-transcription-editor-ote">https://tcdh.uni-trier.de/en/projekt/online-transcription-editor-ote</ref>&gt;</item>
+          <item>PhiloEditor &lt;<ref target="http://projects.dharc.unibo.it/philoeditor/">http://projects.dharc.unibo.it/philoeditor/</ref>&gt;</item>
+          <item>Scripto &lt;<ref target="http://scripto.org/">http://scripto.org/</ref>&gt;</item>
+          <item>Stanford NLP &lt;<ref target="https://nlp.stanford.edu/software/">https://nlp.stanford.edu/software/</ref>&gt;</item>
+          <item>T-Pen &lt;<ref target="http://www.t-pen.org/TPEN/">http://www.t-pen.org/TPEN/</ref>&gt;</item>
+          <item>Textual Communities &lt;<ref target="https://textualcommunitiessandbox.org/app/">https://textualcommunitiessandbox.org/app/</ref>&gt;</item>
+          <item>TextGrid &lt;<ref target="https://textgrid.de/en/">https://textgrid.de/en/</ref>&gt;</item>
+          <item>TIDO – Text Viewer for Digital Objects &amp; TextAPI &lt;<ref target="https://www01.sub.uni-goettingen.de/en/digital-library/digital-tools/text-viewer-for-digital-objects-tido-textapi/">https://www01.sub.uni-goettingen.de/en/digital-library/digital-tools/text-viewer-for-digital-objects-tido-textapi/</ref>&gt;</item>
+          <item>Pundit &lt;<ref target="http://thepund.it/">http://thepund.it/</ref>&gt;</item>
+          <item>Transcribo &lt;<ref target="http://transcribo.org/en/">http://transcribo.org/en/</ref>&gt;</item>
+          <item>Versioning Machine &lt;<ref target="http://v-machine.org/">http://v-machine.org/</ref>&gt;</item>
+          <item>WMRCRE &lt;<ref target="http://vmrcre.org/">http://vmrcre.org/</ref>&gt;</item>
+          <item>Zooniverse &lt;<ref target="https://www.zooniverse.org/">https://www.zooniverse.org/</ref>&gt;</item>
+        </list>
+        <p>More Digital Tools and Environments can be found on dedicated lists and in catalogs, for example:</p>
+        <list>
+          <item>SSH Open Marketplace (search e.g. for <ref target="https://marketplace.sshopencloud.eu/search?q=digital+edition&amp;categories=tool-or-service">“digital edition”</ref>), <ref target="https://marketplace.sshopencloud.eu/search?categories=tool-or-service">https://marketplace.sshopencloud.eu/search?categories=tool-or-service</ref></item>
+          <item>TEI-Wiki Editing Tools &lt;<ref target="https://wiki.tei-c.org/index.php/Category:Editing_tools">https://wiki.tei-c.org/index.php/Category:Editing_tools</ref>&gt; ( last modified on 2015-02-20)</item>
+        </list>
+      </div>
+    </body>
+  </text>
+</TEI>

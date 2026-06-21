@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Projects Currently under Review</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/reviewers/projects-currently-under-review/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>Currently, the following projects are assigned to reviewers. These reviews will be published in forthcoming issues of RIDE. Please see this page for further <ref target="https://ride.i-d-e.de/reviewers/suggested-projects-for-review/">suggestions for review</ref>.</p>
+      <div>
+        <head>Digital Scholarly Editions</head>
+        <list>
+          <item>Alexander von Humboldt – Sämtliche Schriften digital (<ref target="https://humboldt.unibe.ch/text">https://humboldt.unibe.ch/text</ref>)</item>
+          <item>The Elizabeth Gaskell Journal: Digital Edition (<ref target="https://elizabethgaskelljournal.com/index.html">https://elizabethgaskelljournal.com/index.html</ref>)</item>
+          <item>FMB correspondence (<ref target="https://www.felix-mendelssohn-bartholdy.org/">https://www.felix-mendelssohn-bartholdy.org/</ref>)</item>
+          <item>Frankenstein. A Digital Variorum Edition (<ref target="https://frankensteinvariorum.org/">https://frankensteinvariorum.org/</ref>)</item>
+          <item><ref target="https://edition.mgh.de/001">Ulrich Richental: Die Chronik des Konzils von Konstanz (Monumenta Germaniae Historica)</ref></item>
+          <item><ref target="https://jjda.ie/main/JJDA/JJDAhome.htm">James Joyce Digital Archive</ref></item>
+        </list>
+      </div>
+      <div>
+        <head>Digital Text Collections</head>
+        <p>Currently, no text collections are under review.</p>
+      </div>
+      <div>
+        <head>Tools and Environments for Digital Scholarly Editing</head>
+        <p>Currently, no tools and environments are under review.</p>
+      </div>
+      <div>
+        <head>Drama Editions</head>
+        <list>
+          <item>August Wilhelm Ifflands dramaturgisches und administratives Archiv (<ref target="https://iffland.bbaw.de/">https://iffland.bbaw.de/</ref>)</item>
+          <item>Carlo Goldoni. Drammi per musical (<ref target="https://www.carlogoldoni.it/public/">https://www.carlogoldoni.it/</ref>)</item>
+          <item>Douai Shakespeare Manuscript Project (<ref target="https://lemdo.uvic.ca/douai/">https://lemdo.uvic.ca/douai/</ref>)</item>
+          <item>kleist-digital (<ref target="https://kleist-digital.de/">https://kleist-digital.de/</ref>)<ref target="https://kleist-digital.de/"> </ref></item>
+          <item>Thomas Bernhard “Heldenplatz” (<ref target="https://hp.ace.oeaw.ac.at/">https://hp.ace.oeaw.ac.at/</ref>)</item>
+          <item>Queen’s Men Editions (<ref target="https://lemdo.uvic.ca/qme/">https://lemdo.uvic.ca/qme/</ref>)</item>
+        </list>
+      </div>
+      <p></p>
+    </body>
+  </text>
+</TEI>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Team</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/team/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <head>Managing Editors</head>
+        <list>
+          <item>Since June 2025: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/martina-scholger">Martina Scholger</persName></item>
+          <item>Since December 2022: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="http://www.i-d-e.de/mitglieder/martina-scholger">Martina Scholger</persName></item>
+          <item>Since February 2019: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName></item>
+          <item>June 2014-January 2019: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName></item>
+        </list>
+        <p>You can contact the managing editors at <email>ride-editor (at) i-d-e.de</email>.</p>
+      </div>
+      <div>
+        <head>Editors</head>
+        <p>RIDE is published by the <ref target="http://www.i-d-e.de">Institute for Documentology and Scholarly Editing</ref> (IDE). Issues published to date have been organised by:</p>
+        <list>
+          <item>Issue 1: Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="http://www.i-d-e.de/mitglieder/patrick-sahle">Patrick Sahle</persName> (Editor), Alexander Czmiel, Franz Fischer, Ulrike Henny, Markus Schnöpf, Martina Semlak, and Georg Vogeler (Editorial Board)</item>
+          <item>Issue 2: Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="http://www.i-d-e.de/mitglieder/franz-fischer">Franz Fischer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/patrick-sahle">Patrick Sahle</persName> (Editors), Tessa Gengnagel and Markus Schnöpf (Assistant Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/ulrike-henny-krahmer/">Ulrike Henny</persName> (Technical Editors)</item>
+          <item>Issue 3: Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="http://www.i-d-e.de/mitglieder/franz-fischer">Franz Fischer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny</persName> (Editors), Tessa Gengnagel (Assistant Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> and Ulrike Henny (Technical Editors)</item>
+          <item>Issue 4: Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="http://www.i-d-e.de/mitglieder/franz-fischer">Franz Fischer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny</persName> (Editors), Tessa Gengnagel (Assistant Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 5: Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="http://www.i-d-e.de/mitglieder/franz-fischer">Franz Fischer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny</persName> (Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 6 – Digital Text Collections: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 7 – Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor, Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 8 – Digital Text Collections: <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> and <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 9 – Digital Text Collections: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Managing Editor), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 10 – Digital Scholarly Editions (Correspondence): <persName ref="http://www.i-d-e.de/mitglieder/stefan-dumont">Stefan Dumont</persName> (Editor), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Managing Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 11 – Tools and Environments for Digital Scholarly Editing: <persName ref="http://www.sussex.ac.uk/profiles/453466">Anna-Maria Sichani</persName> and <persName ref="https://applicationspub.unil.ch/interpub/noauth/php/Un/UnPers.php?PerNum=1197668&amp;LanCode=37">Elena Spadini</persName> (Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/franz-fischer/">Franz Fischer</persName> (Managing Editor), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Managing Editors and Technical Editors)</item>
+          <item>Issue 12 – Digital Scholarly Editions (Correspondence): <persName ref="http://www.i-d-e.de/mitglieder/stefan-dumont">Stefan Dumont</persName> (Editor), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Managing Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName> (Technical Editor)</item>
+          <item>Issue 13 – Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> and <persName ref="http://www.i-d-e.de/mitglieder/patrick-sahle">Patrick Sahle</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Managing Editors), <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann/">Bernhard Assmann</persName>, Jana Klinger et al. (Technical Editors)</item>
+          <item>Issue 14 – Digital Scholarly Editions: <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/torsten-roeder/">Torsten Roeder</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (Managing Editors)</item>
+          <item>Issue 15 – Tools and Environments for Digital Scholarly Editing: <persName ref="http://www.sussex.ac.uk/profiles/453466">Anna-Maria Sichani</persName> and <persName ref="https://applicationspub.unil.ch/interpub/noauth/php/Un/UnPers.php?PerNum=1197668&amp;LanCode=37">Elena Spadini</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors and Technical Editors)</item>
+          <item>Issue 16 – Digital Scholarly Editions (FAIR criteria): <persName ref="https://cceh.uni-koeln.de/personen/tessa-gengnagel/">Tessa Gengnagel</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> and <persName ref="https://www.hab.de/author/danielaschulz/">Daniela Schulz</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors and Technical Editors)</item>
+          <item>Issue 17- Digital Scholarly Editions (FAIR criteria): <persName ref="https://cceh.uni-koeln.de/personen/tessa-gengnagel/">Tessa Gengnagel</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> and <persName ref="https://www.hab.de/author/danielaschulz/">Daniela Schulz</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors and Technical Editors)</item>
+          <item>Issue 18 – Digital Scholarly Editions: <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors and Technical Editors)</item>
+          <item>Issue 19 – Tools and Environments: <persName ref="https://www.i-d-e.de/mitglieder/roman-bleier">Roman Bleier</persName> and <persName ref="https://www.i-d-e.de/mitglieder/stefan-dumont">Stefan Dumont</persName> (Editors), <persName ref="https://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="https://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors)</item>
+          <item>Issue 20 – Digital Scholarly Editions: <persName ref="https://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Editors), <persName ref="https://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName>, <persName ref="https://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors)</item>
+          <item>Issue 21 – Digital Scholarly Editions (Crowdsourcing): <persName ref="https://www.fontanearchiv.de/ueber-uns/team/anna-busch">Anna Busch</persName>, <persName ref="https://www.gw.uni-jena.de/3005/martin-prell-m-a">Martin Prell</persName>, and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/torsten-roeder/">Torsten Roeder</persName> (Editors), <persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors)</item>
+          <item>Issue 22 – Digital Scholarly Editions: <persName ref="https://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Editors), <persName ref="https://www.i-d-e.de/mitglieder/ulrike-henny">Ulrike Henny-Krahmer</persName> and <persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/martina-scholger/">Martina Scholger</persName> (Managing Editors)</item>
+        </list>
+      </div>
+      <div>
+        <head>Technical realization</head>
+        <p>RIDE webpage is powered by WordPress, which is administrated by the managing editors. Selected pages are served from an XML database (eXist-db). Reviews in RIDE are encoded in XML/TEI. All article related pages are generated by a series of scripts, which have been created by</p>
+        <list>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/bernhard-assmann">Bernhard Assmann</persName> (XSLT for the reviews and MARC 21-XML export of review metadata)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/ulrike-henny-krahmer">Ulrike Henny-Krahmer</persName> (XSLT for reviews and factsheets, TEI schema of the reviews and questionnaires, XSLT for factsheets, Python for PDF version of the reviews, Python for wordclouds, XQuery for charts, OAI-PMH Interface, eXist admin)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/frederike-neuber">Frederike Neuber</persName> (XSLT for reviews and factsheets, TEI schema of the reviews and questionnaires, conversion and curation of XML data, questionnaire import to limesurvey)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/patrick-sahle">Patrick Sahle</persName> (XSLT for MARC 21-XML export of review metadata)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/torsten-schassan">Torsten Schassan</persName> (TEI version of the catalogue of criteria of digital scholarly editions)</item>
+          <item><persName ref="https://www.i-d-e.de/mitglieder/martina-scholger/">Martina Scholger</persName> (TEI version of the catalogue of criteria for tools and environments, XForms for the questionnaire on tools and environments, TEI schema of the reviews)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Server admin)</item>
+        </list>
+      </div>
+      <div>
+        <head>Editorial board</head>
+        <list>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/fernanda-alvares-freire">Fernanda Alvares Freire</persName> (Universität Darmstadt, Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bernhard-assmann">Bernhard Assmann</persName> (Hochschulbibliothekszentrum des Landes Nordrhein-Westfalen, hbz)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/roman-bleier">Roman Bleier</persName> (Universität Graz)</item>
+          <item>Elisa Cugliana (Universität zu Köln)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/alexander-czmiel">Alexander Czmiel</persName> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item><persName ref="https://www.ncl.ac.uk/elll/staff/profile/jamescummings.html">James Cummings</persName> (Newcastle University)</item>
+          <item><persName ref="https://www.hb.se/en/research/research-portal/researchers/WODI/">Wout Dillen</persName> (Högskolan i Borås)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/stefan-dumont">Stefan Dumont</persName> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/bilbo-duntze">Bilbo Duntze</persName> (Staatsbibliothek zu Berlin)</item>
+          <item><persName ref="http://www.gretafranzini.com/">Greta Franzini</persName> (Eurac Research – Institute of Applied Linguistics, Bozen)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/franz-fischer">Franz Fischer</persName> (Università Ca’ Foscari di Venezia)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/christiane-fritze">Christiane Fritze</persName> (Österreichische Nationalbibliothek)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/ulrike-henny-krahmer/">Ulrike Henny-Krahmer</persName> (Universität Rostock)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/frederike-neuber/">Frederike Neuber</persName> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item><persName ref="http://www.elenapierazzo.org/">Elena Pierazzo</persName> (Université Grenoble Alpes)</item>
+          <item><persName ref="https://online.uni-graz.at/kfu_online/visitenkarte.show_vcard?pPersonenId=6D81CC16B72314F3&amp;pPersonenGruppe=3">Christopher Pollin</persName> (Universität Graz)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/malte-rehbein">Malte Rehbein</persName> (Universität Passau)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/erik-renz">Erik Renz</persName> (Universität Rostock)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/torsten-roeder/">Torsten Roeder</persName> (Nationale Akademie der Wissenschaften Leopoldina in Halle/Saale)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/patrick-sahle">Patrick Sahle</persName> (Universität Wuppertal)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/torsten-schassan">Torsten Schaßan</persName> (Herzog August Bibliothek Wolfenbüttel)</item>
+          <item><persName ref="https://online.uni-graz.at/kfu_online/visitenkarte.show_vcard?pPersonenGruppe=3&amp;pPersonenId=D818DD9473D85CD5">Gerlinde Schneider</persName> (Universität Graz)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/markus-schnopf">Markus Schnöpf</persName> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/martina-scholger">Martina Scholger</persName> (Universität Graz)</item>
+          <item><persName ref="https://amsichani.github.io/">Anna-Maria Sichani</persName> (University of Sussex)</item>
+          <item><persName ref="https://applicationspub.unil.ch/interpub/noauth/php/Un/UnPers.php?PerNum=1197668&amp;LanCode=37">Elena Spadini</persName> (L’Université de Lausanne)</item>
+          <item><persName ref="http://www.muwi-detmold-paderborn.de/personen/mitarbeiterinnen-und-mitarbeiter/peter-stadler-ma/">Peter Stadler</persName> (Universität Paderborn)</item>
+          <item><persName ref="https://www.geschichte.uni-wuppertal.de/de/personen/digital-humanities/nadine-sutor-ma.html">Nadine Sutor</persName> (Bergische Universität Wuppertal)</item>
+          <item><persName ref="https://www.i-d-e.de/uber-uns-about-us/mitglieder/philipp-steinkruger">Philipp Steinkrüger</persName> (Ruhr-Universität Bochum)</item>
+          <item><persName ref="http://www.i-d-e.de/mitglieder/georg-vogeler">Georg Vogeler</persName> (Universität Graz)</item>
+          <item><persName ref="http://jeffreycwitt.com/">Jeffrey Witt</persName> (Loyola University Maryland)</item>
+        </list>
+      </div>
+      <div>
+        <head>Peer-Reviewers</head>
+        <p>RIDE is a peer-reviewed journal. We would like to thank numerous academics around the world for their valuable assessments and contributions. You can find a list of previous peer-reviewers <ref target="http://ride.i-d-e.de/about/peer-reviewers/">here</ref>.</p>
+        <p>Should you notice any errors, please drop a note to the <ref target="http://ride.i-d-e.de/about/newsletter">managing editors</ref>.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

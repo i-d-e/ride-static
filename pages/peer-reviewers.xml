@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Peer Reviewers</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/peer-reviewers/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>RIDE employs double-blind peer-reviews to ensure the quality of its publications. Without the dedicated work of the individuals listed on this page, this journal would not exist in its current form.</p>
+      <p>A note on the composition of the list below: we only list reviewers who explicitly granted us permission to mention them here. We will also only update this list every 3-4 issues to ensure the anonymity of our peer-reviewers.</p>
+      <div>
+        <head>Previous RIDE Peer Reviewers</head>
+        <list>
+          <item>Susanna <hi rend="bold">Allés Torrent</hi> (University of Miami)</item>
+          <item>Clifford <hi rend="bold">Anderson</hi> (Yale University)</item>
+          <item>Carlos Diego <hi rend="bold">Arenas Pacheco</hi> (Universidad Panamericana)</item>
+          <item>Anne <hi rend="bold">Baillot</hi> (Université du Maine, Le Mans)</item>
+          <item>Brett <hi rend="bold">Barney</hi> (University of Nebraska-Lincoln)</item>
+          <item>Sébastien <hi rend="bold">Barret</hi> (CNRS, Institut de recherche et d’histoire des textes)</item>
+          <item>Agiatis <hi rend="bold">Benardou</hi> (ATHENA R.C. / University of Glasgow)</item>
+          <item>Monica <hi rend="bold">Berti</hi> (Universität Leipzig)</item>
+          <item>David <hi rend="bold">Birnbaum</hi> (University of Pittsburgh)</item>
+          <item>Mackenzie <hi rend="bold">Brooks</hi> (Washington &amp; Lee University)</item>
+          <item>John L. <hi rend="bold">Bryant</hi> (Hofstra University)</item>
+          <item>Marjorie <hi rend="bold">Burghard</hi> (CNRS, École des Hautes Études en Sciences Sociales)</item>
+          <item>Anna <hi rend="bold">Busch</hi> (Universität Potsdam)</item>
+          <item>Anna <hi rend="bold">Cappellotto </hi>(Università degli studi di Verona)</item>
+          <item>Randall <hi rend="bold">Cream</hi> (West Chester University)</item>
+          <item>Mats <hi rend="bold">Dahlström</hi> (University of Borås)</item>
+          <item>Peter <hi rend="bold">Dängeli</hi> (Universität zu Köln)</item>
+          <item>Shawn <hi rend="bold">Day</hi> (University College Cork)</item>
+          <item>Martin <hi rend="bold">De la Iglesia</hi>  (Herzog August Bibliothek Wolfenbüttel)</item>
+          <item>Astrid <hi rend="bold">Dröse</hi> (Universität Tübingen)</item>
+          <item>Andrew <hi rend="bold">Dunning</hi> (University of Oxford)</item>
+          <item>Paul <hi rend="bold">Eggert</hi> (Loyola University Chicago)</item>
+          <item>Vittoria <hi rend="bold">Feola</hi> (Università di Padova)</item>
+          <item>Francisca <hi rend="bold">Feraudi-Gruénais</hi> (Universität Heidelberg)</item>
+          <item>Frank <hi rend="bold">Fischer</hi> (HSE University)</item>
+          <item>Simon <hi rend="bold">Gabay</hi> (Université de Neuchâtel)</item>
+          <item>Walter <hi rend="bold">Gabler</hi> (LMU München)</item>
+          <item>Tessa <hi rend="bold">Gengnagel</hi> (Universität zu Köln)</item>
+          <item>Koraljka <hi rend="bold">Golub</hi> (Linnaeus University)</item>
+          <item>Elena <hi rend="bold">González Blanco </hi>(Universidad Nacional de Educación a Distancia)</item>
+          <item>Nicole <hi rend="bold">Gray</hi> (University of Nebraska–Lincoln)</item>
+          <item>Susanne <hi rend="bold">Haaf</hi> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item>Philipp <hi rend="bold">Hegel</hi> (TU Darmstadt)</item>
+          <item>Patrick <hi rend="bold">Helling</hi> (Universität zu Köln)</item>
+          <item>Kathrin <hi rend="bold">Henzel</hi> (Universität Erfurt)</item>
+          <item>Jürgen <hi rend="bold">Hermes</hi> (Universität zu Köln)</item>
+          <item>Stefan <hi rend="bold">Heßbrüggen-Walter</hi> (Universität Münster)</item>
+          <item>Torsten <hi rend="bold">Hiltmann</hi> (Universität Münster)</item>
+          <item>Samuel <hi rend="bold">Huskey</hi> (University of Oklahoma)</item>
+          <item>Fatiha <hi rend="bold">Idmhand</hi> (Université de Poitiers)</item>
+          <item>Michael <hi rend="bold">Kaiser</hi> (Max Weber Stiftung)</item>
+          <item>Helmut <hi rend="bold">Klug</hi> (Karl-Franzens-Universität Graz)</item>
+          <item>Tobias <hi rend="bold">Kraft</hi> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item>Andreas <hi rend="bold">Kuczera</hi> (Akademie der Wissenschaften und der Literatur Mainz)</item>
+          <item>Dominik <hi rend="bold">Leipold</hi> (Ludwig-Maximilians-Universität München)</item>
+          <item>José Luis <hi rend="bold">Losada Palenzuela</hi> (Universität Basel)</item>
+          <item>Tiziana <hi rend="bold">Mancinelli</hi> (Universität zu Köln)</item>
+          <item>Gregor <hi rend="bold">Middell</hi> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item>Marie <hi rend="bold">Milutat</hi> (Universität Potsdam)</item>
+          <item>Paolo <hi rend="bold">Monella</hi> (Università degli Studi di Palermo)</item>
+          <item>Robert <hi rend="bold">Nasarek</hi> (Martin-Luther-Universität Halle-Wittenberg)</item>
+          <item>Gerald <hi rend="bold">Neumann</hi> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item>Elisa <hi rend="bold">Nury</hi> (Université de Genève)</item>
+          <item>Turlough <hi rend="bold">O’Riordan</hi> (Royal Irish Academy)</item>
+          <item>Roberta <hi rend="bold">Padlina</hi> (Université de Genève)</item>
+          <item>Arthur <hi rend="bold">Perret</hi> (Université Jean Moulin Lyon 3)</item>
+          <item>Martin <hi rend="bold">Prell</hi> (Klassik Stiftung Weimar)</item>
+          <item>Felix <hi rend="bold">Rau</hi> (Universität zu Köln)</item>
+          <item>Enrique <hi rend="bold">Rodrigues-Moura</hi> (Otto-Friedrich-Universität Bamberg)</item>
+          <item>Antonio <hi rend="bold">Rojas Castro</hi>(Universität Tübingen)</item>
+          <item>Matteo <hi rend="bold">Romanello </hi>(École Polytechnique Fédérale de Lausanne)</item>
+          <item>Laurent <hi rend="bold">Romary</hi> (Humboldt Universität Berlin)</item>
+          <item>Annemieke <hi rend="bold">Romein</hi> (University of Twente, Enschede)</item>
+          <item>Sabine <hi rend="bold">Seifert</hi> (Theodor-Fontane-Archiv, Universität Potsdam)</item>
+          <item>Christian <hi rend="bold">Steiner</hi> (Digital Humanities Craft)</item>
+          <item>Francesco <hi rend="bold">Stella</hi> (Università di Siena)</item>
+          <item>Joey <hi rend="bold">Takeda</hi> (Simon Fraser University)</item>
+          <item>Christian <hi rend="bold">Thomas</hi> (Berlin-Brandenburgische Akademie der Wissenschaften)</item>
+          <item>Marjam <hi rend="bold">Trautmann</hi> (Akademie der Wissenschaften und der Literatur Mainz)</item>
+          <item>Dominik <hi rend="bold">Trump</hi> (Universität zu Köln)</item>
+          <item>Ron <hi rend="bold">Van den Branden</hi> (Royal Academy of Dutch Language and Literature, Centre for Scholarly Editing and Document Studies)</item>
+          <item>Gabriel <hi rend="bold">Viehhauser</hi> (Universität Stuttgart)</item>
+          <item>Raffaele <hi rend="bold">Viglianti</hi> (University of Maryland)</item>
+          <item>Thomas <hi rend="bold">Weitin</hi> (TU Darmstadt)</item>
+          <item>Sean <hi rend="bold">Winslow</hi> (University of Graz)</item>
+          <item>Kay-Michael <hi rend="bold">Würzner</hi> (Sächsische Landesbibliothek – Staats- und Universitätsbibliothek Dresden, SLUB)</item>
+          <item>Simone <hi rend="bold">Zenzaro</hi> (Istituto di Linguistica Computazionale)</item>
+        </list>
+      </div>
+      <p> </p>
+      <p></p>
+    </body>
+  </text>
+</TEI>

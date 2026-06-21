@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Data: Overview, Download and API</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/data/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>In addition to the aims of every review journal – evaluation and criticism by academic peers – RIDE aims to facilitate students and scholars in the field of Digital Humanities with empirical data about the reviews and the reviewed digital resources. All the data is offered with a <ref target="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International</ref> license.</p>
+      <div>
+        <head>Questionnaires</head>
+        <p>We gather information about every reviewed digital edition, text collection, or tool in formal <ref target="https://ride.i-d-e.de/data/questionnaires/">questionnaires</ref>, differentiating between the three types of digital resources (Scholarly Editions, Text Collections, Tools). Individual results of the questionnaires are captured in the TEI header of each review and published as a <hi rend="bold">factsheet</hi> accompanying the review text.</p>
+      </div>
+      <div>
+        <head>Charts</head>
+        <p>The questionnaire results are also evaluated for all the reviews together and summarized in the form of <hi rend="bold">charts</hi> about <ref target="https://ride.i-d-e.de/data/charts-scholarly-editions/">scholarly editions</ref> and <ref target="https://ride.i-d-e.de/data/charts-text-collections/">text collections</ref>. The charts give insight into different aspects of digital scholarly editing and corpora, for example the use of data standards, licenses, resolving mechanisms, interfaces, etc.</p>
+      </div>
+      <div>
+        <head>Download</head>
+        <p>The TEI-XML file of each review can be <hi rend="bold">downloaded</hi> on its HTML page on this website (see the download-link is in the right sidebar of the review page). Furthermore, the data of individual reviews (TEI, image files, and a PDF version) as well as of entire RIDE issues can be downloaded at the <ref target="https://github.com/i-d-e/ride">IDE’s GitHub respository</ref>. Different versions of the data are published on GitHub and archived on Zenodo.</p>
+      </div>
+      <div>
+        <head>API</head>
+        <p>The <hi rend="bold">metadata</hi> about all the reviews published in RIDE can be retrieved via an OAI-PMH interface (<ref target="http://www.openarchives.org/pmh/">Open Archives Initiative Protocol for Metadata Harvesting</ref>). The interface can be reached at <ref target="https://ride.i-d-e.de/apis/oai">https://ride.i-d-e.de/apis/oai</ref>.</p>
+        <p>Technically, the OAI interface is based on an XQuery module which was initially developed for the project <ref target="http://monasterium.net">Monasterium.net</ref>, has been reused in the project <ref target="http://totenbuch.awk.nrw.de/">Das altägyptische Totenbuch</ref> and has now been adapted for the use in RIDE. At the interface, the RIDE metadata is offered in three XML-based formats:</p>
+        <list>
+          <item>OAI Dublin Core (Dublin Core Metadata Element Set; schema: <ref target="http://www.openarchives.org/OAI/2.0/oai_dc.xsd">http://www.openarchives.org/OAI/2.0/oai_dc.xsd</ref>)</item>
+          <item>MARC 21-XML (XML variant of MARC 21; schema: <ref target="http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd</ref>)</item>
+          <item>DOAJ XML (Format for article metadata in the Directory of Open Access Journals; schema: <ref target="https://doaj.org/static/doaj/doajArticles.xsd">https://doaj.org/static/doaj/doajArticles.xsd</ref>)</item>
+        </list>
+        <p>The interface does not support sets and deleted objects are not sustained.<lb/>Examples for queries:</p>
+        <list>
+          <item><ref target="https://ride.i-d-e.de/apis/oai?verb=Identify">https://ride.i-d-e.de/apis/oai?verb=Identify</ref></item>
+          <item><ref target="https://ride.i-d-e.de/apis/oai?verb=ListMetadataFormats">https://ride.i-d-e.de/apis/oai?verb=ListMetadataFormats</ref></item>
+          <item><ref target="https://ride.i-d-e.de/apis/oai?verb=ListIdentifiers&amp;metadataPrefix=oai_dc">https://ride.i-d-e.de/apis/oai?verb=ListIdentifiers&amp;metadataPrefix=oai_dc</ref></item>
+          <item><ref target="https://ride.i-d-e.de/apis/oai?verb=ListRecords&amp;metadataPrefix=oai_dc">https://ride.i-d-e.de/apis/oai?verb=ListRecords&amp;metadataPrefix=oai_dc</ref></item>
+          <item><ref target="https://ride.i-d-e.de/apis/oai?verb=GetRecord&amp;metadataPrefix=oai_dc&amp;identifier=ride.4.2">https://ride.i-d-e.de/apis/oai?verb=GetRecord&amp;metadataPrefix=oai_dc&amp;identifier=ride.4.2</ref></item>
+        </list>
+      </div>
+      <div>
+        <head>Scripts</head>
+        <p>Several scripts that are used in the RIDE publication workflow are published on GitHub so that they can be reused in other contexts: <ref target="https://github.com/i-d-e/ride-scripts">https://github.com/i-d-e/ride-scripts</ref></p>
+      </div>
+    </body>
+  </text>
+</TEI>
