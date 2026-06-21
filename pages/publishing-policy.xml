@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Publishing Policy</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/publishing-policies/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <div>
+        <head>Periodicity</head>
+        <p>Review articles in RIDE are published on a rolling basis in issues of at least five articles being completed on average twice a year.</p>
+      </div>
+      <div>
+        <head>Access</head>
+        <p>RIDE is an open access publication. There are no article processing or submission charges for authors. Furthermore there are no subscription fees and no embargos of any kind. RIDE is indexed in the <ref target="https://doaj.org/toc/2363-4952">Directory of Open Access Journals (DOAJ)</ref> and holds the seal of the directory since 2024.</p>
+      </div>
+      <div>
+        <head>Copyright</head>
+        <p>Authors do not transfer copyright to the publisher, they do not assign exclusive rights to the publisher, and they retain all rights. Authors are free to deposit the submitted, accepted and published version of their article in any repository, as long as the source is acknowledged with citation (for more information see the RIDE entry in <ref target="https://v2.sherpa.ac.uk/id/publication/39408">Sherpa Romeo</ref>).</p>
+      </div>
+      <div>
+        <head>License</head>
+        <p>RIDE publishes all content and gathered data under the CC-BY 4.0 license. For a summary of the license and the rights granted to you, please see: <ref target="http://creativecommons.org/licenses/by/4.0/">creativecommons.org/licenses/by/4.0/</ref>.</p>
+      </div>
+      <div>
+        <head>Open Data</head>
+        <p>All Reviews and questionnaires are available in XML/TEI and as PDF on <ref target="https://github.com/i-d-e/ride">GitHub</ref> and <ref target="https://zenodo.org/record/4562966">Zenodo</ref>; the latter allows for citing the data in a specific version with an own DOI. Retrieval and re-use of the review metadata is also supported through an <ref target="https://ride.i-d-e.de/data/">OAI-interface</ref>.</p>
+      </div>
+      <div>
+        <head>Ethics and Malpractice Statement</head>
+        <p>RIDE is a peer-reviewed scholarly journal whose <ref target="https://ride.i-d-e.de/ethical-code/">Ethical Code</ref> is inspired by the COPE (Committee on Publication Ethics) Ethical Code (see the <ref target="https://publicationethics.org/files/u2/Best_Practice.pdf">Best Practice Guidelines for Journal Editors</ref>).</p>
+      </div>
+      <div>
+        <head>Archive</head>
+        <p><ref target="https://github.com/i-d-e/ride/releases">Releases</ref> of the RIDE data on <ref target="https://github.com/i-d-e/ride">GitHub</ref> (reviews as XML/TEI and PDF plus image files) are archived on <ref target="https://zenodo.org/record/4562966">Zenodo</ref>. In addition, the PDF versions of the reviews are archived by the <ref target="https://portal.dnb.de/opac.htm?method=simpleSearch&amp;reset=true&amp;cqlMode=true&amp;query=partOfat%3D105254973X&amp;selectedCategory=any">German National Library</ref>.</p>
+      </div>
+    </body>
+  </text>
+</TEI>
