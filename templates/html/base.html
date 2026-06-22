@@ -51,6 +51,13 @@
   <meta property="og:site_name" content="{{ site.title }}">
   <meta property="og:locale" content="{{ (og.locale if og and og.locale else page_lang) | default(site.default_language) }}">
 
+  {#- Atom feed autodiscovery (RFC 4287). The feed needs an absolute base_url
+      for its links, so it is a deploy-only artefact; advertise it only when
+      a base_url is set, otherwise readers would discover a missing file. -#}
+  {%- if site.base_url %}
+  <link rel="alternate" type="application/atom+xml" title="{{ site.title }} — Latest reviews" href="{{ site.base_url }}/feed/atom.xml">
+  {%- endif %}
+
   <link rel="stylesheet" href="{{ static_path('css/ride.css') }}">
 
   {#- Empty favicon — silences the implicit /favicon.ico request the browser

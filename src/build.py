@@ -444,6 +444,7 @@ def _print_build_summary(
     editorials: int,
     aggregations: int,
     sitemap_written: bool,
+    feed_written: bool,
     oai_files: int,
     redirect_count: int,
     validation_report,
@@ -465,6 +466,8 @@ def _print_build_summary(
     print(f"Wrote {aggregations} aggregation pages")
     if sitemap_written:
         print("Wrote sitemap.xml")
+    if feed_written:
+        print("Wrote feed/atom.xml")
     print("Wrote api/corpus.json")
     if oai_files:
         print(f"Wrote {oai_files} OAI-PMH snapshot files")
@@ -549,6 +552,7 @@ def build(
 
     # Machine-readable artefacts and legacy-URL redirects.
     sitemap_written = _write_sitemap(rendered, site, out_root)
+    feed_written = _write_atom_feed(rendered, site, out_root)
     _write_corpus_dump(rendered, site, out_root)
     oai_files = _write_oai_pmh_snapshot(rendered, site, out_root)
     redirect_count = write_redirects(rendered, out_root, base_url=site.base_url)
@@ -576,6 +580,7 @@ def build(
         editorials=editorials,
         aggregations=aggregations,
         sitemap_written=sitemap_written,
+        feed_written=feed_written,
         oai_files=oai_files,
         redirect_count=redirect_count,
         validation_report=validation_report,
@@ -753,6 +758,23 @@ def _write_sitemap(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path
     )
     (out_root / "sitemap.xml").write_text(build_sitemap(entries), encoding="utf-8")
     return True
+
+
+def _write_atom_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
+    """Write the Atom feed (``site/feed/atom.xml``) when a base_url is set.
+
+    Like the sitemap, the feed's entry links need an absolute prefix, so
+    dev builds without ``--base-url`` skip it. Returns whether a file was
+    written.
+    """
+    from src.render.feed import write_atom_feed
+
+    build_date = site.build_info.date if site.build_info else None
+    return bool(
+        write_atom_feed(
+            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
+        )
+    )
 
 
 def _print_asset_summary(reports: list[AssetReport]) -> None:
