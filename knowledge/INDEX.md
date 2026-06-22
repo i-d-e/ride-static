@@ -19,6 +19,7 @@ related:
   - "[[staging]]"
   - "[[data]]"
   - "[[schema]]"
+  - "[[dynamic-features]]"
 ---
 
 # knowledge/
@@ -37,6 +38,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[staging]] | Substance — pre-publication review environment, solution options, decision open | when the staging decision advances |
+| [[dynamic-features]] | Substance — which dynamic WP features the static site replaces, gaps, data interfaces | when coverage or interfaces change |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
@@ -87,5 +89,5 @@ A Markdown document under `knowledge/` that is either deterministically generate
 ## What is missing and why
 
 - **No `design.md` separate from `interface.md`.** The Form function is currently carried by a single document that holds both design stance (haltung, four principles) and UI realisation (layout, seven page types, components, typography, accessibility). The seventh page type is the per-review factsheet full page under `/issues/{N}/{id}/factsheet/`, rendered via `src/render/factsheet.py`. A future split into `design.md` (stance, agent value source) and `ui.md` (realisation) is a planned refactor; until then, [[interface]] carries both functions, with the design stance located in §2 *Designhaltung*.
-- **No `editorial-guidelines.md`.** The TEI editing of reviews happens in the sibling repository `../ride/`, not here; review editorial conventions belong upstream. The editorial pages themselves are now fed from TEI in this repo: `pages/<slug>.xml` is the source, validated against `schema/ride-pages.rng`, parsed via `src/model/page.py` and `src/parser/page.py`, rendered via `src/render/page.py`. The build cutover (rendering `pages/` into the build) is not yet wired.
+- **No `editorial-guidelines.md`.** The TEI editing of reviews happens in the sibling repository `../ride/`, not here; review editorial conventions belong upstream. The editorial pages themselves are now fed from TEI in this repo: `pages/<slug>.xml` is the source, validated against `schema/ride-pages.rng`, parsed via `src/model/page.py` and `src/parser/page.py`, rendered via `src/render/page.py`. The build cutover is wired: the `pages/` TEI is the deployed editorial default, with `--no-tei-editorials` falling back to the Markdown under `content/`.
 - **No `agents.md` / `team.md`.** The project runs in single-agent mode (one Claude Code instance, one `CLAUDE.md`). Multi-agent organisation is not yet relevant for the scope of ride-static.
