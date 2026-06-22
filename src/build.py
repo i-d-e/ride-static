@@ -58,7 +58,9 @@ from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_r
 from src.render.issues_config import (
     IssueConfigError,
     discover_issue_configs,
+    find_duplicate_review_dois,
     validate_issue_configs,
+    validate_review_ids,
     validate_review_locations,
 )
 from src.render.navigation import load_navigation, resolve_navigation
@@ -367,21 +369,44 @@ def _check_corpus_consistency(
     """Validate that the parsed corpus is self-consistent and return the
     loaded issue YAML configs.
 
-    Two checks, both hard errors:
+    Three hard checks plus one soft (warning) check:
 
     - **Folder ↔ ``biblScope @n``.** The TEI header is the canonical
       source for issue membership; the folder layout is convenience. A
       mismatch means an editor dropped a TEI in the wrong
       ``issues/{N}/`` folder — the build would otherwise quietly render
       it under the header's issue, surprising the editor.
+    - **xml:id ↔ review DOI.** The DOI is the registered identifier; the
+      xml:id must be its local form. A copied header bearing a foreign id
+      (e.g. an issue-21 review still carrying ``ride.1.1``) misroutes the
+      page URL and collides downstream — a hard error.
     - **Issue YAML ↔ corpus** (R11). Per-issue ``metadata.yaml`` must
       agree with what the TEI corpus actually contains.
+    - **Duplicate review DOIs** (warning). Two reviews claiming one DOI is
+      a mis-registration only the editors can resolve against the DOI
+      registry, so the build warns rather than blocks.
     """
     location_errors = validate_review_locations(parsed)
     if location_errors:
         raise IssueConfigError(
             "TEI file location does not match its biblScope @n:\n  - "
             + "\n  - ".join(location_errors)
+        )
+
+    id_errors = validate_review_ids(parsed)
+    if id_errors:
+        raise IssueConfigError(
+            "review xml:id does not match its registered DOI:\n  - "
+            + "\n  - ".join(id_errors)
+        )
+
+    duplicate_dois = find_duplicate_review_dois(parsed)
+    if duplicate_dois:
+        print(
+            "WARNING: reviews share a DOI — editorial fix needed "
+            "(one page is overwritten if the issue also matches):\n  - "
+            + "\n  - ".join(duplicate_dois),
+            file=sys.stderr,
         )
 
     issue_configs = discover_issue_configs()

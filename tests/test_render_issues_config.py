@@ -10,9 +10,12 @@ from src.render.issues_config import (
     IssueConfig,
     IssueEditor,
     discover_issue_configs,
+    expected_id_from_doi,
+    find_duplicate_review_dois,
     order_reviews,
     parse_issue_config,
     validate_issue_configs,
+    validate_review_ids,
     validate_review_locations,
 )
 
@@ -242,3 +245,111 @@ def test_validate_review_locations_real_corpus_is_clean():
     parsed = [(p, parse_review(p)) for p in files]
     errors = validate_review_locations(parsed)
     assert errors == [], "\n".join(errors)
+
+
+# ── expected_id_from_doi (pure function) ────────────────────────────
+
+
+def test_expected_id_from_doi_derives_local_form():
+    """Pure function — the signature (a DOI string) is the only data form,
+    so synthetic inputs are appropriate here (CLAUDE.md test philosophy)."""
+    assert expected_id_from_doi("10.18716/ride.a.21.1") == "ride.21.1"
+    assert expected_id_from_doi("10.18716/ride.a.3.5") == "ride.3.5"
+
+
+def test_expected_id_from_doi_returns_none_for_non_review_doi():
+    """Issue-level DOI, empty, and foreign DOIs have no derivable xml:id."""
+    assert expected_id_from_doi("10.18716/ride.a.21") is None  # issue, not review
+    assert expected_id_from_doi(None) is None
+    assert expected_id_from_doi("") is None
+    assert expected_id_from_doi("10.1000/xyz") is None
+
+
+# ── validate_review_ids ─────────────────────────────────────────────
+
+
+def _rev(rid: str, doi: str | None) -> Review:
+    return Review(
+        id=rid, issue="", title="t", publication_date="", language="en",
+        licence="", doi=doi,
+    )
+
+
+def test_validate_review_ids_clean_when_id_matches_doi():
+    """Classifier over the (xml:id, DOI) pair — synthetic Review values are
+    the function's data form, used here per CLAUDE.md's pure-function rule."""
+    parsed = [
+        (Path("a-tei.xml"), _rev("ride.21.1", "10.18716/ride.a.21.1")),
+        (Path("b-tei.xml"), _rev("ride.3.5", "10.18716/ride.a.3.5")),
+    ]
+    assert validate_review_ids(parsed) == []
+
+
+def test_validate_review_ids_flags_id_contradicting_doi():
+    """A copied header: xml:id ride.1.1 but the DOI says issue 21, n 1."""
+    parsed = [(Path("everynamecounts-tei.xml"), _rev("ride.1.1", "10.18716/ride.a.21.1"))]
+    errors = validate_review_ids(parsed)
+    assert len(errors) == 1
+    assert "everynamecounts-tei.xml" in errors[0]
+    assert "ride.21.1" in errors[0]
+
+
+def test_validate_review_ids_flags_missing_or_non_review_doi():
+    parsed = [(Path("x-tei.xml"), _rev("ride.21.1", None))]
+    errors = validate_review_ids(parsed)
+    assert len(errors) == 1
+    assert "cannot derive" in errors[0]
+
+
+# ── find_duplicate_review_dois ──────────────────────────────────────
+
+
+def test_find_duplicate_review_dois_detects_shared_doi():
+    parsed = [
+        (Path("crowdsourcingwien-tei.xml"), _rev("ride.21.2", "10.18716/ride.a.21.2")),
+        (Path("papyrieditor-tei.xml"), _rev("ride.21.2", "10.18716/ride.a.21.2")),
+        (Path("solo-tei.xml"), _rev("ride.21.3", "10.18716/ride.a.21.3")),
+    ]
+    dups = find_duplicate_review_dois(parsed)
+    assert len(dups) == 1
+    assert "10.18716/ride.a.21.2" in dups[0]
+    assert "crowdsourcingwien-tei.xml" in dups[0]
+    assert "papyrieditor-tei.xml" in dups[0]
+
+
+# ── real-corpus integration: the id↔DOI fix and the known anomaly ───
+
+
+def test_real_corpus_every_xml_id_matches_its_doi():
+    """After the id↔DOI correction every shipped review's xml:id is the
+    local form of its registered DOI. Locks the fix and guards regressions
+    of the everynamecounts/godwin copied-header class."""
+    from src._corpus import iter_tei_files
+    from src.parser.review import parse_review
+
+    files = list(iter_tei_files())
+    if not files:
+        pytest.skip("no corpus present")
+    parsed = [(p, parse_review(p)) for p in files]
+    errors = validate_review_ids(parsed)
+    assert errors == [], "\n".join(errors)
+
+
+def test_real_corpus_only_known_duplicate_doi_remains():
+    """Documented editorial anomaly (CLAUDE.md: anomalies are explicit):
+    crowdsourcing.wien and papyrieditor share DOI 10.18716/ride.a.21.2.
+    Until the editors re-register one, this is the *only* duplicate DOI.
+    When they fix it this test fails, signalling that the build's soft
+    warning can be promoted to a hard check."""
+    from src._corpus import iter_tei_files
+    from src.parser.review import parse_review
+
+    files = list(iter_tei_files())
+    if not files:
+        pytest.skip("no corpus present")
+    parsed = [(p, parse_review(p)) for p in files]
+    dups = find_duplicate_review_dois(parsed)
+    assert len(dups) == 1
+    assert "10.18716/ride.a.21.2" in dups[0]
+    assert "crowdsourcingwien-tei.xml" in dups[0]
+    assert "papyrieditor-tei.xml" in dups[0]

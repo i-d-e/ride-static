@@ -35,6 +35,7 @@ typos do not silently disappear.
 """
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -254,6 +255,73 @@ def validate_review_locations(
                 f"move the file or fix the TEI header so they agree"
             )
     return errors
+
+
+# A RIDE review DOI is ``10.18716/ride.a.{issue}.{n}``; the matching
+# xml:id is ``ride.{issue}.{n}``. The DOI is the canonical, registered
+# identifier, so it is the authority the xml:id must agree with.
+_REVIEW_DOI_RE = re.compile(r"^10\.18716/ride\.a\.(\d+)\.(\d+)$")
+
+
+def expected_id_from_doi(doi: Optional[str]) -> Optional[str]:
+    """Derive the canonical ``ride.{issue}.{n}`` xml:id from a review DOI.
+
+    Returns ``None`` when the DOI is missing or is not a RIDE review DOI
+    (e.g. an issue-level ``ride.a.{issue}`` DOI), so the caller can flag
+    that separately rather than silently deriving a wrong id.
+    """
+    if not doi:
+        return None
+    m = _REVIEW_DOI_RE.match(doi.strip())
+    return f"ride.{m.group(1)}.{m.group(2)}" if m else None
+
+
+def validate_review_ids(parsed: list[tuple[Path, Review]]) -> list[str]:
+    """Return reviews whose ``xml:id`` contradicts their own review DOI.
+
+    The DOI is the registered, canonical identifier; the xml:id should be
+    its local form. A mismatch means a copied header carries the wrong id
+    (e.g. a review in issue 21 still bearing ``ride.1.1``), which both
+    misroutes the page URL and collides in the feed/OAI/sitemap. This is a
+    hard error: an id that contradicts its DOI is exactly the kind of
+    anomaly the build must surface rather than render under a wrong id.
+    """
+    errors: list[str] = []
+    for path, review in parsed:
+        expected = expected_id_from_doi(review.doi)
+        if expected is None:
+            errors.append(
+                f"{path.name}: review DOI {review.doi!r} is missing or not a "
+                f"ride.a.{{issue}}.{{n}} DOI — cannot derive the canonical xml:id"
+            )
+        elif review.id != expected:
+            errors.append(
+                f"{path.name}: xml:id {review.id!r} contradicts its DOI "
+                f"{review.doi} — expected {expected!r}"
+            )
+    return errors
+
+
+def find_duplicate_review_dois(
+    parsed: list[tuple[Path, Review]],
+) -> list[str]:
+    """Return DOIs claimed by more than one review.
+
+    A DOI is registered to one resource; two reviews sharing one means one
+    of them is mis-registered, which only the editors can resolve against
+    the DOI registry. Unlike :func:`validate_review_ids` this is *not* a
+    build error — it is reported as a warning so the build still ships while
+    the duplication is escalated editorially.
+    """
+    by_doi: dict[str, list[str]] = defaultdict(list)
+    for path, review in parsed:
+        if review.doi:
+            by_doi[review.doi].append(path.name)
+    return [
+        f"DOI {doi} is shared by {sorted(names)}"
+        for doi, names in sorted(by_doi.items())
+        if len(names) > 1
+    ]
 
 
 def order_reviews(
