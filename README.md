@@ -13,7 +13,8 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
    inputs       │  issues/{N}/reviews/*-tei.xml      │   (canonical content)
                 │  issues/{N}/metadata.yaml          │   (editorial metadata per issue)
                 │  schema/{ride.odd, ride.rng}       │   (validation contract)
-                │  content/*.md, content/home/*.md   │   (editorial pages, home widgets)
+                │  pages/*.xml  (ride-pages.rng)     │   (editorial pages as TEI)
+                │  content/*.md, content/home/*.md   │   (Markdown fallback, home widgets)
                 │  config/{element-mapping,nav}.yaml │   (presentation + navigation)
                 │  ../ride/issues/.../pictures/      │   (figure assets — still external)
                 └─────────────────┬──────────────────┘
@@ -97,11 +98,14 @@ python -m http.server -d site
 
 shows the complete site, draft included, at `http://localhost:8000/`.
 
-### Edit an editorial page (About, Imprint, Criteria, …)
+### Edit an editorial page (Editorial, Imprint, Criteria, …)
 
-1. Open the Markdown file in `content/{slug}.md` (e.g. `content/about.md`). It uses frontmatter for `title`, `subtitle`, optional `order`.
-2. Home-page widgets live in `content/home/*.md` and use the same frontmatter pattern.
-3. Global navigation is in `config/navigation.yaml`; the loader validates every entry against discovered editorial pages, so a typo breaks the build.
+Editorial pages — everything outside the reviews and factsheets — are TEI. Each lives at `pages/{slug}.xml` and validates against the page profile `schema/ride-pages.rng`: a deliberately small grammar with a reduced `teiHeader` and a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks plus `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build parses each file into the `Page` model (`src/parser/page.py` → `src/model/page.py`) and renders it through `src/render/page.py` into the shared single-column `editorial.html` template. The deployed build renders these with precedence over the legacy Markdown.
+
+1. Edit the body of `pages/{slug}.xml`. Stay within the elements `ride-pages.rng` allows, or `tests/test_pages_schema.py` fails.
+2. **Add a new page:** drop a new `pages/{newslug}.xml` that validates against the profile — `discover_pages()` finds it automatically and renders it at `/{newslug}/`. Add an entry to `config/navigation.yaml` to surface it in the menu.
+3. A few generator-native pages stay Markdown under `content/`: the About overview and the data charts/questionnaire pages (these are data-driven, not prose). For any slug no TEI page covers, `content/{slug}.md` renders as fallback. Pass `--no-tei-editorials` to build the Markdown set instead.
+4. Home-page widgets live in `content/home/*.md` (frontmatter pattern). Global navigation is `config/navigation.yaml`; the loader validates every entry, so a typo breaks the build.
 
 ### Adjust TEI-to-HTML rendering
 

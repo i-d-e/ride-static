@@ -5,7 +5,7 @@ into a :class:`~src.model.review.Review`, and writes the full static
 site tree under ``site/``: per-review HTML at
 ``issues/{issue}/{review_id}/index.html`` plus the original TEI as a
 download sibling, optional WeasyPrint PDF (``--pdf``), editorial pages
-from ``content/*.md``, aggregation pages (issues, tags, reviewers,
+from ``pages/*.xml`` (TEI; ``content/*.md`` as fallback), aggregation pages (issues, tags, reviewers,
 resources), the static asset tree, the OAI-PMH snapshot, the corpus
 JSON dump, the sitemap, the redirect stubs, and the build report at
 ``site/api/build-info.json``.
@@ -180,18 +180,15 @@ def _render_editorials(
 ) -> int:
     """Render the editorial pages to ``site/{slug}/index.html``.
 
-    Two editorial source sets coexist. The default path renders the
-    legacy ``content/*.md`` pages (this is what deploys). With
-    ``tei_editorials`` the build switches to the TEI editorial set under
-    ``pages/*.xml`` via :func:`discover_pages` / :func:`render_page`: each
-    TEI page takes precedence at its slug, and any Markdown editorial
-    whose slug no TEI page produces is rendered as a fallback so no page
-    disappears — the generator-native ``about``, ``data/charts``,
-    ``data/questionnaires``, plus the rename-orphans (``projects-for-
-    review``, ``submitting-a-review``) that the gated URL reconciliation
-    will turn into redirects. This is the M3 build-cutover; it is off by
-    default so a push does not deploy it. The live switch is the
-    operator-gated flip of the default.
+    Two editorial source sets coexist. With ``tei_editorials`` (the
+    deployed default — ``build()`` passes ``True``) the build renders the
+    TEI editorial set under ``pages/*.xml`` via :func:`discover_pages` /
+    :func:`render_page`: each TEI page takes precedence at its slug, and
+    any Markdown editorial whose slug no TEI page produces is rendered as
+    a fallback so no page disappears — the generator-native ``about``,
+    ``data/charts``, ``data/questionnaires``, plus the rename-orphans
+    (``projects-for-review``, ``submitting-a-review``). Passing
+    ``--no-tei-editorials`` falls back to the legacy Markdown-only build.
 
     ``parsed`` is the build's ``[(path, review), …]`` list. When given
     and the editorial page is the Data-Charts placeholder
@@ -500,7 +497,7 @@ def build(
     matomo_url: str = "",
     matomo_site_id: str = "",
     pdf: bool = False,
-    tei_editorials: bool = False,
+    tei_editorials: bool = True,
 ) -> int:
     """Run the build. Returns the number of review pages written.
 
@@ -789,7 +786,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
     parser.add_argument("--matomo-url", default="", help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking")
     parser.add_argument("--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set")
-    parser.add_argument("--tei-editorials", action="store_true", help="Render editorial pages from pages/*.xml (TEI) with precedence over content/*.md — the M3 build-cutover. Off by default so a deploy keeps shipping the Markdown editorials.")
+    parser.add_argument("--no-tei-editorials", action="store_false", dest="tei_editorials", help="Fall back to the legacy content/*.md Markdown editorials. By default the build renders the pages/*.xml TEI editorials with precedence (Markdown remains the fallback for slugs no TEI page covers).")
     args = parser.parse_args(argv)
 
     if bool(args.matomo_url) != bool(args.matomo_site_id):

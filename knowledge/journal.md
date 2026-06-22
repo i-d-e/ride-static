@@ -30,6 +30,28 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-22 — TEI-Editorials live geschaltet (Default-Flip), Redirect-Self-Loop behoben
+
+**Ziel:** Die teiisierten Begleittexte (`pages/*.xml`) auf GitHub Pages live bringen, damit die IDE-internen Kolleginnen aus dem Issue heraus jede Seite gegen die alte WP-Fassung pruefen koennen; zugleich eine im Review aufgefallene Endlosschleife klaeren.
+
+**Erledigt:**
+- M3 Default-Flip: `build()` rendert die `pages/*.xml`-TEI per Default mit Vorrang (`tei_editorials=True`), `content/*.md` nur noch als Fallback; CLI-Notausgang `--no-tei-editorials`. CI baut unveraendert `python -m src.build --pdf` und deployt damit ab jetzt die TEI-Editorials. `build.yml` netto unveraendert (kein CI-Flag noetig).
+- Redirect-Self-Loop behoben: drei Identitaets-Eintraege (`about`, `ethical-code`, `data`) aus `EDITORIAL_REDIRECTS` entfernt plus Self-Loop-Guard in `write_at`. Der Bug war live (die drei leiteten per meta-refresh auf sich selbst, Endlos-Reload), unabhaengig vom TEI-Schalter, weil `write_redirects` nach `_render_editorials` die fertige Seite ueberschrieb. Per WebFetch an `/about/` auf der Live-Site bestaetigt.
+- Zwei neue Tests (`test_write_redirects_skips_self_redirect_slugs`, `test_no_editorial_redirect_points_to_itself`), `test_write_redirects_emits_editorial_stubs` angepasst. README: Eingaben-Diagramm um `pages/*.xml` und Abschnitt „Edit an editorial page" auf den TEI-Pfad plus Erweiterbarkeit umgeschrieben (die README dokumentierte bis dato nur den Markdown-Pfad).
+- Verifiziert: volle Suite 541 passed / 2 skipped; blanker `python -m src.build` rendert die 16 TEI-Seiten mit echtem Inhalt, `ethical-code`/`data` ohne Stub.
+
+**Entscheidungen:**
+- Live-Gang als Default-Flip im Code, nicht als CI-Flag. Begruendung: das Journal definiert den Live-Gang genau so („operator-gated flip of the default"), und nur der Code-Default haelt lokalen Build und Deploy deckungsgleich — ein CI-only-Flag liesse `python -m src.build` lokal weiter Markdown rendern.
+- `contact` bewusst als duenner TEI-Body live (ein Satz + E-Mail), obwohl `content/contact.md` voller ist. Begruendung: der Preview soll genau solche Inhaltsluecken fuer den Gegencheck (erre1998) sichtbar machen; das Fuellen ist redaktionell, kein Build-Fix.
+
+**Offen:**
+- `contact`-Body fuellen (redaktionell). URL-Scheme: neue TEI-Slugs (`submission-guidelines`, `suggested-`/`projects-currently-under-review`) weichen von den alten WP-Pfaden und teils vom Menue ab; `navigation.yaml` und Redirects noch nicht nachgezogen.
+- TEI-Header bewusst minimal/uniform (zwei Managing Editors als Impressum, kein Datum) — hennyu hat das Header-Profil im Issue vertagt; offen, ob/was ergaenzt wird.
+
+**Nächster Einstieg:** Nach dem Gegencheck der Kolleginnen die gemeldeten Inhalts-/Header-Korrekturen je Seite in `pages/*.xml` einarbeiten; parallel die URL-Scheme-Entscheidung (flache Slugs + Redirects vs. WP-Spiegelung) klaeren und `navigation.yaml`/`EDITORIAL_REDIRECTS` auf die neuen Slugs ausrichten.
+
+---
+
 ## 2026-06-21 — M3 Build-Cutover als Default-aus-Schalter, Reconciliation-Spur, URL-Scheme zurueckgemeldet
 
 **Ziel:** order-Iteration: M3 Build-Cutover bauen (pages/-TEI mit Vorrang vor content/*.md), als lokale nicht-gepushte Render-Spur, M4 scopen, die als entschieden markierten Punkte umsetzen.

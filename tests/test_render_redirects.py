@@ -84,7 +84,6 @@ def test_write_redirects_emits_editorial_stubs(tmp_path: Path) -> None:
     write_redirects((), tmp_path)
     # A few critical legacy paths from the live menu.
     assert (tmp_path / "publishing-policies" / "index.html").exists()
-    assert (tmp_path / "ethical-code" / "index.html").exists()
     assert (tmp_path / "reviewers" / "call-for-reviews" / "index.html").exists()
     assert (tmp_path / "reviewers" / "ride-award-for-best-review" / "index.html").exists()
     # Total editorial count matches the static map.
@@ -94,6 +93,25 @@ def test_write_redirects_emits_editorial_stubs(tmp_path: Path) -> None:
     }
     for legacy in EDITORIAL_REDIRECTS.keys():
         assert legacy in rel_paths
+
+
+def test_write_redirects_skips_self_redirect_slugs(tmp_path: Path) -> None:
+    """Live WP paths whose slug is unchanged (about, ethical-code, data) must
+    NOT get a redirect stub — it would clobber the real page at that slug with
+    a stub pointing to itself (endless reload). Regression pin."""
+    write_redirects((), tmp_path)
+    for slug in ("about", "ethical-code", "data"):
+        assert not (tmp_path / slug / "index.html").exists(), (
+            f"{slug} got a self-redirect stub that would clobber its real page"
+        )
+
+
+def test_no_editorial_redirect_points_to_itself() -> None:
+    """Invariant on the data: no editorial redirect maps a path to itself."""
+    for legacy, target in EDITORIAL_REDIRECTS.items():
+        assert f"/{legacy.strip('/')}/" != target, (
+            f"self-redirect {legacy} -> {target} would clobber the real page"
+        )
 
 
 def test_write_redirects_prepends_base_url(tmp_path: Path) -> None:

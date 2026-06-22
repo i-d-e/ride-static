@@ -30,20 +30,23 @@ from src.model.review import Review
 
 # Editorial paths from the live WordPress menu mapping to new slugs.
 # Both with and without trailing slash so either form redirects cleanly.
+#
+# Live WP paths whose slug is unchanged (/about/, /ethical-code/, /data/)
+# get NO entry: the real page already lives at that slug, so a redirect
+# stub there would overwrite it with a stub pointing to itself (endless
+# reload). The self-redirect guard in write_at enforces this at runtime;
+# test_no_editorial_redirect_points_to_itself enforces it on the data.
 EDITORIAL_REDIRECTS: dict[str, str] = {
-    "about": "/about/",
     "about/team": "/team/",
     "about/copyright": "/imprint/",
     "about/peer-reviewers": "/peer-reviewers/",
     "about/editorial": "/editorial/",
     "publishing-policies": "/publishing-policy/",
-    "ethical-code": "/ethical-code/",
     "reviewers/call-for-reviews": "/call-for-reviews/",
     "reviewers/submission": "/submitting-a-review/",
     "reviewers/suggested-projects-for-review": "/projects-for-review/",
     "reviewers/ride-award-for-best-review": "/ride-award/",
     "reviewers/catalogue-criteria-for-reviewing-digital-editions-and-resources": "/criteria/",
-    "data": "/data/",
 }
 
 
@@ -83,10 +86,16 @@ def write_redirects(
 
     def write_at(legacy_path: str, target: str) -> None:
         nonlocal written
-        target_full = f"{prefix}{target}" if prefix else target
         legacy = legacy_path.strip("/")
         if not legacy:
             return
+        # A redirect whose legacy path equals its target would overwrite the
+        # real page at that path with a stub that points to itself (endless
+        # reload). Never emit one — independent of base_url, since both sides
+        # carry the same prefix on the deployed site.
+        if f"/{legacy}/" == target:
+            return
+        target_full = f"{prefix}{target}" if prefix else target
         out = out_root / legacy / "index.html"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(_redirect_html(target_full), encoding="utf-8")
