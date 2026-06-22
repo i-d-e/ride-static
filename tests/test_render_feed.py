@@ -8,6 +8,7 @@ out), so its unit test uses synthetic inputs documented as such.
 from __future__ import annotations
 
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,10 @@ CORPUS = REPO_ROOT / "issues"
 BASE = "/ride-static"
 
 needs_corpus = pytest.mark.skipif(not CORPUS.is_dir(), reason="corpus not present")
+
+ATOM = "{http://www.w3.org/2005/Atom}"
+# RFC 3339 date-time, the form Atom requires for atom:updated.
+_RFC3339_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$")
 
 
 def _reviews(n: int = 8):
@@ -59,6 +64,36 @@ def test_feed_respects_limit_and_orders_newest_first():
     assert xml.count("<entry>") == 5
     entry_dates = re.findall(r"<entry>.*?<updated>(.*?)</updated>", xml, re.DOTALL)
     assert entry_dates == sorted(entry_dates, reverse=True)
+
+
+@needs_corpus
+def test_feed_conforms_to_rfc4287_required_rules():
+    """Algorithmic conformance check. Parse the feed (proving it is
+    well-formed and namespaced) and assert the RFC 4287 MUST rules for the
+    elements we emit: exactly one id/title/updated on the feed and on each
+    entry, RFC 3339 datestamps, non-empty ids, and at least one entry link
+    with an href. This encodes the spec rules rather than matching strings."""
+    xml = build_atom_feed(_reviews(12), BASE, limit=12)
+    root = ET.fromstring(xml)
+
+    assert root.tag == f"{ATOM}feed"
+    assert len(root.findall(f"{ATOM}id")) == 1
+    assert len(root.findall(f"{ATOM}title")) == 1
+    assert len(root.findall(f"{ATOM}updated")) == 1
+    assert root.findtext(f"{ATOM}id")
+    assert _RFC3339_RE.match(root.findtext(f"{ATOM}updated"))
+
+    entries = root.findall(f"{ATOM}entry")
+    assert entries
+    for e in entries:
+        assert len(e.findall(f"{ATOM}id")) == 1
+        assert len(e.findall(f"{ATOM}title")) == 1
+        assert len(e.findall(f"{ATOM}updated")) == 1
+        assert e.findtext(f"{ATOM}id")
+        assert e.findtext(f"{ATOM}title")
+        assert _RFC3339_RE.match(e.findtext(f"{ATOM}updated"))
+        links = e.findall(f"{ATOM}link")
+        assert links and all(link.get("href") for link in links)
 
 
 @needs_corpus
