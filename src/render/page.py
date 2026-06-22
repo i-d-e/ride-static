@@ -34,8 +34,7 @@ from src.model.page import (
 from src.render.html import (
     SiteConfig,
     make_env,
-    media_path_factory,
-    static_path_factory,
+    render_editorial_shell,
 )
 
 _HI_TAG = {"italic": "em", "bold": "strong"}
@@ -115,17 +114,10 @@ def render_page(
     """Render one :class:`Page` to a complete HTML page via editorial.html."""
     site = site or SiteConfig()
     env = env or make_env()
-    template = env.get_template("editorial.html")
-    return template.render(
-        site=site,
-        page_lang="en",
-        page_title=page.title,
-        page_url=f"{site.base_url}/{page.slug}/" if site.base_url else None,
-        page_description=None,
-        og=None,
-        json_ld=None,
-        static_path=static_path_factory(site.base_url),
-        media_path=media_path_factory(site.base_url),
-        page_html=render_page_body(page),
-        last_updated=None,
+    return render_editorial_shell(
+        env,
+        site,
+        slug=page.slug,
+        title=page.title,
+        body_html=render_page_body(page),
     )

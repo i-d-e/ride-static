@@ -28,8 +28,7 @@ from src.render.html import (
     REPO_ROOT,
     SiteConfig,
     make_env,
-    media_path_factory,
-    static_path_factory,
+    render_editorial_shell,
 )
 
 CONTENT_DIR = REPO_ROOT / "content"
@@ -99,18 +98,13 @@ def render_editorial(
     if chart_html and CHART_MARKER in body_html:
         body_html = body_html.replace(CHART_MARKER, chart_html)
 
-    template = env.get_template("editorial.html")
-    return template.render(
-        site=site,
-        page_lang=page.language,
-        page_title=page.title,
-        page_url=f"{site.base_url}/{page.slug}/" if site.base_url else None,
-        page_description=None,
-        og=None,
-        json_ld=None,
-        static_path=static_path_factory(site.base_url),
-        media_path=media_path_factory(site.base_url),
-        page_html=body_html,
+    return render_editorial_shell(
+        env,
+        site,
+        slug=page.slug,
+        title=page.title,
+        body_html=body_html,
+        lang=page.language,
         last_updated=page.last_updated,
     )
 

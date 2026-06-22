@@ -31,11 +31,12 @@ ride-static/
   templates/html/         Jinja templates
   static/                 css/, js/, fonts/
   config/                 element-mapping.yaml, navigation.yaml
-  content/                editorial Markdown: about, imprint, criteria, reviewers
+  pages/                  editorial pages as TEI (editorial, team, imprint, …); profile schema/ride-pages.rng
+  content/                editorial Markdown: home widgets + Markdown fallback (about, data charts/questionnaires)
   issues/{N}/             TEI corpus, grouped per issue
     metadata.yaml         editorially curated issue metadata (DOI, editors, …)
     reviews/*-tei.xml     the TEI review files for this issue
-  schema/                 ride.odd + ride.rng — RIDE TEI ODD + compiled RelaxNG
+  schema/                 ride.odd + ride.rng (reviews) + ride-pages.rng (editorial pages)
   inventory/              Generated JSON artifacts — gitignored
     _cache/               Cached upstream downloads (e.g. p5subset.xml)
   knowledge/              Obsidian-style vault, .md only, wikilinks for cross-refs
@@ -77,6 +78,7 @@ The TEI corpus and schema live **inside this repo**:
 - `issues/{N}/metadata.yaml` — per-issue editorial metadata (DOI, editors, contribution order, …)
 - `schema/ride.odd` — RIDE-specific TEI ODD
 - `schema/ride.rng` — compiled RelaxNG used by `src/validate.py`
+- `pages/*.xml` — editorial pages as TEI (the non-review RIDE pages), profile `schema/ride-pages.rng`
 
 Path lookups go through `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, …). Per-issue **pictures** still live in the sibling repo `i-d-e/ride` under `../ride/issues/issue{NN}/{slug}/pictures/`; the asset pipeline reads them via `REPO_ROOT.parent / "ride"` and degrades cleanly when the sibling is absent. When pictures move into this repo too, that fallback drops.
 

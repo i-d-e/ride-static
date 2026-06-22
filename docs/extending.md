@@ -12,6 +12,7 @@ How to add a new TEI element, attribute, or render variant. Anchored to `specifi
 | Add a new TEI element with structurally new semantics | Python + YAML |
 | Change how text-node whitespace is treated | Python (parser) |
 | Add a new aggregation page or feed | Python (renderer) + template |
+| Edit or add an editorial page (Editorial, Team, Imprint, …) | TEI — `pages/*.xml`, see [Editorial pages](#editorial-pages-pagesxml) |
 
 Most extensions are the first two — pure YAML. The remainder require Python work.
 
@@ -79,6 +80,30 @@ Required when the new element has different semantics, not just different appear
 6. **Real-corpus smoke test.** If the new element appears in the corpus, run the parser against `issues/*/reviews/` and confirm no exception.
 
 That is the full ceremony. Six files touched, none of them surprising.
+
+## Editorial pages (`pages/*.xml`)
+
+Everything outside the reviews and factsheets — Editorial, Team, Imprint, Criteria and the rest — is a TEI editorial page, a separate and much smaller model than the review pipeline above. Each page lives at `pages/{slug}.xml` and validates against the page profile `schema/ride-pages.rng`: a reduced `teiHeader` plus a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks with `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build renders these with precedence over the legacy `content/*.md`; pass `--no-tei-editorials` to fall back to Markdown.
+
+### Edit a page
+
+Edit the body of `pages/{slug}.xml`. Stay within the elements `ride-pages.rng` allows, or `tests/test_pages_schema.py` fails. No code, no ceremony beyond the build itself.
+
+### Add a page
+
+Drop a new `pages/{newslug}.xml` that validates against the profile. `src.parser.page.discover_pages()` finds it automatically and the build renders it at `/{newslug}/` through `editorial.html`. Add an entry to `config/navigation.yaml` to surface it in the menu. No Python touched.
+
+### Extend the page grammar
+
+A genuinely new element in the page body — one `ride-pages.rng` does not yet allow — is a five-file change, parallel to Path 2 but on the page model:
+
+1. **Schema.** Allow the element in `schema/ride-pages.rng`.
+2. **Model.** Add a frozen dataclass in `src/model/page.py` and extend the `Inline` or `Block` union.
+3. **Parser.** Handle it in `src/parser/page.py` (`_parse_inlines` or `_parse_block`). Unknown inline elements already fall through to their text, so nothing is silently dropped.
+4. **Render.** Emit its HTML in `src/render/page.py` (`_inlines_html` or `_block_html`).
+5. **Test.** Cover it in `tests/test_parser_page.py` / `tests/test_render_page.py`; the page-schema test pins the new grammar.
+
+The TEI page renderer and the Markdown editorial renderer share one shell (`src.render.html.render_editorial_shell`) so both feed `editorial.html` the same way; the per-page work above stops at the body HTML.
 
 ## Rules and traps
 

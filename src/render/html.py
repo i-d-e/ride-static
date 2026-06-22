@@ -364,6 +364,39 @@ def doi_url(doi: Optional[str]) -> Optional[str]:
     return f"https://doi.org/{doi}"
 
 
+def render_editorial_shell(
+    env: Environment,
+    site: SiteConfig,
+    *,
+    slug: str,
+    title: str,
+    body_html: str,
+    lang: str = "en",
+    last_updated: Optional[str] = None,
+) -> str:
+    """Render the shared single-column ``editorial.html`` shell.
+
+    Both the Markdown editorials (:func:`src.render.editorial.render_editorial`)
+    and the TEI editorial pages (:func:`src.render.page.render_page`) feed this
+    one template with the same context. Building it in one place keeps the two
+    renderers from drifting in how the editorial shell is assembled.
+    """
+    template = env.get_template("editorial.html")
+    return template.render(
+        site=site,
+        page_lang=lang,
+        page_title=title,
+        page_url=f"{site.base_url}/{slug}/" if site.base_url else None,
+        page_description=None,
+        og=None,
+        json_ld=None,
+        static_path=static_path_factory(site.base_url),
+        media_path=media_path_factory(site.base_url),
+        page_html=body_html,
+        last_updated=last_updated,
+    )
+
+
 def render_review(
     review: Review,
     site: Optional[SiteConfig] = None,
