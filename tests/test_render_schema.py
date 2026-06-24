@@ -139,8 +139,8 @@ def test_customisations_skip_boring_specs(seeded: tuple[Path, Path]) -> None:
     inv, out = seeded
     text = render_schema.render(inv, out, today="2026-04-28")
     # 4 specs total, 3 with changes (TEI, num, open)
-    assert "Out of 4 elementSpec entries" in text
-    assert "3 actually change something" in text
+    assert "3 of 4 elementSpec entries" in text
+    assert "entries change something" in text
     # boring has no changes - must NOT appear as a customisation block
     assert "#### `<boring>`" not in text
 

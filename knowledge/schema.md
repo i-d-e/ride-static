@@ -1,5 +1,5 @@
 ---
-generated: 2026-06-12
+generated: 2026-06-24
 source: scripts/render_schema.py
 inputs:
   - inventory/odd-summary.json
@@ -13,7 +13,7 @@ inputs:
 
 ## TEI modules used
 
-`ride.odd` imports these P5 modules (a `(full)` marker means every element of the module is available; an explicit list means only those elements were pulled in):
+`ride.odd` imports these P5 modules. `(full)` means every element is available; an explicit list means only those were pulled in:
 
 - **tei** (full)
 - **core** — only: `abbr`, `add`, `author`, `bibl`, `biblScope`, `cit`, `date`, `del` (and 32 more)
@@ -27,7 +27,7 @@ inputs:
 
 ## RIDE customisations
 
-Out of 66 elementSpec entries in `ride.odd`, 56 actually change something (deleted attributes, changed usage, or constrained value lists). Only those are listed:
+56 of 66 elementSpec entries change something (deleted attributes, changed usage, or constrained value lists); only those are listed:
 
 #### `<TEI>`
 - Removed attributes: `@n`, `@rend`, `@resp`, `@type`, `@version`, `@xml:base`, `@xml:lang`, `@xml:space`
@@ -240,7 +240,7 @@ Out of 66 elementSpec entries in `ride.odd`, 56 actually change something (delet
 
 ## Closed value lists (vs. the corpus)
 
-Where `ride.odd` defines a closed list of values for an attribute, the two lines below show what the schema allows and what the corpus actually contains. **Bold** values appear in the corpus but are not in the schema list — they are either typos or signs of stale schema rules.
+For each closed value list, the two lines show what the schema allows and what the corpus contains. **Bold** values appear in the corpus but not in the schema list — typos or stale schema rules.
 
 #### `<biblScope>/@unit`
 - ODD allows: `issue`
@@ -308,7 +308,7 @@ Where `ride.odd` defines a closed list of values for an attribute, the two lines
 
 ## Schematron rules
 
-`ride.odd` carries 46 Schematron constraints, grouped here by the element they target. The `test:` is the XPath the assertion runs; the `message:` is the human-readable explanation as written in the ODD.
+`ride.odd` carries 46 Schematron constraints, grouped by the element they target. `test:` is the assertion's XPath; `message:` is its human-readable explanation.
 
 #### `<(unscoped)>`
 - `jtei.sch-localLinkTarget` (report) on `None` — test: `exists($orphan.pointers)` — message: "There's no local target for : . Please make sure you're referring to an existing @xml:id value."

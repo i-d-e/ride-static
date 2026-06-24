@@ -16,7 +16,6 @@ related:
   - "[[specification]]"
   - "[[architecture]]"
   - "[[interface]]"
-  - "[[staging]]"
   - "[[data]]"
 ---
 
@@ -33,7 +32,7 @@ related:
 
 ### Discovery scripts (run when the corpus changes)
 
-The eleven Stage 0/1 scripts form a small DAG. Independent ones can run in
+The Stage 0/1 discovery scripts form a small DAG. Independent ones can run in
 parallel; the dependent ones must wait. Locally, running them in this order
 is safe and explicit:
 
@@ -71,8 +70,12 @@ python -m pytest tests/
 
 ```sh
 python -m src.build                                # parses issues/*/reviews/, renders site/
+python -m src.build --base-url /ride-static        # deploy prefix for absolute URLs (feed, sitemap, OAI)
 python -m src.build --pdf                          # also produces a per-review PDF via WeasyPrint
 python -m src.build --linkcheck                    # probe external bibliography URLs (slow)
+python -m src.build --no-validate                  # skip the RelaxNG pre-flight (on by default)
+python -m src.build --no-tei-editorials            # fall back to the legacy content/*.md editorials
+python -m src.build --reviews N                    # parse only the first N reviews (fast dev loop)
 python -m src.build --matomo-url URL --matomo-site-id ID   # emit cookieless tracker snippet
 ```
 
@@ -82,18 +85,19 @@ For local preview after a build: `python -m http.server -d site/` is sufficient.
 
 ## GitHub Actions workflow (Phase 15)
 
-A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI corpus, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch`, a cross-repository notification, from the two companion repositories whose pushes do not reach this repo on their own: a push to `i-d-e/ride` (picture assets) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per companion repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see [[staging]].
+A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI corpus, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch`, a cross-repository notification, from the two companion repositories whose pushes do not reach this repo on their own: a push to `i-d-e/ride` (picture assets) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per companion repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see the Staging section below.
 
 ```
 1. Checkout ride-static (this repo) — TEI corpus ships under issues/{N}/reviews/
 2. Checkout i-d-e/ride at sibling path ../ride — picture assets only
 3. Setup Python 3.11
-4. Install dependencies (lxml, jinja2, pytest, weasyprint, requests)
+4. Install dependencies (lxml, requests, pytest, jinja2, pyyaml, markdown, weasyprint) + GTK/Pango for PDF
 5. Run pytest
-6. Run all scripts/*.py in dependency order
-7. Run python -m src.build → site/
-8. Upload site/ as artifact
-9. Deploy to target (see "Deployment target" below)
+6. Run the discovery/render scripts in dependency order
+7. Run python -m src.build --base-url=/<repo> --pdf → site/  (RelaxNG validation runs inside the build)
+8. Build the Pagefind index: npx pagefind --site site  (separate step, not part of src.build)
+9. Upload site/ as artifact
+10. Deploy to GitHub Pages
 ```
 
 The picture assets still live in the sibling `i-d-e/ride` repo;
@@ -101,7 +105,7 @@ The picture assets still live in the sibling `i-d-e/ride` repo;
 degrades cleanly when the sibling is absent. When pictures move into
 this repo too, step 2 drops.
 
-Cache `inventory/_cache/p5subset.xml` between runs to avoid re-downloading the 4 MB TEI P5 source on every build.
+Cache `inventory/_cache/p5subset.xml` between runs to avoid re-downloading the TEI P5 source on every build.
 
 ## Output structure
 
@@ -109,20 +113,24 @@ Cache `inventory/_cache/p5subset.xml` between runs to avoid re-downloading the 4
 site/
   index.html                              corpus front page
   issues/
-    1/                                    issue 1 TOC + reviews
+    {N}/                                  issue TOC + reviews
       index.html
       <review-id>/
-        index.html
-        <review-id>.pdf
+        index.html                        review page
+        <review-id>.pdf                   per-review PDF (--pdf)
+        <review-id>.xml                   original TEI (R3 download)
+        factsheet/index.html              Factsheet full page (R18)
         figures/...
-    2/...
-    ...
-  authors/
-    <author-id>/index.html                author profile
-  taxonomy/
-    <category-id>/index.html              taxonomy node
-  search/
-    index.json
+  tags/, tag/<id>/                        tag overview + per-tag pages
+  reviewers/, reviewers/<id>/             reviewer overview + profiles
+  resources/                              reviewed resources table
+  data/charts/, data/questionnaires/      editorial data pages
+  api/corpus.json, api/build-info.json    machine artefacts (R15, N4/N7)
+  oai/                                    OAI-PMH snapshot
+  feed/atom.xml                           Atom feed (--base-url)
+  sitemap.xml                             crawler sitemap (--base-url)
+  redirects/                              legacy WordPress meta-refresh stubs
+  pagefind/                               search bundle (built by npx pagefind, not src.build)
   static/
     css/, js/, fonts/
 ```
@@ -136,7 +144,7 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 - **Asset handling (Phase 7).** Images referenced via `<graphic @url>` live in `../ride/issues/issue{NN:02d}/{slug}/pictures/`. `src/parser/assets.py::rewrite_figure_assets(review, ride_root, site_root)` copies them into `site/issues/{N}/{review_id}/figures/` and rewrites `Figure.graphic_url` to the site-root-relative form `/issues/{N}/{review_id}/figures/{file}`. Missing source files become entries in `AssetReport.missing` — no crash; Phase 13 aggregates the per-review reports.
 - **Reference resolution (Phase 7).** `src/parser/refs_resolver.py::resolve_references(review)` runs as a post-pass in `parse_review` and writes `Reference.bucket ∈ {local, criteria, external, orphan, None}` on every `<ref>`:
   - `local` — `#xml-id` and the anchor exists in this review's `xml:id` index (sections, paragraphs, figures, notes, bibliography entries);
-  - `criteria` — `#K…` (5 209 corpus cases, all in `<teiHeader>/<catDesc>`, none in body — see [[data#Reference resolution]]). Renderer dispatches to the external criteria document at the taxonomy's `@xml:base`;
+  - `criteria` — `#K…` (the dominant internal ref, all in `<teiHeader>/<catDesc>`, none in body — see [[data#Reference resolution]]). Renderer dispatches to the external criteria document at the taxonomy's `@xml:base`;
   - `external` — `http(s)://`, passed through;
   - `orphan` — anything else (mailto:, bare bibkeys, `#abb…`-style dangling internals). Build-time warning, renderer falls back to plain text.
   Bucket is `None` when the source `<ref>` has no `@target` at all.
@@ -148,22 +156,38 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 
 ## Deployment
 
-GitHub Pages, per [[specification#2 Plattform und Architekturgrundsätze]]. Custom domain versus `<owner>.github.io/<repo>` is still open per [[specification#8 Offene Fragen]]; this affects the URL scheme stability promised in [[specification#R17 Stabile URLs]] and is to be decided before Phase 15.
+GitHub Pages, per [[specification#2 Plattform und Architekturgrundsätze]]. The build deploys to `<owner>.github.io/<repo>` via `--base-url=/<repo>` (the `deploy` job in `build.yml`). A later move to a custom domain stays open per [[specification#8 Offene Fragen]] and would affect the URL-scheme stability promised in [[specification#R17 Stabile URLs]].
 
 For large artifacts (older PDF versions, OAI-PMH dumps): the choice between GitHub Pages and GitHub Releases is deferred per [[specification#8 Offene Fragen]].
+
+## Staging — Begutachtungsumgebung (Entscheidung offen)
+
+Der redaktionelle Zielworkflow verlangt vor der Freischaltung eine passwortgeschützte Vorschau unveröffentlichter Beiträge (Rolling-Release, also beitragsweise, nicht als Issue-Bündel). GitHub Pages bietet keinen Zugriffsschutz — zugriffsbeschränktes Pages-Hosting ist Enterprise-Plänen vorbehalten. Fünf Lösungen wurden erwogen:
+
+| Option | Schutzgrad | Aufwand / Implikation |
+|---|---|---|
+| 4.1 Unverlinkter öffentlicher Build (`noindex`, ausgenommen aus allen Aggregaten, Suchindex, Sitemap, OAI, Korpus-Dump) | nur Nichtverlinkung | ein Build, kein zweites Deploy-Ziel; macht den Inhalt aber erstmals öffentlich erreichbar |
+| 4.2 Nur lokaler Build | — | **verworfen**: externe Begutachter haben keine Build-Umgebung |
+| 4.3 Geschützter Bereich auf dem IDE-Server (HTTP Basic Auth) | echte Zugriffsbeschränkung | zweites Deploy-Ziel, Server- und Zugangsdaten-Pflege |
+| 4.4 Zugriffsschutz-Dienst vor einer Vorschau-Subdomain (z. B. Cloudflare Access) | echte, personengebundene Beschränkung | Drittanbieter-Abhängigkeit, DNS-Hoheit |
+| 4.5 Vorschau im privaten `ride-editors`-Repo | echte Beschränkung, nur Repo-Mitglieder | als alleinige Lösung untauglich (kein teilbarer Link; GitHub zeigt HTML als Quelltext) — das **PDF** rendert der Viewer aber, taugt als Teilbaustein für die IDE-interne Prüfung |
+
+**Empfehlung:** 4.1 als Default plus PDF-Rückspiel aus 4.5 für die IDE-interne Prüfung; ein Upgrade auf 4.3/4.4 bleibt möglich, weil sich nur das Deploy-Ziel der Vorschau ändert, nicht die Build-Mechanik. Gemeinsamer Baustein aller Varianten: die Vorschau baut die **ganze** Site (Drafts aus `ride-editors` zusätzlich in den Korpusbaum gelegt, mit Dublettenprüfung gegen das publizierte Korpus), mit asymmetrischer Fehlerbehandlung — Draft-Parse-Fehler warnen und überspringen, publizierte Beiträge bleiben harte Fehler.
+
+**Stand:** Die Trigger-Verkabelung (`repository_dispatch`, oben) ist umgesetzt und entscheidungsrobust; die Draft-Mechanik (Render unter `/drafts/`, Ausschluss aus allen Aggregat- und Schnittstellenflächen) ist bis zur Redaktionsentscheidung zurückgestellt. Offen zu klären: ob „passwortgeschützt" wörtlich gilt (dann 4.3/4.4 statt 4.1), ob das zurückgespielte PDF die IDE-Prüfung abdeckt, ob unveröffentlichte Beiträge unverlinkt öffentlich erreichbar sein dürfen, und wer die Freischaltung ausführt.
 
 ## Re-deployment flow
 
 ```
 git push main
   → GitHub Actions (single workflow, see [[specification#N10]])
-      → pre-build validation (Phase 13, [[specification#N3]])
       → pytest
       → regenerate inventory/ (gitignored, in CI workspace only)
       → render knowledge/data.md and schema.md
-      → src.build → site/  (HTML + PDF + Pagefind index + JSON-LD + OAI-PMH dump + sitemap)
-      → upload build-info.json ([[specification#N4]])
-      → deploy site/
+      → src.build → site/  (RelaxNG validation [[specification#N3]], HTML + PDF + JSON-LD
+                            + OAI-PMH + corpus.json + sitemap + Atom feed + redirects)
+      → npx pagefind --site site  (search index, separate step)
+      → deploy site/ (build-info.json included, [[specification#N4]])
 ```
 
 `knowledge/*.md` regenerated in CI may diverge from the committed copy
@@ -182,7 +206,7 @@ Strict is cleaner; pick before Phase 15.
 | PDF engine | WeasyPrint, with own print stylesheet | [[specification#A6 PDF-Pfad]] |
 | Search engine | Pagefind, build-time index, client-side runtime | [[specification#A4 Volltextsuche]] |
 | Hosting platform | GitHub Pages | [[specification#2 Plattform und Architekturgrundsätze]] |
-| Editorial format | TEI under `pages/` (A3); `content/*.md` legacy-active until the build cutover | [[specification#A3 Redaktionelle Texte]] |
+| Editorial format | TEI under `pages/` is the deployed default (A3); `content/*.md` is the fallback via `--no-tei-editorials` | [[specification#A3 Redaktionelle Texte]] |
 | Tag source of truth | TEI only; WordPress retired post-consolidation | [[specification#A2 Datenquellen]] |
 | Machine APIs | OAI-PMH + JSON-LD + JSON dump + sitemap with `schema.org/ScholarlyArticle` | [[specification#A5 Maschinenschnittstellen]] |
 
@@ -192,7 +216,7 @@ Strict is cleaner; pick before Phase 15.
 - Custom domain vs. `<owner>.github.io/<repo>` ([[specification#8 Offene Fragen]]).
 - Distribution path for large artifacts ([[specification#8 Offene Fragen]]).
 - Reach of the WordPress-to-TEI consolidation ([[specification#8 Offene Fragen]]).
-- Pre-publication preview environment — options and proposal in [[staging]], decision with the editorial team.
+- Pre-publication preview environment — options, recommendation and open questions in the Staging section below; decision with the editorial team.
 
 ## Phasenplan
 
@@ -210,7 +234,7 @@ This table is the static plan, not a tracker. What is currently live and what is
 | 6 | Bibliography + Questionnaire | `BibEntry`, `Questionnaire` dataclasses + parsers; aggregates for tags, reviewers, reviewed resources | R1 (Bibliographie, Factsheet, Tags), R6, R7, R8, [[specification#A2 Datenquellen]] |
 | 7 | Ref-Resolver + Asset-Pipeline | `Reference.bucket` ∈ {local, criteria, external, orphan} via `src/parser/refs_resolver.py`; image copy + URL rewrite via `src/parser/assets.py` | R1 (cross-refs, K-refs), [[specification#R17 Stabile URLs]] |
 | 8 | HTML — Rezensionsseiten | Per-review HTML via Jinja; citation export (BibTeX, CSL-JSON); TEI + PDF download links; Open-Graph metadata; Copy-Link auf Absätze; Tooltip-Vorschau für Cross-Refs; vier kleine JS-Module | R1, [[specification#R2 Rezension zitieren]], [[specification#R3 Rezension herunterladen]], [[specification#R13 Sharing]], [[interface]] |
-| 9 | Editorialschicht | Elf Editorial-Markdowns unter `content/` (Editorial, Publishing Policy, Ethical Code, Team, Peer Reviewers, Call for Reviews, Submitting a Review, Projects for Review, RIDE Award, Imprint, Reviewing Criteria); Home-Widgets unter `content/home/*.md`; per-issue YAML config unter `issues/{N}/metadata.yaml` mit Consistency-Check gegen TEI-Header; globale Navigation aus `config/navigation.yaml`. Die Editorialseiten-Quelle wird von Markdown auf TEI umgestellt (`pages/<slug>.xml`, validiert gegen `schema/ride-pages.rng`); der Build-Cutover (`pages/` in den Build rendern) steht noch aus. | [[specification#R10 Statische Inhalte pflegen]], [[specification#R11 Issue-Metadaten pflegen]], [[specification#R11.5 Globale Navigation pflegen]], [[specification#A3 Redaktionelle Texte]] |
+| 9 | Editorialschicht | Elf Editorial-Markdowns unter `content/` (Editorial, Publishing Policy, Ethical Code, Team, Peer Reviewers, Call for Reviews, Submitting a Review, Projects for Review, RIDE Award, Imprint, Reviewing Criteria); Home-Widgets unter `content/home/*.md`; per-issue YAML config unter `issues/{N}/metadata.yaml` mit Consistency-Check gegen TEI-Header; globale Navigation aus `config/navigation.yaml`. Die Editorialseiten-Quelle ist von Markdown auf TEI umgestellt (`pages/<slug>.xml`, validiert gegen `schema/ride-pages.rng`); der Build rendert `pages/` per Default, Markdown bleibt Fallback für nicht abgedeckte Slugs (`--no-tei-editorials`). | [[specification#R10 Statische Inhalte pflegen]], [[specification#R11 Issue-Metadaten pflegen]], [[specification#R11.5 Globale Navigation pflegen]], [[specification#A3 Redaktionelle Texte]] |
 | 10 | Aggregations- und Übersichtsseiten | Issue-Übersicht; Issue-Ansicht als redaktionelle Liste mit Wordcloud-Thumbnails, Citation und Abstract-Excerpt; Tag-Übersicht; Reviewer-Liste + Detailseiten; Reviewed-Resources-Tabelle; Data-Charts (R9: drei inline-SVG Bar-Charts, eine pro Kriterienset, aggregiert nach Top-Level-Section; `value="3"`-Anomalie wird ausgewiesen) | [[specification#R4 Issue-Ansicht]], [[specification#R5 Issue-Übersicht]], [[specification#R6 Tag-Aggregation]], [[specification#R7 Reviewed Resources]], [[specification#R8 Reviewer-Liste]], [[specification#R9 Data-Charts]] |
 | 11 | Pagefind-Suche | Build-time index; client-side runtime mit Context-Highlighting; im Navbar verankert ([[interface]] §4); `data-pagefind-body` auf Review-Wrapper, Facetten-Filter (Issue, Tag, Reviewer) als hidden spans, lazy-mount via IntersectionObserver; CI baut den Index nach `python -m src.build` mit `npx pagefind --site site` | [[specification#R12 Volltextsuche]], [[specification#A4 Volltextsuche]] |
 | 12 | Maschinenschnittstellen | OAI-PMH static snapshot; JSON-LD per page (DOI als kanonischer @id); full corpus JSON dump; sitemap mit `schema.org/ScholarlyArticle` | [[specification#R15 Maschinenschnittstellen]], [[specification#A5 Maschinenschnittstellen]] |

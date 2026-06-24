@@ -176,9 +176,8 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
 
     parts.append("## TEI modules used\n")
     parts.append(
-        "`ride.odd` imports these P5 modules (a `(full)` marker means every "
-        "element of the module is available; an explicit list means only those "
-        "elements were pulled in):\n"
+        "`ride.odd` imports these P5 modules. `(full)` means every element is "
+        "available; an explicit list means only those were pulled in:\n"
     )
     for mod in odd.get("modules", []):
         parts.append(_module_line(mod))
@@ -189,9 +188,9 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
 
     parts.append("## RIDE customisations\n")
     parts.append(
-        f"Out of {len(elementspecs)} elementSpec entries in `ride.odd`, "
-        f"{len(customised)} actually change something (deleted attributes, "
-        "changed usage, or constrained value lists). Only those are listed:\n"
+        f"{len(customised)} of {len(elementspecs)} elementSpec entries change "
+        "something (deleted attributes, changed usage, or constrained value "
+        "lists); only those are listed:\n"
     )
     if not customised:
         parts.append("_No customisations._\n")
@@ -203,10 +202,9 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
 
     parts.append("## Closed value lists (vs. the corpus)\n")
     parts.append(
-        "Where `ride.odd` defines a closed list of values for an attribute, the "
-        "two lines below show what the schema allows and what the corpus actually "
-        "contains. **Bold** values appear in the corpus but are not in the schema "
-        "list — they are either typos or signs of stale schema rules.\n"
+        "For each closed value list, the two lines show what the schema allows "
+        "and what the corpus contains. **Bold** values appear in the corpus but "
+        "not in the schema list — typos or stale schema rules.\n"
     )
     diff_blocks = _value_list_diff_block(elementspecs, elements_by_name, cross_elements)
     if diff_blocks:
@@ -217,9 +215,9 @@ def render(inventory_dir: Path, out_path: Path, *, today: str | None = None) -> 
     rules = odd.get("schematron_rules", [])
     parts.append("## Schematron rules\n")
     parts.append(
-        f"`ride.odd` carries {len(rules)} Schematron constraints, grouped here by "
-        "the element they target. The `test:` is the XPath the assertion runs; "
-        "the `message:` is the human-readable explanation as written in the ODD.\n"
+        f"`ride.odd` carries {len(rules)} Schematron constraints, grouped by the "
+        "element they target. `test:` is the assertion's XPath; `message:` is its "
+        "human-readable explanation.\n"
     )
     if rules:
         parts.extend(_schematron_blocks(rules))

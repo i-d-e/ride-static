@@ -81,47 +81,43 @@ Two axes of stakeholder load shape the architecture:
 - `site/` — HTML pages, CSS, fonts, JS, images.
 - `site/issues/{N}/{review_id}/{review_id}.pdf` — per-review PDF, written by the WeasyPrint pass alongside the HTML when `--pdf` is set.
 - `site/issues/{N}/{review_id}/{review_id}.xml` — original TEI, copied next to the rendered page so the sidebar download link resolves to a real file (R3).
+- `site/issues/{N}/{review_id}/factsheet/index.html` — standalone Factsheet full page with the per-question questionnaire (R18).
 - `site/pagefind/` — Pagefind-generated search bundle (UI script, search index, language workers); produced as a CI step after `python -m src.build`.
 - `site/api/corpus.json` — full-corpus JSON dump with top-level `licence: {name, url}` (R15 / N6).
 - `site/api/build-info.json` — aggregated build report (commit, date, validation, optional linkcheck, asset counts) with the same licence field (N4 / N7).
 - `site/oai/` — OAI-PMH static snapshot (verb-per-file, A5).
 - `site/sitemap.xml` — when `--base-url` is set; A5.
+- `site/feed/atom.xml` — Atom feed of the most recent reviews (RFC 4287), when `--base-url` is set.
 - `site/redirects/` — meta-refresh stubs from legacy WordPress paths (R17).
 
 ## Layers
 
-![Architecture of the static RIDE pipeline. Four layers from sources through domain model and renderers to the build and deploy step.](image-workflow.png)
+The pipeline forms four productive layers, each transforming the format of its input into another format until the output is a fully static site. Discovery (`scripts/` → `inventory/` + generated `knowledge/`) sits apart as the build-time knowledge base, the precondition rather than a layer (see below, "Knowledge base").
 
-The pipeline forms four productive layers, each transforming the format of its input into another format until the output is a fully static site.
-
-```
-            ┌───────────────────────────────┐
-            │  issues/{N}/reviews/*.xml +    │   (read-only source)
-            │  schema/ride.odd               │
-            └──────────────┬─────────────────┘
-                           │
-          ┌────────────────▼────────────────┐
-          │  scripts/                       │   Stage 0: Discovery (done)
-          │  inventory, structure, sections,│
-          │  odd_extract, p5_fetch,         │
-          │  cross_reference, render_*      │
-          └────────────────┬────────────────┘
-                           │
-                inventory/*.json + knowledge/*.md
-                           │
-          ┌────────────────▼────────────────┐
-          │  src/parser/                    │   Stage 2: TEI → domain
-          └────────────────┬────────────────┘
-                           │
-                       Domain objects
-                  (Review, Section, Block …)
-                           │
-          ┌────────────────▼────────────────┐
-          │  src/render/                    │   Stage 3+
-          │  html · pdf · search_index      │
-          └────────────────┬────────────────┘
-                           │
-                          site/
+```mermaid
+flowchart TB
+    subgraph PRE["Vorbedingung · Discovery (Build-Time-Wissen, nicht Teil der produktiven Pipeline)"]
+        SCRIPTS["scripts/ — inventory, structure, sections, taxonomy, render_*"] --> INV["inventory/*.json · knowledge/data.md · schema.md"]
+    end
+    subgraph S["1 · Quellen (read-only)"]
+        TEI["issues/{N}/reviews/*-tei.xml + metadata.yaml"]
+        SCHEMA["schema/ride.odd · ride.rng · ride-pages.rng"]
+        PAGES["pages/*.xml (TEI-Editorials) · content/*.md (Fallback)"]
+    end
+    subgraph M["2 · Domänenmodell"]
+        PARSER["src/parser/"] --> MODEL["Review · Section · Block · Page (frozen dataclasses)"]
+    end
+    subgraph R["3 · Renderer & Schnittstellen"]
+        OUT["HTML · PDF · corpus.json/JSON-LD · OAI-PMH · Pagefind"]
+    end
+    subgraph B["4 · Build & Deploy"]
+        GHA["GitHub Actions"] --> GHP["GitHub Pages"]
+    end
+    TEI --> PARSER
+    SCHEMA --> PARSER
+    PAGES --> PARSER
+    MODEL --> OUT --> GHA
+    INV -. Wissensbasis .-> PARSER
 ```
 
 ## Domain model
@@ -137,16 +133,16 @@ concerns belong in the renderers.
 All sequence-typed fields use `tuple[...]` for immutability and hashability, per the convention in `CLAUDE.md`.
 
 - **`Review`** — one per file
-  - `id`, `issue`, `language`, `publication_date`, `licence`
+  - `id`, `issue`, `title`, `language`, `publication_date`, `licence`
   - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[specification#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
-  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). 109 reviews carry one taxonomy, one carries two, one carries three. `Questionnaire` additionally carries `questions: tuple[QuestionnaireQuestion, ...]` — the per-question rows feeding the Factsheet-Vollseite (R18); each `QuestionnaireQuestion` carries `section_label`, `question_label`, `question_text`, `criteria_ref`, `selected`, `anomaly`, and `criteria_ref_label`.
-  - `front: tuple[Section, ...]` — **always carries the abstract** (111/111 reviews have exactly one Section with `type="abstract"` here, zero in body)
+  - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). Almost every review carries a single taxonomy; one carries two and one carries three (exact distribution in [[data]]). `Questionnaire` additionally carries `questions: tuple[QuestionnaireQuestion, ...]` — the per-question rows feeding the Factsheet-Vollseite (R18); each `QuestionnaireQuestion` carries `section_label`, `question_label`, `question_text`, `criteria_ref`, `selected`, `anomaly`, and `criteria_ref_label`.
+  - `front: tuple[Section, ...]` — **always carries the abstract** (every review has exactly one Section with `type="abstract"` here, none in body — see [[data]])
   - `body: tuple[Section, ...]`, `back: tuple[Section, ...]`
   - `figures: tuple[Figure, ...]`, `notes: tuple[Note, ...]` — corpus-order aggregates feeding the parallel apparate sub-blocks ([[interface#6]])
   - `bibliography: tuple[BibEntry, ...]` (drawn from `<back>/<div type="bibliography">/<listBibl>/<bibl>`)
-  - `related_items: tuple[RelatedItem, ...]` — `RelatedItem` carries `type` ∈ {`reviewed_resource`, `reviewing_criteria`}, `bibl_text`, `bibl_targets: tuple[str, ...]`, `last_accessed: Optional[str]` (the `<ref @when>` value for online sources, used in the rendered „(Last Accessed: …)" suffix per [[interface#5]]), and `personnel: tuple[tuple[str, str], ...]` — `(resp, persName)`-pairs parsed from `bibl/respStmt`, feeding the Factsheet-Vollseite (R18).
+  - `related_items: tuple[RelatedItem, ...]` — `RelatedItem` carries `type` ∈ {`reviewed_resource`, `reviewing_criteria`}, `bibl_text`, `title: Optional[str]` (canonical title of the reviewed work), `publication_date: Optional[str]` (the reviewed work's own date, Factsheet R18), `bibl_targets: tuple[str, ...]`, `last_accessed: Optional[str]` (the `<ref @when>` value for online sources, used in the rendered „(Last Accessed: …)" suffix per [[interface#5]]), and `personnel: tuple[tuple[str, str], ...]` — `(resp, persName)`-pairs parsed from `bibl/respStmt`, feeding the Factsheet-Vollseite (R18).
 
 The TEI element `<bibl>` lives at three sites in the corpus and is parsed by three different paths into the same `BibEntry` shape (Phase 6.A unification): `<listBibl>/<bibl>` in `<back>` → `parse_bibliography` → `Review.bibliography`; `<cit>/<bibl>` inline in mixed content → `parse_bibl` from inside `parse_cit` → `Citation.bibl`; `<relatedItem>/<bibl>` in the header → `parse_related_items` → `Review.related_items` (this third path retains its own `RelatedItem` shape because the relatedItem wrapper carries `@type` semantics that BibEntry does not).
 
@@ -158,7 +154,7 @@ The TEI element `<bibl>` lives at three sites in the corpus and is parsed by thr
   - `blocks: tuple[Block, ...]`
   - `subsections: tuple[Section, ...]`
 
-- **`Block`** types: `Paragraph`, `List`, `Table`, `Figure`, `Citation`. Empirically verified against the corpus: `<note>` is always inline (1900+ occurrences, all under `<p>`/`<head>`/`<quote>`/`<item>`), `<code>` is always inline (727 occurrences, no children), `<head>` is consumed by the section parser as section heading, `<eg>` lives only inside `<figure>` (modelled as `Figure(kind="code_example")`).
+- **`Block`** types: `Paragraph`, `List`, `Table`, `Figure`, `Citation`. Empirically verified against the corpus: `<note>` is always inline (every occurrence under `<p>`/`<head>`/`<quote>`/`<item>`), `<code>` is always inline (no children), `<head>` is consumed by the section parser as section heading, `<eg>` lives only inside `<figure>` (modelled as `Figure(kind="code_example")`).
 
 - **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`.
 
@@ -174,12 +170,12 @@ The parser handles the known anomalies named in [[data]] and [[schema]] explicit
 | Anomaly | Parser branch |
 |---|---|
 | 7 reviews without `<back>` | `Review.bibliography = ()`, `Review.back = ()` |
-| `<num value="3">` | warn, treat as boolean unknown |
+| `<num value="3">` | raw value kept in `QuestionnaireAnswer.value`; Factsheet walker sets `anomaly=True` and drops the leaf from selection; charts renderer counts it separately |
 | `<list rend="numbered"`>, `"unordered">` | normalise to `ordered` / `bulleted` |
 | `<ref type="crosssref">` | normalise to `crossref` |
-| `<sourceDesc>` duplicated (1 review) | merge or pick first; warn |
+| `<sourceDesc>` duplicated (`wwr`) | not read by the parser, so the duplicate is inert |
 | `<body>` starting with `<p>` or `<cit>` (7 reviews) | wrap in implicit single section |
-| `<ref target="#K…">` — 5 209 refs (98.7 % of dangling internals) | resolve against the criteria document at the taxonomy's `@xml:base`, not as local anchors |
+| `<ref target="#K…">` — the dominant internal-prefix ref (counts in [[data#Reference resolution]]) | resolve against the criteria document at the taxonomy's `@xml:base`, not as local anchors |
 | `<ref target="#abb…">` and ~10 other prefixes (~70 refs) | unresolved — emit a warning and render as plain text |
 
 Anything not yet listed but unknown should raise — silent coercion is forbidden.
@@ -198,10 +194,10 @@ Templates are dumb: they format `Review`/`Section`/`Block` instances and never r
 Beside the per-review render path, three **content loaders** feed the rest of the site from editor-friendly source files:
 
 - **`render/navigation.py`** — parses `config/navigation.yaml` into immutable `NavItem` tuples, then resolves data-driven children (today only `children_kind: issues`, which builds the Issues dropdown from the corpus). The resolved tuple lives in `SiteConfig.navigation` and is handed to every template via the render context.
-- **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim. The editorial-page half is the legacy path: the editorial pages move to TEI under `pages/` (the `Page` model, `render/page.py`, rendered through the same `editorial.html`), and `discover_editorials()` stays the active source only until the build cutover wires `pages/` in. The home widgets stay Markdown.
+- **`render/editorial.py`** — `discover_editorials()` loads top-level `content/*.md` (About, Imprint, Editorial, Team, Peer-Reviewers, …) as `EditorialPage` objects; `discover_home_widgets()` loads `content/home/*.md` as ordered `HomeWidget` objects for the home page Welcome-lede + 2×2 action-card grid. Both use a small in-house frontmatter parser so the dependency footprint stays slim. The editorial pages are rendered from TEI under `pages/` (the `Page` model, `render/page.py`, through the same `editorial.html`) — this is the deployed default (`tei_editorials=True`). `discover_editorials()` is now the fallback path: it serves slugs no TEI page covers (rename-orphans such as `submitting-a-review`, `projects-for-review`) and generator-native pages; `--no-tei-editorials` forces the legacy Markdown-only build. The home widgets stay Markdown.
 - **`render/issues_config.py`** — loads `issues/{N}/metadata.yaml` per issue (title, DOI, editors, publication date, rolling status, optional contribution order). The build validates that the YAML and the parsed corpus agree; mismatches raise `IssueConfigError`.
 
-These sources mean "edit source, push, deploy" works without touching templates or Python — the editorial workflow promise from [[specification#A3 Redaktionelle Texte]]. The promise is code-free content editing, not one fixed format: home widgets and issue YAML stay Markdown/YAML, the editorial pages move to TEI under `pages/`.
+These sources mean "edit source, push, deploy" works without touching templates or Python — the editorial workflow promise from [[specification#A3 Redaktionelle Texte]]. The promise is code-free content editing, not one fixed format: home widgets and issue YAML stay Markdown/YAML, the editorial pages are TEI under `pages/` with Markdown as the fallback.
 
 The build itself runs in **two passes**: first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
 
@@ -212,20 +208,20 @@ templates/html/
   issues.html             issues overview
   issue.html              single issue with TOC and contributor cards
   review.html             single review (header split, abstract, body, sidebar)
+  factsheet.html          Factsheet full page (R18)
   tags.html, tag.html     tag overview and per-tag aggregation
   reviewers.html, reviewer.html
   resources.html          reviewed resources table
-  data.html               questionnaire-derived charts
-  editorial.html          about / imprint / criteria (content-only column)
+  editorial.html          editorial pages (TEI Page + Markdown fallback, content-only column)
   partials/
+    render.html           central dispatcher: dispatches on dataclass name, emits BEM classes
+    section.html          recursive section
     apparate.html         parallel block: references | figures | notes
-    questionnaire.html    the <num> matrix
-    section.html          recursive
-    blocks/
-      paragraph.html, list.html, table.html, figure.html, citation.html
-    inlines/
-      reference.html, emphasis.html, highlight.html, note.html, code.html
+    factsheet.html        questionnaire payload, shared by the sidebar box and the full page
+    review_card.html      review entry on issue / aggregation pages
+    issue_entry.html      rich issue-listing entry (wordcloud, citation, excerpt)
 ```
+Charts are not a template: `render/charts.py` emits inline SVG directly.
 
 The page-type set follows [[interface#4 Layout-Architektur]]; the parallel apparate block follows [[interface#6 Apparate als parallele Blöcke]].
 
@@ -234,9 +230,22 @@ The page-type set follows [[interface#4 Layout-Architektur]]; the parallel appar
 - **Search index** — Pagefind, per [[specification#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/search.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
 - **`<ref @target>` resolution** — four-bucket lookup at build time, fully specified in [[pipeline#Cross-cutting concerns]] and acceptance-tested against [[specification#R1 Rezension lesen]]:
   1. Local anchor present in the per-review `xml_id → object` map → in-page HTML anchor.
-  2. `#K…` prefix (5 209 cases — see `inventory/refs.json`) → external link to `{xml:base}#K…` on the criteria document. v1 does not resolve K-IDs to category titles; that is a possible later enhancement.
+  2. `#K…` prefix (the dominant internal ref — see `inventory/refs.json`) → external link to `{xml:base}#K…` on the criteria document. v1 does not resolve K-IDs to category titles; that is a possible later enhancement.
   3. External `http(s)://` → pass through.
   4. Anything else → build-time warning, rendered as plain text.
+
+## Data interfaces
+
+The site exposes its content to non-browser consumers through four distinct interfaces. They all emit XML or JSON but serve different audiences and do not substitute for one another:
+
+| Interface | Audience | Purpose | Output |
+|---|---|---|---|
+| Atom feed | a human via a feed reader | subscribe to the newest reviews | `site/feed/atom.xml` (RFC 4287) |
+| OAI-PMH | repositories, aggregators | bulk, datestamp-based metadata harvesting | `site/oai/` |
+| sitemap.xml | search-engine crawlers | URL discovery | `site/sitemap.xml` |
+| JSON-LD + corpus dump | search engines, data consumers | embedded `schema.org` semantics, full dataset | per-review JSON-LD + `site/api/corpus.json` |
+
+The rich-bibliographic-metadata role that scholarly RSS 1.0 / PRISM feeds once filled is already covered here by OAI-PMH, per-review JSON-LD, and `corpus.json`. What none of those provides is the plain human subscription to "a new review was published" — that is the Atom feed's distinct job, which is why the legacy RDF (RSS 1.0) feed is deliberately not reproduced. The feed, sitemap, and OAI snapshot are `--base-url`-gated because they need absolute URLs; JSON-LD and the corpus dump are always written.
 
 ## Element-Mapping (declarative)
 
@@ -317,40 +326,7 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 
 ## Repository layout
 
-```
-ride-static/
-  scripts/                  Stage 0/1 — discovery + knowledge generation
-  src/
-    parser/                 TEI → domain
-    model/                  domain types
-    render/                 html, pdf, refs, assets, citation, corpus_dump, factsheet, page
-    build.py                Phase 8 build CLI: python -m src.build
-  templates/html/           Jinja templates
-  static/                   css/, js/, fonts/
-  config/
-    element-mapping.yaml    domain class → template + CSS class (spec-only, see §Element-Mapping)
-  content/                  editorial Markdown + per-issue YAML
-    about.md, imprint.md, criteria.md
-    issues/{n}.yaml
-    reviewers/{slug}.md     optional
-  inventory/                Generated, gitignored
-  knowledge/                Obsidian-style vault, .md only
-    data.md                 corpus structure reference (generated)
-    schema.md               ride.odd reference (generated)
-    architecture.md         this file
-    pipeline.md             build & deploy plan with 15-phase plan
-    specification.md        product spec, R/N/A clauses
-    interface.md            visual & interaction design
-    journal.md              session-by-session record
-  docs/
-    extending.md            how to add a new TEI element
-    url-scheme.md           versioned URL contract
-  tests/                    pytest
-  site/                     Build output, gitignored
-  README.md
-  CONTRIBUTING.md
-  CLAUDE.md                 project conventions
-```
+The authoritative directory layout lives in `CLAUDE.md` §Layout and is not duplicated here. The architecture-relevant entry points: `src/parser/` (TEI → domain), `src/model/` (frozen dataclasses), `src/render/` plus `src/build.py` (render pass and build CLI), `templates/html/` (Jinja), `config/element-mapping.yaml` (spec-only, see §Element-Mapping), `pages/*.xml` (editorial TEI), `issues/{N}/reviews/*-tei.xml` (the review corpus), and the generated `inventory/` plus the committed `knowledge/` vault.
 
 ## Stages
 
@@ -368,7 +344,7 @@ A coarse orientation view. The fifteen-phase build plan lives in [[pipeline#Phas
 
 Implementation is preceded by a knowledge base that serves as context for an agentic build process with Claude Code. It is not part of the productive pipeline but its precondition. The base has two functionally distinct layers.
 
-The first layer is **deterministically generated** and describes corpus reality and the schema in use. Eleven Python scripts under `scripts/` traverse the 111 TEI files plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: 111 full reviews plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
+The first layer is **deterministically generated** and describes corpus reality and the schema in use. The discovery scripts under `scripts/` traverse the TEI corpus plus `ride.odd`, write structured JSON inventories to `inventory/` (gitignored), and render two knowledge documents from those inventories: [[data]] (corpus structure, anomalies, reference resolution) and [[schema]] (RIDE customisations, schema-vs-corpus diff). The reason for this detour is pragmatic: the full corpus plus the schema would overflow the context window of any per-phase agent run; the deterministic aggregation, executed once and refreshed when the source changes, produces compact knowledge documents that fit the context budget and trace cleanly back to the data. Both generated documents carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`.
 
 The second layer is **hand-curated** and fixes specification, architecture, interface, and build sequence: [[specification]], [[architecture]] (this document), [[interface]], [[pipeline]]. Both layers cross-reference each other through wikilinks. Every clause in [[specification]] has its empirical foundation in [[data]] or [[schema]]; every anomaly catalogued in [[data]] has a named handler in [[architecture]] or a documented exception. A third layer adds session-by-session narration through [Journal](journal.md) — five fixed fields per entry (Ziel / Erledigt / Entscheidungen / Offen / Nächster Einstieg) that mediate between memory, git history, and project conventions.
 

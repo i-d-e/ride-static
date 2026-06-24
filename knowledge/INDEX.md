@@ -16,10 +16,8 @@ related:
   - "[[architecture]]"
   - "[[interface]]"
   - "[[pipeline]]"
-  - "[[staging]]"
   - "[[data]]"
   - "[[schema]]"
-  - "[[dynamic-features]]"
 ---
 
 # knowledge/
@@ -32,13 +30,11 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 
 | Document | Function | Update rhythm |
 |---|---|---|
-| [[data]] | Material — empirical reality of the TEI corpus (111 reviews) | regenerated when corpus changes (script-driven) |
+| [[data]] | Material — empirical reality of the TEI corpus | regenerated when corpus changes (script-driven) |
 | [[schema]] | Material — `ride.odd` customisations and schema-vs-corpus diff | regenerated when ODD changes (script-driven) |
 | [[specification]] | Substance — 17 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
-| [[staging]] | Substance — pre-publication review environment, solution options, decision open | when the staging decision advances |
-| [[dynamic-features]] | Substance — which dynamic WP features the static site replaces, gaps, data interfaces | when coverage or interfaces change |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
@@ -72,7 +68,7 @@ The YAML file `config/element-mapping.yaml` that binds domain classes to Jinja t
 
 ### K-Ref
 
-A `<ref target="#K…">` element in the corpus. Despite the `#`-prefix, K-refs are **not** local anchors — they point to a RIDE criterion ID defined in the external criteria document at the matching `<taxonomy>/@xml:base`. The corpus carries 5,209 K-refs (98.7 percent of all internal-prefix references), all in `<teiHeader>/<catDesc>`, none in body text. The reference resolver categorises them as `Reference.bucket = "criteria"` and the renderer dispatches them to the external taxonomy URL, not the per-review file. Defined in [[data#Reference resolution]].
+A `<ref target="#K…">` element in the corpus. Despite the `#`-prefix, K-refs are **not** local anchors — they point to a RIDE criterion ID defined in the external criteria document at the matching `<taxonomy>/@xml:base`. K-refs are the dominant internal-prefix reference in the corpus, all in `<teiHeader>/<catDesc>`, none in body text (exact counts in [[data#Reference resolution]]). The reference resolver categorises them as `Reference.bucket = "criteria"` and the renderer dispatches them to the external taxonomy URL, not the per-review file. Defined in [[data#Reference resolution]].
 
 ### Promptotyping
 

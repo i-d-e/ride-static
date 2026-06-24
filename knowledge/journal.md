@@ -17,7 +17,7 @@ Session-by-session record of work on ride-static. Append a new dated block at th
 Field rules:
 
 - **Ziel** — eine Zeile, das zentrale Vorhaben der Session.
-- **Erledigt** — was real beendet ist; halbfertige Arbeit gehört nach „Offen".
+- **Erledigt** — was real beendet ist; halbfertige Arbeit gehört nach „Offen". Das Was-im-Detail (Dateien, Funktionen, Commit-Hashes, Test-Zahlen) lebt in git und im Code, nicht hier — das Journal trägt das Narrativ.
 - **Entscheidungen** — neue Festlegungen, nicht Wiederholungen aus früheren Einträgen. Nenne den Grund.
 - **Offen** — präzise und actionable; vermeide Schwammiges wie „weiter testen".
 - **Nächster Einstieg** — eine konkrete Anfangsaufgabe, nicht eine Liste.
@@ -30,169 +30,173 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
-## 2026-06-22 — TEI-Editorials live geschaltet (Default-Flip), Redirect-Self-Loop behoben
+## 2026-06-24 — Editorial-URLs hierarchisch (URL-Schema v2)
 
-**Ziel:** Die teiisierten Begleittexte (`pages/*.xml`) auf GitHub Pages live bringen, damit die IDE-internen Kolleginnen aus dem Issue heraus jede Seite gegen die alte WP-Fassung pruefen koennen; zugleich eine im Review aufgefallene Endlosschleife klaeren.
+**Ziel:** Aus dem IDE-Gegencheck kam die Anmerkung, die Bereiche (About, Data) wie auf der alten WP-Site in der URL abzubilden (`/about/editorial/` statt `/editorial/`). Diese Hierarchisierung umsetzen und live auf GitHub Pages prüfbar machen.
 
-**Erledigt:**
-- M3 Default-Flip: `build()` rendert die `pages/*.xml`-TEI per Default mit Vorrang (`tei_editorials=True`), `content/*.md` nur noch als Fallback; CLI-Notausgang `--no-tei-editorials`. CI baut unveraendert `python -m src.build --pdf` und deployt damit ab jetzt die TEI-Editorials. `build.yml` netto unveraendert (kein CI-Flag noetig).
-- Redirect-Self-Loop behoben: drei Identitaets-Eintraege (`about`, `ethical-code`, `data`) aus `EDITORIAL_REDIRECTS` entfernt plus Self-Loop-Guard in `write_at`. Der Bug war live (die drei leiteten per meta-refresh auf sich selbst, Endlos-Reload), unabhaengig vom TEI-Schalter, weil `write_redirects` nach `_render_editorials` die fertige Seite ueberschrieb. Per WebFetch an `/about/` auf der Live-Site bestaetigt.
-- Zwei neue Tests (`test_write_redirects_skips_self_redirect_slugs`, `test_no_editorial_redirect_points_to_itself`), `test_write_redirects_emits_editorial_stubs` angepasst. README: Eingaben-Diagramm um `pages/*.xml` und Abschnitt „Edit an editorial page" auf den TEI-Pfad plus Erweiterbarkeit umgeschrieben (die README dokumentierte bis dato nur den Markdown-Pfad).
-- Verifiziert: volle Suite 541 passed / 2 skipped; blanker `python -m src.build` rendert die 16 TEI-Seiten mit echtem Inhalt, `ethical-code`/`data` ohne Stub.
+**Erledigt:** Editorial-Seiten spiegeln jetzt ihren Navigationsbereich in der URL. Mechanismus: `discover_pages` rekursiv (`rglob`), der Slug ist der relative Pfad unter `pages/`; die `pages/*.xml` der About- und Reviewers-Gruppe wurden in Bereichsordner verschoben. Die Markdown-Fallbacks unter `content/` tragen denselben Slug im Frontmatter, sodass keine Seite doppelt unter dem alten flachen Pfad aufersteht. `navigation.yaml`, Footer, interne content-Links, `EDITORIAL_REDIRECTS` und `docs/url-scheme.md` (v2) nachgezogen, Suite grün (548). Sauberer Rebuild bestätigt: die alten flachen Editorial-URLs sind verschwunden, die hierarchischen aktiv. Als eigener Commit getrennt vom Vault-Refactor geführt.
 
 **Entscheidungen:**
-- Live-Gang als Default-Flip im Code, nicht als CI-Flag. Begruendung: das Journal definiert den Live-Gang genau so („operator-gated flip of the default"), und nur der Code-Default haelt lokalen Build und Deploy deckungsgleich — ein CI-only-Flag liesse `python -m src.build` lokal weiter Markdown rendern.
-- `contact` bewusst als duenner TEI-Body live (ein Satz + E-Mail), obwohl `content/contact.md` voller ist. Begruendung: der Preview soll genau solche Inhaltsluecken fuer den Gegencheck (erre1998) sichtbar machen; das Fuellen ist redaktionell, kein Build-Fix.
+- Bereichszuordnung aus `navigation.yaml` abgeleitet, der einzigen im Repo vorhandenen kuratierten Quelle der Sektionszugehörigkeit.
+- Slug-Quelle ist der Dateipfad (TEI-Ordner) beziehungsweise der Frontmatter-Slug (Markdown). Ein Ableiten aus der Navigation zur Render-Zeit wurde verworfen, um eine Render-Kopplung zu vermeiden und Seiten ohne Menüeintrag abzudecken.
+- Aggregationsseiten (`/tags/`, `/resources/`, `/reviewers/`) bleiben flach, weil sie datengetrieben sind und einen eigenen Renderpfad haben; ein Mitwandern unter `/data/` wäre ein separater, größerer Eingriff.
+- Keine Flach-zu-Hierarchie-Redirects, weil die flachen Slugs nur im github.io-Preview liefen und nie unter ride.i-d-e.de.
 
-**Offen:**
-- `contact`-Body fuellen (redaktionell). URL-Scheme: neue TEI-Slugs (`submission-guidelines`, `suggested-`/`projects-currently-under-review`) weichen von den alten WP-Pfaden und teils vom Menue ab; `navigation.yaml` und Redirects noch nicht nachgezogen.
-- TEI-Header bewusst minimal/uniform (zwei Managing Editors als Impressum, kein Datum) — hennyu hat das Header-Profil im Issue vertagt; offen, ob/was ergaenzt wird.
+**Offen:** Fünf TEI-Seiten ohne Menüplatz (dissemination-discussion, submission-guidelines, suggested-projects-for-review, projects-currently-under-review, writing-guidelines) liegen vorerst flach, ihre Bereichszuordnung ist redaktionell offen. Eine echte Doppelung besteht: submission-guidelines (TEI, flach) gegen `/reviewers/submitting-a-review/` (Markdown) und suggested-projects-for-review (TEI) gegen `/reviewers/projects-for-review/` (Markdown), wobei das Menü auf die Markdown-Variante zeigt. Offen auch, ob imprint top-level bleibt oder unter `/about/` wandert, sowie der gemischte `/reviewers/`-Namespace (Editorial plus Profile, aktuell kollisionsfrei).
 
-**Nächster Einstieg:** Nach dem Gegencheck der Kolleginnen die gemeldeten Inhalts-/Header-Korrekturen je Seite in `pages/*.xml` einarbeiten; parallel die URL-Scheme-Entscheidung (flache Slugs + Redirects vs. WP-Spiegelung) klaeren und `navigation.yaml`/`EDITORIAL_REDIRECTS` auf die neuen Slugs ausrichten.
+**Nächster Einstieg:** Nach der Live-Verifikation der Kolleginnen die Bereichszuordnung der fünf flachen TEI-Seiten sowie die Doppelung submission-guidelines/suggested-projects-for-review klären und die betroffenen Seiten analog verschieben.
 
 ---
 
-## 2026-06-21 — M3 Build-Cutover als Default-aus-Schalter, Reconciliation-Spur, URL-Scheme zurueckgemeldet
+## 2026-06-24 — knowledge-Vault-Refactor: Auflösung, Code-Audit, Quantitäten-Politik
 
-**Ziel:** order-Iteration: M3 Build-Cutover bauen (pages/-TEI mit Vorrang vor content/*.md), als lokale nicht-gepushte Render-Spur, M4 scopen, die als entschieden markierten Punkte umsetzen.
+**Ziel:** Den knowledge-Vault aufräumen — Redundanzen auflösen, veraltete Aussagen gegen den echten Code korrigieren, leise veraltende Mess-Quantitäten aus den Hand-Docs entfernen.
 
-**Erledigt:**
-- TEI-Editorialvorrang in `src/build.py::_render_editorials` implementiert, hinter Schalter `tei_editorials` (Default `False`), plus CLI `--tei-editorials` und Durchreichung in `build()`. Default rendert unveraendert die 16 `content/*.md` (deployt exakt wie bisher). Mit Schalter: alle 16 `pages/*.xml` via `discover_pages()/render_page()` mit Vorrang, Markdown-Fallback nur fuer nicht von TEI gedeckte Slugs (about, data/charts, data/questionnaires, plus Umbenennungs-Waisen projects-for-review, submitting-a-review). 16 TEI + 5 Fallback = 21 Seiten.
-- Renderpfad-Tests `tests/test_render_editorial_precedence.py` (3): Default rendert Markdown und keine TEI-only-Slugs; TEI-Modus rendert alle 16 TEI-Slugs plus generator-nativen Fallback (21); bei geteiltem Slug gewinnt TEI (criteria-HTML unterscheidet sich).
-- Voller lokaler TEI-Build als Spur nach `C:/tmp/ride-site-tei` (nicht ins Repo, `site/` ist gitignored): 111 Review-Seiten, 16/16 TEI-Editorialseiten im Output, writing-guidelines mit verbatim `<pre><code>`.
-- Per-Seite-Reconciliation-Diff TEI gegen Markdown nach `forschungsleitstelle/reports/audit-ride-static-cutover-diff.md` (Operator-Spur, nicht nach main). Befund: contact TEI-Stub (142 Zeichen) gegen volle Markdown-Seite; imprint Piwik gegen Matomo; data divergierende Endpunkte; editorial/team/imprint TEI deutlich voller; criteria/publishing-policy/peer-reviewers/ethical-code/ride-award nahezu gleich.
-- Verifiziert: volle Suite 539 passed / 2 skipped; `python -m src.build --tei-editorials` erzeugt sauberen Voll-Build mit 16/16 TEI-Seiten.
+**Erledigt:** `AGENTS.md` (byteidentisches `CLAUDE.md`-Duplikat) und das KI-generierte `image-workflow.png` gelöscht, das Bild durch ein Mermaid-Pipelinediagramm in architecture.md ersetzt. `staging.md` und `dynamic-features.md` aufgelöst: Staging als verdichteter Entscheidungsabschnitt nach pipeline.md, die Vier-Interfaces-Abgrenzung als Abschnitt „Data interfaces" nach architecture.md — Substanz erhalten, Vault jetzt 8 statt 10 Docs, keine toten Wikilinks. Ein code-verifizierter Korrektheits-Audit (vier Subagenten gegen `src/`) deckte drei systematische Drifts auf: TEI-Editorial-Cutover (vollzogen, stand als „ausstehend"), Atom-Feed (existiert, fehlte in Outputs), Factsheet/R18 (implementiert, stand als „Lücke") — über alle Hand-Docs korrigiert. schema.md-Generator gestrafft und regeneriert. Volle Suite grün.
 
 **Entscheidungen:**
-- Cutover als Default-aus-Schalter statt direkter Umverdrahtung. Begruendung: die order verlangt zugleich „pages-Vorrang verdrahten" und „NICHT nach main pushen, weil Push deployt" sowie „alles in main". Nur ein Default-aus-Schalter vereinbart alle drei: Code gesichert nach main, Deploy unveraendert, Live-Gang = spaeterer Default-Flip (operator-gated).
-- Diff als Reconciliation gefuehrt, nicht als Aequivalenzbeweis. Begruendung: das Editorial-Audit (dacde82) hat die Aequivalenzannahme bereits widerlegt; ein Byte-Diff kann keine Aequivalenz zeigen, weil die Quellbestaende verschiedene Dokumente sind. Der Diff liefert stattdessen die per-Seite-Entscheidungsgrundlage.
-- URL-Scheme NICHT eigenmaechtig umgebaut. Begruendung: die order-Anweisung „WP-Pfade spiegeln, damit externe Links gueltig bleiben" erreicht ihr erklaertes Ziel nicht (die simplen Spiegel-Pfade wie /reviewers/criteria/ sind keine real existierenden Live-URLs; die echten langen Live-Slugs liegen schon als Redirects vor), bricht den gepinnten R17-Vertrag (docs/url-scheme.md v1, Editorial flach) und ist nach aussen wirkend. Nach der Entscheidungsgrenze zurueck an den Operator als `klaerung-ride-static.md`.
+- Quantitäten-Politik (in CLAUDE.md verankert): Hand-Docs hartcodieren keine gemessenen Mengen (Korpus-Counts, Zeilenzahlen) — die leben in den generierten data.md/schema.md oder `inventory/`, Hand-Docs verweisen; nur bewusste Zahlen (Design-Tokens, Schwellen, IDs) bleiben. Grund: „5 209 K-refs" stand 4x hartcodiert und veraltet leise.
+- staging.md nicht ersatzlos gelöscht, sondern als Entscheidungsvorlage nach pipeline.md überführt (Thema ist Deploy-Mechanik), weil die Redaktionsentscheidung offen ist.
+- Agenten-Befund „Taxonomie nur 107 Reviews" gegen das Korpus geprüft und verworfen (real 111, 109/1/1) — Beleg, dass Audit-Befunde vor Löschung zu verifizieren sind.
 
-**Offen:**
-- URL-Scheme (klaerung): flach beibehalten plus Redirects (Ist, erfuellt das Ziel) gegen echte WP-Spiegelung (lange Live-Slugs als kanonische Pfade). Operator-Entscheidung, blockiert die Redirect-Finalisierung (M5) und den Live-Cutover.
-- contact-Reconciliation: der TEI-Stub ist inhaltlich aermer als die Markdown-Seite; vor dem Cutover zu fuellen oder die Markdown-Seite zu behalten.
-- value=1 (M4) bleibt operator-gated, nur gescoped.
+**Offen:** Parser-Docstring in `src/parser/questionnaire.py` widerspricht der Korpus-Realität (114 taxonomy über 111 Reviews) — Code-Kommentar, nicht Doc. WOFF2-Fonts: interface.md beschreibt jetzt den Ist-Stand (System-Stack, `static/fonts/` leer); offen, ob bewusst verworfen oder Lücke. data.md nicht angefasst (generiert).
 
-**Nächster Einstieg:** Auf die URL-Scheme-Entscheidung warten; bei „flach" die Redirect-Strecke (M5) finalisieren und EDITORIAL_REDIRECTS um die fuenf neuen/umbenannten Slugs ergaenzen; sonst die per-Seite-contact/imprint/data-Reconciliation als Vorlage ausarbeiten.
+**Nächster Einstieg:** Den Docstring in `src/parser/questionnaire.py` gegen die verifizierte Korpus-Zählung (111 Reviews, 114 taxonomy-Elemente) korrigieren.
 
-## M4 value=1-Korrektur (gescoped, nicht gebaut)
+---
 
-R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/factsheet.html`) zaehlen heute flach `<num value="1">` als „Ja". Korrekt ist die echte Ja-Rate ueber `Questionnaire.questions`/`selected`: pro binaerer Frage zaehlt, ob die Ja-Option gewaehlt ist, kategoriale (nicht-binaere) Fragen separat ausweisen statt in die Ja-Rate mischen. Befund und drei Optionen in `reports/klaerung-ride-static.md`, Lane-Empfehlung Option 1. Gruen-Kriterium fuer den Bau: ein Test, der eine kategoriale Auswahl nicht als Ja zaehlt, und die Sidebar-/Charts-Zahl gegen eine handgerechnete Ja-Rate eines Korpus-Reviews pinnt. Operator-gated, erst nach Freigabe bauen.
+## 2026-06-22 — Doppelte Review-IDs aus DOI korrigiert, Build-Guard, Atom-Feed verifiziert
+
+**Ziel:** Den Atom-Feed verlässlich testbar machen; aus dem daraus aufgedeckten Datenbefund einen konkreten, getesteten Fix-Vorschlag bauen.
+
+**Erledigt:** Atom-Feed mit algorithmischem RFC-4287-Konformitätstest und W3C-Validator abgesichert (valid Atom 1.0). Die Validator-Warnung deckte drei doppelte Review-`xml:id` auf; korpusweite Analyse ergab: der Review-DOI ist der kanonische Schlüssel, die `xml:id` muss dessen Lokalform `ride.{issue}.{n}` sein, alle 111 Reviews tragen einen solchen DOI. Zwei datengestützte ID-Fixes (everynamecounts, godwin) nur an der Wurzel-`xml:id`, keine eingehenden Verweise betroffen. Build-Guard in `_check_corpus_consistency` (ID-Validierung hart, DOI-Dublettenprüfung weich) plus Tests.
+
+**Entscheidungen:**
+- DOI als kanonische Quelle der Review-ID festgelegt, nicht die freie `xml:id`; die `xml:id` ist dessen Ableitung. Grund: der DOI ist editoriell vergeben und global eindeutig, die `xml:id` war es nachweislich nicht.
+- ID-Validierung als harter Build-Bruch, DOI-Dublettenwarnung weich. Grund: eine falsche ID bricht Anker und Feed, eine DOI-Dublette ist ein redaktioneller Hinweis.
+
+**Offen:** —
+
+**Nächster Einstieg:** Offene Restposten der Vorsessions (URL-Scheme-Entscheidung, value=1-Zählung, Staging) — alle operator-/redaktions-gated.
+
+---
+
+## 2026-06-22 — TEI-Editorials live geschaltet (Default-Flip), Redirect-Self-Loop behoben
+
+**Ziel:** Die teiisierten Begleittexte (`pages/*.xml`) auf GitHub Pages live bringen, damit die IDE-internen Kolleginnen jede Seite gegen die alte WP-Fassung prüfen können; zugleich eine im Review aufgefallene Endlosschleife klären.
+
+**Erledigt:** M3 Default-Flip: `build()` rendert die `pages/*.xml`-TEI per Default mit Vorrang (`tei_editorials=True`), `content/*.md` nur noch als Fallback, CLI-Notausgang `--no-tei-editorials`; CI und `build.yml` unverändert. Redirect-Self-Loop behoben: drei Identitäts-Einträge (`about`, `ethical-code`, `data`) leiteten per meta-refresh auf sich selbst (Endlos-Reload, live bestätigt), entfernt plus Self-Loop-Guard. README auf den TEI-Pfad umgeschrieben.
+
+**Entscheidungen:**
+- Live-Gang als Default-Flip im Code, nicht als CI-Flag. Grund: nur der Code-Default hält lokalen Build und Deploy deckungsgleich; ein CI-only-Flag ließe `python -m src.build` lokal weiter Markdown rendern.
+- `contact` bewusst als dünner TEI-Body live (ein Satz + E-Mail), obwohl `content/contact.md` voller ist. Grund: der Preview soll genau solche Inhaltslücken für den Gegencheck sichtbar machen; das Füllen ist redaktionell.
+
+**Offen:** `contact`-Body füllen (redaktionell). URL-Scheme: neue TEI-Slugs weichen von den alten WP-Pfaden und teils vom Menü ab; `navigation.yaml` und Redirects noch nicht nachgezogen. TEI-Header bewusst minimal — offen, ob/was ergänzt wird.
+
+**Nächster Einstieg:** Nach dem Gegencheck der Kolleginnen die gemeldeten Inhalts-/Header-Korrekturen je Seite in `pages/*.xml` einarbeiten; parallel die URL-Scheme-Entscheidung (flache Slugs + Redirects vs. WP-Spiegelung) klären.
+
+---
+
+## 2026-06-21 — M3 Build-Cutover als Default-aus-Schalter, Reconciliation-Spur, URL-Scheme zurückgemeldet
+
+**Ziel:** M3 Build-Cutover bauen (pages/-TEI mit Vorrang vor content/*.md) als lokale, nicht-gepushte Render-Spur; M4 scopen.
+
+**Erledigt:** TEI-Editorialvorrang in `_render_editorials` hinter Schalter `tei_editorials` (Default zunächst `False`), Markdown-Fallback nur für nicht von TEI gedeckte Slugs (16 TEI + 5 Fallback). Voller lokaler TEI-Build als Spur (nicht ins Repo, `site/` ist gitignored). Per-Seite-Reconciliation-Diff TEI gegen Markdown als Operator-Spur: contact-Stub gegen volle Markdown-Seite, imprint Piwik gegen Matomo, divergierende Daten-Endpunkte, editorial/team/imprint voller, der Rest nahezu gleich.
+
+**Entscheidungen:**
+- Cutover als Default-aus-Schalter statt direkter Umverdrahtung. Grund: die order verlangt „pages-Vorrang verdrahten", „nicht nach main pushen (Push deployt)" und „alles in main" zugleich — nur ein Default-aus-Schalter vereinbart alle drei, Live-Gang = späterer operator-gated Default-Flip.
+- Diff als Reconciliation geführt, nicht als Äquivalenzbeweis. Grund: das Editorial-Audit hat die Äquivalenzannahme bereits widerlegt; die Quellbestände sind verschiedene Dokumente, der Diff liefert die per-Seite-Entscheidungsgrundlage.
+- URL-Scheme nicht eigenmächtig umgebaut. Grund: die order-Anweisung „WP-Pfade spiegeln" erreicht ihr Ziel nicht (die Spiegel-Pfade sind keine realen Live-URLs), bricht den gepinnten R17-Vertrag und wirkt nach außen — zurück an den Operator.
+
+**Offen:** URL-Scheme-Entscheidung (flach + Redirects vs. echte WP-Spiegelung) blockiert Redirect-Finalisierung und Live-Cutover. contact-Reconciliation (Stub füllen oder Markdown behalten). value=1 (M4) bleibt operator-gated.
+
+**Nächster Einstieg:** Auf die URL-Scheme-Entscheidung warten; bei „flach" die Redirect-Strecke finalisieren und `EDITORIAL_REDIRECTS` um die neuen Slugs ergänzen; sonst die contact/imprint/data-Reconciliation als Vorlage ausarbeiten.
+
+### M4 value=1-Korrektur (gescoped, nicht gebaut)
+
+R9-Charts und R1-Sidebar zählen heute flach `<num value="1">` als „Ja". Korrekt ist die echte Ja-Rate über `Questionnaire.questions`/`selected`: pro binärer Frage zählt, ob die Ja-Option gewählt ist; kategoriale Fragen separat ausweisen statt in die Ja-Rate mischen. Operator-gated, erst nach Freigabe bauen.
 
 ---
 
 ## 2026-06-21 — TEI-Konsumtions-Audit, Element-Coverage-Lock eingezogen
 
-**Ziel:** Die Frage „kommt alles aus dem TEI im Frontend an" belastbar beantworten, nicht feldweise sondern systematisch über die volle Element-Inventur beider Korpora.
+**Ziel:** Die Frage „kommt alles aus dem TEI im Frontend an" systematisch über die volle Element-Inventur beider Korpora beantworten, nicht feldweise.
 
-**Erledigt:**
-- Audit gebaut und ausgeführt (`C:/tmp/ride_tei_consumption_audit.py`, Wegwerf): jeder Element- und Attributpfad aus `pages/*.xml` (27 distinkte Elemente) und `issues/**/*.xml` (77 distinkte) gegen die Referenzmenge aller `src/parser/*.py` gestellt. Roh-Trefferliste in `C:/tmp/ride-tei-consumption-audit.md`.
-- Jeden Treffer am echten TEI trianguliert und geklärt. Ergebnis: kein still verschluckter Inhaltsträger. `add`/`subst` (je 5x) sitzen immer in `<mod>`, das in `PASSTHROUGH_TEXT` steht; ihr Text überlebt über `itertext` (Laufzeit bestätigt: melville „Houghton library" ist im geparsten Body). `gloss` (880x) und `desc` (417x) sind leere Platzhalter `<gloss/>`/`<desc/>` in `catDesc`. Der Rest (`publisher`, `sourceDesc`, `classDecl`, `encodingDesc`, `revisionDesc`, `change`, `listChange`, `space`, diverse `@`-Attribute) ist teiHeader-Verwaltung oder Präsentationsmarkup, das kein Journal-Frontend rendert.
-- Aus dem Einmal-Audit eine dauerhafte Absicherung gemacht: `tests/test_tei_coverage.py`. Lock prüft, dass die Korpus-Element-Inventur Teilmenge einer bewusst klassifizierten Universumsmenge (`KNOWN_ELEMENTS`, je Element eine Zieldestination surfaced/passthrough/header/placeholder/presentational) ist. Ein neues, nie klassifiziertes Element macht den Test rot und erzwingt eine Einordnung.
-- Verifiziert: volle Suite 536 passed / 2 skipped (zwei neue Tests).
+**Erledigt:** Jeden Element- und Attributpfad aus `pages/*.xml` und `issues/**/*.xml` gegen die Referenzmenge aller `src/parser/*.py` gestellt und jeden Treffer am echten TEI trianguliert. Ergebnis: kein still verschluckter Inhaltsträger; die Treffer sind teiHeader-Verwaltung, leere Platzhalter (`<gloss/>`, `<desc/>`) oder Präsentationsmarkup, das kein Journal-Frontend rendert. Aus dem Einmal-Audit eine dauerhafte Absicherung gemacht: `tests/test_tei_coverage.py` prüft, dass die Korpus-Element-Inventur Teilmenge einer bewusst klassifizierten Universumsmenge ist; ein neues, nie klassifiziertes Element macht den Test rot.
 
 **Entscheidungen:**
-- Test als interner, maschinengrüner, additiver Coverage-Lock autonom gesichert statt nur als Befund dokumentiert (Prinzip Drift fixen statt wegdokumentieren): die belastbare Antwort auf „wird alles getestet" ist, es testbar zu machen, nicht einmal von Hand zu prüfen.
-- Lock bewusst auf Element-Granularität begrenzt. Attributwert-Diskriminierung (welche `@type`-Werte von `<date>` gelesen werden, `num/@value`-Semantik) liegt darunter und bleibt Sache der feldweisen Parser/Render-Tests. Genau dort saßen die zwei bekannten Punkte (reviewed-resource publication_date, value=1), nicht auf Elementebene.
+- Coverage-Lock autonom gesichert statt nur als Befund dokumentiert (Prinzip: Drift fixen statt wegdokumentieren). Die belastbare Antwort auf „wird alles getestet" ist, es testbar zu machen.
+- Lock bewusst auf Element-Granularität begrenzt. Attributwert-Diskriminierung (`@type`, `num/@value`) liegt darunter und bleibt Sache der feldweisen Parser-/Render-Tests — genau dort saßen die zwei bekannten Punkte (reviewed-resource publication_date, value=1).
 
-**Offen:**
-- Attributwert-Ebene hat keinen analogen Lock. Ob ein solcher lohnt oder die feldweisen Tests genügen, ist offen.
-- Editorial-Seitenkörper (`src/model/page.py`) hat weiterhin keinen element-mapping-Kontrakt wie der Review-Body, nur Schema-Validierung plus Unit-Tests; der neue Coverage-Lock deckt ihn jetzt mit ab.
+**Offen:** Attributwert-Ebene hat keinen analogen Lock — ob ein solcher lohnt, ist offen. Editorial-Seitenkörper (`page.py`) hat keinen element-mapping-Kontrakt wie der Review-Body, ist aber jetzt vom Coverage-Lock mitgedeckt.
 
-**Nächster Einstieg:** M3-Reconciliation-Vorschlag je divergierender Editorialseite (`contact`, `imprint`, `data`) als Operator-Entscheidungsvorlage, oder auf die Operator-Entscheidungen zu URL-Scheme und value=1 warten.
+**Nächster Einstieg:** M3-Reconciliation-Vorschlag je divergierender Editorialseite (`contact`, `imprint`, `data`), oder auf die Operator-Entscheidungen zu URL-Scheme und value=1 warten.
 
 ---
 
-## 2026-06-21 — Factsheet-Paritaet verifiziert, reviewed-resource Publikationsdatum ergaenzt
+## 2026-06-21 — Factsheet-Parität verifiziert, reviewed-resource Publikationsdatum ergänzt
 
-**Ziel:** Das Factsheet (R18) Feld für Feld gegen die Live-Seite stellen, die im alten register geführte Lückenliste prüfen, reale Restlücken schließen.
+**Ziel:** Das Factsheet (R18) Feld für Feld gegen die Live-Seite stellen, die alte Lückenliste prüfen, reale Restlücken schließen.
 
-**Erledigt:**
-- Live-Factsheet (issue-21/makingandknowing) vollständig gegen das gerenderte Factsheet verglichen (Skript `C:/tmp/ride_factsheet_parity.py`). Die als offen geführten Lücken (Reviewer-ORCID, E-Mail, Affiliation, Date-of-Last-Access, Personnel-Rollenlisten) sind längst implementiert und gerendert; die Liste war veraltet (Stand der Factsheet-Session weiter unten).
-- Eine reale Restlücke geschlossen: die rezensierte Ressource trägt in der TEI `<date type="publication">` (makingandknowing 2020), der Parser zog bisher nur `type="accessed"`. `RelatedItem.publication_date` ergänzt (Modell), im Parser extrahiert (`metadata.py`), im Factsheet zwischen URI und Last accessed gerendert (`factsheet.html`).
-- Verifiziert: volle Suite 534 passed / 2 skipped (zwei neue Tests: Parser-Korpus-Pin makingandknowing == 2020, Render-Anzeige). Render-Spur zeigt `Published 2020` im reviewed-resource-Block.
+**Erledigt:** Live-Factsheet (makingandknowing) vollständig gegen das gerenderte Factsheet verglichen. Die als offen geführten Lücken (Reviewer-ORCID, E-Mail, Affiliation, Date-of-Last-Access, Personnel-Rollenlisten) sind längst implementiert — die Liste war veraltet. Eine reale Restlücke geschlossen: die rezensierte Ressource trägt `<date type="publication">`, der Parser zog bisher nur `type="accessed"`; `RelatedItem.publication_date` ergänzt, im Parser extrahiert, im Factsheet zwischen URI und Last accessed gerendert.
 
 **Entscheidungen:**
-- Fix als treuer additiver Paritäts-Fix gesichert statt vorgelegt: er gibt ein in TEI-Quelle und Live-Seite vorhandenes Feld wieder, reversibel, durch Test belegt, keine redaktionelle oder strittige Wahl.
-- Kein Fix für die Live-Differenz Publikationsdatum gegen Last Updated: die TEI trägt nur `2026-05`, die Live-Anzeige `Mar 2026` stammt aus WordPress-Metadaten außerhalb der Quelle; wir geben die Quelle treu wieder, das ist keine Lücke auf unserer Seite.
+- Fix als treuer additiver Paritäts-Fix gesichert: gibt ein in TEI-Quelle und Live-Seite vorhandenes Feld wieder, reversibel, durch Test belegt, keine strittige Wahl.
+- Kein Fix für die Live-Differenz Publikationsdatum gegen „Last Updated": die TEI trägt nur `2026-05`, die Live-Anzeige `Mar 2026` stammt aus WordPress-Metadaten außerhalb der Quelle — wir geben die Quelle treu wieder.
 
-**Offen:**
-- Rigoroser Abgleich der Personnel-Zählung und der Questionnaire-Sektionsüberschriften braucht das rohe Live-HTML, nicht den zusammengefassten WebFetch; bewusst nicht aus dem Fetch behauptet.
-- M3 Editorial-Reconciliation und value=1 (R9, R1) unverändert operator-gated.
+**Offen:** Rigoroser Abgleich der Personnel-Zählung und der Questionnaire-Sektionsüberschriften braucht das rohe Live-HTML, nicht den WebFetch-Auszug. M3-Editorial-Reconciliation und value=1 unverändert operator-gated.
 
-**Nächster Einstieg:** M3 Reconciliation-Vorschlag je divergierender Editorialseite ausarbeiten (`contact`, `imprint`, `data`), oder auf die Operator-Entscheidungen zu URL-Scheme und value=1 warten.
+**Nächster Einstieg:** M3 Reconciliation-Vorschlag je divergierender Editorialseite ausarbeiten, oder auf die Operator-Entscheidungen warten.
 
 ---
 
-## 2026-06-21 — Editorial-Paritaetsaudit: M3 ist Reconciliation, nicht Quelltausch
+## 2026-06-21 — Editorial-Paritätsaudit: M3 ist Reconciliation, nicht Quelltausch
 
-**Ziel:** Den in der Vorsession als Nächster Einstieg notierten Cutover-Spurschritt umsetzen, das editoriale TEI-HTML gegen die bisherige Markdown-Ausgabe diffen, um vor jeder Freigabe zu zeigen, welche Seiten sich beim Cutover ändern.
+**Ziel:** Das editoriale TEI-HTML gegen die bisherige Markdown-Ausgabe diffen, um vor jeder Freigabe zu zeigen, welche Seiten sich beim Cutover ändern.
 
-**Erledigt:**
-- Paritätsaudit über alle Editorialseiten, je Slug Body-Vergleich beider Renderstrecken (Text, Links, Überschriften). Befund und Lagebild je Seite in `reports/audit-ride-static-editorial-paritaet.md` (Leitstelle), Rohlauf und Skript unter `C:/tmp`.
-- Renderer als treu belegt: `publishing-policy` ist über beide Pfade byteidentisch; die Divergenz aller anderen Seiten liegt im Inhalt der Quellbestände, nicht im Rendering.
-- Lokale Sichtungsspur aller 16 TEI-Seiten gerendert und auf Port 8791 serviert (Wegwerf, `C:/tmp/ride-preview`), für die Verbatim-Sichtung der writing-guidelines.
+**Erledigt:** Paritätsaudit über alle Editorialseiten, je Slug Body-Vergleich beider Renderstrecken. Renderer als treu belegt: `publishing-policy` ist über beide Pfade byteidentisch, die Divergenz aller anderen Seiten liegt im Inhalt der Quellbestände, nicht im Rendering. Lokale Sichtungsspur aller 16 TEI-Seiten gerendert (Wegwerf).
 
 **Entscheidungen:**
-- M3 neu gefasst, kein mechanischer Cutover, sondern Editorial-Reconciliation. Die frühere Äquivalenz-Annahme (in Reports und im Nächsten Einstieg der Vorsession) war falsch und ist hiermit offen korrigiert.
-- Architekturtrennung autonom festgehalten: die generator-nativen Seiten `data`, `data/charts`, `data/questionnaires`, `about` bleiben auf der Generatorseite und werden nicht durch TEI ersetzt; das ist Tatsache, keine redaktionelle Wahl.
+- M3 neu gefasst, kein mechanischer Cutover, sondern Editorial-Reconciliation. Die frühere Äquivalenz-Annahme war falsch und ist offen korrigiert.
+- Architekturtrennung festgehalten: die generator-nativen Seiten (`data`, `data/charts`, `data/questionnaires`, `about`) bleiben auf der Generatorseite und werden nicht durch TEI ersetzt — Tatsache, keine redaktionelle Wahl.
 
-**Offen:**
-- Redaktionelle Einzelentscheidung je divergierender Seite (`contact` Stub gegen voll, `imprint` Piwik gegen Matomo samt Schutztext, `data` Zusammenführung der neuen Endpunkte).
-- Slug-Entscheidungen `submitting-a-review` gegen `submission-guidelines` und der `projects-for-review`-Split, zugleich die URL-Scheme-Frage.
-- value=1-Zählfehler (R9, R1) unverändert operator-gated.
+**Offen:** Redaktionelle Einzelentscheidung je divergierender Seite (`contact` Stub gegen voll, `imprint` Piwik gegen Matomo, `data`-Endpunkte). Slug-Entscheidungen und URL-Scheme-Frage. value=1 operator-gated.
 
-**Nächster Einstieg:** Factsheet-Paritätsanalyse als nächster autonomer Schritt, das Live-Factsheet Feld für Feld gegen `src/model/questionnaire.py` und `src/parser/questionnaire.py` stellen und die Lückenliste als R-Klausel-Ergänzung formulieren; reiner Analyse- und Spezifikationsschritt, ohne redaktionellen Input umsetzbar.
+**Nächster Einstieg:** Factsheet-Paritätsanalyse — das Live-Factsheet Feld für Feld gegen `questionnaire.py` stellen und die Lückenliste als R-Klausel-Ergänzung formulieren.
 
 ---
 
 ## 2026-06-21 — Editorialseiten komplett (16/16): TEI-Migration plus verbatim Code
 
-**Ziel:** Die im Eintrag unten als latenter Befund offene Editorial-Migration abschließen. Die drei wegen einer Profilentscheidung zurückgestellten Seiten (writing-guidelines, publishing-policy, criteria) nach TEI überführen, das Seitenprofil nur so weit erweitern, wie der reale Inhalt es erzwingt. Plus Rundenpflicht: Journal kanonisch nach `knowledge/journal.md`.
+**Ziel:** Die Editorial-Migration abschließen — die drei wegen einer Profilentscheidung zurückgestellten Seiten (writing-guidelines, publishing-policy, criteria) nach TEI überführen, das Seitenprofil nur so weit erweitern, wie der reale Inhalt es erzwingt. Plus: Journal kanonisch nach `knowledge/journal.md`.
 
-**Erledigt:**
-- **Profilentscheidung am Inhalt getroffen statt vorgelegt.** publishing-policy und criteria sind reine Prosa, passen ohne Profilumbau in div/head/p/list plus ref/hi (Commit 4a25fcb). Das einzige Bild auf criteria (`seal-1.png`, leerer Linktext) ist WordPress-Dekoration und entfällt aus der TEI-Quelle, reversibel. Kein figure/graphic im Seitenprofil, weil kein Seitenbestand ein Inhaltsbild trägt.
-- **writing-guidelines erzwingt verbatim Code:** die Live-Quelle trägt ein TEI-Header- und ein Python-Beispiel als Blöcke plus Inline-Erwähnungen von Elementen und Attributen. Seitenprofil minimal erweitert um Block `<eg>` (rendert zu `<pre><code>`, Whitespace erhalten) und Inline `<code>`, in Schema, Modell (CodeBlock, Code), Parser und Renderer (Commit ba22e8b). 16/16 Editorialseiten als TEI.
-- **Schema-Verifikationslücke geschlossen:** neuer `tests/test_pages_schema.py` validiert jede `pages/*.xml` gegen `ride-pages.rng`, parametrisiert je Seite. Vorher trug keine Testzeile den Schema-Anspruch der Seiten.
-- **Verifiziert (verify, not trust):** volle Suite 532 passed / 2 skipped (vorher 513/2; +16 Seiten-Schemavalidierung in M1, +3 writing-guidelines plus Code-Tests in M2). writing-guidelines real geparst: voller Header, zwei korrekt dedentete CodeBlocks, Inline-Code rendert, zwei `<pre><code>`-Blöcke. Live-Quell-URLs gegen die Live-Site bestätigt (`publishing-policies/`, `reviewers/catalogue-criteria-.../`, `reviewers/writing-guidelines/`).
-- **Journal kanonisch:** `Journal.md` nach `knowledge/journal.md` umgezogen (git mv, Historie erhalten), Verweise in CLAUDE.md, CONTRIBUTING.md, README.md, INDEX.md, architecture.md, pipeline.md nachgezogen.
+**Erledigt:** Profilentscheidung am Inhalt getroffen: publishing-policy und criteria sind reine Prosa und passen ohne Profilumbau; das einzige Bild auf criteria ist WordPress-Dekoration und entfällt. writing-guidelines erzwingt verbatim Code (TEI-Header- und Python-Beispiel) — Seitenprofil minimal um Block `<eg>` und Inline `<code>` erweitert (Schema, Modell, Parser, Renderer). Damit 16/16 Editorialseiten als TEI. Schema-Verifikationslücke geschlossen: neuer Test validiert jede `pages/*.xml` gegen `ride-pages.rng`. Journal per `git mv` nach `knowledge/journal.md` umgezogen, Verweise nachgezogen.
 
 **Entscheidungen:**
-- **Seal als Chrome verworfen, nicht modelliert.** Ein dekoratives Badge mit leerem Linktext rechtfertigt keine figure/graphic-Familie im bewusst minimalen Seitenprofil; bei Bedarf über Template oder CSS reintegrierbar. Dokumentiert statt still gedroppt.
-- **Code als `<eg>` plus inline `<code>`, nicht egXML oder figure.** TEI-idiomatisch für literale Beispiele, schema-minimal; die Caption bleibt als folgender `<p>` wie auf der Quellseite, kein Caption-Slot am eg nötig.
-- **writing-guidelines wortgetreu aus der Live-Quelle**, da nicht in `content/` vorhanden; die übrigen zwei aus `content/*.md` als Repo-Quelle. Verbatim-Korrektheit der writing-guidelines ist vor dem Cutover noch menschlich gegen die Live-Seite zu prüfen.
+- Seal als Chrome verworfen, nicht modelliert. Ein dekoratives Badge mit leerem Linktext rechtfertigt keine figure/graphic-Familie im minimalen Seitenprofil; bei Bedarf über Template/CSS reintegrierbar.
+- Code als `<eg>` plus inline `<code>`, nicht egXML oder figure. TEI-idiomatisch für literale Beispiele, schema-minimal.
+- writing-guidelines wortgetreu aus der Live-Quelle (nicht in `content/` vorhanden); Verbatim-Korrektheit ist vor dem Cutover noch menschlich zu prüfen.
 
-**Offen:**
-- **Build-Cutover** (pages/ in den Build, TEI-Präzedenz vor content/*.md) unverändert verhaltensändernd und nicht verdrahtet. Push nach main deployt automatisch, also operator-gated mit Render-Spur. Hängt zusätzlich an der URL-Scheme-Entscheidung (flach vs WP-verschachtelt) und der About-Landing-Frage.
-- **value=1-Zählfehler** in charts.py (R9) und Sidebar (R1) weiter operator-gated (Befund in `reports/klaerung-ride-static.md`), keine Änderung.
-- **writing-guidelines Verbatim-Sichtung** durch die Redaktion gegen die Live-Seite vor dem Cutover.
+**Offen:** Build-Cutover (pages/ mit Präzedenz) unverändert verhaltensändernd und nicht verdrahtet, operator-gated mit Render-Spur, hängt zusätzlich an URL-Scheme und About-Landing-Frage. value=1-Zählfehler weiter operator-gated. writing-guidelines-Verbatim-Sichtung durch die Redaktion.
 
-**Nächster Einstieg:** Build-Cutover scopen und als Spur vorbereiten. Den `pages/`-Renderpfad in `src/build.py` vor `content/*.md` schalten, einen Voll-Build lokal erzeugen, das editoriale HTML gegen die bisherige Markdown-Ausgabe diffen, damit die Spur exakt zeigt, welche Seiten sich ändern. Nicht nach main, bis Operator-Freigabe und URL-Scheme-Entscheidung vorliegen.
+**Nächster Einstieg:** Build-Cutover scopen und als Spur vorbereiten — den `pages/`-Renderpfad vor `content/*.md` schalten, lokal einen Voll-Build erzeugen, das editoriale HTML gegen die Markdown-Ausgabe diffen. Nicht nach main bis Operator-Freigabe und URL-Scheme-Entscheidung.
 
 ---
 
 ## 2026-06-21 — Factsheet-Parität: R18-Kontrakt plus Factsheet-Vollseite (R18)
 
-**Ziel:** Die im Eintrag 2026-06-12 als „Nächster Einstieg" notierte Factsheet-Parität umsetzen — das Live-Factsheet rendert den vollständigen Fragebogen als eigene Unterseite, ride-static zeigt bislang nur eine Aggregat-Box in der Sidebar. Ziel war die Volldarstellung unter `/issues/{N}/{id}/factsheet/`, in einem Zug inklusive Bau und Redirects.
+**Ziel:** Das Live-Factsheet rendert den vollständigen Fragebogen als eigene Unterseite; ride-static zeigt bislang nur eine Aggregat-Box in der Sidebar. Ziel: die Volldarstellung unter `/issues/{N}/{id}/factsheet/`, inklusive Bau und Redirects.
 
-**Erledigt:**
-- **Feldabgleich Live-Factsheet vs. Domänenmodell** gegen den TEI-Header der Referenz-Review (makingandknowing) geerdet. Befund: Reviewer-Details (Name, ORCID, Affiliation, Ort, E-Mail), Titel, Erscheinungsdatum, DOI, Lizenz, RIDE-Issue-Editoren, Reviewed-Resource-Titel/URI/Abrufdatum, Kriterienlink und Keywords liegen bereits im Modell vor. Drei Lücken: das `Questionnaire`-Modell verwirft Frage-Label, Frage-Volltext und K-Ref (hält nur `category_xml_id`+`value`); `RelatedItem` erfasst die `respStmt`-Beteiligten des besprochenen Projekts (Personnel) nicht; beides war additiv zu ergänzen. „Last updated" hat im Korpus keine Entsprechung (kein `revisionDesc`), ISSN ist Footer-Konstante — beide nicht Teil der Seite.
-- **Selektions-Semantik am Korpus verifiziert** (111 Dateien): der `<num value>` kodiert die Auswahl, nicht einen fixen Options-Score. „Yes"-Leafs tragen sowohl value=1 (2153×) als auch value=0 (1086×); pro Frage ist die gewählte Antwort die Menge der Leaf-Optionen mit value=1 (binär genau eine, kategorial wie Subject/Document era mehrere). value=3 = Anomalie, nicht-bewertet.
-- **R18 als Spezifikations-Kontrakt** in `knowledge/specification.md` (§5.1) festgehalten, plus Legacy-Redirect-Kriterium unter R17 (Commit 3aac347, eigener Commit vor dem Bau).
-- **Bau (Commit bf279db):** neue dataclass `QuestionnaireQuestion` (Sektion, Label, Volltext, Kriterien-Ref, gewählte Antworten, Anomalie-Flag) plus `Questionnaire.questions`; `RelatedItem.personnel`; Parser-Erweiterungen in `questionnaire.py` (`parse_questionnaire_questions`) und `metadata.py` (respStmt). Neues Render-Modul `src/render/factsheet.py` und Template `templates/html/factsheet.html` (extends base.html, Blöcke Kopf / Reviewed resource / People / Questionnaire). `_render_review` schreibt zusätzlich `factsheet/index.html`; Sidebar-Partial additiv um „Full factsheet"-Link erweitert; `redirects.py` um Legacy-`/factsheet/`-Redirect. Tests in vier Dateien.
-- **Verifiziert (verify, not trust):** `python -m pytest -q` unabhängig nachgelaufen, 502 passed / 2 skipped (die zwei Skips vorbestehend, WeasyPrint fehlt). Inhaltlich beide Taxonomie-Familien geprüft: makingandknowing (Digital Editions, 49 Fragen, „Bibliographic description → Yes", Personnel Editor „Smith, Pamela") und varitext (Text Collections, 43 Fragen, Rolle „Designer" korrekt gruppiert). Voll-Build erzeugt 111 Factsheet-Seiten plus Redirect-Stubs.
+**Erledigt:** Feldabgleich Live-Factsheet vs. Domänenmodell gegen den TEI-Header der Referenz-Review geerdet. Befund: die meisten Felder lagen bereits im Modell vor; drei Lücken (Questionnaire-Modell verwarf Frage-Label/Volltext/K-Ref, `RelatedItem` erfasste die Personnel-Beteiligten nicht) waren additiv zu ergänzen. Selektions-Semantik am Korpus verifiziert: der `<num value>` kodiert die Auswahl, „Yes"-Leafs tragen sowohl value=1 als value=0; pro Frage ist die gewählte Antwort die Menge der value=1-Leafs (binär genau eine, kategorial mehrere), value=3 = Anomalie. R18 als Spezifikations-Kontrakt in specification.md festgehalten. Gebaut: `QuestionnaireQuestion` plus `Questionnaire.questions`, `RelatedItem.personnel`, Render-Modul `factsheet.py` und Template, Factsheet-Unterseite plus „Full factsheet"-Sidebar-Link und Legacy-Redirect. Beide Taxonomie-Familien inhaltlich geprüft.
 
 **Entscheidungen:**
-- **Volle Unterseite in einem Zug** (Operator-Entscheidung 2026-06-21), nicht nur Analyse oder nur Redirects. Reviewer-Kontaktdaten wie auf der Live-Site, inklusive E-Mail (über den bestehenden `obfuscate_mail`-Filter).
-- **Implementierung an einen Opus-Subagenten delegiert**, Orchestrierung und Abnahme beim Lane-Kopf — die Kopplung über Modell/Parser/Render/Template/Build/Redirects/Tests rechtfertigte einen fokussierten Implementierer mit frischem Kontext; das Ergebnis wurde gegen Git, Test-Suite und gerenderten Inhalt verifiziert.
-- **Sidebar-Aggregation nicht angefasst** — der Bau ist strikt additiv. Die bestehende Sidebar zählt value=1-Leafs als „yes", was tatsächlich gewählte Optionen zählt, nicht bejahte Fragen (ein gewähltes „No" ist auch value=1). Das ist ein latenter Fehler von R1/R9, dessen Behebung Tests und Data-Charts berührt und eine eigene Entscheidung braucht.
+- Volle Unterseite in einem Zug (Operator-Entscheidung), nicht nur Analyse oder Redirects; Reviewer-Kontaktdaten wie auf der Live-Site inklusive obfuskierter E-Mail.
+- Implementierung an einen Opus-Subagenten delegiert, Abnahme beim Lane-Kopf — die Kopplung über Modell/Parser/Render/Template/Build rechtfertigte einen fokussierten Implementierer; das Ergebnis gegen Git, Tests und gerenderten Inhalt verifiziert.
+- Sidebar-Aggregation nicht angefasst — der Bau ist strikt additiv. Die bestehende Sidebar zählt value=1-Leafs als „yes", was gewählte Optionen zählt, nicht bejahte Fragen (latenter R1/R9-Fehler, eigene Entscheidung).
 
-**Offen:**
-- **Sidebar-`yes_count`-Semantik** (siehe oben) — eigener Punkt, betrifft R1 (Sidebar) und R9 (Data-Charts). Vor einer Korrektur zu entscheiden, ob die Charts dieselbe Zählung verwenden.
-- **Kosmetik Text-Collections-Familie:** Sektions-Labels erscheinen als xml:ids (`general_information`) statt menschenlesbar, weil diese Kriterienfamilie die Sektionsüberschrift nicht als `catDesc` führt; das Frage-Label trägt dort den vollen Frage-Volltext. Funktional korrekt, optisch verbesserbar.
-- Bekannte Restposten unverändert: Bild-URL-Konvention, Sender-Workflow-Installation, Staging-Variantenwahl (alle redaktions-/operator-gated).
+**Offen:** Sidebar-`yes_count`-Semantik (betrifft R1 und R9) — vor einer Korrektur zu entscheiden, ob die Charts dieselbe Zählung verwenden. Kosmetik Text-Collections-Familie: Sektions-Labels erscheinen als xml:ids, weil diese Kriterienfamilie die Sektionsüberschrift nicht als `catDesc` führt. Bild-URL-Konvention, Sender-Workflow-Installation, Staging-Variantenwahl unverändert gated.
 
-**Nächster Einstieg:** Operator-Sichtung der Factsheet-Seite im Browser; danach Entscheidung zur Sidebar-/Charts-Zählung. Falls die Text-Collections-Sektionslabels verbessert werden sollen, ein Label-Mapping oder eine xml:id-Humanisierung im Render.
+**Nächster Einstieg:** Operator-Sichtung der Factsheet-Seite im Browser; danach Entscheidung zur Sidebar-/Charts-Zählung. Falls gewünscht, ein Label-Mapping für die Text-Collections-Sektionslabels im Render.
 
 ---
 
@@ -200,367 +204,253 @@ R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/fact
 
 **Ziel:** Den Zielworkflow der Redaktion (ride-editors → Testumgebung → Freischaltung) gegen die gebaute Pipeline abgleichen und die entscheidungsrobusten Teile sofort umsetzen.
 
-**Erledigt:**
-- **Abgleich Zielworkflow vs. Pipeline:** Schritt 2 (Freischaltung per Git-Move nach `ride`, Issue-Einrichtung via YAML, automatischer Voll-Rebuild) ist abgedeckt; Schritt 1 (passwortgeschützte Testumgebung) ist unbeplant. Live-Factsheet-Seiten (`…/factsheet/`) rendern den **vollständigen** Fragebogen als eigene Unterseite — unser Sidebar-Apparat zeigt nur Aggregate; Legacy-`/factsheet/`-URLs fehlen in `src/render/redirects.py` (R17-Lücke).
-- **`knowledge/staging.md` angelegt** (status: draft): Anforderung, Problemstellung, fünf Lösungsoptionen (unverlinkte „Hinterseite", lokal [verworfen], IDE-Server, Zugriffsschutz-Dienst, privates Repo [nur als PDF-Teilbaustein tauglich]), Bestandsaufnahme der Repos, Umsetzungsvorschlag als Entscheidungsvorlage, Gesprächsagenda. In `INDEX.md`-Tabelle und `specification.md §9` verankert.
-- **Bestandsaufnahme:** `i-d-e/ride-editors` existiert, ist privat, trägt die Konvention `issue-{name}/{slug}/` mit `{slug}-tei.xml`, `pictures/`, `{slug}-wordcloud.png`; publizierte Beiträge verbleiben dort (Dubletten-Befund `tei-publisher` → Dedupe-Pflicht). Weder `ride` noch `ride-editors` haben Workflows.
-- **Trigger-Verkabelung umgesetzt:** `build.yml` nimmt `repository_dispatch` (`corpus-updated`, `editors-updated`) an; Sender-Vorlagen plus Installationsanleitung (Token-Secret `RIDE_STATIC_DISPATCH_TOKEN`) unter `docs/upstream-workflows/`. `ride` hat Default-Branch `master` — Vorlage deckt beide ab.
-- **README-Anleitung:** neuer Abschnitt „Editorial workflow" (Publikations-Schritte, Issue-YAML-Beispiel, Wordcloud-Konvention, lokale Vorschau); veraltete Stellen korrigiert (specification.md statt requirements.md, 473 Tests, Status Phase 14/15). 473 Tests grün.
-- **Lane-Drift entdeckt und aufgelöst:** Die Frage „wieso gibt es den Branch?" deckte auf, dass `origin/main` seit 2026-05-12 fünf Commits voraus war (Monorepo-Schnitt: TEI-Korpus + Schema in ride-static; Doku-Refactor mit statusfreien Plan-Dokumenten; Ordner-Layout-Check), während der Vault-Refactor nur lokal lag. `origin/main` in den Branch gemerged, fünf Konflikte aufgelöst (build.yml, Journal, README, architecture, pipeline): statusfreie Tabellen und Monorepo-Inhalte von origin/main, Vault-Umbenennung, Method-Sektion und staging-Verankerung vom Branch.
-- **Monorepo-Anpassung der Tagesarbeit:** staging.md (§1, §5–§7: publiziertes Korpus liegt in ride-static, `i-d-e/ride` nur noch Bilder, Dublettenprüfung gegen `issues/*/reviews/`), Sender-Vorlage für `ride` auf Bilder-Updates umgestellt, README-Editorial-Workflow auf origin/main-Basis mit ride-editors-Herkunft/Wordcloud/Vorschau-Abschnitt, Korpuszahlen in specification/INDEX/interface auf 111, Test-Docstrings auf in-repo-Korpus. `data.md`/`schema.md` gegen das neue Layout regeneriert; empirische Pins in architecture.md am Korpus verifiziert und aktualisiert (111/111 Abstract-Sections im front, Questionnaire-Verteilung 109/1/1). **479 Tests grün.**
+**Erledigt:** Abgleich ergab: die Freischaltung per Git-Move ist abgedeckt, die passwortgeschützte Testumgebung ist unbeplant. `knowledge/staging.md` als Entscheidungsvorlage angelegt (Anforderung, fünf Lösungsoptionen, Repo-Bestandsaufnahme, Gesprächsagenda). Bestandsaufnahme: `ride-editors` ist privat und trägt eine klare Ablagekonvention; publizierte Beiträge verbleiben dort (Dubletten-Befund → Dedupe-Pflicht). Trigger-Verkabelung umgesetzt: `build.yml` nimmt `repository_dispatch` an, Sender-Vorlagen plus Anleitung unter `docs/upstream-workflows/`. README um „Editorial workflow" ergänzt. Lane-Drift aufgelöst: `origin/main` war seit dem Monorepo-Schnitt fünf Commits voraus, gemerged (fünf Konflikte) und die Tagesarbeit aufs Monorepo-Layout nachgezogen.
 
 **Entscheidungen:**
-- **Wordclouds bleiben manuell geliefert** — die Redaktion erzeugt sie mit einem Gestaltungswerkzeug (geformte Clouds); programmatische Generierung würde den visuellen Charakter zerstören. Lieferkonvention faktisch geklärt: `{slug}-wordcloud.png` liegt bereits in `ride-editors`, wird bei Publikation nach `static/images/wordclouds/{slug}.png` kopiert.
-- **Draft-Mechanik (unverlinkte Vorschau im öffentlichen Build) zurückgestellt** — die Varianten-Wahl will der User erst mit den Editorinnen diskutieren; nur entscheidungsrobuste Bausteine (Dispatch, Anleitung) wurden gebaut. Wichtig: `ride-editors` ist privat, eine öffentliche Vorschau machte Inhalt erstmals vor Freischaltung zugänglich (Gesprächspunkt in `staging.md §8`).
-- **Glossar nur im INDEX:** Die von origin/main eingeführte „Eigenbegriffe"-Sektion in `architecture.md` durch einen Verweis auf das INDEX-Glossar ersetzt — eine Definitionsstelle pro Begriff, Geschwister verlinken (Vault-Konvention). Beide Seiten hatten `prozess-und-stand.md` unabhängig aufgelöst; das INDEX-Glossar ist die reichere Fassung.
-- **Statusfreie Plan-Dokumente übernommen:** origin/main hatte alle done/partial/Welle-Marker aus Phasenplan und Stages-Tabelle entfernt („static plan, not a tracker"); diese Linie gilt jetzt auch für die zusammengeführte Fassung. Status lebt im Journal (laufend) und im README (Feature-Stand).
+- Wordclouds bleiben manuell geliefert — programmatische Generierung würde den gestalteten Charakter zerstören; `{slug}-wordcloud.png` wird bei Publikation kopiert.
+- Draft-Mechanik (unverlinkte Vorschau im öffentlichen Build) zurückgestellt — die Varianten-Wahl will der User erst mit den Editorinnen diskutieren; `ride-editors` ist privat, eine öffentliche Vorschau machte Inhalt erstmals zugänglich.
+- Statusfreie Plan-Dokumente übernommen (von origin/main): Status lebt im Journal und README, nicht im Phasenplan.
+- Glossar nur im INDEX: die „Eigenbegriffe"-Sektion in architecture.md durch einen Verweis aufs INDEX-Glossar ersetzt (eine Definitionsstelle pro Begriff).
 
-**Offen:**
-- **Factsheet-Parität:** Feld-Abgleich Live-Factsheet vs. Domänenmodell (ORCID, Reviewer-E-Mail, Personnel-Listen, Date of last access), Entscheidung eigene Unterseite `/issues/{N}/{id}/factsheet/`, Redirect-Erweiterung für Legacy-`/factsheet/`-URLs.
-- **Staging-Entscheidung** mit der Redaktion (Agenda in `staging.md §8`); danach Draft-Mechanik nach Vorschlag `staging.md §7` bauen.
-- **Sender-Workflow installieren:** `ride-trigger-build.yml` nach `i-d-e/ride` kopieren plus Zugriffstoken-Secret anlegen (manuell, braucht Repo-Admin). Seit dem Monorepo-Schnitt betrifft das nur noch Bilder-Pushes — ohne den Sender erscheinen neue Abbildungen erst beim nächsten anderweitigen Build.
-- **Bild-URL-Konvention für neue TEI** (wp-content-Form vs. relativer Pfad als neuer Sonderfall-Branch) — mit Redaktion klären.
-- Restposten aus 2026-05-09: `interface.md`-Spaltung, `site/`-Eincheck-Frage, WCAG-Vollaudit, Matomo-CI-Secrets.
+**Offen:** Factsheet-Parität (Feld-Abgleich, eigene Unterseite, Redirects). Staging-Entscheidung mit der Redaktion. Sender-Workflow manuell installieren (Repo-Admin). Bild-URL-Konvention für neue TEI. Restposten 2026-05-09: interface.md-Spaltung, site/-Eincheck-Frage, WCAG-Vollaudit, Matomo-CI-Secrets.
 
-**Nächster Einstieg:** Factsheet-Parität: Live-Factsheet (`https://ride.i-d-e.de/issues/issue-21/makingandknowing/factsheet/`) Feld für Feld gegen `src/model/questionnaire.py` und `src/parser/questionnaire.py` stellen und die Lückenliste in `specification.md` als R-Klausel-Ergänzung formulieren.
+**Nächster Einstieg:** Factsheet-Parität — Live-Factsheet (makingandknowing) Feld für Feld gegen `questionnaire.py` stellen und die Lückenliste in specification.md als R-Klausel-Ergänzung formulieren.
 
 ---
 
 ## 2026-05-12 — Doku-Refactor: README schlanker, Status-Single-Source, build() zerlegt
 
-**Ziel:** Dokumentations- und Code-Refactor in vier Schritten: README straffen, das nicht-deklarierte Duplikat `prozess-und-stand.md` auflösen, Status-Marker aus den Plan-Dokumenten ziehen, `build()`-Funktion zerlegen.
+**Ziel:** Dokumentations- und Code-Refactor: README straffen, das nicht-deklarierte Duplikat `prozess-und-stand.md` auflösen, Status-Marker aus den Plan-Dokumenten ziehen, `build()` zerlegen.
 
-**Erledigt:**
-- README.md von 245 auf 144 Zeilen reduziert. Raus: Repository-Layout-Duplikat zu CLAUDE.md, Pointer-Tabelle zu CONTRIBUTING.md, Development-Setup zu CONTRIBUTING.md, vollständige Discovery-Skript-Tabelle zu CLAUDE.md, CI-Schritte 1.–10. zu Fließsatz. Status-Absatz in Feature-Sprache statt Phasen-Nummern. Two-pass-Beschreibung zu validate → parse → render präzisiert.
-- `knowledge/prozess-und-stand.md` (443 Zeilen, nicht in CLAUDE.md-Vault-Layout deklariert) gelöscht. Glossar-Terms Promptotyping + Wissensdokument als neue Sektion „Eigenbegriffe" nach `architecture.md` migriert; Sonderfall-Branch und Element-Mapping waren bereits inline erklärt und brauchten keine separate Definition. Fehlattribuierter Bootstrap-Link in `mockup/README.md` von `prozess-und-stand.md` auf `interface.md` (`:53`) umgehängt.
-- Status-Single-Source festgelegt: `Journal.md` = laufende Wahrheit, `README.md` Status-Absatz = zeitstempelfreier Feature-Stand für Außenstehende, `pipeline.md` Phasenplan = statischer Plan ohne Tracker-Marker. Alle `**done**`, `**partial**`, `Welle X`, `seit Welle X`-Marker aus `pipeline.md` Phasenplan, `architecture.md` (Stages-Tabelle-Status-Spalte + „since Welle 3"-Marker), `interface.md` (fünf „seit Welle X"-Vorkommen, Wordcloud-Sektion-3-Anmerkung), `requirements.md` entfernt. Sentinel-Satz in `pipeline.md` über der Phasenplan-Tabelle: „This table is the static plan, not a tracker."
-- `src/build.py`: `build()` von 144 auf 97 Zeilen gekürzt durch fünf neue Helper — `_run_parse_pass`, `_check_corpus_consistency`, `_run_render_pass`, `_run_validation_layer`, `_print_build_summary`. Funktion liest jetzt als Neun-Schritt-Sequenz mit benannten Aufrufen.
-- 479 Tests grün nach jedem der vier Schritte.
+**Erledigt:** README deutlich gekürzt (Layout-Duplikat, Pointer-Tabelle, Setup, Skript-Tabelle und CI-Schritte zu CLAUDE.md/CONTRIBUTING ausgelagert, Status-Absatz in Feature-Sprache statt Phasen-Nummern). `prozess-und-stand.md` (nicht im Vault-Layout deklariert) gelöscht, Glossar-Terms nach architecture.md migriert. Status-Single-Source festgelegt und alle done/partial/Welle-Marker aus Phasenplan, Stages-Tabelle und interface.md entfernt; Sentinel „static plan, not a tracker" gesetzt. `build()` durch fünf benannte Helper (`_run_parse_pass`, `_check_corpus_consistency`, `_run_render_pass`, `_run_validation_layer`, `_print_build_summary`) als Neun-Schritt-Sequenz lesbar gemacht.
 
 **Entscheidungen:**
-- Plan-Dokumente bleiben zeitstempel- und statusfrei. Wenn eine Phase erweitert wird, wird die Phasenplan-Zeile umgeschrieben (Plan-Update), nicht mit Statusmarkern ergänzt. Begründung: vier Single-Sources-of-Truth fürs Status garantieren Drift.
-- `build()` als Paket (`src/build/__init__.py`) verworfen — innere Faktorierung in einer Datei reicht, kein Import-Overhead. Begründung: die Helper sind klein und werden nur einmal aufgerufen, ein Paket würde Indirection ohne Gegenwert addieren.
-- `_write_build_info` als einziger test-extern referenzierter Helper-Name beibehalten ([tests/test_build.py:13](tests/test_build.py#L13)).
-- Methodologie-Inhalt aus `prozess-und-stand.md` („Methodisches Vorgehen und Wissensbasis", „Phasenplan-Tabelle", „Komponenten-Migrations-Tabelle") nicht migriert. Begründung: Duplikat zu `pipeline.md`/`architecture.md`/Journal-Verlauf oder historisches Migrations-Artefakt. Falls die Promptotyping-Methodologie als eigenständiges Stück Dokumentation gewollt ist, wäre `docs/methodology.md` der richtige Ort — bewusst auf Anfrage offen gelassen.
+- Plan-Dokumente bleiben zeitstempel- und statusfrei; eine erweiterte Phase wird umgeschrieben, nicht mit Statusmarkern ergänzt. Grund: vier Status-Single-Sources garantieren Drift.
+- `build()` als innere Faktorierung in einer Datei statt als Paket. Grund: die Helper sind klein und einmal aufgerufen, ein Paket addierte Indirection ohne Gegenwert.
+- Methodologie-Inhalt aus `prozess-und-stand.md` nicht migriert (Duplikat oder historisches Artefakt); falls als eigenständige Doku gewollt, wäre `docs/methodology.md` der Ort — auf Anfrage offen gelassen.
 
-**Offen:** Keine direkten Folgepunkte aus dem Refactor. Weiterhin offen aus der Projekt-Roadmap: WCAG-Vollaudit auf der Live-Site (axe-Pass), Matomo-URL als CI-Secret hinterlegen, Knowledge-Doc-CI-Verhalten festlegen (strict vs. auto-commit), Custom-Domain-Entscheidung.
+**Offen:** Keine direkten Folgepunkte. Aus der Roadmap weiter offen: WCAG-Vollaudit, Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain.
 
-**Nächster Einstieg:** Auswahl aus den vier Phase-15-Restposten oben — der einfachste ist Matomo-URL als CI-Secret, weil dafür nur das GitHub-Repo-Secret zu setzen und der Workflow zu verdrahten ist; alle anderen brauchen redaktionelle oder externe Entscheidungen.
+**Nächster Einstieg:** Aus den Phase-15-Restposten — am einfachsten Matomo-URL als CI-Secret (nur Repo-Secret setzen und Workflow verdrahten); die anderen brauchen redaktionelle oder externe Entscheidungen.
 
 ---
 
 ## 2026-05-12 — Monorepo-Schnitt: TEI-Korpus + Schema in ride-static eingezogen
 
-**Ziel:** Den TEI-Korpus aus `i-d-e/ride` ins eigene Repo holen, damit ride-static nicht mehr von einem zweiten Checkout abhängt, und die Issue-Metadaten dabei direkt neben den TEI-Dateien gruppieren.
+**Ziel:** Den TEI-Korpus aus `i-d-e/ride` ins eigene Repo holen, damit ride-static nicht mehr von einem zweiten Checkout abhängt, und die Issue-Metadaten neben den TEI-Dateien gruppieren.
 
-**Erledigt:**
-- 111 TEI-Reviews aus `i-d-e/ride/tei_all/` per `biblScope @n` ausgewertet und in `issues/{N}/reviews/{slug}-tei.xml` einsortiert; Schema (`ride.odd` + `ride.rng`) liegt nun unter `schema/` im Repo-Root.
-- 22 YAML-Issue-Configs von `content/issues/{N}.yaml` nach `issues/{N}/metadata.yaml` umgezogen; `content/issues/` entfernt.
-- Neues Helfer-Modul `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, `SCHEMA_RNG`, `corpus_available`) ersetzt den verteilten `REPO_ROOT.parent / "ride" / "tei_all"`-Pattern.
-- Alle Pfad-Konstanten in `scripts/{inventory,structure,sections,refs,ids,taxonomy,odd_extract}.py`, `src/build.py`, `src/validate.py`, `src/render/issues_config.py` umgestellt; Globs auf `**/*.xml` bzw. `*/reviews/*.xml` / `*/metadata.yaml`.
-- 21 Test-Dateien automatisiert auf `find_tei("slug")` + neue Globs migriert; Skip-Mechanismus von `test_parser_assets.py` zeigt jetzt auf den Bilder-Sibling.
-- CI (`.github/workflows/build.yml`) verschlankt: `i-d-e/ride` wird nur noch wegen der Picture-Assets als Sibling geklont; alle anderen Schritte greifen auf das in-repo TEI-/Schema-Layout zu.
-- Doku synchronisiert: `CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, `docs/extending.md`, `knowledge/architecture.md`, `knowledge/pipeline.md` — Layout-Tabellen, Stakeholder-Eingangspunkte, Hard-Rule-Quote, "107 reviews"→"111 reviews".
-- Tests: 468 passed, 7 skipped (die Asset-Picture-Tests, weil `../ride/` in der Sandbox fehlt).
+**Erledigt:** 111 TEI-Reviews per `biblScope @n` nach `issues/{N}/reviews/{slug}-tei.xml` einsortiert, Schema nach `schema/` im Repo-Root, 22 Issue-Configs nach `issues/{N}/metadata.yaml`. Neues Helfermodul `src/_corpus.py` ersetzt den verteilten `REPO_ROOT.parent / "ride" / "tei_all"`-Pattern in ~35 Dateien; alle Pfad-Konstanten und Globs umgestellt, Test-Dateien auf `find_tei("slug")` migriert. CI verschlankt: `i-d-e/ride` wird nur noch wegen der Picture-Assets geklont. Doku synchronisiert (inkl. „107 reviews" → „111 reviews").
 
 **Entscheidungen:**
-- **Per-Issue-Layout `issues/{N}/{metadata.yaml, reviews/*-tei.xml}` statt flachem `corpus/tei_all/`.** Begründung: alles zu einem Issue an einem Ort, Editor sieht Metadaten und Reviews nebeneinander; YAML-Membership wäre eine zweite Wahrheit gegenüber `biblScope @n`, darum bleibt die TEI-Header-Zuordnung kanonisch.
-- **Schema unter `schema/` im Root, nicht unter `corpus/schema/`.** Begründung: das Schema ist Validierungs-Vertrag, nicht Korpus-Inhalt — gleiche Trennung wie zwischen `src/` und `tests/`.
-- **Pictures (~437 MB, 888 Dateien) bleiben vorerst im Sibling `i-d-e/ride`.** Begründung: Repo-Größe und Klon-Zeit; LFS-Quota würde belastet. Die Asset-Pipeline degradiert sauber, wenn Sibling fehlt; CI klont den Sibling weiterhin nur für Bilder.
-- **`src/_corpus.py` als zentrale Wahrheit für Pfade.** Begründung: vor der Migration war `REPO_ROOT.parent / "ride" / "tei_all"` in ~35 Dateien dupliziert; bei der nächsten Layout-Änderung muss nur dieses Modul angefasst werden.
-- **CI: zweiter Checkout bleibt, aber explizit als "pictures only" dokumentiert.** Wenn die Bilder migriert werden, fällt der Step weg.
+- Per-Issue-Layout `issues/{N}/{metadata.yaml, reviews/*}` statt flachem `corpus/tei_all/`. Grund: alles zu einem Issue an einem Ort; die TEI-Header-Zuordnung (`biblScope @n`) bleibt kanonisch statt einer zweiten YAML-Wahrheit.
+- Schema unter `schema/` im Root, nicht unter `corpus/`. Grund: Schema ist Validierungs-Vertrag, nicht Korpus-Inhalt.
+- Pictures bleiben vorerst im Sibling `i-d-e/ride` (Repo-Größe, LFS-Quota); die Asset-Pipeline degradiert sauber, wenn der Sibling fehlt.
+- `src/_corpus.py` als zentrale Pfad-Wahrheit, damit die nächste Layout-Änderung nur ein Modul anfasst.
 
-**Offen:**
-- Bilder-Migration: 437 MB in 22 Issue-Ordnern, vermutlich via Git-LFS. Eigene Entscheidung in einer separaten Session.
-- `RIDE_ROOT` in `src/build.py` und `_RIDE_ROOT` in `tests/test_parser_assets.py` zeigen noch auf den Sibling — kann erst entfallen, wenn die Bilder hier liegen.
-- Knowledge-Doku-CI: Drift zwischen generiertem `knowledge/data.md` und aktuellem Korpus könnte auffliegen, wenn CI strict läuft (4 neue Reviews seit Phase 10-Refresh).
-- Phase 15.B (WCAG-Audit, Matomo-Secrets, Custom-Domain) weiterhin offen — unabhängig von dieser Umstrukturierung.
+**Offen:** Bilder-Migration (~437 MB, vermutlich via Git-LFS, eigene Session). `RIDE_ROOT` zeigt noch auf den Sibling — entfällt erst mit den Bildern. Knowledge-Doku-CI-Drift (generiertes data.md vs. Korpus). Phase 15.B (WCAG, Matomo-Secrets, Custom-Domain).
 
-**Nächster Einstieg:** Lokal `python -m src.build` ohne `../ride/` laufen lassen und prüfen, dass der AssetReport sauber alle fehlenden Bilder meldet statt zu crashen. Wenn das durchläuft, ist die Layout-Migration end-to-end verifiziert.
+**Nächster Einstieg:** Lokal `python -m src.build` ohne `../ride/` laufen lassen und prüfen, dass der AssetReport fehlende Bilder sauber meldet statt zu crashen — dann ist die Layout-Migration end-to-end verifiziert.
 
 ---
 
 ## 2026-05-09 — Knowledge-Vault auf Promptotyping-Konvention gehoben
 
-**Ziel:** Den `knowledge/`-Ordner als sauberen Promptotyping-Vault refactoren — Frontmatter-Pflichtkern durchziehen, Funktionsabbildung sauber stellen, Hybrid-Dokument `prozess-und-stand.md` auflösen, INDEX als Navigationsknoten anlegen. Parallel das Promptotyping-Paper im Obsidian-Vault auf den heutigen Stand der Konvention bringen.
+**Ziel:** Den `knowledge/`-Ordner als sauberen Promptotyping-Vault refactoren — Frontmatter-Pflichtkern, Funktionsabbildung, Hybrid-Dokument `prozess-und-stand.md` auflösen, INDEX als Navigationsknoten anlegen. Parallel das Promptotyping-Paper im Obsidian-Vault auf den Stand der Konvention bringen.
 
-**Erledigt:**
-- **Paper-Patches** in `Pollin 2026 - Promptotyping ...md` (Obsidian-Vault): neue Sektion 3.5 *Two Modes of Promptotyping* mit Research Lead Agent als Begriff für Multi-Agent-Forschungsorganisation; §3.3 Vault-Prinzip mit drei strukturellen Commitments (function before filename, inclusion by trigger, diagnostic decoupling) statt der ursprünglich gelisteten acht Funktionen — Zahl raus, strukturelles Argument rein; §3.3 Generated-vs-curated Distinction (deterministisch generierte Knowledge-Documents als Build-Stage); §6.2 horizontale Autonomie-Dimension für Multi-Agent-Mode; Conclusion auf vier Beiträge erweitert; Abstract synchronisiert.
-- **Frontmatter-Lift** auf alle sechs bleibenden `knowledge/`-Dateien (Pflichtkern: title, project, method, status, created, updated, version, plus topics aus dem Inhalt destilliert und related für Geschwister-Verlinkung). Generierte Dokumente (`data.md`, `schema.md`) behalten ihr `generated:`/`source:`/`inputs:`-Frontmatter zusätzlich.
-- **`requirements.md` → `specification.md` umbenannt** via `git mv`, Wikilinks mit `replace_all` über die vier betroffenen Knowledge-Files plus zwei Wikilink-Treffer in `src/render/pdf.py`. Dazu 11 Prosa-/Docstring-Erwähnungen von `requirements.md` in Code-Files (`src/build.py`, `src/model/{questionnaire,review}.py`, `src/parser/datasets.py`, `src/render/{charts,editorial,html,navigation}.py`, `tests/test_render_navigation.py`) per sed-Lauf gezogen. **473 Tests grün** nach jedem Schritt.
-- **`knowledge/INDEX.md`** angelegt: Lead, Dokumentenmatrix in Funktions-Reihenfolge (Material → Substance → Construction → Form → Genesis), vier Lesepfade (Onboarding, Korpus-Anomalie, TEI-Element-Rendering, Build reproduzieren), Konventions-Verweis mit Diagnose-Triage, sechs-Begriff-Glossar (Promptotyping, Wissensdokument, Sonderfall-Branch, Element-Mapping, K-Ref, Apparate-Block), drei begründete Lücken in „Was fehlt und warum".
-- **`prozess-und-stand.md` aufgelöst**, sektion-für-sektion gegen Zielstellen geprüft: Glossar im INDEX, Ausgangslage redundant zu `specification.md §1`, Architektur-Überblick redundant zu `architecture.md *Layers*`, Domänenmodell und Sonderfälle redundant zu `architecture.md *Domain model*`, Interface redundant zu `interface.md`, Phasenplan redundant zu `pipeline.md`, Output redundant zu `architecture.md *Inputs and outputs*`, Stand redundant zu Journal, Pflege redundant zu CONTRIBUTING. **Drei Inhalte gerettet:** Personenliste (Scholger, Vogeler, Dumont, Henny) nach `specification.md §3 Rollen`; Promptotyping-Methode-Anker als neue Sektion `architecture.md *Method — Promptotyping vault*` (drei Absätze: zwei-schichtige Wissensbasis aus deterministisch generierter und hand-kuratierter Schicht); 19-zeilige Migrationstabelle nach `specification.md §8 Migrationsvertrag (heute → künftig)` plus Erweiterung von §9 *Offene Fragen* um redaktionelle Schnittstelle und Komponenten-Detailfragen. **`image-workflow.png`** als visueller Anker in `architecture.md *Layers*` integriert. Datei mit `git rm` gelöscht.
+**Erledigt:** Frontmatter-Lift auf alle Knowledge-Dateien (Pflichtkern plus topics/related), generierte Docs behalten ihr `generated:`-Frontmatter. `requirements.md` → `specification.md` umbenannt (`git mv`), Wikilinks und Code-Erwähnungen nachgezogen, `aliases: [requirements]` als Puffer. `INDEX.md` angelegt (Dokumentenmatrix in Funktions-Reihenfolge, vier Lesepfade, Glossar, „Was fehlt und warum"). `prozess-und-stand.md` sektionsweise gegen Zielstellen geprüft und aufgelöst; drei Inhalte gerettet (Personenliste nach specification §3, Promptotyping-Methode-Anker nach architecture, Migrationstabelle nach specification §8). Paper im Obsidian-Vault gepatcht (Two Modes, drei strukturelle Commitments statt Acht-Funktionen-Liste).
 
 **Entscheidungen:**
-- **Function before filename als strukturelles Argument, nicht Funktions-Liste mit Zähler.** Frühe Paper-Fassung listete acht Funktionen; ide-/User-Einwand: Zahl ist Beifang, kein Argument. Korrektur auf drei Commitments (function before filename, inclusion by trigger, diagnostic decoupling). Die acht Funktionen werden im Paper nicht mehr als Set präsentiert — sie sind illustrative Beispiele für eine offene Liste.
-- **`requirements.md` umbenannt zu `specification.md`** statt nur Topic ergänzen. Konvention führt `specification.md` als kanonischen Träger der Substanz-Funktion; Umbenennung war mit `git mv` und replace_all in einem Schritt machbar, history bleibt erhalten via `RM`-Status. `aliases: [requirements]` im Frontmatter als Migrationspuffer.
-- **`design.md`/`ui.md`-Spaltung als spätere Aktion offen gelassen.** Heutige Lage: `interface.md` trägt Designhaltung (4 Prinzipien) plus UI-Realisierung (Layout, Seitentypen, Komponenten, Typografie, A11y) gemeinsam. Spaltung in `design.md` (haltung, agent value source) plus `ui.md` (realisierung) wäre konvention-konformer und würde `CLAUDE.md` einen sauberen Werte-Anker geben — aber invasiv genug, um in eigener Session zu landen. INDEX markiert die Lücke explizit.
-- **`prozess-und-stand.md` vollständig auflösen statt zu `overview.md` reduzieren.** Eine Funktion pro auffindbarer Stelle ist Konvention; ein Hybrid-Dokument widerspricht dem. Der Migrationsvertrag-Tabellen-Inhalt ist substanziell und gehört zur Funktion „Substanz" in `specification.md`, nicht in einen Zwischen-Träger.
+- Function before filename als strukturelles Argument, nicht als Funktions-Liste mit Zähler. Grund (ide-Einwand): die Zahl ist Beifang; korrekt sind drei Commitments (function before filename, inclusion by trigger, diagnostic decoupling).
+- `requirements.md` umbenannt statt nur Topic ergänzt; specification.md ist der kanonische Träger der Substanz-Funktion, History via `git mv` erhalten.
+- `design.md`/`ui.md`-Spaltung als spätere Aktion offen gelassen — invasiv genug für eine eigene Session; INDEX markiert die Lücke.
+- `prozess-und-stand.md` vollständig aufgelöst statt zu `overview.md` reduziert. Eine Funktion pro Stelle ist Konvention; ein Hybrid widerspricht dem.
 
-**Offen:**
-- **`interface.md` spalten in `design.md` + `ui.md`.** Funktional klar trennbar: Designhaltung ist projektübergreifend stabil und Werteebene für `CLAUDE.md`; UI-Realisierung ist konkret, ändert sich mit jedem neuen Seitentyp. Splitting ist Find/Replace über Wikilinks plus `CLAUDE.md`-Sektion, mittlerer Aufwand.
-- **`architecture.md` und `pipeline.md` explizit als gespaltene Bauweise koppeln.** Frontmatter trägt `related:` schon, aber Lead-Block-Hinweis am Kopf jeder Datei fehlt — soll dem Leser sagen, dass beide gemeinsam die Funktion „Bauweise" tragen.
-- **`CLAUDE.md` referenziert `design.md` als Werteebene.** Wartet auf die Interface-Spaltung.
-- **Konvention im Vault** (`Konvention Promptotyping Documents.md` unter `Vault Operations/Konventionen/`) trägt noch die Acht-Funktionen-Tabelle als Hauptträger. Sollte parallel zum Paper-Patch auf das strukturelle Argument umgebaut werden — Tabelle als Illustration, nicht als Hauptaussage.
-- **`README.md` ist veraltet** (sagt „88 tests, < 1 s", Status-Block auf Phase 7). Korrektur auf 473 Tests und Phase 14/15 wäre trivial.
-- **`site/` ist eingecheckt** — viele PNG-Figures unter `site/issues/.../figures/`, widerspricht der „komplett regenerierbar"-Linie. Entweder per `git rm --cached -r site/` rauswerfen (wenn versehentlich kommittiert) oder im README begründen.
+**Offen:** interface.md in design.md + ui.md spalten. architecture.md und pipeline.md als gespaltene Bauweise koppeln (Lead-Hinweis am Kopf). CLAUDE.md auf design.md als Werteebene verweisen (wartet auf die Spaltung). Vault-Konvention parallel zum Paper umbauen. README veraltet. site/ ist eingecheckt — klären, ob raus oder begründen.
 
-**Nächster Einstieg:** Wenn der Knowledge-Refactor weitergeht: `interface.md` in `design.md` + `ui.md` spalten — `interface.md §2` (Designhaltung) wandert nach `design.md` (kompakt, 1–2 Bildschirme), `§3` ff. (Layout, Seitentypen, Typografie, A11y) wandern nach `ui.md`. `CLAUDE.md` bekommt eine kurze Designprinzipien-Sektion, die aus `design.md` ableitet (drei imperative Sätze) und die Anweisung „vor UI-Generierung knowledge/design.md lesen". Wenn nicht weiter im Knowledge-Refactor: Phase 15 Restposten (WCAG-Vollaudit über die Live-Site mit axe-DevTools, oder Matomo-URL/Site-ID als CI-Secrets in `.github/workflows/build.yml` verdrahten).
+**Nächster Einstieg:** interface.md in design.md (Designhaltung) + ui.md (Layout/Seitentypen/Typografie/A11y) spalten, CLAUDE.md um eine Designprinzipien-Sektion plus „vor UI-Generierung design.md lesen" ergänzen. Wenn nicht im Knowledge-Refactor: Phase-15-Restposten (WCAG-Audit oder Matomo-Secrets).
 
 ---
 
 ## 2026-04-29 — Phase 10-Rest: Data-Charts (R9) live
 
-**Ziel:** Den letzten inhaltlichen Brocken aus Phase 10 abräumen — aggregierte Bar-Charts auf `/data/charts/` aus dem realen Korpus statt des seit Welle 6 stehenden Placeholder-Markdown.
+**Ziel:** Aggregierte Bar-Charts auf `/data/charts/` aus dem realen Korpus statt des stehenden Placeholder-Markdown.
 
-**Erledigt:**
-- Neuer Renderer `src/render/charts.py`: kanonische Slug-Map über die vier Kriterien-URLs (drei logische Sets: digital-editions-1.1, tools-1.0, text-collections-1.0); per Slug aggregiert nach Top-Level-Section über das geparste Korpus; inline-SVG-Bar-Chart mit Achsen-Ticks 0/25/50/75/100, In-Bar-Annotation `yes / total (pct%)`, getrennte `value="3"`-Anomalie-Note unter dem Chart.
-- Neuer Parser-Helfer `parse_taxonomy_sections` in `src/parser/questionnaire.py`: liest die `<taxonomy>`-Struktur per criteria_url. Innerhalb eines Reviews werden mehrere Taxonomien derselben URL gemerged (carlyle-addams-tei.xml hat zwei mit rev1-/rev2-Leaves), und `collect_sections_from_corpus` vereinigt dann über alle Files.
-- Marker-Substitution im Editorial-Renderer: `<!-- ride:charts -->` in `content/data-charts.md` wird beim Build durch das gerenderte Chart-Block ersetzt; `render_editorial(..., chart_html=...)` ist optional, ohne Marker bleibt der Body unverändert.
-- CSS-Hooks `.ride-charts*` und `.ride-chart__*` in `static/css/ride.css` (Section 5, ~16 neue Zeilen).
-- Tests: 18 neue in `tests/test_render_charts.py` — synthetische Aggregator-Branches (yes/no/anomaly, Slug-Merge, Order, HTML-Escape) + real-corpus-drive (4 URLs gefunden, 3 Charts ≥70/15/18 Reviews, kein `(other)`-Bucket-Pin gegen Drift, Marker-Substitution end-to-end).
+**Erledigt:** Renderer `src/render/charts.py`: kanonische Slug-Map über die vier Kriterien-URLs (drei logische Sets), per Slug nach Top-Level-Section über das geparste Korpus aggregiert, inline-SVG-Bar-Chart mit Achsen-Ticks und In-Bar-Annotation, getrennte value=3-Anomalie-Note. Parser-Helfer liest die `<taxonomy>`-Struktur per criteria_url (innerhalb eines Reviews mehrere Taxonomien derselben URL gemerged, dann über alle Files vereinigt). Marker-Substitution `<!-- ride:charts -->` im Editorial-Renderer.
 
 **Entscheidungen:**
-- Kanonische Slug-Map als hartkodiertes Dict in `charts.py` statt Heuristik. Begründung: vier URLs sind ein geschlossenes Set; eine spätere fünfte URL fällt sauber durch den `criteria_slug`-Fallback und liefert weiter ein Chart, nur ohne hübschen Display-Label.
-- `(other)`-Bucket als Drift-Sensor. Wenn ein Review ein Leaf antwortet, das in keiner geparsten Taxonomie auftaucht, wird das nicht stillschweigend verworfen, sondern landet in einem `(other)`-Eintrag. Test pinnt: über das echte Korpus darf der Bucket nicht entstehen.
-- Marker-Pattern (`<!-- ride:charts -->`) statt Sonder-Template für /data/charts. Begründung: Editor:innen sehen einen kommentierten Marker, sehen die Position, können die Seite ohne Build vorschauen; der Build ersetzt den Marker durch das HTML-Block.
-- Charts auf Top-Level-Sections aggregiert, nicht pro Leaf. Begründung: 282/510/780 Leaves wären visuell unbrauchbar; 5–8 Sections sind lesbar und entsprechen der ursprünglichen Visualisierung der Legacy-Site (R9-Akzeptanz "mindestens die Visualisierungen, die heute existieren").
+- Kanonische Slug-Map als hartkodiertes Dict statt Heuristik. Grund: vier URLs sind ein geschlossenes Set; eine fünfte fällt sauber durch den Slug-Fallback, nur ohne hübschen Label.
+- `(other)`-Bucket als Drift-Sensor: ein Leaf außerhalb jeder geparsten Taxonomie wird nicht verworfen, sondern landet im Bucket; ein Test pinnt, dass er über das echte Korpus nicht entsteht.
+- Marker-Pattern statt Sonder-Template: Editor:innen sehen die Position, können ohne Build vorschauen.
+- Auf Top-Level-Sections aggregiert, nicht pro Leaf: hunderte Leaves wären unbrauchbar, 5–8 Sections sind lesbar (R9-Akzeptanz).
 
-**Offen:**
-- Phase 15 Restposten: WCAG-Vollaudit über Live-Site (axe-Pass), Matomo-URL als CI-Secret, Knowledge-Doc-CI-Verhalten (strict vs. auto-commit), Custom-Domain-Entscheidung. Inhaltlich gibt es nach Phase 10 keinen offenen Brocken mehr.
-- 39 fehlende Wordclouds für ältere Issues (kosmetisch, kein Block).
+**Offen:** Phase-15-Restposten (WCAG, Matomo, Knowledge-Doc-CI, Custom-Domain). Inhaltlich kein offener Brocken mehr nach Phase 10. 39 fehlende Wordclouds (kosmetisch).
 
-**Nächster Einstieg:** Phase 15 Restposten anfassen — am ehesten WCAG-Vollaudit über die Live-Site mit axe-DevTools, Findings adressieren. Alternativ Matomo-URL/Site-ID als CI-Secrets in `.github/workflows/build.yml` wiring (zwei `${{ secrets.MATOMO_URL }}` plus `${{ secrets.MATOMO_SITE_ID }}` an die `python -m src.build`-Zeile hängen).
+**Nächster Einstieg:** Phase-15-Restposten — am ehesten WCAG-Vollaudit über die Live-Site mit axe-DevTools, oder Matomo-URL/Site-ID als CI-Secrets verdrahten.
 
 ---
 
 ## 2026-04-29 — Phase 14 + 15.A: PDF live, Compliance-Block geschlossen
 
-**Ziel:** Die nach Welle 8-10 verbliebenen Compliance- und UX-Items aus dem Phasenplan abräumen — Kontaktseite (R14), Cookieless-Matomo (R16), Lizenzhinweise pro Artefakt (N6), WCAG-2.2-AA-Polish (N5) — und anschließend Phase 14 (PDF aus Domänenmodell) implementieren, damit der seit Welle 8 tote Sidebar-Link `ride.N.M.pdf` produktiv wird.
+**Ziel:** Die verbliebenen Compliance- und UX-Items (Kontaktseite R14, Cookieless-Matomo R16, Lizenzhinweise N6, WCAG-Polish N5) abräumen und Phase 14 (PDF aus Domänenmodell) implementieren, damit der tote Sidebar-PDF-Link produktiv wird.
 
-**Erledigt:**
-- **`0de85ca` Phase 15.A:** Contact-Seite (`content/contact.md`) mit zwei Mail-Adressen + Verweis auf Imprint, Footer- und About-Submenü-Link; Console-Banner mit Build-Commit + Datum (devtools-Ausgabe nur wenn `build_info` gesetzt — silent dev-builds); `licence: {name, url}` als Top-Level-Feld in `api/corpus.json` und `api/build-info.json`; cookieless Matomo-Snippet via `--matomo-url` + `--matomo-site-id`, gated auf beide Felder zusammen; generic `:focus-visible` über alle interaktiven Element-Familien (`button`, `input`, `select`, `textarea`, `summary`, `[tabindex]`); Tag-Pills `min-height: 24px` für WCAG 2.5.8.
-- **`84183f8` Phase 14:** `src/render/pdf.py` mit lazy-importierter WeasyPrint, `_render_pdfs()` in `build.py` rendert nach jedem HTML einen PDF-Geschwister; print-only `<p class="ride-review__doi-print">` im Review-Header (DOI auf Seite 1, da Sidebar im Print-CSS verschwindet); print-Stylesheet ausgebaut (`@page A4`, Chrome weg, `page-break-after`, Link-URLs als Klammertext); CI installiert `libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0` und ruft `--pdf` auf.
-- **Tests:** 438 → 455 (+17 über zwei Commits); WeasyPrint-Tests skippen sauber wenn GTK fehlt (`HAS_WEASYPRINT` via Try/Except um Import + OSError, weil ctypes auf Windows OSError statt ImportError wirft).
+**Erledigt:** Phase 15.A: Contact-Seite mit zwei Mail-Adressen, Console-Banner mit Build-Commit (silent ohne build_info), `licence: {name, url}` in den JSON-Artefakten, cookieless Matomo via `--matomo-url`/`--matomo-site-id` (gated auf beide Felder), generisches `:focus-visible` über alle interaktiven Elemente, Tag-Pills `min-height: 24px` für WCAG 2.5.8. Phase 14: `src/render/pdf.py` mit lazy-importierter WeasyPrint, PDF-Geschwister je HTML, print-only DOI-Zeile im Header, ausgebautes Print-Stylesheet; CI installiert GTK/Pango und ruft `--pdf` auf. WeasyPrint-Tests skippen sauber, wenn GTK fehlt.
 
 **Entscheidungen:**
-- **PDF reuses HTML, no separate template.** Begründung: WeasyPrint kann das fertige `index.html` direkt schlucken; das `@media print` in `ride.css` strippt Chrome. Kein zweiter Template-Baum, kein zweiter Render-Pass. Zwei Wahrheiten = eine Drift-Quelle weniger.
-- **DOI-Zeile als print-only Element**, nicht im normalen Header für Web sichtbar. Begründung: A6 verlangt DOI auf Seite 1 des PDFs, aber im Web-Layout zeigt die Meta-Sidebar die DOI bereits — eine zweite Zeile im Header wäre redundant. `display: none` als Default + `display: block` im `@media print` löst beides.
-- **Matomo-Snippet gated auf beide Felder.** `parser.error` wenn nur eines gesetzt — ein halbkonfigurierter Deploy würde sonst still mit `setSiteId('')` Hits senden. Sicherheits-Default: kein Tracker statt undefiniertem Tracker.
-- **WeasyPrint-Imports in einem `try/except (ImportError, OSError)`.** Begründung: lokaler Windows-Stand hat WeasyPrint installiert, aber GTK fehlt → `OSError` aus ctypes. `pytest.importorskip` allein würde das nicht catchen. CI auf Ubuntu hat beides.
+- PDF reuses HTML, kein separates Template. Grund: WeasyPrint schluckt das fertige `index.html`, `@media print` strippt Chrome — kein zweiter Template-Baum, eine Drift-Quelle weniger.
+- DOI-Zeile als print-only Element (`display:none` default, `block` im Print). Grund: A6 verlangt DOI auf Seite 1, im Web zeigt die Meta-Sidebar sie bereits.
+- Matomo-Snippet gated auf beide Felder (`parser.error` bei nur einem). Grund: ein halbkonfigurierter Deploy sendete sonst still mit leerer Site-ID.
+- WeasyPrint-Import in `try/except (ImportError, OSError)`. Grund: lokaler Windows-Stand hat WeasyPrint, aber GTK fehlt → OSError aus ctypes; `importorskip` allein fängt das nicht.
 
-**Offen:**
-- **CI-Run für Phase 14 läuft noch** (Run 25110248391, queued bei Push). Erste Verifikation der WeasyPrint-Pipeline gegen den vollen 107-Review-Korpus auf Linux. Bei Erfolg: Sidebar-PDF-Link wird live, A6 erfüllt.
-- **Data-Charts (R9, Phase 10-Rest)** — nicht in dieser Session angefasst. Letzter offener Brocken aus dem 7-Item-Plan. Die Questionnaire-Aggregate (Stage 2.C) sind da; was fehlt ist SVG-Rendering pro Kategorie und die `/data/charts/`-Seite, die sie einbettet.
-- **39 fehlende Wordclouds** für ältere Issues — kosmetisch, kein Hard-Block.
-- **`pipeline.md` Phasentabelle** noch nicht von "open" auf "done" für Phase 14 geupdated. Trivialer Edit nach CI-Bestätigung.
+**Offen:** CI-Run für Phase 14 läuft noch (erste WeasyPrint-Verifikation auf Linux); bei Erfolg wird der Sidebar-PDF-Link live, A6 erfüllt. Data-Charts (R9, Phase-10-Rest) nicht angefasst — letzter offener inhaltlicher Brocken. 39 fehlende Wordclouds (kosmetisch). pipeline.md-Phasentabelle noch nicht auf Phase 14 „done".
 
-**Nächster Einstieg:**
-`gh run view 25110248391` prüfen — wenn grün, in `knowledge/pipeline.md` Phase 14 + 15 (Teilstand) auf done setzen und `memory/project_phase.md` aktualisieren. Dann optional Data-Charts angehen — Einstiegspunkt: `src/parser/datasets.py` hat schon `Questionnaire`-Aggregat, fehlt nur ein neues `src/render/charts.py`-Modul, das pro Kategorie ein bar-chart-SVG aus den `value=0/1`-Antworten produziert, plus Einbettung in `content/data-charts.md`. Test: real-corpus-drive — SVG-Pfad enthält Anzahl Kategorien × Anzahl Reviews als Datenpunkte.
+**Nächster Einstieg:** Den CI-Run prüfen; wenn grün, Phase 14/15 im Stand vermerken und `memory/project_phase.md` aktualisieren. Dann Data-Charts angehen — Einstiegspunkt: ein neues `charts.py`-Modul, das pro Kategorie ein Bar-Chart-SVG aus den value=0/1-Antworten produziert.
 
 ---
 
 ## 2026-04-28 — Backend Session-Ende: Test-Refactor-Welle 2 angestoßen, Übergabe
 
-**Ziel:** Nach Phase-7-Abschluss eine zweite Test-Refactor-Welle gegen die neue Real-Corpus-Drive-Hard-Rule aus CLAUDE.md anstoßen — den Phase-7-Audit auf den Rest der Suite anwenden, statt Schulden mitzunehmen.
+**Ziel:** Nach Phase-7-Abschluss eine zweite Test-Refactor-Welle gegen die neue Real-Corpus-Drive-Hard-Rule anstoßen — den Phase-7-Audit auf den Rest der Suite anwenden, statt Schulden mitzunehmen.
 
-**Erledigt:**
-- 7.F (`18a8376`): `tests/test_parser_review.py` von synthetischen `_write_synth_tei`-Fixtures auf Real-Corpus umgestellt. Drei reale Reviews als Fixtures: 1641 (Top-Level-Metadaten + Body-Sections), bayeux (32 Figures, 11 Notes, Figure-in-Cell), tustep (No-Back-Branch). 7 Tests. Cross-Contamination beim Commit, siehe Offen.
-- Korpus-Probing für die nächste Welle dokumentiert (in diesem Eintrag, Abschnitt „Nächster Einstieg"): 1641-tei.xml als reicher Metadaten-Träger, ehd-tei.xml für Editor-ohne-ORCID, busoni-nachlass-tei.xml für Author-ohne-ORCID. Damit kann der nächste Claude direkt schreiben, ohne nochmal zu probieren.
+**Erledigt:** `test_parser_review.py` von synthetischen Fixtures auf Real-Corpus umgestellt (drei reale Reviews: 1641 für Metadaten + Sections, bayeux für Figures/Notes, tustep für No-Back). Korpus-Probing für die nächste Welle dokumentiert (1641 als Maximalfall, ehd für Editor-ohne-ORCID, busoni-nachlass für Author-ohne-ORCID), damit der nächste Claude direkt schreiben kann. Cross-Contamination beim Commit (siehe Offen).
 
 **Entscheidungen:**
-- Test-Refactor-Welle 2 in vier kleinere Schritte gesplittet (Review, Metadata, Sections/Blocks, Model). Begründung: jeder Schritt produziert einen einzeln prüfbaren Commit.
-- `test_model.py` Field-Echo-Tests bleiben drin. Begründung: nach erneutem Lesen sind die Single-Field-Asserts der Vertragstest für die Domänen-Datenklasse — sie pinnen `tuple[...]`-Sequenztypen und `frozen=True`. Audit-Bewertung „pure Tautologie" war zu hart.
-- **Antwort auf die `#abb`/`#img`-Frage des Frontend-Claude (siehe Eintrag unten):** Korpus-Bug, **kein** Resolver-Alias. Begründung: ein automatischer Alias würde die „anomalies are explicit"-Hard-Rule aushebeln und das stille Verschleiern eines redaktionellen Konsistenz-Problems institutionalisieren. Statt-dessen: Phase 13 (Validierung) bekommt eine Schematron-Erwartung „jeder `<ref @target>` zeigt entweder auf einen lokalen `xml:id`, beginnt mit `#K`, oder ist eine externe URL — alles andere ist ein Build-Warning". Der Resolver bleibt korrekt; die Datenqualität wird sichtbar gemacht. Eine separate Korpus-Issue-Liste bekommt die `#abb*`-Vorkommen, die Redaktion patcht die Quellen.
-- Wave 2 nur teilweise gefahren wegen Session-Time-Budget. Reststand actionable dokumentiert.
+- Test-Refactor-Welle 2 in vier kleinere Schritte gesplittet (Review, Metadata, Sections/Blocks, Model); jeder Schritt ein einzeln prüfbarer Commit.
+- `test_model.py` Field-Echo-Tests bleiben: sie sind der Vertragstest für die Domänen-Dataclass (pinnen `tuple[...]` und `frozen=True`); die Audit-Bewertung „Tautologie" war zu hart.
+- Antwort auf die `#abb`/`#img`-Frage des Frontend-Claude: Korpus-Bug, kein Resolver-Alias. Grund: ein Alias hebelte die „anomalies are explicit"-Regel aus; stattdessen wird Phase 13 (Validierung) jede nicht auflösbare Ref als Build-Warning melden, der Resolver bleibt korrekt.
 
-**Offen:**
-- **`tests/test_parser_metadata.py`** auf Real-Corpus umstellen. Probings: `1641-tei.xml` als Maximalfall (Author mit ORCID+Affiliation+Email, 6 Editors mit/ohne `@role` inkl. plain-text-Editor-Pattern, 2 RelatedItems, 3 Keywords); `ehd-tei.xml` für Editor-ohne-ORCID („Jana Klinger" als `<editor role="technical">Jana Klinger</editor>` ohne `@ref`); `busoni-nachlass-tei.xml` als Author-ohne-ORCID. Die zwei rein-defensiven Branches („Author ohne Affiliation", „Review ohne Keywords") existieren im Korpus nicht — dort bleibt der synthetische Fixture mit Doku.
-- **`tests/test_parser_sections.py` und `tests/test_parser_blocks.py`** durchgehen. Dispatcher-Tests bleiben synthetisch (testen pure Logik); Block-Walker-Tests wo der Korpus eine reichere Form hat auf Real-Corpus.
-- **Hygiene-Incident (Cross-Contamination):** Commit `18a8376` enthält neben dem Backend-Test-Refactor auch die Frontend-Phase-7-Integration (Bucket-Macro, CSS, `media_path_factory`, `rewrite_figure_assets`-Aufruf in `src/build.py`). `git add tests/test_parser_review.py` hat die Worktree-Änderungen des Frontend-Claude mitgenommen, obwohl explizit gepfadet — Ursache unklar (kein `commit.all`, kein Pre-Commit-Hook, geprüft). Akzeptiert im WORKPLAN-Status. Künftige Hygiene-Regel: vor jedem `git commit` ein `git diff --cached --stat` prüfen, damit kein Fremd-Code-Pfad ungewollt mit-committet wird.
-- **`#abb`/`#img`-Korpus-Bug:** als Phase-13-Schematron-Erwartung dokumentiert (siehe Entscheidungen). Frontend rendert die orphans korrekt nicht-klickbar — keine Sofortmaßnahme nötig.
-- **Wayback-Hint** weiterhin deferred → Phase 13.
+**Offen:** `test_parser_metadata.py` auf Real-Corpus (Fixtures benannt: 1641, ehd, busoni-nachlass; die rein-defensiven Branches existieren im Korpus nicht, dort bleibt synthetisch). `test_parser_sections.py`/`test_parser_blocks.py` audit-Pass (Dispatcher synthetisch, Walker auf Real-Corpus). Hygiene-Incident: ein Commit zog Fremd-Code-Pfade mit; künftige Regel: vor jedem Commit `git diff --cached --stat` prüfen. `#abb`-Korpus-Bug als Phase-13-Schematron-Erwartung dokumentiert. Wayback-Hint deferred → Phase 13.
 
-**Nächster Einstieg:** Test-Refactor-Welle 2 mit `tests/test_parser_metadata.py` fortsetzen — die Korpus-Fixtures sind oben benannt, Probing nicht nötig. Anschließend `test_parser_sections.py` + `test_parser_blocks.py` dünner audit-Pass. Danach Phase 12 (OAI-PMH/JSON-LD/Sitemap) oder Phase 13 (Validierung + Build-Bericht inkl. der `#abb`-Schematron-Regel und des Wayback-Hints), je nachdem, ob der Stakeholder konsolidiert hat.
+**Nächster Einstieg:** Welle 2 mit `test_parser_metadata.py` fortsetzen (Fixtures stehen), dann `test_parser_sections.py`/`test_parser_blocks.py`. Danach Phase 12 (OAI-PMH/JSON-LD/Sitemap) oder Phase 13 (Validierung inkl. `#abb`-Schematron und Wayback-Hint).
 
 ---
 
 ## 2026-04-28 — Frontend: Phase-7-Integration abgeschlossen (Buckets + Asset-Pipeline)
 
-**Frontend-Seite des Backend-Pre-Handover „Phase 7 ready" jetzt durch — Cross-Refs sind nach Bucket gestylt, Bilder werden lokal serviert.**
+**Ziel:** Den Backend-Output von Phase 7 (Reference.bucket + rewrite_figure_assets) ans Rendering anschließen — Cross-Refs je Bucket gestylt, eingebettete Bilder lokal serviert, HTML auf die Deploy-URL zeigend.
 
-**Ziel:** Den Backend-Output von Phase 7 (Reference.bucket + rewrite_figure_assets) ans Rendering anschließen. Cross-Refs sollen je nach Bucket unterschiedlich erscheinen, eingebettete Bilder aus dem Korpus in `site/issues/.../figures/` landen, der HTML auf die deployte URL zeigen.
-
-**Erledigt:**
-- Reference-Bucket (`7d86fe5`): `reference()`-Macro liest `r.bucket`, emittiert `ride-ref--{local|criteria|external|orphan}` per `config/element-mapping.yaml`. Orphans rendern als nicht-klickbarer `<span>` (kein toter Link), Externe bekommen `rel="noopener noreferrer"`. CSS-Modifier in `static/css/ride.css`. 6 neue Tests, parametrisiert über die Buckets.
-- Asset-Pipeline (`18a8376`, **mit Backend-Test-Refactor in einem Commit gelandet — Cross-Contamination, siehe Offen**): `src.build._render_one` ruft `rewrite_figure_assets(review, ride_root, site_root)` und sammelt `AssetReport`. Build-Summary zeigt `copied / missing / unparseable`-Zähler, missing/unparseable an stderr.
-- `media_path_factory(base_url)` in `src/render/html.py`: prefixt root-absolute URLs mit `site.base_url` (für GH-Pages-Deploy unter `/ride-static`), lässt `http(s)://` und leere Werte unverändert. Aufgerufen via `media_path` im Template-Kontext aus `render_review`, `render_editorial`, allen Aggregationen. 4 Filter-Tests.
-- `figure_block`-Macro nutzt `media_path(f.graphic_url)`. Macro-Imports in `review.html`, `partials/section.html`, `partials/apparate.html` umgestellt auf `with context`, sonst sieht das Macro die Page-Variable nicht.
-- Smoke-Build über 5 Reviews: 38 Bilder kopiert, 11 missing (anemoskala-Review hat URLs ohne `.png`-Extension — Korpus-Quirk), 0 unparseable. URLs erscheinen als `/issues/17/ride.17.4/figures/picture-1.png`. 326 Tests grün.
+**Erledigt:** Reference-Bucket: das `reference()`-Macro emittiert `ride-ref--{local|criteria|external|orphan}` per `element-mapping.yaml`; Orphans rendern als nicht-klickbarer `<span>` (kein toter Link), Externe mit `rel="noopener noreferrer"`. Asset-Pipeline: der Build ruft `rewrite_figure_assets` und sammelt einen `AssetReport` (copied/missing/unparseable). `media_path_factory(base_url)` prefixt root-absolute URLs mit `base_url` (für GH-Pages unter `/ride-static`), lässt `http(s)://` unverändert; Macros via `import … with context`. Smoke-Build über fünf Reviews: Bilder kopiert, anemoskala-URLs ohne Extension als missing erkannt (Korpus-Quirk).
 
 **Entscheidungen:**
-- `media_path` als per-render Closure (Factory-Pattern) statt Jinja-Filter — Filter sind env-global und können `base_url` nicht pro Build aufnehmen. Konsistent mit `static_path_factory`.
-- Macros via `import … with context`: minimaler Eingriff (drei Zeilen), keine Macro-Signatur-Änderung. Alternative wäre `media_path` als Macro-Argument, hätte aber jede Call-Site geändert.
-- Orphan-Rendering bleibt `<span class="ride-ref ride-ref--orphan">` mit `data-target="#…"` zur späteren Diagnose; **keine** klickbaren Anker auf nicht-existente Anker, damit Lesefluss und A11y nicht durch broken links gestört werden.
-- `rel="noopener noreferrer"` automatisch nur bei `bucket == "external"` — security default, kostet nichts.
-- Anemoskala-Bilder NICHT „repariert" — die Frontend-Seite tut das Richtige (verlinkt das, was im TEI steht); fehlende Extensions sind Korpus-Issue, gehört in Phase 13 als Validierung oder ins Backend-Patch-Set.
+- `media_path` als per-render Closure (Factory) statt Jinja-Filter — Filter sind env-global und können `base_url` nicht pro Build aufnehmen.
+- Macros via `import … with context`: minimaler Eingriff, keine Signatur-Änderung.
+- Orphan-Rendering bleibt nicht-klickbarer `<span>` mit `data-target` zur Diagnose, damit Lesefluss und A11y nicht durch broken links leiden.
+- Anemoskala-Bilder nicht „repariert" — das Frontend verlinkt das, was im TEI steht; fehlende Extensions sind Korpus-Issue für Phase 13 oder ein Backend-Patch.
 
-**Offen:**
-- **Cross-Contamination:** Backend hat bei `Phase 7.F` (`18a8376`) wieder per `git add -A` committet und meine 8 Frontend-Dateien (asset pipeline) mit in seinen Test-Refactor-Commit gezogen. Code ist im Tree, aber Attribution stimmt nicht. WORKPLAN-Regel „Pfade explizit nennen" greift nur, wenn beide sie befolgen — Backend bitte beim nächsten Commit `git add <pfad>` statt `-A`.
-- **`#abb` → `#img` Orphan-Quirk:** in `ride.17.4` (und vermutlich anderen) referenziert der Body `<ref target="#abb1">figure 1</ref>`, die Figur trägt aber `xml:id="img1"`. Resolver markiert das als orphan (korrekt — der Anker existiert nicht). Frage an Backend: soll `refs_resolver` einen Alias `#abb{n}` ↔ `#img{n}` einbauen, oder ist das ein Korpus-Bug, der in Phase 13 (Validierung) gemeldet werden soll? Heute geht UX leer aus.
-- WCAG-Audit-Run, PDF-Pipeline (Phase 14), Matomo + Redirects (Phase 15) als nächste Frontend-Brocken.
-- Reviewer-Markdown-Profile, tooltip.js voll, Element-Mapping-Drift-Validator: nicht eingeplant, kein konkreter Bedarf.
+**Offen:** Cross-Contamination: Backend zog acht Frontend-Dateien in seinen Test-Refactor-Commit (Code im Tree, Attribution falsch) — beim nächsten Commit `git add <pfad>` statt `-A`. `#abb` → `#img`-Orphan-Quirk: Body referenziert `#abb1`, Figur trägt `xml:id="img1"`; Frage an Backend (Alias oder Phase-13-Meldung) — heute geht die UX leer aus. WCAG-Audit, PDF (Phase 14), Matomo + Redirects (Phase 15) als nächste Frontend-Brocken.
 
-**Nächster Einstieg:** Stakeholder hat zum Sessionende konsolidiert; Phase 11 (Pagefind-Integration) oder Phase 12 (OAI-PMH/JSON-LD/Sitemap) sind die nächsten ungeöffneten Phasen. Vor der nächsten Session: pushen, GH-Pages-Deploy laufen lassen, im Live-Build die `ride-ref--*`-Klassen und die `/issues/.../figures/`-Bilder verifizieren.
+**Nächster Einstieg:** Phase 11 (Pagefind) oder Phase 12 (OAI-PMH/JSON-LD/Sitemap) als nächste ungeöffnete Phasen. Vorab pushen, GH-Pages-Deploy laufen lassen, im Live-Build die `ride-ref--*`-Klassen und die `/issues/.../figures/`-Bilder verifizieren.
 
 ---
 
 ## 2026-04-29 — Phase 7 abgeschlossen, Reference-Resolver + Asset-Pipeline live
 
-**Phase 7 ready — Reference.bucket ∈ {local, criteria, external, orphan}.**
+**Ziel:** Aspekt A aus WORKPLAN — Vier-Bucket-Resolver, Asset-Pipeline, Test-Refactor auf Real-Corpus-Drive.
 
-**Ziel:** Aspekt A aus WORKPLAN.md — Vier-Bucket-Resolver, Asset-Pipeline, Test-Refactor auf Real-Corpus-Drive (vom Stakeholder eingefordert).
-
-**Erledigt:**
-- 7.A (`425f2a2`): `Reference.bucket` + `src/parser/refs_resolver.py` (`classify_target` pure, `resolve_references(review)` als Post-Pass mit Re-Aggregation für Figures/Notes-Identity). Wire-up in `parse_review`. 17 Tests.
-- 7.B (`8a439df`): `src/parser/assets.py` mit `rewrite_figure_assets` + `AssetReport`. URL-Rewrite Korpus → `/issues/{N}/{review_id}/figures/{file}`; Disk-Pfad `../ride/issues/issue{NN:02d}/{slug}/pictures/{file}`. Fehlende Files = Report, kein Crash. 12 Tests.
-- 7.C (`66fbb0d`): Test-Daten-Philosophie als Hard Rule in CLAUDE.md. Phase-7-Tests refaktoriert auf Real-Corpus (1641, anemoskala, bayeux, godwin). Vier File-Existence-Smokes gelöscht, `<list>`-in-`<item>`-Anomalietest gegen anemoskala ergänzt. 315 Tests grün.
-- 7.D (`6c36759`): COORDINATION.md, architecture.md (Stakeholder-Sektion + methodische Randnotiz), WORKPLAN-Status, Journal-Handover.
+**Erledigt:** `Reference.bucket` plus `src/parser/refs_resolver.py` (`classify_target` pure, `resolve_references` als Post-Pass mit Re-Aggregation für Figures/Notes-Identity), eingehängt in `parse_review`. `src/parser/assets.py` mit `rewrite_figure_assets` und `AssetReport` (URL-Rewrite Korpus → site-relativ, Disk-Pfad aus dem Sibling, fehlende Files als Report statt Crash). Test-Daten-Philosophie als Hard Rule in CLAUDE.md verankert, Phase-7-Tests auf Real-Corpus refaktoriert.
 
 **Entscheidungen:**
-- `Reference.bucket` als Inline-Feld statt paralleler `resolved_refs`-Map — kleinster Eingriff, keine zwei Strukturen zu synchronisieren.
-- `criteria`-Bucket bleibt im Vertrag trotz 0 Body-Vorkommen: alle 5 209 K-Refs leben im Header (`<catDesc>`), Body-Parser traversiert dort nicht; Future-Proofing.
-- Asset-Modul in `src/parser/assets.py` statt `src/build/assets.py` — Frontend hält `src/build.py` als Datei, ein Geschwister-Package würde kollidieren.
-- Wayback-Hint deferred → Phase 13: HTTP-HEAD-Probe gehört in den Validation/Bericht-Schritt, nicht in den Resolver.
-- Re-Aggregation in Resolver und Asset-Pipeline: separater Walk über die Aggregate erzeugt sonst divergente Kopien gegenüber dem Section-Tree.
-- Test-Prinzip als Hard Rule in CLAUDE.md (nicht nur COORDINATION.md): gilt für beide Claudes und alle künftigen Phasen.
+- `Reference.bucket` als Inline-Feld statt paralleler Map — kleinster Eingriff, keine zwei Strukturen zu synchronisieren.
+- `criteria`-Bucket bleibt im Vertrag trotz 0 Body-Vorkommen: alle K-Refs leben im Header (`<catDesc>`), wo der Body-Parser nicht traversiert — Future-Proofing.
+- Asset-Modul in `src/parser/assets.py` statt `src/build/assets.py` — das Frontend hält `src/build.py` als Datei, ein Geschwister-Package kollidierte.
+- Wayback-Hint deferred → Phase 13 (HTTP-Probe gehört in den Validation-/Bericht-Schritt, nicht in den Resolver).
 
-**Offen:** Frontend integriert Buckets (`config/element-mapping.yaml` `by_bucket`) und ruft `rewrite_figure_assets` in `src/build.py` auf. Wayback-Hint für Phase 13. Phase 12 (OAI-PMH/JSON-LD/Sitemap) und 13 (Validierung) als nächste Backend-Sprints.
+**Offen:** Frontend integriert Buckets (`by_bucket`) und ruft `rewrite_figure_assets` in `src/build.py`. Wayback-Hint für Phase 13. Phase 12 (OAI-PMH/JSON-LD/Sitemap) und 13 (Validierung) als nächste Backend-Sprints.
 
-**Nächster Einstieg:** Frontend-Integration abwarten; falls Backend parallel arbeiten soll, Phase 11 (Pagefind-Integration in `src/build.py`) als überbrückendes Vorzieh-Stück.
+**Nächster Einstieg:** Frontend-Integration abwarten; falls Backend parallel arbeitet, Phase 11 (Pagefind in `src/build.py`) als überbrückendes Vorzieh-Stück.
 
 ---
 
 ## 2026-04-29 — Phase 6 abgeschlossen, Stage 2.C steht
 
-**Ziel:** Bibliography- und Questionnaire-Modell plus Cross-Korpus-Aggregate (Tags, Reviewer, Reviewed Resources) — die ganze Phase 10-Vorbereitung in einem Schub. Damit ist der Datenvertrag für den Frontend-Claude breit genug, um Rezensionsseite (Bibliographie + Factsheet) und Aggregationsseiten zu bauen.
+**Ziel:** Bibliography- und Questionnaire-Modell plus Cross-Korpus-Aggregate (Tags, Reviewer, Reviewed Resources) in einem Schub — der Datenvertrag für Rezensions- und Aggregationsseiten.
 
-**Erledigt:**
-- Commit 6.A (`70087b7`): `BibEntry`-Dataclass plus `parse_bibliography(text_el)`. `<listBibl>/<bibl>`-strukturierte Bibliographie aus dem `<back>`-Pfad, Filter gegen Inline-cit/bibl und Header-relatedItem. `Review.bibliography` als neues Feld; Section `<div type="bibliography">` behält ihren Heading, blocks bleiben leer (Architektur, kein Bug). 10 Tests, Korpus-Smoke ≥1300 Einträge gegen das Inventar von 1389.
-- Commit 6.B (`acdf66e`): `Questionnaire` plus `QuestionnaireAnswer`. Walker `parse_questionnaires(root)` über `teiHeader//taxonomy`, sammelt nur Leaf-Categories (keine geschachtelten `<category>`-Children) damit Sections und Questions nicht ihre Descendant-Nums erben. Korpus-Konvention zwei `<catDesc>` pro Leaf — der erste trägt das Label, der zweite den `<num>`; der Parser scant beide. `value="3"`-Anomalie bleibt als String erhalten. 8 Tests, Korpus-Smoke ≥19000 Antworten über 110 Taxonomien und 4 Kriterien-URLs. *(Anmerkung: dieser Commit hat versehentlich auch Frontend-Files mit-eingecheckt, weil zwischen meinem `git add` und `git commit` weitere Dateien gestaged waren. Hygiene-Lehre für die nächste Session.)*
-- Commit 6.C (`53530fe`): `src/parser/datasets.py` mit drei Cross-Korpus-Aggregaten — `aggregate_tags`, `aggregate_reviewers`, `aggregate_reviewed_resources`. Tags case-insensitive merged (TEI=tei), Reviewer per ORCID dedup mit Name-Fallback, Resources per Target-URL dedup. Alle drei sortiert für reproduzierbare URLs. 13 Tests; Korpus produziert 355 Tags, 106 Reviewer (107 Author-Attributionen, 1 deduped — Tobias Hodel mit 3 Reviews ist Top), 110 reviewed resources.
+**Erledigt:** `BibEntry` plus `parse_bibliography` (strukturierte Bibliographie aus dem `<back>`-Pfad, gegen Inline-cit und Header-relatedItem gefiltert; `Review.bibliography` als Feld). `Questionnaire` plus `QuestionnaireAnswer` mit Walker über `teiHeader//taxonomy`, der nur Leaf-Categories sammelt (sonst erben Sections die Descendant-Nums); value=3-Anomalie als String erhalten. `src/parser/datasets.py` mit drei Cross-Korpus-Aggregaten (Tags case-insensitive gemerged, Reviewer per ORCID dedup, Resources per Target-URL dedup), alle sortiert für reproduzierbare URLs. (Ein Commit zog versehentlich Frontend-Files mit — Hygiene-Lehre.)
 
 **Entscheidungen:**
-- `<listBibl>` bleibt aus den Section-Blocks raus, lebt auf `Review.bibliography`. Begründung: Bibliographie ist strukturell separat, ein eigener Feld-Typ ist sauberer als ein `Bibliography`-Block-Kind im Section-Tree.
-- `BibEntry.inlines` ohne strukturierte Sub-Felder (kein eigener `title`/`date`/`editor`). Begründung: das Korpus benutzt `<bibl>` als annotiertes Freitext-Zitat, kein hochstrukturiertes biblStruct. Renderer kommen mit den Inlines aus; R2 (Citation Export) zielt auf die Rezension selbst, nicht ihre Bibliographie.
-- Questionnaire-Parser sammelt nur Leaves. Begründung: das Stage-0-Script `scripts/taxonomy.py` benutzt `cat.iter()` und over-attributiert dadurch jeden Num-Wert an alle Vorfahren. Für die Domänen-Schicht ist das semantisch falsch — Antworten gehören dem Leaf, nicht dem Section-Wrapper.
-- `value="3"`-Anomalie als String erhalten statt als sentinel-int. Begründung: ein Renderer kann verlässlich `value == "0"`/`"1"` matchen und „3" als Anomalie-Indikator separat behandeln, ohne dass der Parser inhaltlich entscheidet.
-- Aggregat-Datasets in `src/parser/datasets.py` (separate Datei vom per-review `src/parser/aggregate.py`). Begründung: Per-Review-Walks (Figures, Notes) und Cross-Korpus-Walks (Tags, Reviewer, Resources) sind unterschiedliche Konzern-Klassen; eine Datei wäre semantisch überfrachtet.
+- `<listBibl>` lebt auf `Review.bibliography`, nicht in den Section-Blocks. Grund: Bibliographie ist strukturell separat, ein Feld-Typ ist sauberer als ein Block-Kind im Tree.
+- `BibEntry` ohne strukturierte Sub-Felder. Grund: das Korpus nutzt `<bibl>` als annotiertes Freitext-Zitat; R2 (Citation Export) zielt auf die Rezension, nicht ihre Bibliographie.
+- Questionnaire-Parser sammelt nur Leaves. Grund: das Stage-0-Script over-attribuiert per `cat.iter()` jeden Num-Wert an alle Vorfahren; für die Domänen-Schicht gehört die Antwort dem Leaf.
+- value=3 als String erhalten statt sentinel-int, damit ein Renderer `"0"`/`"1"` matchen und „3" separat behandeln kann, ohne dass der Parser inhaltlich entscheidet.
+- Aggregat-Datasets in eigener Datei (getrennt vom per-review Aggregate-Walk) — unterschiedliche Concern-Klassen.
 
-**Offen:** Phase 7 — Ref-Resolver. Vier-Bucket-Logik für `<ref @target>`: lokal (`#xml-id` im selben Review), kriterien-extern (`#K…` gegen das Taxonomie-`@xml:base`), externe URL, sonstige. Asset-Pipeline für `<graphic @url>`-Bilder aus `../ride/issues/{n}/`. Wayback-Detector für Bibliographie-Refs. Sobald Phase 7 landet, kann der Frontend-Claude die Tooltip-Vorschau aus [[interface#11]] inhaltlich befüllen und Bilder korrekt referenzieren — heute rendern Figures noch mit den rohen TEI-`@url`-Werten.
+**Offen:** Phase 7 — Ref-Resolver (Vier-Bucket-Logik), Asset-Pipeline für `<graphic @url>`, Wayback-Detector. Sobald Phase 7 landet, kann das Frontend Tooltip-Vorschau und Bilder korrekt befüllen.
 
-**Nächster Einstieg:** `src/parser/refs.py` (oder `src/resolver.py`) mit `resolve_ref(ref, review_context, criteria_index) -> ResolvedRef` als Vier-Bucket-Funktion. Dazu Asset-Pipeline-Vorbereitung: `src/build/assets.py` als Modul, das Bild-Pfade von `../ride/issues/{n}/figures/` nach `site/issues/{n}/{review_id}/figures/` umschreibt. Beides hat klare Test-Pfade (Synthetik + Korpus-Smoke). Der Frontend-Claude wartet darauf — frühe Auslieferung priorisieren.
+**Nächster Einstieg:** `src/parser/refs.py` mit `resolve_ref(...)` als Vier-Bucket-Funktion plus Asset-Pipeline-Vorbereitung (Bild-Pfade vom Sibling nach `site/`). Frühe Auslieferung priorisieren — der Frontend-Claude wartet darauf.
 
 ---
 
 ## 2026-04-29 — Phase 10 + Citation: Site hat ihre Außenhaut
 
-**Ziel:** Aspekt B aus dem [WORKPLAN](WORKPLAN.md) abräumen — Citation-Daten so embedden, dass die `cite-copy.js`-Buttons echt funktionieren, plus die sechs Aggregations- und Übersichtsseiten aus [interface.md §4](knowledge/interface.md) bauen, damit die Site eine Navigations-Außenhaut hat (heute nur Platzhalter-`index.html`).
+**Ziel:** Aspekt B aus WORKPLAN — Citation-Daten so embedden, dass die `cite-copy.js`-Buttons funktionieren, plus die sechs Aggregations- und Übersichtsseiten bauen, damit die Site eine Navigations-Außenhaut bekommt.
 
-**Erledigt:**
-- Citation-Cleanup (`511e753`): `_to_bibtex(review)` und `_to_csl_dict(review)` als Python-Helper in `src/render/html.py`, registriert als Jinja-Filter. Zwei `<script class="ride-cite-data">`-Blöcke in `review.html` — `application/x-bibtex` für BibTeX (mit Sentinel-Pass-Brace-Escape und `</`-Defence), `application/json` mit `tojson(indent=2)` für CSL-JSON. Acht Tests (canonical shape, Brace- und Backslash-Escape, `</script>`-Defence, autorenlose Reviews, partielle Daten, Single-Name-Personen, Embed-Marker im HTML).
-- Phase 10 Aggregationen (`469d4d6`): `src/render/aggregations.py` mit acht `render_*`-Entry-Points; acht Templates für Startseite, Heftübersicht, Heftansicht, Tags-Übersicht + Detail, Reviewer-Liste + Detail, Reviewed-Resources-Tabelle, plus ein `partials/review_card.html` für die wiederkehrende Beitragskarte. `_render_aggregations` in `src/build.py` ersetzt die Platzhalter-Index-Methode. 12 Tests.
-- Korpus-Reorganisation (`cd85e44`, vor Phase 10): `image-workflow.png` und das Stakeholder-Narrativ `prozess-und-stand.md` aus dem Repo-Root in `knowledge/` verschoben — Stakeholder-Doku gehört in den Wissensvault. CLAUDE.md hard rule auf "Markdown plus referenzierte Image-Attachments" relaxed (vorher `.md only` — der Sinn der Regel war kein generierter JSON, nicht "keine Bilder").
+**Erledigt:** Citation-Cleanup: `_to_bibtex`/`_to_csl_dict` als Jinja-Filter, zwei Embed-`<script>`-Blöcke in `review.html` (BibTeX mit Brace-Escape und `</`-Defence, CSL-JSON). Phase-10-Aggregationen: `src/render/aggregations.py` mit acht `render_*`-Entry-Points plus acht Templates (Startseite, Heftübersicht/-ansicht, Tags, Reviewer, Reviewed-Resources) und ein `review_card`-Partial; ersetzt den Platzhalter-Index. Davor eine Korpus-Reorganisation: `image-workflow.png` und `prozess-und-stand.md` aus dem Root nach `knowledge/` verschoben, CLAUDE.md-Regel auf „Markdown plus referenzierte Image-Attachments" relaxed.
 
 **Entscheidungen:**
-- Aggregationsseiten als `ride-page--solo` (eine Spalte, keine Sidebar). Begründung: interface.md §4 schreibt das so vor — Aggregations- und Editorialseiten haben keine Apparate, also keine Sidebar.
-- BibTeX-Brace-Escape mit Sentinel-Pass statt naivem Replace-Chain. Begründung: `\\textbackslash{}` enthält selbst Braces, naive Replace-Reihenfolgen produzieren `\\textbackslash\\{\\}`. Sentinel `\x00BIBSLASH\x00` umgeht das.
-- Reviewer-Slug ist `surname-forename`. Begründung: macht Slugs stabil bei Namensgleichheit von Personen, eindeutig durchsuchbar, und gleichzeitig lesbar in der URL.
-- Tag-Liste als zweispaltige Markup-Liste (CSS `column-count`) statt Word-Cloud-Visualisierung. Begründung: barrierefrei, scannbar, ohne Visualisierungs-Library; eine echte Cloud wäre Designer-Arbeit und prägt Lesbarkeit nicht positiv.
-- Data-Charts (`/data/`) deferred. Begründung: ohne K-Ref-Auflösung aus Phase 7 wären die Achsen-Labels rohe `seXXX`-IDs — nicht lesbar. Sobald Phase 7 die Labels liefert, kommen die Charts in einem Folge-Sprint.
+- Aggregationsseiten als eine Spalte ohne Sidebar (interface.md §4 — keine Apparate, keine Sidebar).
+- BibTeX-Brace-Escape per Sentinel-Pass statt naivem Replace-Chain (naive Reihenfolge produziert kaputte `\textbackslash`-Sequenzen).
+- Reviewer-Slug als `surname-forename` — stabil bei Namensgleichheit, lesbar in der URL.
+- Tag-Liste als zweispaltige Markup-Liste (`column-count`) statt Word-Cloud — barrierefrei, scannbar, ohne Visualisierungs-Library.
+- Data-Charts deferred bis Phase 7: ohne K-Ref-Auflösung wären die Achsen-Labels rohe IDs.
 
-**Offen:**
-- Phase 7 (Backend): Ref-Resolver und Asset-Pipeline. Sobald `Reference.bucket` am Modell liegt (Pre-Handover-Marker im Journal erwartet), kann das Frontend Cross-Refs Bucket-aware rendern — heute werden sie als rohe Anker emittiert. Bilder zeigen heute noch auf rohe TEI-`@url`-Pfade; nach Phase 7 sind sie unter `site/issues/{n}/{review-id}/figures/` real.
-- Data-Charts (Stretch aus Aspekt B) wartet auf Phase 7.
-- JS-Modul `tooltip.js` ist Stub bis Phase 7, `pagefind.js` Stub bis Phase 11.
-- Heft-YAML-Schema (Phase-Plan-Punkt) ist noch nicht eingehängt — die Heftansichten generieren ihre Metadaten aktuell aus den Review-Headern. Sobald das Schema steht, wird `templates/html/issue.html` um die YAML-Felder erweitert (Heft-DOI, Hrsg.-Liste, Status-Marker bei Rolling Issues).
+**Offen:** Phase 7 (Backend): sobald `Reference.bucket` am Modell liegt, Cross-Refs bucket-aware rendern; Bilder zeigen heute noch auf rohe TEI-`@url`. tooltip.js (bis Phase 7) und pagefind.js (bis Phase 11) sind Stubs. Heft-YAML-Schema noch nicht eingehängt — die Heftansichten generieren Metadaten aus den Review-Headern.
 
-**Nächster Einstieg:** Live-Deploy auf GitHub Pages testen — Push auf `main` triggert den Workflow, der mit dem `--base-url=/ride-static`-Fix sauber durch alle 599 Seiten läuft. Anschließend von Stakeholder-Seite einmal durchklicken, was visuell auffällt. Parallel zum Backend-Phase-7-Ergebnis warten — sobald `Reference.bucket` da ist, ist die Cross-Ref-Integration ein 30-Minuten-Patch in den Render-Macros plus ein paar CSS-Modifier-Klassen.
+**Nächster Einstieg:** Live-Deploy auf GitHub Pages testen (Push triggert den Workflow mit `--base-url=/ride-static`), durchklicken. Parallel auf das Backend-Phase-7-Ergebnis warten — die Cross-Ref-Integration ist danach ein kurzer Patch in den Render-Macros plus CSS-Modifier.
 
 ---
 
 ## 2026-04-29 — Phase 8 First Light, Frontend rendert 107 Reviews End-to-End
 
-**Ziel:** Aus dem Stage-2.B-Datenvertrag heraus den ersten lauffähigen Frontend-Strang aufsetzen — Jinja-Render-Macros für alle Block- und Inline-Kinds, Rezensionsseiten-Template gemäß [[interface#5]], Render-Layer plus Build-CLI, dazu der CI-Workflow für GitHub-Pages-Deploy. Ziel: ein `python -m src.build` baut alle 107 Reviews ohne Raise.
+**Ziel:** Aus dem Stage-2.B-Datenvertrag den ersten lauffähigen Frontend-Strang aufsetzen — Render-Macros, Rezensionsseiten-Template (interface §5), Render-Layer plus Build-CLI, CI-Workflow für GH-Pages. Ziel: ein `python -m src.build` baut alle Reviews ohne Raise.
 
-**Erledigt:**
-- Render-Macros (`templates/html/partials/render.html`): rekursive Block- und Inline-Dispatcher auf `__class__.__name__`, je Kind eine spezialisierte Macro. Whitespace-Strategie an Sequenz-Rändern via Jinja-Trim, BEM-Klassen aus `config/element-mapping.yaml`.
-- Section-Partial (`partials/section.html`): rekursiv mit `Section.level + 1` als Heading-Level (h2..h4); h1 reserviert für den Seitentitel.
-- Apparate-Partial (`partials/apparate.html`): paralleles Dreispalten-Layout mit Figures + Notes, leere Panels kollabieren, References-Slot wartet auf Phase 7.
-- Rezensionsseiten-Template (`templates/html/review.html`): Kopfbereich (Titel, reviewed item aus `related_items`, Reviewer-Block mit ORCID + Mail obfuscated), Abstract-Section gesondert, Body, Apparate, Sidebar mit TOC + Meta + Cite.
-- Render-Layer (`src/render/html.py`): Jinja-Env mit ChainableUndefined (für optionale UI-Strings), drei Filter (`slugify`, `obfuscate_mail`, `inlines_to_text`), `SiteConfig`+`BuildInfo`-Dataclasses, `render_review(review, site, env)`. Abstract wird via `split_abstract` aus `Review.body` separiert.
-- Build-CLI (`src/build.py`): walks `../ride/tei_all/`, parst, rendert, schreibt nach `site/issues/{n}/{id}/index.html`, kopiert `static/` und das originale TEI; Platzhalter-Index für die Site-Wurzel; `--reviews N` und `--base-url` als Optionen; per-Datei-Failure crasht nicht den ganzen Build.
-- 16 Render-Tests in `tests/test_render_html.py` — Filter-Units, `split_abstract`, Skelett-Marker, alle Block-Kinds rendern ohne Raise, Apparate kollabiert/erscheint, Reference rendert mit `data-ref-type`, alle Templates laden ohne Syntax-Error, Real-Korpus-Smoke gegen ein Review.
-- Voller Korpus-Build: **107/107 Reviews rendern ohne Fehler**, Pages 36–63 KB, `site/static/css/ride.css` mit deployt.
-- `.gitignore` um `site/` ergänzt.
-- CI-Workflow `.github/workflows/build.yml` mit Build- + Deploy-Job (actions/upload-pages-artifact + actions/deploy-pages); `/docs`-Variante explizit verworfen.
+**Erledigt:** Render-Macros (`partials/render.html`): rekursive Block-/Inline-Dispatcher auf `__class__.__name__`, BEM-Klassen aus `element-mapping.yaml`. Section-Partial rekursiv (h2..h4, h1 für den Seitentitel), Apparate-Partial als Dreispalten-Layout (leere Panels kollabieren, References-Slot wartet auf Phase 7). Rezensions-Template mit Kopf/Abstract/Body/Apparate/Sidebar. Render-Layer mit `ChainableUndefined`, drei Filtern und `SiteConfig`/`BuildInfo`. Build-CLI walkt, parst, rendert, kopiert static und Original-TEI, fängt Per-Datei-Failures. Voller Korpus-Build: 107/107 Reviews ohne Fehler. CI-Workflow mit Build- und Deploy-Job.
 
 **Entscheidungen:**
-- `ChainableUndefined` statt `StrictUndefined` für die Jinja-Env. Begründung: UI-Strings sind ein optional-deeply-nested dict; mit StrictUndefined müsste jede Default-Falle als `{% if %}`-Branch geschrieben werden, das bläht jedes Template auf. Tippfehler bei domain-objekten fängt der Test-Layer.
-- Render-Macros zentral in einer Datei statt eine Datei pro Block/Inline-Kind. Begründung: rekursive Dispatcher müssen sich gegenseitig sehen, und 11 Kinds × eigene Datei wäre Overhead ohne Gewinn — die Datei ist 110 Zeilen, weiterhin lesbar.
-- Block-Dispatch über `__class__.__name__` statt isinstance-Kette. Begründung: Templates kennen den String-Namen aus `element-mapping.yaml`, Konvention bleibt eindeutig parallel zur YAML.
-- Apparate kollabiert komplett wenn weder Figures noch Notes da sind, statt leere Panel zu rendern. Begründung: paralleles Layout aus [[interface#6]] braucht Inhalt, sonst wirkt es als Skelett-Bug.
-- References werden als rohe Anker mit `data-ref-type` gerendert; Resolver-Logik (4-Bucket) ist Phase 7. Templates können Phase-7-Buckets später per CSS-Selector adressieren ohne Markup-Änderung.
-- Build-CLI fängt Per-Datei-Failures, statt den Lauf abzubrechen. Begründung: ein einzelner anomaler Review soll nicht 106 fehlerfreie Renderings blockieren; aggregierte Fehlerausgabe genügt für jetzt, Phase 13 wird daraus den `build-info.json`-Bericht machen.
+- `ChainableUndefined` statt `StrictUndefined` — UI-Strings sind ein optional-tief-verschachteltes dict; Strict bliese jedes Template mit Default-Branches auf, Tippfehler an Domain-Objekten fängt der Test-Layer.
+- Render-Macros zentral in einer Datei — rekursive Dispatcher müssen sich gegenseitig sehen, eine Datei pro Kind wäre Overhead.
+- Block-Dispatch über `__class__.__name__` statt isinstance-Kette — parallel zur YAML-Konvention.
+- Apparate kollabiert komplett ohne Figures/Notes statt leerer Panel (sonst wirkt es als Skelett-Bug).
+- Build-CLI fängt Per-Datei-Failures, damit ein anomaler Review nicht den ganzen Lauf blockiert; Phase 13 macht daraus den Bericht.
 
-**Offen:** 
-- Phase 7 (Ref-Resolver, Asset-Pipeline) — Voraussetzung für Tooltip-Vorschau und korrekte Figure-Pfade. Aktuell rendern Figures mit den rohen TEI-`@url`-Werten; Bilder sind im Output noch broken.
-- Phase 6 (Bibliography, Questionnaire) — sobald `Review.bibliography` und `Review.questionnaire` da sind, bekommen Rezensionsseite (Bibliographie-Apparat) und Sidebar (Factsheet) ihre fehlenden Blöcke.
-- JS-Module (`copy-link.js`, `tooltip.js`, `cite-copy.js`, `pagefind.js`) sind in `base.html` referenziert, aber noch nicht implementiert.
-- CSS-Komponenten-Regeln für die Apparate-Sub-Blöcke und Sidebar-Boxen sind als Klassen-Hooks definiert, brauchen aber noch konkrete Styles (Hover-States, Spacing-Feinschliff).
-- Aggregations- und Editorialseiten (Phase 9, 10) noch nicht angelegt.
+**Offen:** Phase 7 (Resolver, Assets) — Voraussetzung für Tooltip-Vorschau und korrekte Figure-Pfade; Bilder heute broken. Phase 6 (Bibliography, Questionnaire) — füllt Bibliographie-Apparat und Sidebar-Factsheet. JS-Module sind referenziert, aber Stubs. CSS-Komponenten-Styles für Apparate/Sidebar fehlen. Aggregations- und Editorialseiten (Phase 9/10) noch nicht angelegt.
 
-**Nächster Einstieg:** Editorial-Markdown-Stubs (`content/about.md`, `imprint.md`, `criteria.md`) plus `templates/html/editorial.html`, weil diese Achse vom Backend-Status unabhängig ist und die Site eine Navigations-Außenhaut bekommt. Anschließend die vier JS-Module als jeweils 30–60-Zeilen-ES-Module ohne Bundling, zuerst `copy-link.js` und `cite-copy.js`. Sobald Phase 6 landet, Sidebar-Factsheet aus `Review.questionnaire` befüllen und einen Bibliographie-Apparat im Apparate-Block einhängen.
+**Nächster Einstieg:** Editorial-Stubs plus `editorial.html` (vom Backend-Status unabhängig, gibt der Site eine Navigations-Außenhaut), dann die vier JS-Module als kleine ES-Module (zuerst copy-link und cite-copy). Sobald Phase 6 landet, Sidebar-Factsheet und Bibliographie-Apparat befüllen.
 
 ---
 
 ## 2026-04-29 — Phase 5 abgeschlossen, Stage 2.B steht; Rollen-Split etabliert
 
-**Ziel:** Stage 2.B abschließen — `parse_inlines` überall einhängen, Block-in-Paragraph-Anomalie auflösen, `parse_review` integrieren, Aggregate für Figures und Notes materialisieren. Parallel die Koordinationsschicht zwischen Backend- und Frontend-Claude einrichten.
+**Ziel:** Stage 2.B abschließen — `parse_inlines` überall einhängen, Block-in-Paragraph-Anomalie auflösen, `parse_review` integrieren, Figures/Notes-Aggregate materialisieren. Parallel die Koordinationsschicht zwischen Backend- und Frontend-Claude einrichten.
 
-**Erledigt:**
-- Commit 5.A (`7662712`): Refactor von `UnknownTeiElement`/`locate_hint` nach `common.py`, parse_inlines in alle Per-Kind-Parser eingehängt, sections.py-Heading auf Walker umgestellt. Modell additiv erweitert: `Paragraph.xml_id`, `Figure.xml_id`, `Figure.alt`. Long-Tail-Inlines (mod, del, seg, affiliation, plus Bib-Strukturelemente) als Passthrough-Text.
-- Commit 5.B (`f09e707`): `parse_paragraph_or_split` zerlegt `<p>` mit Block-Kindern in alternierende Paragraph-/Block-Sequenz; erste Chunk erbt `@xml:id`/`@n`, Continuations sind synthetisch. `parse_block_sequence` als neuer Section-Block-Walker. ListItem und TableCell um `blocks`-Feld erweitert für nested Lists/Figures. `<p>` in `<note>` als transparenter Wrapper unwrapped.
-- Commit 5.C (`fd25fbb`): `parse_review` zieht front/body/back über `parse_sections`. `src/parser/aggregate.py` neu — Tiefen-Walker für Figures und Notes in Dokumentreihenfolge, durch alle Inline-tragenden Flächen. `<listBibl>` (102×) als `_DEFERRED_BLOCKS` für Phase 6 markiert. Korpus-Smoke gegen alle 107 Reviews durchläuft mit ≥800 Figures und ≥1800 Notes.
+**Erledigt:** `parse_inlines` in alle Per-Kind-Parser eingehängt, Modell additiv erweitert (`Paragraph.xml_id`, `Figure.xml_id`/`alt`, Long-Tail-Inlines als Passthrough-Text). `parse_paragraph_or_split` zerlegt `<p>` mit Block-Kindern in alternierende Paragraph-/Block-Sequenz (erster Chunk erbt `@xml:id`/`@n`); ListItem/TableCell um `blocks`-Feld für nested Lists/Figures erweitert. `parse_review` zieht front/body/back; `src/parser/aggregate.py` als Tiefen-Walker für Figures und Notes in Dokumentreihenfolge; `<listBibl>` für Phase 6 markiert. Korpus-Smoke über alle Reviews durchläuft.
 
 **Entscheidungen:**
-- Drei Spec-Frage aus dem UI-Audit defensibel beantwortet: figDesc warn (Phase 13), Wayback-Detector deferred to Phase 7, inline xml:lang-Spec entschärft auf Section-/Review-Level (Korpus markiert keine Inline-Sprache, redaktionell nachzuziehen).
-- `<listBibl>` skip-and-defer statt Placeholder-Block. Begründung: Phase 6 ersetzt den Branch ohnehin, Placeholder-Klasse wäre toter Code.
-- Nested Blocks in Items/Cells als zusätzliches `blocks: tuple[Block, ...]`-Feld am ListItem/TableCell statt Mixed-Typ-Children. Dokument-Order-Interleaving zwischen Inlines und Blocks ist konventionell aufgelöst (Inlines first, Blocks second).
-- Aggregate (Figures, Notes) am Parse-Zeitpunkt materialisiert statt lazy. Begründung: Templates bekommen pure Domänenobjekte, keine Iterator-Aufrufe — entspricht N1 (Read-only-Pipeline).
-- Rollen-Split: Backend + Doku + Koordination = ich; Frontend (Templates, CSS, JS, HTML-Build) = anderer Claude. Datenvertrag = Domänenobjekte; gemeinsame Doku = `COORDINATION.md`.
+- Drei Spec-Fragen aus dem UI-Audit beantwortet: figDesc warn (Phase 13), Wayback-Detector deferred (Phase 7), inline xml:lang auf Section-/Review-Level entschärft (Korpus markiert keine Inline-Sprache).
+- `<listBibl>` skip-and-defer statt Placeholder-Block (Phase 6 ersetzt den Branch ohnehin, Placeholder wäre toter Code).
+- Nested Blocks als `blocks`-Feld am ListItem/TableCell statt Mixed-Typ-Children; Order konventionell (Inlines first, Blocks second).
+- Aggregate am Parse-Zeitpunkt materialisiert statt lazy — Templates bekommen pure Domänenobjekte (N1).
+- Rollen-Split: Backend + Doku + Koordination = ich; Frontend = anderer Claude; Datenvertrag = Domänenobjekte; gemeinsame Doku = COORDINATION.md.
 
-**Offen:** Phase 6 — Bibliography-Parser (`<bibl>` strukturiert), Questionnaire-Parser (`<num value="0|1|3">`), und Aggregat-Datasets (Tags, Reviewer, Reviewed Resources). Phase 7 — Ref-Resolver (4-Bucket-Logik, Wayback-Detection, K-Ref-Auflösung gegen externes Kriteriendokument). Phase 8 — der Frontend-Claude beginnt sobald `Review.bibliography` und `Review.questionnaire` aus Phase 6 verfügbar sind, kann aber heute schon mit dem Stage-2.B-Modell-Stand auf der Rezensionsansicht arbeiten.
+**Offen:** Phase 6 (Bibliography, Questionnaire, Aggregat-Datasets). Phase 7 (Ref-Resolver, Wayback, K-Ref-Auflösung). Phase 8 startet, sobald `Review.bibliography`/`Review.questionnaire` da sind, kann aber heute schon auf dem Stage-2.B-Modell arbeiten.
 
-**Nächster Einstieg:** `src/model/bibliography.py` mit `BibEntry`-Dataclass plus `src/parser/bibliography.py` für `<listBibl>`/`<bibl>`-strukturierte Bibliografieeinträge. Korpus-Konvention prüfen (welche TEI-Felder pro bibl?), dann Synthetik plus Real-Korpus-Smoke gegen ein Review mit voller Bibliographie. Anschließend Questionnaire-Parser für die `<num>`-Boolean-Antworten gemäß `taxonomy.json`.
+**Nächster Einstieg:** `src/model/bibliography.py` plus `src/parser/bibliography.py` für `<listBibl>`/`<bibl>`-Einträge (Korpus-Konvention prüfen, dann Synthetik + Real-Korpus-Smoke). Anschließend der Questionnaire-Parser für die `<num>`-Boolean-Antworten.
 
 ---
 
 ## 2026-04-29 — Phase 4 abgeschlossen, Inline-Parser steht
 
-**Ziel:** Mixed-Content-Walker `parse_inlines(host)` für die sechs verifizierten Inline-Kinds (Text, Emphasis, Highlight, Reference, Note, InlineCode), inklusive Whitespace-Strategie an Sequenz-Rändern und Normalisierung der `crosssref`-Typo.
+**Ziel:** Mixed-Content-Walker `parse_inlines(host)` für die sechs verifizierten Inline-Kinds (Text, Emphasis, Highlight, Reference, Note, InlineCode), inklusive Whitespace-Strategie und Normalisierung der `crosssref`-Typo.
 
-**Erledigt:** Commit `6d9f05e` — `src/parser/inlines.py` mit Walker, Per-Kind-Helfern, Whitespace-Logik (internal collapse, edge strip, drop empties, coalesce adjacent text). 26 Tests in `tests/test_parser_inlines.py`: Walker-Basics, Whitespace, jeder Kind einzeln, Nesting (Emph-in-Ref und Ref-in-Emph), Soft-Skip von `<lb/>`, Comment-Tail-Erhalt, Unknown-Raise. Zwei Real-Korpus-Smokes: zehn `<head>`-Parse-ohne-Raise und die eine `crosssref`-Stelle wird zu `crossref` normalisiert. Modell-Erweiterung: `Note.xml_id: Optional[str] = None` als Footnote-Anker für Phase 7. 170/170 Tests.
+**Erledigt:** `src/parser/inlines.py` mit Walker, Per-Kind-Helfern und Whitespace-Logik (internal collapse, edge strip, drop empties, coalesce adjacent text); Nesting, Soft-Skip von `<lb/>`, Comment-Tail-Erhalt, Unknown-Raise. Real-Korpus-Smokes (zehn `<head>` ohne Raise, die eine `crosssref`-Stelle wird zu `crossref` normalisiert). Modell um `Note.xml_id` als Footnote-Anker für Phase 7 erweitert.
 
 **Entscheidungen:**
-- `<lb/>` soft-skip als Single-Space statt eigener Inline-Klasse. Begründung: 30 Vorkommen, fast ausschließlich in `<quote>`; das Modell hält an sechs Kinds fest, der Walker dokumentiert die Ausnahme. Phase 8/14 können bei Bedarf Whitespace-pre-line setzen.
-- `Note.xml_id` ergänzt, nicht in Phase 1 vorausgenommen. Begründung: Korpus zeigt 1919/1926 Notes mit `xml:id="ftnN"`, ohne den Wert kann Phase 7 (Ref-Resolver) das `<ref target="#ftnN">`/`<note xml:id="ftnN">`-Paar nicht verbinden. Additiv, default `None`.
-- Block-Elemente in `<p>` (figure, list, cit, table mit zusammen ~1000 Vorkommen unter `<p>`) raisen sauber via `UnknownTeiElement`. Phase 5 muss diese Pre-Extraction als Integrations-Concern lösen — das ist nicht Sache des Inline-Walkers.
-- `crosssref→crossref`-Map als Daten, nicht als Code-Branch. Falls künftige RIDE-Submissions neue Typen einführen, passieren die unverändert durch — kein Whitelist-Raise an dieser Stelle.
+- `<lb/>` soft-skip als Single-Space statt eigener Inline-Klasse — wenige Vorkommen, fast nur in `<quote>`; das Modell hält an sechs Kinds fest.
+- `Note.xml_id` ergänzt (additiv, default `None`): fast alle Notes tragen `xml:id="ftnN"`, ohne den Wert kann Phase 7 das `<ref>`/`<note>`-Paar nicht verbinden.
+- Block-Elemente in `<p>` raisen sauber via `UnknownTeiElement` — Phase 5 löst die Pre-Extraction als Integrations-Concern, nicht der Inline-Walker.
+- `crosssref→crossref` als Daten-Map, nicht Code-Branch: künftige neue Typen passieren unverändert durch.
 
-**Offen:** Phase 5 — Integration in `parse_review`. `parse_sections` und `parse_block` füllen ihre `inlines=()`-Felder via `parse_inlines`. Block-in-Paragraph-Anomalie (figure/list/cit/table inline-in-p) muss vor dem Inline-Walker abgegriffen werden, sonst raised der gesamte Korpus. Strategie: Pre-Pass über `<p>`, der Block-Children herauslöst und als Sibling-Blöcke einreiht; der inlines-Anteil bleibt rein. Anschließend Real-Korpus-Smoke gegen alle 107 Reviews.
+**Offen:** Phase 5 — Integration in `parse_review`: `parse_sections`/`parse_block` füllen ihre `inlines=()`-Felder; die Block-in-Paragraph-Anomalie muss vor dem Inline-Walker abgegriffen werden (Pre-Pass über `<p>`, der Block-Children als Sibling-Blöcke einreiht), sonst raised der ganze Korpus.
 
-**Nächster Einstieg:** `src/parser/integration.py` (oder Erweiterung in `blocks.py`) mit `_split_paragraph(p)` → `(Paragraph, list[Block])`, das Block-Kinder aus dem Mixed-Content auslagert. Dann `parse_review` so erweitern, dass `Review.body` für alle 107 Reviews vollständig befüllt ist. Stage 2.B abgeschlossen, sobald der Korpus-Smoke ohne Anomalien durchläuft.
+**Nächster Einstieg:** `_split_paragraph(p)` → `(Paragraph, list[Block])`, das Block-Kinder aus dem Mixed-Content auslagert; dann `parse_review` so erweitern, dass `Review.body` für alle Reviews befüllt ist. Stage 2.B abgeschlossen, sobald der Korpus-Smoke durchläuft.
 
 ---
 
@@ -568,17 +458,17 @@ R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/fact
 
 **Ziel:** Block-Parser für die fünf verifiziert vorkommenden Block-Kinds (Paragraph, List, Table, Figure, Citation), inklusive List-Rend-Normalisierung, Figure-Kind-Detection und Dispatcher mit klarer Fehlermeldung bei Unbekanntem.
 
-**Erledigt:** Commit `bf7d794` — `src/parser/blocks.py` mit fünf Per-Kind-Funktionen (`parse_paragraph`, `parse_list`, `parse_table`, `parse_figure`, `parse_cit`), `parse_block(el)` als Dispatcher, `UnknownTeiElement` als Exception mit Localname-Feld und Div-xml:id-Hint. `tests/test_parser_blocks.py` mit 20 Cases inklusive Real-Korpus-Smoke gegen ein `<figure>/<eg>`-Vorkommen.
+**Erledigt:** `src/parser/blocks.py` mit fünf Per-Kind-Funktionen, `parse_block(el)` als Dispatcher und `UnknownTeiElement` (mit Localname-Feld und Div-xml:id-Hint); Real-Korpus-Smoke gegen ein `<figure>/<eg>`-Vorkommen.
 
 **Entscheidungen:**
-- Block-Parser als ein Commit statt drei. Der Plan sah 3.1/3.2/3.3 vor; die Trennung wäre artificial gewesen, weil Dispatcher und die fünf Funktionen sich gegenseitig brauchen.
-- Inlines bleiben in Phase 3 durchgängig `()`. Phase 4 wird sie befüllen, sobald der Mixed-Content-Walker steht. Das Phase-3-Contract ist „richtige Block-Kind mit korrekter struktureller Metadaten", nicht „vollständiger Inhalt".
-- `UnknownTeiElement` als eigene Exception statt `ValueError`, damit Catch-Branches und Build-Berichte den Anomaly-Typ präzise erkennen können.
-- Tabellen-Header über `@role="label"` erkannt — Korpus-Konvention; in den 12 vorhandenen Tabellen die einzige verlässliche Markierung.
+- Block-Parser als ein Commit statt drei — Dispatcher und die fünf Funktionen brauchen sich gegenseitig, eine Trennung wäre artificial.
+- Inlines bleiben in Phase 3 durchgängig `()`; Phase 4 füllt sie. Das Phase-3-Contract ist „richtige Block-Kind mit korrekter Struktur-Metadatik", nicht „vollständiger Inhalt".
+- `UnknownTeiElement` als eigene Exception statt `ValueError`, damit Catch-Branches und Berichte den Anomaly-Typ präzise erkennen.
+- Tabellen-Header über `@role="label"` erkannt — Korpus-Konvention, die einzige verlässliche Markierung.
 
-**Offen:** Phase 4 — Inline-Parser. Mixed-Content-Walker für `<p>`, `<head>`, `<cell>`, `<quote>`, `<bibl>`, `<item>`, `<note>`. Whitespace-Behandlung an den Rändern (lstrip/rstrip), Erhalt im Inneren. Pro Inline-Kind eine Funktion: Text, Emphasis, Highlight, Reference, Note, InlineCode. Normalisierung von `<ref type="crosssref">` zu `crossref`.
+**Offen:** Phase 4 — Inline-Parser: Mixed-Content-Walker für `<p>`, `<head>`, `<cell>`, `<quote>`, `<bibl>`, `<item>`, `<note>`; Whitespace an den Rändern; eine Funktion pro Inline-Kind; Normalisierung `crosssref` → `crossref`.
 
-**Nächster Einstieg:** `src/parser/inlines.py` mit `parse_inlines(el)` als Walker und einem `_parse_inline(child)`-Dispatch. Synthetische Fixtures für Mixed-Content-Walker (Text-Tail-Text), jeden Inline-Typ einzeln, geschachtelte Inlines.
+**Nächster Einstieg:** `src/parser/inlines.py` mit `parse_inlines(el)` als Walker und einem `_parse_inline(child)`-Dispatch; synthetische Mixed-Content-Fixtures plus geschachtelte Inlines.
 
 ---
 
@@ -586,18 +476,16 @@ R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/fact
 
 **Ziel:** Rekursiver Section-Parser für `<front>`, `<body>`, `<back>`. Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>`- oder `<cit>`-Kind unter `<body>`.
 
-**Erledigt:**
-- Commit 2.1 (`52d4d7d`): `src/parser/sections.py` mit `parse_sections(host)` und rekursivem `_parse_div()`. Anomalien: fehlende `@xml:id` → positionsbasierter Fallback `sec-1.2.3`; fehlendes `<head>` → `heading=None`; unbekannte `@type`-Werte → `None`; Schachtelung > 3 → ValueError; `parse_sections(None)` → `()` für No-Back-Reviews. 11 Tests inkl. Real-Korpus-Smoke.
-- Commit 2.2 (`07b3e66`): Body-Wrap-Branch für die sieben anomalen Reviews. Verifiziert gegen Korpus: bdmp, commedia, whistler (cit-first); phi, ps, varitext, wba (p-first). Drei synthetische Tests plus zwei Real-Korpus-Smokes (bdmp gezielt, alle 107 Reviews fehlerfrei).
+**Erledigt:** `src/parser/sections.py` mit `parse_sections(host)` und rekursivem `_parse_div()`; Anomalien: fehlende `@xml:id` → positionsbasierter Fallback, fehlendes `<head>` → `heading=None`, unbekannte `@type` → `None`, Schachtelung > 3 → ValueError, `parse_sections(None)` → `()` für No-Back. Body-Wrap-Branch für die sieben anomalen Reviews, gegen Korpus verifiziert (drei cit-first, vier p-first) plus Real-Korpus-Smokes.
 
 **Entscheidungen:**
-- Section.blocks bleibt `()` in Phase 2; Phase 5 wird sie befüllen, sobald Phase 3 (Block-Parser) und Phase 4 (Inline-Parser) liegen. Heading wird vorerst als `(Text(text),)` ohne Mixed-Content-Walker abgelegt.
-- Wrap-Detection element-basiert über `etree.QName(child).localname`, mit Skip von Kommentaren und PIs. Das verhindert False Negatives bei stilistisch formatierten Quelldateien.
-- Synthese-ID-Format ist `sec-` plus Punkt-getrennter Position. Begründung: kollisionsfrei mit echten `xml:id`s der Form `divN.M.K`, weil das Präfix `sec-` im Korpus nirgends vergeben ist.
+- `Section.blocks` bleibt `()` in Phase 2; Phase 5 füllt sie. Heading vorerst als `(Text(text),)` ohne Mixed-Content-Walker.
+- Wrap-Detection element-basiert über `QName(child).localname`, mit Skip von Kommentaren/PIs — verhindert False Negatives bei formatierten Quelldateien.
+- Synthese-ID-Format `sec-` plus Punkt-Position — kollisionsfrei mit echten `xml:id`s, weil das Präfix im Korpus nirgends vergeben ist.
 
-**Offen:** Phase 3 — Block-Parser. Erfordert eine Funktion pro Block-Typ (Paragraph, List, Table, Figure, Citation), Normalisierung der List-Rends (`numbered→ordered`, `unordered→bulleted`), und einen `parse_block`-Dispatcher, der bei unbekannten Elementen mit klarem Kontext raises (gemäß CLAUDE.md hard rule).
+**Offen:** Phase 3 — Block-Parser: eine Funktion pro Block-Typ, List-Rend-Normalisierung (`numbered→ordered`, `unordered→bulleted`), `parse_block`-Dispatcher mit klarem Raise bei Unbekanntem.
 
-**Nächster Einstieg:** `src/parser/blocks.py` anlegen. Erste Funktion `_parse_p(p)` → `Paragraph` mit `inlines=()` (Phase 4 füllt mixed content) und `n=p.get('n')`. Synthetische Fixture, dann inkrementell weitere Block-Typen.
+**Nächster Einstieg:** `src/parser/blocks.py` anlegen, erste Funktion `_parse_p(p)` → `Paragraph` mit `inlines=()` und `n=p.get('n')`; synthetische Fixture, dann inkrementell weitere Block-Typen.
 
 ---
 
@@ -605,55 +493,30 @@ R9-Charts (`src/render/charts.py`) und R1-Sidebar (`templates/html/partials/fact
 
 **Ziel:** Datenmodell für Section, Block und Inline als frozen dataclasses anlegen, ohne Parser-Logik. Review-Klasse um die drei body-Felder erweitern.
 
-**Erledigt:**
-- Commit 1.1 (`e9a0be9`): `src/model/{section,block,inline}.py` plus `tests/test_model.py` mit 18 Cases. Block-Liste auf fünf verifizierte Kinds reduziert (Paragraph, List, Table, Figure, Citation); Note und InlineCode in Inline.
-- Commit 1.2 (`5060990`): Review erweitert um `front`, `body`, `back` als `tuple[Section, ...]` mit Default `()`. Additive Änderung, keine Breaking Changes für Stage-2.A-Aufrufer. Ein neuer Test pinnt das Default-Verhalten.
-- Refactoring-Vorlauf (Commits `e944ba1`, `2bff731`, `93b957d`): Architecture-Doc auf verifizierten Block-Stand gebracht, README auf akademisch-nüchtern, requirements.txt angelegt, Forward-References explizit markiert.
+**Erledigt:** `src/model/{section,block,inline}.py` plus Modell-Tests; Block-Liste auf fünf verifizierte Kinds reduziert (Note und InlineCode wandern zu Inline). Review um `front`/`body`/`back` als `tuple[Section, ...]` mit Default `()` erweitert (additiv, keine Breaking Changes). Refactoring-Vorlauf: Architecture-Doc auf den verifizierten Block-Stand, README nüchterner, requirements.txt angelegt.
 
 **Entscheidungen:**
-- `List` als Klassennamen behalten trotz Konflikt mit `typing.List` — kein Konflikt im Code, da typing nicht importiert wird; `typing.List` ist seit Python 3.9 ohnehin deprecated zugunsten von `list[]`.
-- `Paragraph.n` als optionales Feld für die Citation-Anchor-Nummern aus interface.md §11.
-- `Figure.kind` ∈ {graphic, code_example} statt zwei separater Klassen — die Felder `graphic_url` und `code` sind je nach kind gesetzt; einfacher zu rendern als Polymorphie.
+- `List` als Klassenname behalten trotz `typing.List` — kein Konflikt, da typing nicht importiert wird.
+- `Paragraph.n` als optionales Feld für die Citation-Anchor-Nummern (interface §11).
+- `Figure.kind` ∈ {graphic, code_example} statt zwei Klassen — Felder je nach kind gesetzt, einfacher zu rendern als Polymorphie.
 
-**Offen:** Phase 2 — Section-Parser. Erfordert die Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>` oder `<cit>` unter `<body>`.
+**Offen:** Phase 2 — Section-Parser; erfordert die Body-Wrap-Anomalie für die sieben Reviews mit direktem `<p>`/`<cit>` unter `<body>`.
 
-**Nächster Einstieg:** `src/parser/sections.py` mit `parse_sections(host)` und `_parse_div(div, level, position)`. Synthetische Fixtures plus ein Real-Korpus-Smoke-Test gegen ein Wrap-Review (z. B. `tustep-tei.xml`).
+**Nächster Einstieg:** `src/parser/sections.py` mit `parse_sections(host)` und `_parse_div(div, level, position)`; synthetische Fixtures plus ein Real-Korpus-Smoke gegen ein Wrap-Review (z. B. tustep).
 
 ---
 
 ## 2026-04-29 — Konsolidierung K1-K4 vor Phase 1
 
-**Ziel:** Vor dem Start der eigentlichen Implementierungsphasen den Knowledge-Vault vereinheitlichen, das Repo selbsterklärend machen, das YAML-Mapping als Architekturentscheidung verankern und eine Journal-Konvention etablieren.
+**Ziel:** Vor dem Start der Implementierungsphasen den Knowledge-Vault vereinheitlichen, das Repo selbsterklärend machen, das YAML-Mapping als Architekturentscheidung verankern und eine Journal-Konvention etablieren.
 
-**Erledigt:**
-- K1 (Commit `a39856b`): `requirements.md` und `interface.md` in den Knowledge-Vault integriert, Naming auf lowercase vereinheitlicht, Wikilinks durchgängig gesetzt.
-- K3 (Commit `6b40d27`): YAML-Element-Mapping als Architektursektion in `architecture.md`; N2 in `requirements.md` mit Verweis auf das Schema.
-- K2 (Commit `5f85f01`): `README.md`, `CONTRIBUTING.md`, `docs/extending.md`, `docs/url-scheme.md` neu — Repo ist self-explaining.
-- K4 (dieser Commit): Journal-Konvention etabliert.
+**Erledigt:** `requirements.md` und `interface.md` in den Vault integriert, Naming auf lowercase, Wikilinks durchgängig. YAML-Element-Mapping als Architektursektion in architecture.md, N2 mit Verweis aufs Schema. `README.md`, `CONTRIBUTING.md`, `docs/extending.md`, `docs/url-scheme.md` neu — Repo ist self-explaining. Journal-Konvention etabliert.
 
 **Entscheidungen:**
-- Naming-Konvention: alle hand-geschriebenen Knowledge-Dokumente lowercase; Generierte ebenso. Begründung: Konsistenz, Case-Insensitivity-Vermeidung zwischen Windows-Filesystem und Linux-CI.
-- YAML-Mapping als formale Architekturentscheidung statt nur Konvention. Begründung: macht N2 (Erweiterbarkeit) ausführbar prüfbar statt nur prosaisch.
-- Journal getrennt von Memory führen. Begründung: Memory speichert dauerhafte Fakten, Journal speichert Sessionverlauf — Trennung verhindert Wildwuchs in beiden.
+- Naming-Konvention: alle Knowledge-Dokumente lowercase. Grund: Konsistenz, Vermeidung von Case-Insensitivity-Konflikten zwischen Windows und Linux-CI.
+- YAML-Mapping als formale Architekturentscheidung statt nur Konvention — macht N2 (Erweiterbarkeit) ausführbar prüfbar.
+- Journal getrennt von Memory führen — Memory speichert dauerhafte Fakten, das Journal den Sessionverlauf.
 
-**Offen:**
-- Custom-Domain-Frage (eigene Domain vs. `<owner>.github.io/<repo>`) ist weiter offen, prägt URL-Schema-Stabilität, ist vor Phase 15 zu entscheiden.
-- Distribution großer Artefakte (Pages vs. Releases) noch nicht festgelegt.
-- Modus für regenerierte Knowledge-Docs in CI (strict vs. auto-commit) offen.
+**Offen:** —
 
-**Nächster Einstieg:** Phase 1 starten — Datenmodell für Section / Block / Inline als frozen dataclasses in `src/model/{section,block,inline}.py`. Keine Parser-Logik. Plus kleiner Doc-Patch in `architecture.md` zur Anomalietabelle für `<list rend="labeled">` und `<figure>` mit `<eg>`.
-
-## 2026-04-28 — Requirements und Interface integriert, Gesamtplan erstellt
-
-**Ziel:** `requirements.md` und `interface.md` als Wissensdokumente einarbeiten; den Acht-Phasen-Plan auf einen Fünfzehn-Phasen-Plan erweitern; einen Gesamt-Implementierungsplan erzeugen.
-
-**Erledigt:** Wikilink-Netz zwischen sechs Knowledge-Dokumenten hergestellt. Fünfzehn-Phasen-Plan in `pipeline.md` Phasenplan verankert, anchored an alle siebzehn R- und zehn N-Klauseln aus `requirements.md`. Memory-Einträge `project_requirements.md` und `project_interface.md` neu. Gesamt-Implementierungsplan in `~/.claude/plans/ride-static-gesamt-implementierungsplan.md`.
-
-**Entscheidungen:**
-- Acht Phasen reichen nicht; der Scope laut Requirements verlangt fünfzehn. Begründung: Aggregationen, Editorialschicht, Suche, Maschinen-APIs, Validierung, PDF und Deploy sind eigene Bauabschnitte.
-- Phase 9 (Editorial) vor Phase 10 (Aggregation), weil Aggregationsseiten Markdown- und YAML-Inhalte aus Phase 9 konsumieren.
-- Kein separates `reader-current.md`; Bestandskritik landet in `interface.md` §3.
-
-**Offen:** Plan-Freigabe stand aus, ist mit dieser Session erteilt.
-
-**Nächster Einstieg:** K1 (Naming-Vereinheitlichung) ausführen — siehe Journal-Eintrag oben.
+**Nächster Einstieg:** Phase 1 — Datenmodell für Section/Block/Inline als frozen dataclasses.

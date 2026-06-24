@@ -29,7 +29,7 @@ related:
 
 ## 1. Zweck und Scope
 
-Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus 111 TEI-XML-Rezensionen, einem schmalen Bestand redaktioneller Markdown-Texte und einer pro Issue gepflegten Konfiguration erzeugt wird.
+Dieses Dokument beschreibt die Anforderungen an die statische Neufassung der RIDE-Website. Bisheriger Stand ist die eXist-basierte Lösung mit dynamischer Generierung der meisten Seiten und eingebettetem WordPress-Anteil für statische Inhalte. Zielzustand ist eine vollständig statisch gebaute Site, die aus dem TEI-XML-Rezensionskorpus, den redaktionellen TEI-Seiten unter `pages/` und einer pro Issue gepflegten Konfiguration erzeugt wird.
 
 Das Projekt *ride-static* mit seinen acht Pipeline-Phasen deckt den Inhaltsbereich ab. Dieses Requirements-Dokument erweitert den Scope auf die vollständige Site und benennt vier weitere Funktionsbereiche, die als eigene Bauabschnitte nach Abschluss von Phase 8 anschließen.
 
@@ -45,7 +45,7 @@ Build läuft in einem Linux-Runner mit Python und Node-Toolchain. Externe Biblio
 
 URL-Struktur folgt der Verzeichnisstruktur des Deploy-Branches. Headers, Redirects und 404-Handling sind nur in dem Maß möglich, das GitHub Pages bietet.
 
-Drei übergreifende Architekturgrundsätze gelten in allen Bereichen. Die Pipeline ist read-only gegenüber TEI; sie schreibt niemals zurück. TEI ist die einzige Quelle der Wahrheit für strukturierte Inhalte, auch für die redaktionellen Editorialseiten, die als TEI unter `pages/` gepflegt werden (A3, R10). Bis zum Build-Cutover rendert der Build diese Seiten weiter aus den bestehenden `content/*.md`; die Home-Widgets und das Issue-YAML bleiben als Markdown bzw. YAML programmierkenntnisfrei änderbar.
+Drei übergreifende Architekturgrundsätze gelten in allen Bereichen. Die Pipeline ist read-only gegenüber TEI; sie schreibt niemals zurück. TEI ist die einzige Quelle der Wahrheit für strukturierte Inhalte, auch für die redaktionellen Editorialseiten, die als TEI unter `pages/` gepflegt werden (A3, R10). Der Build rendert `pages/` per Default; `content/*.md` dient nur noch als Fallback (`--no-tei-editorials`). Die Home-Widgets und das Issue-YAML bleiben als Markdown bzw. YAML programmierkenntnisfrei änderbar.
 
 ## 3. Rollen
 
@@ -108,7 +108,7 @@ Akzeptanzkriterien
 Akzeptanzkriterien
 - TEI-XML-Datei ist die unveränderte Quelle, mit korrektem Content-Type-Header
 - PDF trägt DOI sichtbar auf der ersten Seite
-- Während der Übergangsphase wird das bestehende PDF ausgeliefert; ab Phase 9 das aus dem Domänenmodell erzeugte PDF, gemäß A6
+- Das PDF wird aus dem Domänenmodell über WeasyPrint erzeugt (`--pdf`), gemäß A6
 - Beide Downloads sind über sichtbare Aktion in der Rezensionsansicht erreichbar
 
 **R4 Issue-Ansicht.** Als Leserin will ich pro Issue eine Übersichtsseite mit Issue-Metadaten und Beitragsliste.
@@ -121,7 +121,7 @@ Akzeptanzkriterien
 
 **R18 Factsheet als eigene Seite.** Als Leserin will ich pro Rezension ein vollständiges Factsheet als eigene Unterseite unter `/issues/{N}/{id}/factsheet/`, das die bibliografischen Eckdaten, die Rezensentin, das besprochene Projekt mitsamt seinen Beteiligten und die vollständige, frageweise Fragebogenauswertung zeigt.
 
-Die Live-Site rendert das Factsheet als eigenständige Unterseite mit dem vollständigen Fragebogen; die heutige ride-static-Realisierung (R1, [[interface#5 Rezensionsansicht im Detail]]) zeigt nur eine Aggregat-Box in der Sidebar (Anzahl der „1"-Antworten gegen die Gesamtzahl). R18 ergänzt die knappe Sidebar-Fassung um die Volldarstellung, ohne sie zu ersetzen.
+ride-static rendert beides: die knappe Aggregat-Box in der Sidebar (Anzahl der „1"-Antworten gegen die Gesamtzahl, R1, [[interface#5 Rezensionsansicht im Detail]]) und — über `src/render/factsheet.py` plus `templates/html/factsheet.html` — die Factsheet-Vollseite mit dem frageweisen Fragebogen. Die Vollseite ergänzt die Sidebar-Fassung, ohne sie zu ersetzen.
 
 Akzeptanzkriterien
 - Eigene Seite unter `/issues/{N}/{id}/factsheet/`, aus der Rezension verlinkt; die Sidebar-Box „Factsheet" verweist auf die Vollseite
@@ -132,7 +132,7 @@ Akzeptanzkriterien
 - Footer wie auf allen Seiten (Lizenz, Marke, ISSN, Build-Datum)
 - Die Seite ist render-identisch zur Produktion (gleicher Parser, gleiche Templates) und wird ohne Laufzeit-Backend gebaut
 
-Datenmodell-Voraussetzung (Lücke gegen das heutige Modell): Das heutige `Questionnaire`-Modell (`src/model/questionnaire.py`) hält je Antwort nur `category_xml_id` und `value` und verwirft Frage-Label, Frage-Volltext und K-Ref. Die TEI-Taxonomie trägt diese Information vollständig: pro Frage-Kategorie zwei `<catDesc>` (Kurz-Label samt K-Ref-`<ref>` und Frage-Volltext), darunter die Antwort-Leafs „Yes"/„No"/„Not applicable" mit `<num>`. Für die frageweise Darstellung ist das Modell um die Frage-Ebene (Label, Volltext, Kriterien-Target, gewählte Antwort, Sektionszuordnung) zu erweitern. Ebenso erfasst `RelatedItem` heute nur `bibl_text` und `title`, nicht die `respStmt`-Beteiligten; für den Personnel-Block ist `RelatedItem` um eine rollengruppierte Personenliste zu erweitern. Reviewer-Details (Name, ORCID, Affiliation, Ort, E-Mail), Titel, Erscheinungsdatum, DOI, Lizenz, RIDE-Issue-Editoren, Reviewed-Resource-Titel/URI/Abrufdatum, Kriterienlink und Keywords liegen bereits im Modell vor und sind nur noch zu rendern.
+Datenmodell (umgesetzt): `Questionnaire` trägt neben den Antworten die Frage-Ebene als `QuestionnaireQuestion` (Kurz-Label, Frage-Volltext, K-Ref-Target, gewählte Antwort, Sektionszuordnung); die TEI-Taxonomie liefert sie pro Frage-Kategorie über zwei `<catDesc>` plus die Antwort-Leafs „Yes"/„No"/„Not applicable" mit `<num>`. `RelatedItem` trägt `personnel` als rollengruppierte `(resp, persName)`-Liste aus `bibl/respStmt`. Reviewer-Details, Titel, Erscheinungsdatum, DOI, Lizenz, Issue-Editoren, Reviewed-Resource-Felder und Keywords lagen bereits im Modell vor — die Seite rendert vollständig aus dem Domänenmodell.
 
 Nicht im TEI vorhanden, daher nicht Teil der Seite: „Last updated" (kein `<revisionDesc>` im Korpus; offene Frage in §8, Zeile „Beitrag"). ISSN ist Footer-Konstante (R10), kein Rezensionsfeld.
 
@@ -182,11 +182,11 @@ Akzeptanzkriterien
 - Bearbeitung über die GitHub-Web-UI ist möglich
 - Push auf `main` triggert automatisch einen neuen Build und ein Deployment
 - Die folgenden editorialen Seiten existieren als jeweils eigene TEI-Datei unter `pages/`:
-  - **About-Untermenü:** Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers
+  - **About-Untermenü:** Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers · Contact
   - **Reviewers-Untermenü:** Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020
   - **Footer-/Standalone:** Imprint · Reviewing Criteria
   - „List of Reviewers" wird **nicht** als Editorialseite geführt, sondern aus der TEI-Aggregation auf `/reviewers/` erzeugt (R8)
-- Alle 16 Editorialseiten sind von der Live-RIDE-WordPress-Site wortgetreu nach TEI konvertiert und gegen `schema/ride-pages.rng` validiert. Die Profilentscheidung ist getroffen: das Seitenprofil trägt zusätzlich verbatim Code (Block `<eg>`, inline `<code>`, erzwungen durch writing-guidelines), Bilder werden nicht modelliert, weil kein Seitenbestand ein Inhaltsbild führt (das dekorative Seal auf criteria entfällt als Chrome). Der Build-Cutover, also `pages/` in den Build zu rendern, ist noch nicht verdrahtet; bis dahin rendert der Build diese Seiten weiter aus `content/*.md`
+- Die Editorialseiten sind von der Live-RIDE-WordPress-Site wortgetreu nach TEI konvertiert und gegen `schema/ride-pages.rng` validiert. Die Profilentscheidung ist getroffen: das Seitenprofil trägt zusätzlich verbatim Code (Block `<eg>`, inline `<code>`, erzwungen durch writing-guidelines), Bilder werden nicht modelliert, weil kein Seitenbestand ein Inhaltsbild führt (das dekorative Seal auf criteria entfällt als Chrome). Der Build rendert `pages/` per Default; `content/*.md` bleibt Fallback für Slugs ohne TEI-Seite (`--no-tei-editorials`)
 - Im Footer jeder Seite stehen sichtbar: Lizenz-Kürzel, Markenname mit aktuellem Jahr, ISSN (`2363-4952`), Link auf Imprint and Privacy
 - Im globalen Header steht die Site-Tagline „A Review Journal for Scholarly Digital Editions and Resources" als Untertitel zur Marke RIDE
 
@@ -277,8 +277,6 @@ Akzeptanzkriterien
 
 ## 7. Out of Scope und zurückgestellt
 
-PDF aus dem Domänenmodell ist als Phase 9 nach Phase 8 vorgesehen, gemäß A6.
-
 Snapshot-Versionierung für Rolling Issues ist als spätere Erweiterung vorgesehen; das URL-Schema lässt sie zu, ohne sie zu erzwingen.
 
 Designsystem jenseits eines minimalistischen CSS ist eigene Iteration.
@@ -315,7 +313,7 @@ Die folgende Tabelle bildet jede heutige Komponente der RIDE-Site auf den geplan
 | Tracking | Matomo mit Cookie-Snippets | Matomo cookielos, ohne Consent-Banner | 15 | — |
 | Social-Buttons | Vorhanden | Entfallen zugunsten von Open-Graph-Metadaten und Copy-Link | 8 | Eigene Iteration zu einer Social-Media-Strategie? |
 | OAI-PMH | Dynamisch | Statischer Snapshot mit Query-String-Routing, Dublin-Core-Mindestmetadaten | 12 | — |
-| Statische Texte (WordPress) | In WordPress gepflegt | Nach TEI unter `pages/` als alleiniger Quelle überführt, validiert gegen `schema/ride-pages.rng`; löst die Markdown-Pflege ab (A3, R10). Alle 16 Seiten konvertiert, Profil um verbatim Code (`<eg>`/`<code>`) erweitert, keine Bilder modelliert; Build-Cutover noch nicht verdrahtet | Vor 9 (redaktionell) | Entschieden zugunsten TEI als alleiniger Quelle |
+| Statische Texte (WordPress) | In WordPress gepflegt | Nach TEI unter `pages/` als alleiniger Quelle überführt, validiert gegen `schema/ride-pages.rng`; löst die Markdown-Pflege ab (A3, R10). Alle 16 Seiten konvertiert, Profil um verbatim Code (`<eg>`/`<code>`) erweitert, keine Bilder modelliert; Build rendert `pages/` per Default, Markdown als Fallback | Vor 9 (redaktionell) | Entschieden zugunsten TEI als alleiniger Quelle |
 
 ## 9. Offene Fragen
 
@@ -325,6 +323,6 @@ Drei Bereiche sind im Lauf der Implementierung zu klären.
 
 **Zweitens, Komponenten-Detailfragen aus den Stakeholder-Notizen.** Diese sind in der Migrationstabelle (§8) pro Komponente verortet und brauchen redaktionelle Antworten. Sie betreffen vor allem die Auswahllogik der Startseiten-Beiträge, die Befüllung der Hauptnavigation, die Sichtbarkeit von „first / last updated", den Statuswechsel bei Rolling Issues und die Reichweite der Konsolidierung statischer Textfragmente.
 
-**Drittens, Infrastruktur und Reichweite.** Domain und Hosting-Pfad — eigene Domain versus `username.github.io/repo` — prägen das URL-Schema und damit die Stabilitätszusage in N3 und R17. Auslieferung großer Artefakte (OAI-PMH-Dump, ältere PDF-Versionen) über GitHub Pages oder GitHub Releases ist offen; Letzteres entlastet das Pages-Repository bei wachsendem Korpus. Reichweite der Konsolidierung in A2 — ob neben den Tags auch andere heute in WordPress liegende redaktionelle Fragmente in TEI oder Markdown überführt werden — ist redaktionell zu entscheiden. Die vom redaktionellen Zielworkflow geforderte passwortgeschützte Begutachtungsumgebung vor der Freischaltung ist mit Problemstellung und Lösungsoptionen in [[staging]] festgehalten; die Entscheidung ist offen.
+**Drittens, Infrastruktur und Reichweite.** Domain und Hosting-Pfad — eigene Domain versus `username.github.io/repo` — prägen das URL-Schema und damit die Stabilitätszusage in N3 und R17. Auslieferung großer Artefakte (OAI-PMH-Dump, ältere PDF-Versionen) über GitHub Pages oder GitHub Releases ist offen; Letzteres entlastet das Pages-Repository bei wachsendem Korpus. Reichweite der Konsolidierung in A2 — ob neben den Tags auch andere heute in WordPress liegende redaktionelle Fragmente in TEI oder Markdown überführt werden — ist redaktionell zu entscheiden. Die vom redaktionellen Zielworkflow geforderte passwortgeschützte Begutachtungsumgebung vor der Freischaltung ist mit Problemstellung und Lösungsoptionen in [[pipeline#Staging — Begutachtungsumgebung (Entscheidung offen)]] festgehalten; die Entscheidung ist offen.
 
 Die Antworten der ersten beiden Bereiche prägen direkt den Validierungsschritt aus Phase 13, der entweder vor oder nach dem Push platziert werden kann, sowie eine mögliche Konversionsschicht vor der Korpusanalyse, die heute nicht im Phasenplan steht, aber als optionale Vorstufe nachträglich ergänzbar wäre. Die Antworten des dritten Bereichs prägen Phase 15.

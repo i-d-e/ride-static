@@ -65,9 +65,9 @@ Die globale Navigation hat fünf Top-Level-Einträge:
 
 | Top-Level | Untermenüs |
 |---|---|
-| **About** | Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers |
+| **About** | Editorial · Publishing Policy · Ethical Code · Team · Peer Reviewers · Contact |
 | **Issues** | All Issues plus die letzten N Issues als Schnellzugriff (Reihenfolge in `config/navigation.yaml`) |
-| **Data** | Overview / Download / API · Questionnaires · Charts · Tags · Reviewed Resources |
+| **Data** | Overview, Download and API · Questionnaires · Charts · Tags · Reviewed Resources |
 | **Reviewers** | Call for Reviews · Submitting a Review · Projects for Review · RIDE Award 2017–2020 · List of Reviewers |
 | **Reviewing Criteria** | Direkter Link, kein Dropdown |
 
@@ -75,7 +75,7 @@ Die Dropdowns werden mit nativen `<details>`-Elementen umgesetzt (kein JavaScrip
 
 Sieben Seitentypen folgen dem Inhaltsraster unter dem Header. Die **Startseite** ist als fünfteiliger Vertikal-Stack gesetzt:
 
-1. **Lede-Sektion** — sr-only `<h1>` mit dem Site-Titel (für Screen-Reader und SEO), darunter eine Ein-Satz-Lede mit den Kennzahlen („A peer-reviewed journal of scholarly digital editions. 111 reviews across 22 issues.").
+1. **Lede-Sektion** — sr-only `<h1>` mit dem Site-Titel (für Screen-Reader und SEO), darunter eine Ein-Satz-Lede mit den Korpus-Kennzahlen (Reviews- und Issue-Anzahl), z. B. „A peer-reviewed journal of scholarly digital editions. {N} reviews across {M} issues.".
 2. **Lede-Panel** — das erste Home-Widget (`01-welcome`) wird als breites, rahmenloses Einleitungs-Panel auf hellgrauem Hintergrund (`--ride-bg-muted`) mit etwas größerem Lesefließtext gesetzt. Es trägt die zentrale Mission-Beschreibung des Journals.
 3. **Current issue** — Section-Heading „Current issue · {N}" plus Beitragskarten als auto-fill-Grid (Mindestbreite 360px, gleichmäßig auf der Page-Max-Breite verteilt).
 4. **Action-Widgets** (News, Call for Reviews, Open Data, Follow us) als 2×2-Grid auf Desktop, gestapelt auf Mobile. Inhalt aus `content/home/02–05-*.md`.
@@ -99,12 +99,13 @@ Der **Apparate-Block** (References, Figures, Notes) wird als drei klar getrennte
 
 **Lizenz und Provenance** stehen am Seitenende in einer dezenten Footer-Zeile innerhalb der Inhaltsspalte. Lizenz, Build-Datum, optional Commit-Hash. Begründung ist [[specification#N6 Lizenzklarheit pro Artefakt]]. Die DOI selbst lebt im Sidebar (siehe nächster Absatz), nicht im Footer — sie ist Identifier, nicht Provenance-Marker.
 
-Die **Sidebar** trägt vier Boxen in dieser Reihenfolge:
+Die **Sidebar** trägt fünf Boxen in dieser Reihenfolge:
 
 1. **Table of Contents** — immer, mit den Section-Headings als Sprung-Anker.
-2. **Meta** — Published-Datum, DOI als Plaintext-Zeile, ein Link „Factsheet of this project" auf die Factsheet-Vollseite unter `/issues/{N}/{id}/factsheet/` (R18, §4), ein Download-Link „XML of this review, including formal evaluation data", ein Download-Link „PDF of this review article", als letzte Zeile das Lizenz-Kürzel (z.B. „CC BY 4.0", abgeleitet aus der Lizenz-URL).
-3. **Citation Suggestion** — der Zitiervorschlag im Format `Surname, Forename (Year). "Title." RIDE {Issue}, ed. by {Editors}. DOI: {DOI}. Accessed: {Date}.`, gefolgt von einer italic-Mikrokopie „You can use the running numbers on the left side to refer to a specific paragraph." Direkt darunter die Kopier-Buttons für BibTeX und CSL-JSON.
-4. **Tags** — alphabetisch sortierte Liste der Keywords als Inline-Tag-Pillen, jeweils mit Link zur Tag-Detailseite.
+2. **Factsheet** — die Aggregat-Auswertung des Fragebogens (Anzahl der „1"-Antworten gegen die Gesamtzahl) mit einem Link „Full factsheet" auf die Factsheet-Vollseite unter `/issues/{N}/{id}/factsheet/` (R18, §4).
+3. **Meta** — Published-Datum, DOI als Plaintext-Zeile, ein In-Page-Link „Factsheet of this project" (`#factsheet`) auf die Factsheet-Box darüber, ein Download-Link „XML of this review, including formal evaluation data", ein Download-Link „PDF of this review article", als letzte Zeile das Lizenz-Kürzel (z.B. „CC BY 4.0", abgeleitet aus der Lizenz-URL).
+4. **Citation Suggestion** — der Zitiervorschlag im Format `Surname, Forename (Year). "Title." RIDE {Issue}, ed. by {Editors}. DOI: {DOI}. Accessed: {Date}.`, gefolgt von einer italic-Mikrokopie „You can use the running numbers on the left side to refer to a specific paragraph." Direkt darunter die Kopier-Buttons für BibTeX und CSL-JSON.
+5. **Tags** — alphabetisch sortierte Liste der Keywords als Inline-Tag-Pillen, jeweils mit Link zur Tag-Detailseite.
 
 Share-Buttons entfallen zugunsten von Open-Graph-Metadaten und der Copy-Link-Aktion auf Absatzebene. Begründung ist die geringe tatsächliche Nutzung von Share-Buttons in akademischen Kontexten.
 
@@ -122,7 +123,7 @@ Cross-References im Fließtext werden seit Phase 7 nach `Reference.bucket` ∈ `
 
 ## 7. Typografie und Lesbarkeit
 
-Schriftwahl ist **eine** seriöse Sans-Serif für die gesamte Site — Body, UI, Headings. Source Sans 3 ist die primäre Wahl, lokal als WOFF2 unter `static/fonts/` ausgeliefert, nicht über externes Font-CDN. Begründung der Single-Family-Entscheidung: einheitliche moderne Anmutung, keine sichtbare Font-Übergangs-Spannung zwischen UI und Lesetext, Reduktion der Familien-Anzahl auf eine Open-Source-Familie mit voller Glyph-Abdeckung für Deutsch, Englisch und romanische Inline-Zitate. Die frühere Doppelschrift-Spec (Serif für Body, Sans für UI) ist mit dem Mockup-Vorbild aufgegeben worden — die Praxis zeigt, dass eine gut gesetzte Sans bei 17–18 Pixel und 1.6 Zeilenhöhe auch für längere Lesedauern tragfähig ist. Mono bleibt für Code (`<code>`, `<pre>`) als zweite Familie.
+Schriftwahl ist **eine** seriöse Sans-Serif für die gesamte Site — Body, UI, Headings. Source Sans 3 ist die primäre Wahl. Aktuell liefert die Site die Schrift nicht selbst aus: `--ride-font-sans` ist ein System-Font-Stack (Source Sans 3 → Source Sans Pro → System-UI), die Schrift greift also nur, wo sie lokal installiert ist. Lokale WOFF2-Auslieferung unter `static/fonts/` ist vorgesehen, aber noch nicht eingebunden (kein `@font-face`, Verzeichnis derzeit leer). Begründung der Single-Family-Entscheidung: einheitliche moderne Anmutung, keine sichtbare Font-Übergangs-Spannung zwischen UI und Lesetext, Reduktion der Familien-Anzahl auf eine Open-Source-Familie mit voller Glyph-Abdeckung für Deutsch, Englisch und romanische Inline-Zitate. Die frühere Doppelschrift-Spec (Serif für Body, Sans für UI) ist mit dem Mockup-Vorbild aufgegeben worden — die Praxis zeigt, dass eine gut gesetzte Sans bei 17–18 Pixel und 1.6 Zeilenhöhe auch für längere Lesedauern tragfähig ist. Mono bleibt für Code (`<code>`, `<pre>`) als zweite Familie.
 
 Größen sind 18 Pixel für Lesefließtext, 22 Pixel für h3 (Top-Level-Section), 28 Pixel für h2 (Rezensionstitel), 14 Pixel für Sidebar, Apparate und Footer, 12 Pixel als harte Untergrenze auch in Footnoten. Die globale Tagline-Zeile als h1 ist visuell klein gesetzt (etwa 16 Pixel, gedämpft), weil sie als Site-Brand fungiert und nicht mit dem Review-Titel konkurrieren soll. Zeilenhöhe 1.6 für Lesetext, 1.4 für UI.
 
@@ -201,7 +202,7 @@ Alle anderen Interaktionen sind Browser-Standard. Animationen jenseits dezenter 
 
 **[[pipeline#Phasenplan|Phase 8]]** erzeugt ein Template pro semantische Einheit, plus ein Seitentyp-Template pro Seitentyp aus Abschnitt 4. Templates erhalten ausschließlich Domänenobjekte, kein XML, gemäß [[specification#N1 Read-only-Pipeline]] und der Architektur-Designentscheidung „Domain model first" in [[architecture#Renderers]].
 
-Das CSS ist ein einzelnes Stylesheet (Stand Phase 14/15.A: ca. 1010 Zeilen, Soft-Cap mehrfach angehoben — pro Welle eine Konsolidierung), ohne Build-Schritt und ohne Preprocessor. Begründung ist [[specification#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste; der Print-Stylesheet (§12.5) macht den jüngsten Zuwachs aus.
+Das CSS ist ein einzelnes Stylesheet, ohne Build-Schritt und ohne Preprocessor. Begründung ist [[specification#N8 Übergabefähigkeit]] — wer das CSS später anpassen will, soll keine Toolchain installieren müssen. Die Welle-5-Konsolidierung über das Panel-Primitiv und die Spacing-Tokens hält das Wachstum in Schach trotz der gewachsenen Komponenten-Liste; der Print-Stylesheet (§12.5) macht den jüngsten Zuwachs aus.
 
 JavaScript ist auf vier kleine Module beschränkt (Copy-Link, Tooltip-Vorschau, Pagefind-Integration, Cite-Kopieraktion), ohne Framework und ohne Bundling-Pipeline. Das hält das Build-Budget überschaubar und passt in den Single-Workflow-Build aus [[specification#N10 Single-Workflow-Build]]. Die Dropdown-Navigation aus Abschnitt 4 ist bewusst kein eigenes JS-Modul — sie wird über `<details>` plus CSS realisiert, weil ein Dropdown-Mechanismus nativ in der Plattform existiert.
 
