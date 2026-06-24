@@ -40,8 +40,8 @@ def test_default_renders_markdown_not_tei(tmp_path: Path) -> None:
     n = _render_editorials(make_env(), SiteConfig(), tmp_path, parsed=None)
     assert n > 0
     # Markdown-native and rename-origin slugs are present.
-    assert _has(tmp_path, "submitting-a-review")
-    assert _has(tmp_path, "projects-for-review")
+    assert _has(tmp_path, "reviewers/submitting-a-review")
+    assert _has(tmp_path, "reviewers/projects-for-review")
     assert _has(tmp_path, "about")
     # TEI-only slugs do not exist in the default build.
     assert not _has(tmp_path, "writing-guidelines")
@@ -55,11 +55,12 @@ def test_tei_mode_renders_tei_with_markdown_fallback(tmp_path: Path) -> None:
     n = _render_editorials(make_env(), SiteConfig(), tmp_path, parsed=None, tei_editorials=True)
     # Every TEI page slug is produced.
     for slug in (
-        "criteria", "publishing-policy", "writing-guidelines",
+        "criteria", "about/publishing-policy", "writing-guidelines",
         "submission-guidelines", "projects-currently-under-review",
         "suggested-projects-for-review", "dissemination-discussion",
-        "contact", "imprint", "team", "editorial", "ethical-code",
-        "peer-reviewers", "ride-award", "call-for-reviews", "data",
+        "about/contact", "imprint", "about/team", "about/editorial",
+        "about/ethical-code", "about/peer-reviewers", "reviewers/ride-award",
+        "reviewers/call-for-reviews", "data",
     ):
         assert _has(tmp_path, slug), f"missing TEI slug: {slug}"
     # Generator-native Markdown pages survive as fallback.
@@ -67,7 +68,7 @@ def test_tei_mode_renders_tei_with_markdown_fallback(tmp_path: Path) -> None:
     assert _has(tmp_path, "data/charts")
     assert _has(tmp_path, "data/questionnaires")
     # 16 TEI + 5 Markdown fallback (about, data/charts, data/questionnaires,
-    # projects-for-review, submitting-a-review) = 21.
+    # reviewers/projects-for-review, reviewers/submitting-a-review) = 21.
     assert n == 21
 
 

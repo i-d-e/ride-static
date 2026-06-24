@@ -1,6 +1,6 @@
 ---
 title: Projects for Review
-slug: projects-for-review
+slug: reviewers/projects-for-review
 language: en
 last_updated: 2026-04-29
 ---

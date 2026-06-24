@@ -1,6 +1,6 @@
 ---
 title: Publishing Policy
-slug: publishing-policy
+slug: about/publishing-policy
 language: en
 last_updated: 2026-04-29
 ---

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Contact</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/contact/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>For all questions concerning a specific review, the editorial board, or the journal in general, please write to the address below. We try to respond within ten working days.</p>
+      <div>
+        <head>Editorial board</head>
+        <p><email>ride-editor (at) i-d-e (dot) de</email></p>
+        <p>Use this address for proposals, queries about review criteria, and any matter that should reach the editors.</p>
+      </div>
+      <div>
+        <head>Institute for Documentology and Scholarly Editing (IDE)</head>
+        <p><email>info (at) i-d-e (dot) de</email></p>
+        <p>For matters concerning the IDE as the publishing institute, its board, membership, and the wider publication programme.</p>
+      </div>
+      <div>
+        <head>Postal address</head>
+        <p>Institut für Dokumentologie und Editorik e. V.<lb/>Universität zu Köln<lb/>c/o Cologne Center for eHumanities (CCeH)<lb/>50923 Köln, Germany</p>
+      </div>
+      <div>
+        <head>Imprint and privacy</head>
+        <p>Legal information, the full <hi rend="italic">Impressum</hi>, and the data-processing notice live on the <ref target="/imprint/">Imprint and Privacy</ref> page.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

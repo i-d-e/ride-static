@@ -17,12 +17,12 @@ items:
   - label: About
     fallback_url: /about/
     children:
-      - { label: Editorial, url: /editorial/ }
-      - { label: Publishing Policy, url: /publishing-policy/ }
-      - { label: Ethical Code, url: /ethical-code/ }
-      - { label: Team, url: /team/ }
-      - { label: Peer Reviewers, url: /peer-reviewers/ }
-      - { label: Contact, url: /contact/ }
+      - { label: Editorial, url: /about/editorial/ }
+      - { label: Publishing Policy, url: /about/publishing-policy/ }
+      - { label: Ethical Code, url: /about/ethical-code/ }
+      - { label: Team, url: /about/team/ }
+      - { label: Peer Reviewers, url: /about/peer-reviewers/ }
+      - { label: Contact, url: /about/contact/ }
 
   - label: Issues
     fallback_url: /issues/
@@ -41,10 +41,10 @@ items:
   - label: Reviewers
     fallback_url: /reviewers/
     children:
-      - { label: Call for Reviews, url: /call-for-reviews/ }
-      - { label: Submitting a Review, url: /submitting-a-review/ }
-      - { label: Projects for Review, url: /projects-for-review/ }
-      - { label: RIDE Award 2017-2020, url: /ride-award/ }
+      - { label: Call for Reviews, url: /reviewers/call-for-reviews/ }
+      - { label: Submitting a Review, url: /reviewers/submitting-a-review/ }
+      - { label: Projects for Review, url: /reviewers/projects-for-review/ }
+      - { label: RIDE Award 2017-2020, url: /reviewers/ride-award/ }
       - { label: List of Reviewers, url: /reviewers/ }
 
   - label: Reviewing Criteria

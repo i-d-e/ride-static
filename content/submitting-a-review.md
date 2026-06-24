@@ -1,6 +1,6 @@
 ---
 title: Submitting a Review
-slug: submitting-a-review
+slug: reviewers/submitting-a-review
 language: en
 last_updated: 2026-04-29
 ---

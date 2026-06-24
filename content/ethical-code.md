@@ -1,6 +1,6 @@
 ---
 title: Ethical Code
-slug: ethical-code
+slug: about/ethical-code
 language: en
 last_updated: 2026-04-29
 ---

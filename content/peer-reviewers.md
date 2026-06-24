@@ -1,6 +1,6 @@
 ---
 title: Peer Reviewers
-slug: peer-reviewers
+slug: about/peer-reviewers
 language: en
 last_updated: 2026-04-29
 ---

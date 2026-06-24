@@ -1,6 +1,6 @@
 ---
 title: RIDE Award 2017–2020
-slug: ride-award
+slug: reviewers/ride-award
 language: en
 last_updated: 2026-04-29
 ---

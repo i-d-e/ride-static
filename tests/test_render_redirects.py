@@ -82,9 +82,9 @@ def test_write_redirects_emits_per_issue_stub(tmp_path: Path) -> None:
 
 def test_write_redirects_emits_editorial_stubs(tmp_path: Path) -> None:
     write_redirects((), tmp_path)
-    # A few critical legacy paths from the live menu.
+    # A few critical legacy paths from the live menu (slugs that changed).
     assert (tmp_path / "publishing-policies" / "index.html").exists()
-    assert (tmp_path / "reviewers" / "call-for-reviews" / "index.html").exists()
+    assert (tmp_path / "reviewers" / "submission" / "index.html").exists()
     assert (tmp_path / "reviewers" / "ride-award-for-best-review" / "index.html").exists()
     # Total editorial count matches the static map.
     rel_paths = {

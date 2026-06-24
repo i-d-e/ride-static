@@ -140,8 +140,13 @@ def _parse_blocks(parent) -> tuple:
 # ── Page ──────────────────────────────────────────────────────────────
 
 
-def parse_page(path: Path) -> Page:
-    """Parse one ``pages/*.xml`` TEI file into a :class:`Page`."""
+def parse_page(path: Path, slug: str | None = None) -> Page:
+    """Parse one ``pages/*.xml`` TEI file into a :class:`Page`.
+
+    ``slug`` overrides the default ``path.stem`` so a page nested under a
+    section directory (e.g. ``pages/about/team.xml``) carries the
+    hierarchical slug ``about/team`` and renders to ``/about/team/``.
+    """
     root = ET.parse(str(path)).getroot()
     file_desc = root.find(f"{_q('teiHeader')}/{_q('fileDesc')}")
 
@@ -172,7 +177,7 @@ def parse_page(path: Path) -> Page:
     blocks = _parse_blocks(body) if body is not None else ()
 
     return Page(
-        slug=path.stem,
+        slug=slug or path.stem,
         title=title or path.stem,
         source_url=source_url,
         licence=licence,
@@ -183,7 +188,17 @@ def parse_page(path: Path) -> Page:
 
 
 def discover_pages(pages_dir: Path = PAGES_DIR) -> list[Page]:
-    """Parse every ``pages/*.xml`` file, sorted by slug."""
+    """Parse every ``pages/**/*.xml`` file, sorted by path.
+
+    The slug is the file path relative to ``pages_dir`` without the
+    ``.xml`` suffix, in POSIX form. A top-level ``pages/criteria.xml``
+    keeps the flat slug ``criteria``; a nested ``pages/about/team.xml``
+    becomes ``about/team`` so its URL mirrors the navigation section.
+    """
     if not pages_dir.exists():
         return []
-    return [parse_page(p) for p in sorted(pages_dir.glob("*.xml"))]
+    pages: list[Page] = []
+    for p in sorted(pages_dir.rglob("*.xml")):
+        slug = p.relative_to(pages_dir).with_suffix("").as_posix()
+        pages.append(parse_page(p, slug=slug))
+    return pages

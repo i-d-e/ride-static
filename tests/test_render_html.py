@@ -471,7 +471,7 @@ def test_known_templates_load(name):
 def test_footer_carries_contact_link():
     """R14: every page exposes a Contact route in the footer."""
     html = render_review(_minimal_review())
-    assert 'href="/contact/"' in html
+    assert 'href="/about/contact/"' in html
     assert ">Contact</a>" in html
 
 

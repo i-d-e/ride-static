@@ -1,6 +1,6 @@
 ---
 title: Editorial
-slug: editorial
+slug: about/editorial
 language: en
 last_updated: 2026-04-29
 ---

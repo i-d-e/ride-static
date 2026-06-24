@@ -206,7 +206,7 @@ def test_code_inline_and_block(tmp_path):
 def test_corpus_loads():
     pages = discover_pages()
     slugs = {p.slug for p in pages}
-    assert {"ethical-code", "team", "editorial", "imprint", "data"} <= slugs
+    assert {"about/ethical-code", "about/team", "about/editorial", "imprint", "data"} <= slugs
     assert len(pages) >= 13
     for p in pages:
         assert p.title
@@ -218,7 +218,7 @@ def test_corpus_loads():
 
 @needs_corpus
 def test_ethical_code_metadata():
-    page = parse_page(PAGES_DIR / "ethical-code.xml")
+    page = parse_page(PAGES_DIR / "about" / "ethical-code.xml")
     assert page.title == "Ethical Code"
     assert page.source_url == "https://ride.i-d-e.de/ethical-code/"
     assert [e.name for e in page.editors] == [
@@ -229,7 +229,7 @@ def test_ethical_code_metadata():
 
 @needs_corpus
 def test_ethical_code_structure():
-    page = parse_page(PAGES_DIR / "ethical-code.xml")
+    page = parse_page(PAGES_DIR / "about" / "ethical-code.xml")
     assert isinstance(page.blocks[0], Para)  # lead paragraph
     sections = [b for b in page.blocks if isinstance(b, Section)]
     heads = [inline_text(s.head) for s in sections]
@@ -261,7 +261,7 @@ def test_ethical_code_structure():
 
 @needs_corpus
 def test_team_has_linked_persons_and_email():
-    page = parse_page(PAGES_DIR / "team.xml")
+    page = parse_page(PAGES_DIR / "about" / "team.xml")
     inlines = _walk_inlines(page)
     persnames = [n for n in inlines if isinstance(n, PersName)]
     assert persnames

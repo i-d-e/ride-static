@@ -4,6 +4,8 @@ Versioned definition of the URL scheme. Anchored to `specification.md` clauses R
 
 ## Scheme version
 
+**v2 — 2026-06-24.** Editorial pages move from flat slugs to section-mirroring hierarchical paths (`/about/team/` instead of `/team/`), aligning the URL with the navigation sections and the legacy WordPress structure. See *Editorial pages* and *History*.
+
 **v1 — 2026-04-28.** Initial definition. Any future incompatible change increments the version and is recorded in the History section below.
 
 ## Base
@@ -57,13 +59,37 @@ Slugs (`{tag_slug}`, `{reviewer_slug}`) are derived from the source identifier w
 
 ## Editorial pages
 
+Editorial pages mirror the navigation sections in their URL (v2). The slug
+is the source path relative to its root, so a page in the `about` section
+lives under `/about/…`:
+
 ```
-/about/
-/imprint/
-/criteria/
+/about/                          About overview (section root)
+/about/editorial/
+/about/publishing-policy/
+/about/ethical-code/
+/about/team/
+/about/peer-reviewers/
+/about/contact/
+/reviewers/call-for-reviews/
+/reviewers/submitting-a-review/
+/reviewers/projects-for-review/
+/reviewers/ride-award/
+/data/                           Data overview (section root)
+/data/questionnaires/
+/data/charts/
+/imprint/                        standalone (footer)
+/criteria/                       Reviewing Criteria (top-level nav entry)
 ```
 
-These are rendered from `content/*.md` files with frontmatter. Adding a new editorial page is a matter of adding a Markdown file — the URL is the filename slug.
+The hierarchy is carried by the source location: a TEI page at
+`pages/<section>/<name>.xml` renders to `/<section>/<name>/`, a top-level
+`pages/<name>.xml` keeps the flat `/<name>/`. The Markdown fallback under
+`content/` carries it in the frontmatter `slug:` (e.g. `slug: about/team`).
+Adding a new editorial page is still one source file; its directory (TEI)
+or its `slug` (Markdown) decides the section. TEI pages with no section
+assignment (e.g. `writing-guidelines`, `submission-guidelines`) stay flat
+at `/<name>/` until they are placed.
 
 ## Machine interfaces
 
@@ -106,5 +132,7 @@ When a path moves, a meta-refresh redirect is emitted at the old path. This sati
 - Pretty URLs for specific Pagefind queries. The search runtime is client-side; query parameters are not part of the URL contract.
 
 ## History
+
+**v2, 2026-06-24** — editorial pages hierarchised under their navigation section (`/about/…`, `/reviewers/…`, `/data/…`). The flat editorial slugs (`/team/`, `/editorial/`, …) are retired; this re-matches the legacy WordPress section paths, so most WP editorial redirects collapse to identity and are dropped. Standalone `/imprint/` and the top-level `/criteria/` stay flat. Per-review, aggregation, and machine-interface URLs are unchanged.
 
 **v1, 2026-04-28** — initial definition, locked together with `Phase 8` of the build.

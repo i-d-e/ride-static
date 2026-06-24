@@ -118,7 +118,7 @@ def test_code_renders_inline_and_block(tmp_path):
 
 @needs_corpus
 def test_render_ethical_code_full_page():
-    page = parse_page(PAGES_DIR / "ethical-code.xml")
+    page = parse_page(PAGES_DIR / "about" / "ethical-code.xml")
     html = render_page(page)
     assert "<html" in html  # full document via base.html
     assert "<h1>Ethical Code</h1>" in html

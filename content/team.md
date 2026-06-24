@@ -1,6 +1,6 @@
 ---
 title: Team
-slug: team
+slug: about/team
 language: en
 last_updated: 2026-04-29
 ---

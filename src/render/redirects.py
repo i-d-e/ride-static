@@ -14,8 +14,10 @@ Three URL families need redirecting:
    ``/issues/{N}/{review_id}/factsheet/`` (R18).
 2. **Per-issue URLs.** ``/issues/issue-{N}/`` → ``/issues/{N}/``.
 3. **Editorial URLs.** A static map under
-   :data:`EDITORIAL_REDIRECTS` covers the live menu's stable paths
-   (e.g. ``/about/team/`` → ``/team/``).
+   :data:`EDITORIAL_REDIRECTS` covers the legacy menu paths whose slug
+   actually changed (e.g. ``/about/copyright/`` → ``/imprint/``). Paths
+   the new section hierarchy already matches (``/about/team/`` …) need
+   no stub.
 
 Per requirements R17 the URL contract is the static path under
 ``docs/url-scheme.md``; the redirects keep the legacy paths working
@@ -29,23 +31,21 @@ from typing import Iterable
 from src.model.review import Review
 
 # Editorial paths from the live WordPress menu mapping to new slugs.
-# Both with and without trailing slash so either form redirects cleanly.
 #
-# Live WP paths whose slug is unchanged (/about/, /ethical-code/, /data/)
-# get NO entry: the real page already lives at that slug, so a redirect
-# stub there would overwrite it with a stub pointing to itself (endless
-# reload). The self-redirect guard in write_at enforces this at runtime;
-# test_no_editorial_redirect_points_to_itself enforces it on the data.
+# The new editorial URLs mirror the old WordPress section hierarchy
+# (/about/…, /reviewers/…), so most legacy paths now EQUAL their target
+# and get NO entry: a stub there would overwrite the real page with one
+# pointing to itself (endless reload). Only paths whose slug genuinely
+# changed remain below. The self-redirect guard in write_at enforces this
+# at runtime; test_no_editorial_redirect_points_to_itself enforces it on
+# the data. The same guard also drops the unchanged top-level slugs
+# (/about/, /ethical-code/, /data/) that already serve a real page.
 EDITORIAL_REDIRECTS: dict[str, str] = {
-    "about/team": "/team/",
     "about/copyright": "/imprint/",
-    "about/peer-reviewers": "/peer-reviewers/",
-    "about/editorial": "/editorial/",
-    "publishing-policies": "/publishing-policy/",
-    "reviewers/call-for-reviews": "/call-for-reviews/",
-    "reviewers/submission": "/submitting-a-review/",
-    "reviewers/suggested-projects-for-review": "/projects-for-review/",
-    "reviewers/ride-award-for-best-review": "/ride-award/",
+    "publishing-policies": "/about/publishing-policy/",
+    "reviewers/submission": "/reviewers/submitting-a-review/",
+    "reviewers/suggested-projects-for-review": "/reviewers/projects-for-review/",
+    "reviewers/ride-award-for-best-review": "/reviewers/ride-award/",
     "reviewers/catalogue-criteria-for-reviewing-digital-editions-and-resources": "/criteria/",
 }
 

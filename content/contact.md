@@ -1,6 +1,6 @@
 ---
 title: Contact
-slug: contact
+slug: about/contact
 language: en
 last_updated: 2026-04-29
 ---
