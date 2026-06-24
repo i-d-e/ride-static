@@ -83,7 +83,7 @@ That is the full ceremony. Six files touched, none of them surprising.
 
 ## Editorial pages (`pages/*.xml`)
 
-Everything outside the reviews and factsheets — Editorial, Team, Imprint, Criteria and the rest — is a TEI editorial page, a separate and much smaller model than the review pipeline above. Each page lives at `pages/{slug}.xml` and validates against the page profile `schema/ride-pages.rng`: a reduced `teiHeader` plus a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks with `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build renders these with precedence over the legacy `content/*.md`; pass `--no-tei-editorials` to fall back to Markdown.
+Everything outside the reviews and factsheets, Editorial, Team, Imprint, Criteria and the rest, is a TEI editorial page, a separate and much smaller model than the review pipeline above. Each page lives at `pages/{slug}.xml`, or at `pages/{section}/{slug}.xml` to carry a navigation section in its URL. It validates against the page profile `schema/ride-pages.rng`: a reduced `teiHeader` plus a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks with `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build renders these with precedence over the legacy `content/*.md`; pass `--no-tei-editorials` to fall back to Markdown.
 
 ### Edit a page
 
@@ -91,7 +91,7 @@ Edit the body of `pages/{slug}.xml`. Stay within the elements `ride-pages.rng` a
 
 ### Add a page
 
-Drop a new `pages/{newslug}.xml` that validates against the profile. `src.parser.page.discover_pages()` finds it automatically and the build renders it at `/{newslug}/` through `editorial.html`. Add an entry to `config/navigation.yaml` to surface it in the menu. No Python touched.
+Drop a new file under `pages/` that validates against the profile. Put it in a section folder (`pages/about/{newslug}.xml` → `/about/{newslug}/`) or at the top level for a flat `/{newslug}/`. The slug is the path under `pages/` without the suffix, so `src.parser.page.discover_pages()` finds it automatically and renders it through `editorial.html`. Add an entry to `config/navigation.yaml` to surface it in the menu; `tests/test_render_navigation.py` checks that the URL resolves to a built page. No Python touched.
 
 ### Extend the page grammar
 

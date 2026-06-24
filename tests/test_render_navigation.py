@@ -18,7 +18,9 @@ import pytest
 import yaml
 
 from src.model.review import Review
+from src.parser.page import discover_pages
 from src.parser.review import parse_review
+from src.render.editorial import discover_editorials
 from src.render.navigation import (
     NavItem,
     NavLink,
@@ -32,6 +34,11 @@ NAV_PATH = REPO_ROOT / "config" / "navigation.yaml"
 
 needs_corpus = pytest.mark.skipif(
     not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
+)
+
+needs_sources = pytest.mark.skipif(
+    not (REPO_ROOT / "pages").is_dir() or not (REPO_ROOT / "content").is_dir(),
+    reason="editorial source sets not present",
 )
 
 
@@ -230,3 +237,39 @@ def test_real_corpus_resolves_issues_submenu() -> None:
     assert issues.children[0] == NavLink("All Issues", "/issues/")
     assert len(issues.children) >= 2
     assert all(c.url.startswith("/issues/") for c in issues.children)
+
+
+# -- URL-scheme-v2 section guard ------------------------------------------
+
+# Overview/aggregation routes the renderers emit directly, not via editorial
+# discovery: home, issues, tags, reviewers, resources.
+_STATIC_ROUTES = {"", "issues", "tags", "reviewers", "resources"}
+
+
+@needs_sources
+def test_real_navigation_urls_resolve_to_built_pages() -> None:
+    """Every navigation URL must point to a page the build actually produces.
+
+    The section of an editorial page is encoded in four places (the ``pages/``
+    folder, the ``content/`` frontmatter slug, this YAML, and the redirects).
+    This guard pins the YAML against the rendered slug set, so a moved page or
+    a stale menu link fails here instead of 404-ing on the live site.
+    """
+    built = {p.slug for p in discover_pages()} | {p.slug for p in discover_editorials()}
+    items = load_navigation(NAV_PATH)
+    urls: list[str] = []
+    for it in items:
+        urls += [u for u in (it.url, it.fallback_url) if u]
+        urls += [c.url for c in it.children]
+    unresolved = sorted(u for u in urls if u.strip("/") not in built | _STATIC_ROUTES)
+    assert not unresolved, f"navigation URLs with no built page: {unresolved}"
+
+
+@needs_sources
+def test_real_editorial_slugs_unique_within_each_source() -> None:
+    """No two files in one editorial source set may claim the same slug; one
+    would silently overwrite the other when the build writes its index.html."""
+    for label, pages in (("pages", discover_pages()), ("content", discover_editorials())):
+        slugs = [p.slug for p in pages]
+        dupes = sorted({s for s in slugs if slugs.count(s) > 1})
+        assert not dupes, f"duplicate slugs in {label}: {dupes}"

@@ -2,7 +2,7 @@
 
 Static-site generator for [ride.i-d-e.de](https://ride.i-d-e.de) — *RIDE. A review journal for digital editions and resources*, published by the Institut für Dokumentologie und Editorik (IDE).
 
-The pipeline reads 111 TEI XML reviews under `issues/{N}/reviews/`, a small editorial Markdown layer under `content/`, and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree — per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, sitemap. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
+The pipeline reads the TEI XML review corpus under `issues/{N}/reviews/`, the editorial pages as TEI under `pages/` (with a Markdown fallback under `content/`), and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree with per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, a sitemap, and an Atom feed. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
 
 It replaces the previous eXist-based dynamic site. Written in Python with Jinja templates. Every script and parser module ships with pytest coverage; integration tests drive off the in-repo TEI files (Real-Corpus-Drive).
 
@@ -89,7 +89,7 @@ Reviews are prepared in the private companion repository `i-d-e/ride-editors`. I
 
 ### Preview before publication
 
-How unpublished reviews are shown to authors and the IDE for final checking is an open editorial decision — the options (password-protected hosting vs. publicly built but unlisted pages) and a concrete proposal are written up in `knowledge/staging.md`. Until that is decided, a preview is generated locally: copy the draft TEI into `issues/{N}/reviews/` in a local working copy (without committing), then
+How unpublished reviews are shown to authors and the IDE for final checking is an open editorial decision; the options (password-protected hosting vs. publicly built but unlisted pages) and a concrete proposal are written up in the staging section of `knowledge/pipeline.md`. Until that is decided, a preview is generated locally. Copy the draft TEI into `issues/{N}/reviews/` in a local working copy (without committing), then
 
 ```sh
 python -m src.build --pdf
@@ -100,10 +100,12 @@ shows the complete site, draft included, at `http://localhost:8000/`.
 
 ### Edit an editorial page (Editorial, Imprint, Criteria, …)
 
-Editorial pages — everything outside the reviews and factsheets — are TEI. Each lives at `pages/{slug}.xml` and validates against the page profile `schema/ride-pages.rng`: a deliberately small grammar with a reduced `teiHeader` and a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks plus `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build parses each file into the `Page` model (`src/parser/page.py` → `src/model/page.py`) and renders it through `src/render/page.py` into the shared single-column `editorial.html` template. The deployed build renders these with precedence over the legacy Markdown.
+Editorial pages, everything outside the reviews and factsheets, are TEI. Each lives at `pages/{slug}.xml`, or at `pages/{section}/{slug}.xml` to carry a navigation section in its URL. They validate against the page profile `schema/ride-pages.rng`, a deliberately small grammar with a reduced `teiHeader` and a body of `div`/`head`/`p`/`list`/`table`/`eg` blocks plus `ref`/`persName`/`email`/`hi`/`code`/`lb` inline. The build parses each file into the `Page` model (`src/parser/page.py` → `src/model/page.py`) and renders it through `src/render/page.py` into the shared single-column `editorial.html` template. The deployed build renders these with precedence over the legacy Markdown.
 
-1. Edit the body of `pages/{slug}.xml`. Stay within the elements `ride-pages.rng` allows, or `tests/test_pages_schema.py` fails.
-2. **Add a new page:** drop a new `pages/{newslug}.xml` that validates against the profile — `discover_pages()` finds it automatically and renders it at `/{newslug}/`. Add an entry to `config/navigation.yaml` to surface it in the menu.
+The URL mirrors the file location (URL scheme v2). A file directly under `pages/` keeps a flat URL (`pages/criteria.xml` → `/criteria/`); a file in a section folder takes that prefix (`pages/about/team.xml` → `/about/team/`), matching its navigation section. See `docs/url-scheme.md`.
+
+1. Edit the body of `pages/{slug}.xml` (or `pages/{section}/{slug}.xml`). Stay within the elements `ride-pages.rng` allows, or `tests/test_pages_schema.py` fails.
+2. **Add a new page:** drop a new file under `pages/` that validates against the profile. Put it in a section folder (`pages/about/{newslug}.xml` → `/about/{newslug}/`) or at the top level for a flat `/{newslug}/`; `discover_pages()` finds it automatically. Add an entry to `config/navigation.yaml`, and `tests/test_render_navigation.py` checks that every menu URL resolves to a built page.
 3. A few generator-native pages stay Markdown under `content/`: the About overview and the data charts/questionnaire pages (these are data-driven, not prose). For any slug no TEI page covers, `content/{slug}.md` renders as fallback. Pass `--no-tei-editorials` to build the Markdown set instead.
 4. Home-page widgets live in `content/home/*.md` (frontmatter pattern). Global navigation is `config/navigation.yaml`; the loader validates every entry, so a typo breaks the build.
 
@@ -152,12 +154,12 @@ The second checkout is the only remaining external dependency; it can drop once 
 - `CLAUDE.md` — repository layout, script outputs, project conventions.
 - `docs/extending.md` — adding a TEI element or render variant.
 - `docs/url-scheme.md` — versioned URL contract.
-- `knowledge/` — Obsidian-style vault with its own index (`knowledge/INDEX.md`): corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`specification.md`, `interface.md`, `staging.md`). Cross-references use `[[wikilink]]` notation.
+- `knowledge/` — Obsidian-style vault with its own index (`knowledge/INDEX.md`): corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`specification.md`, `interface.md`). Cross-references use `[[wikilink]]` notation.
 - `knowledge/journal.md` — session-by-session decisions and current entry point.
 
 ## Status
 
-Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (`knowledge/staging.md`). Current state and next entry point are in `knowledge/journal.md`.
+Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, Atom feed, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (staging section of `knowledge/pipeline.md`). Current state and next entry point are in `knowledge/journal.md`.
 
 ## Licence
 
