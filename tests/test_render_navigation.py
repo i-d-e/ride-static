@@ -242,8 +242,8 @@ def test_real_corpus_resolves_issues_submenu() -> None:
 # -- URL-scheme-v2 section guard ------------------------------------------
 
 # Overview/aggregation routes the renderers emit directly, not via editorial
-# discovery: home, issues, tags, reviewers, resources.
-_STATIC_ROUTES = {"", "issues", "tags", "reviewers", "resources"}
+# discovery: home, issues, tags, reviewers, resources, the explore view.
+_STATIC_ROUTES = {"", "issues", "tags", "reviewers", "resources", "data/explore"}
 
 
 @needs_sources

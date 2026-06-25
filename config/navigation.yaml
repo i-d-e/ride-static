@@ -33,6 +33,7 @@ items:
     fallback_url: /data/
     children:
       - { label: "Overview, Download and API", url: /data/ }
+      - { label: Explore, url: /data/explore/ }
       - { label: Questionnaires, url: /data/questionnaires/ }
       - { label: Charts, url: /data/charts/ }
       - { label: Tags, url: /tags/ }

@@ -203,6 +203,38 @@ def render_issue(
 # ── tags ───────────────────────────────────────────────────────────────
 
 
+def render_explore(
+    reviews: tuple[Review, ...],
+    site: SiteConfig,
+    env: Environment,
+    *,
+    build_date: Optional[str] = None,
+) -> str:
+    """Interactive exploration page ``/data/explore/`` (knowledge/exploration.md).
+
+    The explorer dump is embedded inline as a JSON island so the page works
+    from a single request; ``src.build`` additionally writes the same payload
+    to ``site/data/explorer.json`` as a reusable artefact.
+    """
+    from src.render.explorer import to_explorer_dump_string
+
+    data_json = to_explorer_dump_string(
+        reviews, base_url=site.base_url, build_date=build_date, indent=None
+    )
+    ctx = _common_ctx(site)
+    ctx["page_description"] = (
+        "Interactive exploration of the RIDE review corpus — "
+        "111 reviews across 22 issues, filterable by criteria set, "
+        "language, issue and scope."
+    )
+    return env.get_template("explore.html").render(
+        **ctx,
+        page_title="Explore",
+        page_url=_abs_url(site, "/data/explore/"),
+        data_json=data_json,
+    )
+
+
 def render_tags_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
     tags = aggregate_tags(reviews)
     return env.get_template("tags.html").render(

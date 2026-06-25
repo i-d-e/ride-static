@@ -41,6 +41,7 @@ from src.parser.datasets import (
 from src.parser.page import discover_pages
 from src.parser.review import parse_review
 from src.render.aggregations import (
+    render_explore,
     render_index,
     render_issue,
     render_issues_overview,
@@ -52,6 +53,7 @@ from src.render.aggregations import (
     reviewer_slug,
 )
 from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL, to_corpus_dump_string
+from src.render.explorer import to_explorer_dump_string
 from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
 from src.render.factsheet import render_factsheet
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
@@ -327,6 +329,22 @@ def _render_aggregations(
         render_resources(reviews, site=site, env=env), encoding="utf-8"
     )
     pages += 1
+
+    # Interactive data exploration (knowledge/exploration.md View 1).
+    build_date = site.build_info.date if site.build_info else None
+    data_dir = out_root / "data"
+    explore_dir = data_dir / "explore"
+    explore_dir.mkdir(parents=True, exist_ok=True)
+    (explore_dir / "index.html").write_text(
+        render_explore(reviews, site=site, env=env, build_date=build_date),
+        encoding="utf-8",
+    )
+    pages += 1
+    # The same payload as a reusable artefact next to the page.
+    (data_dir / "explorer.json").write_text(
+        to_explorer_dump_string(reviews, base_url=site.base_url, build_date=build_date),
+        encoding="utf-8",
+    )
 
     return pages
 

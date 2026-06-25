@@ -16,6 +16,7 @@ related:
   - "[[architecture]]"
   - "[[interface]]"
   - "[[pipeline]]"
+  - "[[exploration]]"
   - "[[data]]"
   - "[[schema]]"
 ---
@@ -36,6 +37,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
+| [[exploration]] | Form/Construction — proposal: interactive explore view and narrative story view, with implementation plan | when the two data views are scoped or built |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.

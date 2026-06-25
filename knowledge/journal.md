@@ -30,6 +30,24 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-06-25 — Explorations-Seite: Plan plus erster interaktiver Explore-View
+
+**Ziel:** Klären, was der Korpus an explorierbarem Potenzial für eine eigene interaktive Daten-Seite hergibt, welche Forschungsfragen er trägt, und ob ein zweiter, narrativer View machbar ist — mündend in einen Implementierungsplan und einen ersten sichtbaren View.
+
+**Erledigt:** Zwei mehrphasige Expertenteam-Durchläufe gegen den echten Korpus. Durchgang 1 kartierte fünf Datendimensionen, prüfte 24 interaktive Vis-Konzepte adversarisch auf Datentragfähigkeit und destillierte sieben tragende Visualisierungen (P1 Facetten-Browser als Rückgrat, P2 Antwort-Matrix-Heatmap, P3 Issue-Timeline plus Ressourcen-Alter, P4 Review-Anatomie, P5 Editor-Matrix, P6 Reviewer-Karte, P7 Verweisnetz) plus Ressourcen-Inventar. Durchgang 2 erstellte den Forschungsfragen-Katalog (Teil A datasheet-beantwortbar, Teil B volltext-pflichtig, sieben Leitfragen), das datenehrliche Narrativ-Konzept (sechs Etappen) und den gegen den Code verifizierten Implementierungsplan. Festgehalten als Vault-Doc [[exploration]], im INDEX verlinkt. Anschließend den Kern von View 1 gebaut: `/data/explore/` live im Build. Datenbasis `src/render/explorer.py` (eine flache Pro-Review-Zeile, set-interne Ja-Quote, Apparat als Präsenz plus Rohwert), Render via `render_explore` in aggregations.py, Build-Hook in build.py (Seite plus `site/data/explorer.json`), navigation.yaml-Eintrag. Frontend: D3 v7 vendored unter static/js/vendor, `static/js/explore.js` mit Facetten-Browser (Beeswarm plus Crossfilter, umschaltbare X-Achse, gekoppelte sortierbare Tabelle) und Issue-Timeline (P3). App-Layout mit Filter-Sidebar links und dominanter Vis. Suite grün (550 plus 2 Skip), Nav-Guard um `data/explore` ergänzt.
+
+**Entscheidungen:**
+- Technik E0 entschieden: D3 v7 modular vendored (kein CDN, kein npm), Karte später über d3-geo plus eingecheckte GeoJSON, Scrollytelling über scrollama. Ersetzt den Team-Default „eigener SVG-Renderer", weil der Ästhetik-Anspruch eine etablierte Engine verlangt und D3 die Offline-Disziplin gleichermaßen hält.
+- Scope E8 entschieden: Kern zuerst (P1, P2, P3 plus Narrativ-Etappen 1 bis 4), Rest additiv. Faktisch zuerst P1 plus P3 gebaut.
+- Set-Sperre als Daten-Eigenschaft im Dump verankert (set_slug Pflicht, keine globale Ja-Quote); die Leitplanke lebt in der Vis (set-relativer Hinweis an der Yes-ratio-Achse und der Tabellenspalte) statt als Erklärtext.
+- Beide Views als Schwestern unter dem Data-Bereich; die statischen `/data/charts/` bleiben als Kanon-Ansicht daneben.
+
+**Offen:** P2 (Heatmap), P4 bis P7 und der Narrativ-View `/data/story/` noch nicht gebaut. Die eigenen TDD-Tests für explorer.py und render_explore (AP7) fehlen — bisher nur der Nav-Guard angepasst. Restliche Entscheidungen E1 bis E7, E9 offen (JSON-Ablage, Ressourcen-Alter 35 gegen 26, Skript-Schnitt, GeoNames, URL-Schema-Eintrag, Etappe 7, Mikro-Anker, Charts-Koexistenz). Volltext-Forschungsfragen brauchen erst Textanalyse.
+
+**Nächster Einstieg:** AP7-Tests für explorer.py nachziehen (Realkorpus-Integrationstest: 111 Zeilen, set_slug-Pflicht, keine globale Ja-Quote, exakte Output-Pfade), dann P2 Heatmap je Set als nächste zentrale Ansicht.
+
+---
+
 ## 2026-06-24 — Editorial-URLs hierarchisch (URL-Schema v2)
 
 **Ziel:** Aus dem IDE-Gegencheck kam die Anmerkung, die Bereiche (About, Data) wie auf der alten WP-Site in der URL abzubilden (`/about/editorial/` statt `/editorial/`). Diese Hierarchisierung umsetzen und live auf GitHub Pages prüfbar machen.
