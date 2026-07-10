@@ -26,21 +26,21 @@ Artikelansicht, Factsheet und PDF erzeugt der Build nativ bei jedem Push; die be
 TEI-Datei wandert von `ride-editors` in `issues/{N}/reviews/` dieses Repos (Mechanik offen, naheliegend als Pull Request). Issue-Einrichtung ist `issues/{N}/metadata.yaml`. Übersichtslisten, Charts, Feeds, Sitemap, Suchindex und Korpus-Dump erzeugt der Build automatisch; die eXist-Abfragen hinter den alten Charts-, Reviewer- und Ressourcen-Seiten sind bereits statisch ersetzt. Zwei Teilschritte sind nicht portiert:
 
 - **Wordcloud-Generierung.** `wordclouds.py` (ride-scripts) läuft lokal; die vorhandenen Wordclouds sind einmalig importiert (`static/images/wordclouds/`). Als Build-Schritt portierbar, braucht dafür einen fixierten Seed (die Layout-Bibliothek ist stochastisch) und das Mitführen von Font und Maske.
-- **DOI-Metadaten.** `tei2doi` (ride-tech) erzeugt DataCite-Kernel-4-XML, manuell pro Beitrag (Issue-DOI beim jeweils ersten Beitrag eines Issues). Das XML wird an die USB Köln (KUPS) übergeben, die den DOI über DataCite registriert (Präfix 10.18716). Kein API-Aufruf, kein eXist beteiligt. Bekannte Schwächen der Transformation, die eine Portierung beheben sollte: naive Namens-Trennung am ersten Leerzeichen, hartkodiertes ROR-Schema für Affiliations, manuell gesetzte Issue-Sprache.
+- **DOI-Metadaten.** `tei2doi` (ride-tech) erzeugt DataCite-Kernel-4-XML, manuell pro Beitrag (Issue-DOI beim jeweils ersten Beitrag eines Issues). Das XML wird an die USB Köln übergeben, die den DOI über ihren DataCite-Client registriert (Client-Symbol `zbmed.unikoeln`, Provider University of Cologne, Präfix 10.18716; verifiziert gegen die DataCite-API). Kein API-Aufruf aus dem RIDE-Workflow, kein eXist beteiligt. Bekannte Schwächen der Transformation, die eine Portierung beheben sollte: naive Namens-Trennung am ersten Leerzeichen, hartkodiertes ROR-Schema für Affiliations, manuell gesetzte Issue-Sprache.
 
 ### Schritt 3 — Postpublishing
 
 - **eXist-Upload entfällt** im Zielbild ersatzlos; einzige Restfunktion ist der OAI-Endpoint (unten).
-- **DOAJ.** `tei2doaj` (ride-scripts) erzeugt DOAJ-Artikel-XML über den ganzen Korpus (Feldmapping vollständig dokumentiert: Sprache, Publisher, eISSN, DOI, Autoren mit ORCID, Abstract, fullTextUrl, Keywords). Der Übermittlungsweg ist in keinem Repo dokumentiert; kein Uploader-Skript existiert. Der OAI-Endpoint bietet zusätzlich `oai_doajxml` an, ein DOAJ-Pull über OAI ist also als Alt-Weg plausibel. Die Frage Push-per-API vs. Dashboard-Upload vs. OAI-Pull liegt bei der Redaktion (siehe [[redirects-feeds]]).
+- **DOAJ.** `tei2doaj` (ride-scripts) erzeugt DOAJ-Artikel-XML über den ganzen Korpus (Feldmapping vollständig dokumentiert: Sprache, Publisher, eISSN, DOI, Autoren mit ORCID, Abstract, fullTextUrl, Keywords). Der Übermittlungsweg ist in keinem Repo dokumentiert; kein Uploader-Skript existiert. DOAJ nimmt Metadaten ausschließlich per XML-Upload im Publisher-Dashboard oder per REST-API an, ein Harvesting von Publisher-OAI-Endpoints gibt es nicht (verifiziert 2026-07-10 gegen doaj.org/docs); das `oai_doajxml`-Format des OAI-Endpoints ist demnach ein Convenience-Export zur Erzeugung der Upload-Datei. Die Frage Dashboard-Upload vs. API-Push liegt bei der Redaktion (siehe [[redirects-feeds]]).
 
 ## Ablösetabelle
 
 | Legacy-Komponente | Ort | Statischer Ersatz | Status |
 |---|---|---|---|
 | tei2wp Artikel + Factsheet | ride-tech | Parser + Templates dieses Repos | ersetzt; Paritätslücken unten |
-| tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren) |
+| tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren); laufende Fußzeilen der Alt-Kette (Seitenzahl, Zitierzeile) fehlen noch |
 | Charts-, Reviewer-, Ressourcen-Abfragen | eXist-Mirrors in ride-tech | `/data/charts/`, `/reviewers/`, `/data/reviewed-resources/` | ersetzt |
-| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build | Entscheidung offen: Endpoint stilllegen oder dünner Dienst; kein Harvester nachweisbar ([[redirects-feeds]]) |
+| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | Entscheidung offen: Endpoint stilllegen oder dünner Dienst; kein Harvester nachweisbar ([[redirects-feeds]]) |
 | wordclouds.py | ride-scripts | Anzeige ja, Generierung nicht portiert | Entscheidung offen |
 | tei2doi (DataCite XML) | ride-tech | nicht portiert | Entscheidung offen: in den Build oder manuell bei USB Köln |
 | tei2doaj (DOAJ XML) | ride-scripts | nicht portiert | Entscheidung offen, Übermittlungsweg ungeklärt |
@@ -51,7 +51,7 @@ TEI-Datei wandert von `ride-editors` in `issues/{N}/reviews/` dieses Repos (Mech
 
 Korpus-verifiziert am 2026-07-10:
 
-1. **Amendments-Apparat.** Post-Publication-Korrekturen (`<mod>`/`<del>`/`<add>` mit `<listChange type="post-publication">`) existieren in melville (Issue 3) und sandrart (Issue 1). Die Alt-Ansicht rendert `add` im Text plus einen eigenen Amendments-Abschnitt mit dem Original (`del`). Unser Parser behandelt `mod`/`del` als Text-Passthrough, gestrichener und neuer Text erscheinen also konkateniert im Fließtext. Echte Lücke, wenn auch auf wenige Reviews begrenzt.
+1. **Amendments-Apparat.** Post-Publication-Korrekturen (`<mod>`/`<del>`/`<add>` mit `<listChange type="post-publication">`) existieren in melville (Issue 3) und sandrart (Issue 1). Die Alt-Ansicht rendert `add` im Text plus einen eigenen Amendments-Abschnitt mit dem Original (`del`) und der Korrektur-Notiz. Unser Parser behandelt `mod`/`del` als Text-Passthrough; in melville erscheinen gestrichener und neuer Text konkateniert im Fließtext, in sandrart wird die in `<mod>` steckende Korrektur-Fußnote als Fließtext flachgeklopft. Echte Lücke, wenn auch auf wenige Reviews begrenzt.
 2. **Identifier-Autoritäten.** Der Korpus trägt neben ORCID auch VIAF- und GND-Refs (plus ORCID-IDs ohne URL-Präfix und vereinzelten Datenmüll). Unser `Person`-Modell legt `@ref` undifferenziert im Feld `orcid` ab, das Template beschriftet alles als ORCID. Die Alt-Ansicht wählte das Label nach Autorität.
 3. **Factsheet-Hilfetexte.** Die Alt-Factsheets blenden pro Kriterium Definitionen ein, die aus separaten erweiterten Questionnaire-Dateien (ride-tech `tei2wp/questionnaires/`) stammen, eine zweite Datenquelle plus Client-JS. Nicht in unserer Pipeline; klären, ob gewünscht.
 4. **Select-Antworten.** Die Alt-Factsheets rendern neben Booleans auch Select-Werte mit Freitext („Other: …" aus `gloss`). `gloss` kommt im Korpus vor; prüfen, ob unser Questionnaire-Parser (liest `num @value`) solche Antworten verliert.
@@ -64,7 +64,7 @@ Die Citation-Suggestion-Box stammte aus dem WordPress-Theme, nicht aus den Trans
 
 1. Staging: gilt „passwortgeschützt" wörtlich (Optionen in [[pipeline]])?
 2. DOI: DataCite-XML künftig im Build erzeugen oder Übergabe an die USB Köln manuell belassen? Wer führt sie aus?
-3. DOAJ: Push per API (Secret-Handling), Dashboard-Upload oder OAI-Pull klären.
+3. DOAJ: Dashboard-Upload des erzeugten XML oder API-Push aus der Pipeline (dann API-Key als Secret)?
 4. OAI-Endpoint: stilllegen (kein Harvester nachweisbar) oder dünner Ersatzdienst?
 5. Wordclouds: Generierung in den Build (deterministisch) oder redaktioneller Schritt mit Commit?
 6. Freischaltungs-Mechanik: PR-basierter Move von ride-editors, wer führt aus?
