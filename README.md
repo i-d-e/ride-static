@@ -157,6 +157,13 @@ The second checkout is the only remaining external dependency; it can drop once 
 - `knowledge/` — Obsidian-style vault with its own index (`knowledge/INDEX.md`): corpus reference (`data.md`, `schema.md`), design intent (`architecture.md`, `pipeline.md`), product specification (`specification.md`, `interface.md`). Cross-references use `[[wikilink]]` notation.
 - `knowledge/journal.md` — session-by-session decisions and current entry point.
 
+Per-directory READMEs describe their own folder:
+
+- `scripts/README.md` — Stage 0/1 discovery scripts and their JSON/Markdown outputs.
+- `src/README.md` — parser, model, render, and build modules with the data flow.
+- `config/README.md` — `navigation.yaml` and the spec-only `element-mapping.yaml`.
+- `static/README.md` — css, js modules, fonts, and vendored image assets.
+
 ## Status
 
 Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, Atom feed, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (staging section of `knowledge/pipeline.md`). Current state and next entry point are in `knowledge/journal.md`.

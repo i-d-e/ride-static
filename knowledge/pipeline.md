@@ -38,7 +38,7 @@ is safe and explicit:
 
 ```sh
 # Tier 1 — independent extractors (parallel-safe)
-python scripts/inventory.py        # elements.json, attributes.json, corpus-stats.json
+python scripts/inventory.py        # elements.json, attributes.json
 python scripts/odd_extract.py      # odd-summary.json
 python scripts/structure.py        # structure.json
 python scripts/sections.py         # sections.json

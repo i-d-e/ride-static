@@ -89,7 +89,7 @@ Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` th
 
 | Script | Output | Purpose |
 |---|---|---|
-| `inventory.py` | `elements.json`, `attributes.json`, `corpus-stats.json` | element/attribute usage, value distributions, presence ratios |
+| `inventory.py` | `elements.json`, `attributes.json` | element/attribute usage, value distributions, presence ratios |
 | `odd_extract.py` | `odd-summary.json` | modules, elementSpec customisations, Schematron rules |
 | `structure.py` | `structure.json` | per-element children, child sequences, ancestor paths |
 | `sections.py` | `sections.json` | `<div type>` + `<head>`-tree per review |
