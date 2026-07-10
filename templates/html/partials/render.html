@@ -182,3 +182,21 @@
     {%- endif -%}
   </blockquote>
 {%- endmacro -%}
+
+{#- Article footer body — licence line plus published/build provenance.
+    Shared verbatim by review.html and factsheet.html. Emits only the two
+    <p> blocks (no <footer> wrapper), so each page keeps its own wrapper and
+    factsheet appends its back-link inside it. Whitespace control keeps the
+    rendered bytes identical to the former inline duplication. -#}
+{% macro article_footer(review, strings, build_info) -%}
+<p class="ride-review__licence">
+        {%- if review.licence -%}
+          {{ strings.licence | default('Licence') }}:
+          <a href="{{ review.licence }}">{{ review.licence }}</a>
+        {%- endif -%}
+      </p>
+      <p class="ride-review__provenance">
+        {%- if review.publication_date %}{{ strings.published | default('Published') }}: {{ review.publication_date }}{% endif -%}
+        {%- if build_info %} · build {{ build_info.commit_short }} ({{ build_info.date }}){% endif -%}
+      </p>
+{%- endmacro %}

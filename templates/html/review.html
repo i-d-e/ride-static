@@ -102,16 +102,7 @@
     {{ a.apparate(review, site.strings) }}
 
     <footer class="ride-review__footer">
-      <p class="ride-review__licence">
-        {%- if review.licence -%}
-          {{ site.strings.licence | default('Licence') }}:
-          <a href="{{ review.licence }}">{{ review.licence }}</a>
-        {%- endif -%}
-      </p>
-      <p class="ride-review__provenance">
-        {%- if review.publication_date %}{{ site.strings.published | default('Published') }}: {{ review.publication_date }}{% endif -%}
-        {%- if site.build_info %} · build {{ site.build_info.commit_short }} ({{ site.build_info.date }}){% endif -%}
-      </p>
+      {{ r.article_footer(review, site.strings, site.build_info) }}
     </footer>
 
   </div>{# /ride-content #}

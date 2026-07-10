@@ -560,7 +560,7 @@ main.ride-shell {
    Gesamteinheit ruhig bleiben soll. */
 .ride-sidebar__box {
   margin-bottom: var(--ride-space-6);
-  padding: var(--ride-space-4) var(--ride-space-5, var(--ride-space-4));
+  padding: var(--ride-space-4);
   border: 1px solid var(--ride-rule);
   border-radius: var(--ride-radius);
   background: var(--ride-bg);
@@ -944,15 +944,15 @@ main.ride-shell {
    Dataviz palette is intentionally muted — the bar is the data, the
    numerals are the truth, everything else is chrome. */
 .ride-charts                         { display: flex; flex-direction: column; gap: var(--ride-space-6); margin: var(--ride-space-6) 0; }
-.ride-charts__figure                 { margin: 0; padding: var(--ride-space-4); border: 1px solid var(--ride-border); border-radius: 4px; background: var(--ride-bg-soft, #fafafa); }
+.ride-charts__figure                 { margin: 0; padding: var(--ride-space-4); border: 1px solid var(--ride-rule); border-radius: 4px; background: var(--ride-bg-muted); }
 .ride-charts__caption                { margin: 0 0 var(--ride-space-3); font-size: var(--ride-text-base); }
 .ride-charts__count                  { color: var(--ride-fg-secondary); font-weight: 400; }
 .ride-charts__svg, .ride-chart__svg  { width: 100%; height: auto; max-width: 700px; }
-.ride-chart__grid                    { stroke: var(--ride-border); stroke-width: 1; }
+.ride-chart__grid                    { stroke: var(--ride-rule); stroke-width: 1; }
 .ride-chart__tick                    { fill: var(--ride-fg-secondary); font-size: 10px; }
 .ride-chart__row-label               { fill: var(--ride-fg-primary); font-size: 12px; }
-.ride-chart__bar-bg                  { fill: var(--ride-bg-muted, #eaeaea); }
-.ride-chart__bar-fg                  { fill: var(--ride-accent, #0d6efd); }
+.ride-chart__bar-bg                  { fill: var(--ride-bg-muted); }
+.ride-chart__bar-fg                  { fill: var(--ride-accent); }
 .ride-chart__bar-annotation          { fill: var(--ride-fg-primary); font-size: 11px; }
 .ride-charts__anomaly                { margin: var(--ride-space-3) 0 0; font-size: var(--ride-text-tiny); color: var(--ride-fg-secondary); }
 .ride-charts__anomaly code           { font-size: inherit; }
@@ -1095,7 +1095,7 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
   .ride-wip, .ride-header, .ride-nav, .ride-footer,
   .ride-sidebar, .ride-skip,
   .ride-cite__btns, .ride-cite-data { display: none; }
-  .ride-page, .ride-review { grid-template-columns: minmax(0, 1fr); }
+  .ride-page { grid-template-columns: minmax(0, 1fr); }
   .ride-content, .ride-shell { max-width: 100%; padding: 0; margin: 0; }
   .ride-review__doi-print {
     display: block; margin: 0 0 var(--ride-space-4) 0;

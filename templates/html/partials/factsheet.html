@@ -3,10 +3,10 @@
 
   interface.md §5: "Factsheet wird angezeigt und erklärt die Bewertung
   knapp." Each Review carries one or more `Questionnaire` objects (most
-  carry one; three carry two), one per criteria set referenced via
+  carry one, some carry more), one per criteria set referenced via
   `criteria_url`. Each questionnaire has a flat tuple of
   `QuestionnaireAnswer(category_xml_id, value)` where `value` is "0",
-  "1", or — in one corpus anomaly — "3".
+  "1", or — in a corpus anomaly — "3".
 
   v0 rendering: per criteria URL, show count of "1" answers vs total
   meaningful answers, plus a small bar. The criteria URLs link to the
