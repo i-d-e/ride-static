@@ -7,12 +7,18 @@ sub-blocks. Bibliography and Questionnaire arrive in Phase 6.
 """
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from lxml import etree
 
+from src.model.inline import Amendment
 from src.model.review import Review
-from src.parser.aggregate import collect_figures, collect_notes
+from src.parser.aggregate import (
+    collect_amendments,
+    collect_figures,
+    collect_notes,
+)
 from src.parser.bibliography import parse_bibliography
 from src.parser.common import NS, attr, find, itertext
 from src.parser.questionnaire import parse_questionnaires
@@ -52,6 +58,7 @@ def parse_review(path: Path) -> Review:
     all_sections = front + body + back
     figures = collect_figures(all_sections)
     notes = collect_notes(all_sections)
+    amendments = _enrich_amendments(collect_amendments(all_sections), root)
     bibliography = parse_bibliography(text_el)
     questionnaires = parse_questionnaires(root)
 
@@ -72,6 +79,7 @@ def parse_review(path: Path) -> Review:
         back=back,
         figures=figures,
         notes=notes,
+        amendments=amendments,
         bibliography=bibliography,
         questionnaires=questionnaires,
         source_file=path.name,
@@ -79,3 +87,36 @@ def parse_review(path: Path) -> Review:
     # Phase-7 post-pass: classify every Reference.target into one of
     # local / criteria / external / orphan against the review's xml:id index.
     return resolve_references(review)
+
+
+def _revision_index(root: etree._Element) -> dict[str, tuple]:
+    """Map each ``<change xml:id="revisionN">`` under
+    ``<revisionDesc>/<listChange type="post-publication">`` to its
+    ``(@when, @resp)`` pair. Empty for the mass of reviews with no
+    ``<revisionDesc>``."""
+    index: dict[str, tuple] = {}
+    revision_desc = find(root, "t:teiHeader/t:revisionDesc")
+    if revision_desc is None:
+        return index
+    for change in revision_desc.iterfind(".//t:change", NS):
+        cid = attr(change, "xml:id")
+        if cid:
+            index[cid] = (attr(change, "when"), attr(change, "resp"))
+    return index
+
+
+def _enrich_amendments(
+    amendments: tuple[Amendment, ...], root: etree._Element
+) -> tuple[Amendment, ...]:
+    """Join each amendment to its ``<revisionDesc>`` change via ``@change``
+    (``#revisionN`` → ``revisionN``), filling ``date`` (``@when``) and
+    ``resp`` (``@resp``). Unmatched amendments keep ``None`` for both."""
+    if not amendments:
+        return amendments
+    index = _revision_index(root)
+    out = []
+    for a in amendments:
+        key = (a.change or "").lstrip("#")
+        when, resp = index.get(key, (None, None))
+        out.append(replace(a, date=when, resp=resp))
+    return tuple(out)

@@ -27,6 +27,7 @@ import pytest
 from lxml import etree
 
 from src.model.inline import (
+    Amendment,
     Emphasis,
     Highlight,
     InlineCode,
@@ -272,15 +273,58 @@ def test_lb_becomes_single_space():
     assert out == (Text(text="line one line two"),)
 
 
-def test_passthrough_text_for_mod_preserves_content():
-    """``<mod>`` (7 corpus occurrences) is not modelled but its text must
-    survive — captured as a Text inline rather than silently dropped."""
+def test_mod_becomes_structured_amendment():
+    """``<mod>`` is a post-publication amendment: the ``<add>`` replacement
+    renders inline, the ``<del>`` original and ``<note>`` are carried apart
+    for the Amendments apparate and never flattened into the running text.
+
+    Pure-function unit test over the parser's mod branch. The synthetic
+    ``<subst>`` shape mirrors the melville corpus (del + add + note); the
+    signature (inline mixed content) is the only data form richer than this.
+    """
     p = _el(
         '<p xmlns="http://www.tei-c.org/ns/1.0">'
-        "before <mod>amended phrase</mod> after</p>"
+        "before "
+        '<mod change="#revision1" xml:id="ftn-i" n="i">'
+        "<subst><del>old text</del><add>new text</add></subst>"
+        "<note>correction rationale</note>"
+        "</mod> after</p>"
     )
     out = parse_inlines(p)
-    assert out == (Text(text="before amended phrase after"),)
+    assert len(out) == 3
+    assert out[0] == Text(text="before ")
+    amendment = out[1]
+    assert isinstance(amendment, Amendment)
+    assert amendment.marker == "i"
+    assert amendment.xml_id == "ftn-i"
+    assert amendment.change == "#revision1"
+    assert amendment.children == (Text(text="new text"),)
+    assert amendment.deleted == (Text(text="old text"),)
+    assert amendment.note == (Text(text="correction rationale"),)
+    assert out[2] == Text(text=" after")
+    # The deleted original must not surface in the flattened running text.
+    flat = "".join(t.text for t in out if isinstance(t, Text))
+    assert "old text" not in flat
+
+
+def test_mod_with_only_note_carries_no_replacement():
+    """The sandrart shape: ``<mod>`` wrapping a lone ``<note>`` (no del/add).
+    The amendment renders no inline replacement; the note is carried for the
+    apparate. Synthetic exception: this corpus shape is the sandrart edge
+    case, exercised here in isolation from its real (note-nested) context."""
+    p = _el(
+        '<p xmlns="http://www.tei-c.org/ns/1.0">'
+        'text<mod change="#revision1" xml:id="ftn-i" n="i">'
+        "<note>a correction note</note></mod></p>"
+    )
+    out = parse_inlines(p)
+    amendment = out[-1]
+    assert isinstance(amendment, Amendment)
+    assert amendment.children == ()
+    assert amendment.deleted == ()
+    assert amendment.note == (Text(text="a correction note"),)
+    flat = "".join(t.text for t in out if isinstance(t, Text))
+    assert "a correction note" not in flat
 
 
 def test_passthrough_text_for_affiliation_in_head():
@@ -395,7 +439,7 @@ def test_smoke_real_corpus_inline_kinds_distribution() -> None:
     is a real signal worth surfacing.
     """
     BLOCK_TAGS = {f"{{{TEI}}}{t}" for t in ("p", "list", "table", "figure", "cit", "quote", "div")}
-    seen = {"Text": 0, "Emphasis": 0, "Highlight": 0, "Reference": 0, "Note": 0, "InlineCode": 0}
+    seen = {"Text": 0, "Emphasis": 0, "Highlight": 0, "Reference": 0, "Note": 0, "InlineCode": 0, "Amendment": 0}
     for f in iter_tei_files():
         tree = etree.parse(str(f))
         for host in tree.iter("{%s}head" % TEI, "{%s}p" % TEI):

@@ -33,6 +33,7 @@ from typing import Optional
 from lxml import etree
 
 from src.model.inline import (
+    Amendment,
     Emphasis,
     Highlight,
     Inline,
@@ -67,9 +68,11 @@ SOFT_SKIP = frozenset({"lb"})
 # Long-tail mixed-content elements that the model deliberately does not
 # carry as inline kinds, but whose textual content must not be lost. The
 # walker captures their normalised itertext as a Text inline. Counts in the
-# corpus are tiny: <mod> 7, <del> 3, <seg> 1, <affiliation> 1 (the last
-# under <head>, an editorial quirk). Phase 13 may surface these as build
-# warnings; for parsing they degrade gracefully.
+# corpus are tiny: <seg> 1, <affiliation> 1 (the last under <head>, an
+# editorial quirk). ``<del>`` stays here for the *standalone* case (a
+# strikethrough mark in a reviewed edition's transcription, e.g. bufalini /
+# spaengler); the ``<del>`` that is a child of ``<mod>`` is handled
+# structurally by :func:`_parse_amendment` and never reaches this set.
 #
 # Bibliographic structure elements (respStmt, date, title, editor, idno)
 # appear inside ``<bibl>`` (which is itself parsed as inline-context here
@@ -77,7 +80,7 @@ SOFT_SKIP = frozenset({"lb"})
 # parser that decodes their structure; until then we preserve their text
 # so cit/bibl content survives end-to-end through Phase 5.
 PASSTHROUGH_TEXT = frozenset({
-    "mod", "del", "seg", "affiliation",
+    "del", "seg", "affiliation",
     "respStmt", "date", "title", "editor", "idno",
 })
 
@@ -153,7 +156,58 @@ def parse_inline_element(el: etree._Element, local: str) -> Inline:
         )
     if local == "code":
         return _parse_code(el)
+    if local == "mod":
+        return _parse_amendment(el)
     raise UnknownTeiElement(local, hint=locate_hint(el))
+
+
+def _parse_amendment(el: etree._Element) -> Amendment:
+    """``<mod change="#revisionN">`` — a post-publication amendment.
+
+    Two corpus shapes: a ``<subst>`` wrapping ``<del>`` + ``<add>`` plus a
+    ``<note>`` (melville revisions 2–6), or a bare ``<del>`` + ``<note>``
+    (melville revision 1), or a lone ``<note>`` with no del/add (sandrart).
+    ``<del>`` may also sit directly under ``<mod>`` outside a ``<subst>``.
+    The replacement (``<add>``) becomes the inline ``children`` shown in the
+    running text; the original (``<del>``) and the reviewer ``<note>`` are
+    carried for the Amendments apparate and are removed from the body flow.
+    Any child element other than subst / del / add / note is an unknown
+    quirk and raises per the anomaly policy.
+    """
+    added: tuple[Inline, ...] = ()
+    deleted: tuple[Inline, ...] = ()
+    note: tuple[Inline, ...] = ()
+    for child in el:
+        if isinstance(child, (etree._Comment, etree._ProcessingInstruction)):
+            continue
+        cl = etree.QName(child).localname
+        if cl == "subst":
+            for sub in child:
+                if isinstance(sub, (etree._Comment, etree._ProcessingInstruction)):
+                    continue
+                sl = etree.QName(sub).localname
+                if sl == "del":
+                    deleted = parse_inlines(sub)
+                elif sl == "add":
+                    added = parse_inlines(sub)
+                else:
+                    raise UnknownTeiElement(sl, hint=locate_hint(sub))
+        elif cl == "del":
+            deleted = parse_inlines(child)
+        elif cl == "add":
+            added = parse_inlines(child)
+        elif cl == "note":
+            note = parse_inlines(child)
+        else:
+            raise UnknownTeiElement(cl, hint=locate_hint(el))
+    return Amendment(
+        children=added,
+        deleted=deleted,
+        note=note,
+        marker=attr(el, "n"),
+        xml_id=attr(el, "xml:id"),
+        change=attr(el, "change"),
+    )
 
 
 def _parse_ref(el: etree._Element) -> Reference:

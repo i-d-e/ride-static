@@ -118,6 +118,17 @@ inlines:
     # InlineCode.lang is optional; the template emits `data-lang` so that the CSS
     # can style language-specific spans without leaking presentation logic.
 
+  Amendment:
+    template: inlines/amendment.html
+    css_class: ride-amendment
+    # `<mod change="#revisionN">` — a post-publication amendment. The inline
+    # marker (Amendment.marker, from @n) renders the replacement
+    # (Amendment.children) plus a superscript link to the Amendments apparate;
+    # the deleted original and the reviewer note live on Amendment.deleted /
+    # Amendment.note and render once in the apparate. The amendment note is
+    # deliberately excluded from the Notes apparate. @when / @resp are joined
+    # from <revisionDesc> at parse time.
+
 extensibility:
 
   # Strategy when the parser encounters an element name with no mapping entry. In

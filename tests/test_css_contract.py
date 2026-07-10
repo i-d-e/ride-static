@@ -100,6 +100,35 @@ def test_print_stylesheet_hides_chrome_and_shows_doi():
     assert "display: block" in block
 
 
+def test_print_running_footers_declare_page_number_and_citeline():
+    """PDF running footers (parity with the legacy PDF chain).
+
+    Each WeasyPrint page carries a page number bottom-right and a
+    citation line bottom-left. The citation string is captured from
+    the print-only DOI paragraph via ``string-set: citeline`` and
+    emitted in ``@bottom-left`` via ``string(citeline)``; the page
+    number uses ``counter(page)`` in ``@bottom-right``. On non-review
+    pages the string is never set, so ``string()`` renders empty
+    (no crash).
+    """
+    css = _css()
+    block = css[css.find("@media print"):]
+    assert "@bottom-right" in block
+    assert "counter(page)" in block
+    assert "@bottom-left" in block
+    assert "string(citeline)" in block
+    # The string-set source must exist on the DOI print paragraph.
+    doi_rule_start = block.find(".ride-review__doi-print {")
+    assert doi_rule_start != -1
+    doi_rule = block[doi_rule_start:block.find("}", doi_rule_start)]
+    assert "string-set: citeline" in doi_rule
+    # The source element the string-set targets exists in the template.
+    review_tmpl = (REPO_ROOT / "templates" / "html" / "review.html").read_text(
+        encoding="utf-8"
+    )
+    assert 'class="ride-review__doi-print"' in review_tmpl
+
+
 def test_reduced_motion_preference_is_honoured():
     """WCAG 2.3.3 (AAA, but project policy): users who set
     ``prefers-reduced-motion: reduce`` get no animations, no

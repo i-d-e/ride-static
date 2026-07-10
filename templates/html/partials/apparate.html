@@ -19,10 +19,11 @@
 {%- import "partials/render.html" as r with context -%}
 
 {%- macro apparate(review, strings={}) -%}
-  {%- set has_refs    = review.bibliography and (review.bibliography | length) > 0 -%}
-  {%- set has_figures = review.figures      and (review.figures      | length) > 0 -%}
-  {%- set has_notes   = review.notes        and (review.notes        | length) > 0 -%}
-  {%- if has_refs or has_figures or has_notes -%}
+  {%- set has_refs       = review.bibliography and (review.bibliography | length) > 0 -%}
+  {%- set has_figures    = review.figures      and (review.figures      | length) > 0 -%}
+  {%- set has_notes      = review.notes        and (review.notes        | length) > 0 -%}
+  {%- set has_amendments = review.amendments   and (review.amendments   | length) > 0 -%}
+  {%- if has_refs or has_figures or has_notes or has_amendments -%}
   <aside class="ride-apparate" aria-label="{{ strings.get('apparate', 'Apparate') }}">
 
     {%- if has_refs -%}
@@ -58,6 +59,15 @@
       <h3 id="apparate-notes">{{ strings.get('notes', 'Notes') }}</h3>
       <ol class="ride-apparate__list">
         {%- for n in review.notes -%}{{ r.apparate_note(n) }}{%- endfor -%}
+      </ol>
+    </section>
+    {%- endif -%}
+
+    {%- if has_amendments -%}
+    <section class="ride-apparate__panel ride-apparate__panel--amendments" aria-labelledby="apparate-amendments">
+      <h3 id="apparate-amendments">{{ strings.get('amendments', 'Amendments') }}</h3>
+      <ol class="ride-apparate__list">
+        {%- for a in review.amendments -%}{{ r.apparate_amendment(a, strings) }}{%- endfor -%}
       </ol>
     </section>
     {%- endif -%}

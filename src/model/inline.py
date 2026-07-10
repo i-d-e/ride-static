@@ -78,4 +78,32 @@ class InlineCode:
     lang: Optional[str] = None
 
 
-Inline = Union[Text, Emphasis, Highlight, Reference, Note, InlineCode]
+@dataclass(frozen=True)
+class Amendment:
+    """``<mod change="#revisionN">`` — a post-publication amendment.
+
+    RIDE records post-publication corrections with a ``<mod>`` in the body and
+    a matching ``<change>`` in ``<revisionDesc>``. ``children`` are the
+    replacement (``<add>``) inlines shown *inline* in the running text; empty
+    when the correction carries only a note (the sandrart case, one ``<mod>``
+    with just a ``<note>``). ``deleted`` are the original (``<del>``) inlines,
+    shown in the Amendments apparate under "Original". ``note`` is the
+    reviewer's amendment note, deliberately kept out of the regular footnotes
+    apparate. ``marker`` is the ``@n`` label (e.g. ``"i"``) that links the
+    inline position to its apparate entry, ``xml_id`` the ``@xml:id`` anchor
+    (e.g. ``ftn-i``), ``change`` the raw ``@change`` reference. ``date`` and
+    ``resp`` are joined post-parse from the matching ``<revisionDesc>`` change;
+    both ``None`` until :func:`src.parser.review.parse_review` enriches them.
+    """
+
+    children: tuple["Inline", ...] = ()
+    deleted: tuple["Inline", ...] = ()
+    note: tuple["Inline", ...] = ()
+    marker: Optional[str] = None
+    xml_id: Optional[str] = None
+    change: Optional[str] = None
+    date: Optional[str] = None
+    resp: Optional[str] = None
+
+
+Inline = Union[Text, Emphasis, Highlight, Reference, Note, InlineCode, Amendment]

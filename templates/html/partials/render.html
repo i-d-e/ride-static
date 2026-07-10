@@ -23,6 +23,7 @@
   {%- elif kind == "Highlight" -%}<span class="ride-highlight"{% if i.rend %} data-rend="{{ i.rend }}"{% endif %}>{{ inlines(i.children) }}</span>
   {%- elif kind == "Reference" -%}{{ reference(i) }}
   {%- elif kind == "Note" -%}{{ note_marker(i) }}
+  {%- elif kind == "Amendment" -%}{{ amendment_marker(i) }}
   {%- elif kind == "InlineCode" -%}<code class="ride-code"{% if i.lang %} data-lang="{{ i.lang }}"{% endif %}>{{ i.text }}</code>
   {%- endif -%}
 {%- endmacro -%}
@@ -56,6 +57,32 @@
 {%- macro note_marker(n) -%}
   {%- set anchor = n.xml_id or "" -%}
   <sup class="ride-note"><a href="#{{ anchor }}" id="{{ anchor }}-mark">{{ n.n or "*" }}</a></sup>
+{%- endmacro -%}
+
+{#- Inline amendment (`<mod>`): the replacement (added) content renders in
+    the running text, followed by a superscript marker that jumps to the
+    matching entry in the Amendments apparate. The deleted original and the
+    amendment note are rendered once in `apparate_amendment(a)`. When the
+    correction carries no replacement (sandrart), only the marker shows. -#}
+{%- macro amendment_marker(a) -%}
+  {%- if a.children %}{{ inlines(a.children) }}{% endif -%}
+  {%- set anchor = a.xml_id or "" -%}
+  <sup class="ride-amendment"><a href="#{{ anchor }}" id="{{ anchor }}-mark">{{ a.marker or "*" }}</a></sup>
+{%- endmacro -%}
+
+{#- Apparate version of an amendment: the original text under "Original",
+    the reviewer's amendment note, plus a back-link to the inline marker. -#}
+{%- macro apparate_amendment(a, strings={}) -%}
+  {%- set anchor = a.xml_id or "" -%}
+  <li id="{{ anchor }}">
+    {%- if a.marker %}<span class="ride-amendment__n">{{ a.marker }}</span> {% endif -%}
+    {%- if a.deleted -%}
+      <span class="ride-amendment__original"><span class="ride-amendment__label">{{ strings.get('amendment_original', 'Original') }}:</span> {{ inlines(a.deleted) }}</span>
+    {%- endif -%}
+    {%- if a.note %} <span class="ride-amendment__note">{{ inlines(a.note) }}</span>{% endif -%}
+    {%- if a.date %} <span class="ride-amendment__date">({{ a.date }})</span>{% endif -%}
+    {%- if anchor %} <a class="ride-note__back" href="#{{ anchor }}-mark">back</a>{% endif -%}
+  </li>
 {%- endmacro -%}
 
 {#- One bibliography entry as a list item. ref_target is the canonical URL

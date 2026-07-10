@@ -19,7 +19,15 @@ from typing import Any, Iterable, Optional
 from jinja2 import ChainableUndefined, Environment, FileSystemLoader, select_autoescape
 
 from src.model.block import Paragraph
-from src.model.inline import Emphasis, Highlight, InlineCode, Note, Reference, Text
+from src.model.inline import (
+    Amendment,
+    Emphasis,
+    Highlight,
+    InlineCode,
+    Note,
+    Reference,
+    Text,
+)
 from src.model.review import Review
 from src.model.section import Section
 
@@ -103,6 +111,10 @@ def inlines_to_plain_text(seq: Optional[Iterable], *, drop_notes: bool = False) 
             if not drop_notes:
                 out.append(inlines_to_plain_text(i.children, drop_notes=drop_notes))
         elif isinstance(i, (Emphasis, Highlight, Reference)):
+            out.append(inlines_to_plain_text(i.children, drop_notes=drop_notes))
+        elif isinstance(i, Amendment):
+            # Only the replacement (added) text is part of the running text;
+            # the deleted original and the amendment note live in the apparate.
             out.append(inlines_to_plain_text(i.children, drop_notes=drop_notes))
         elif isinstance(i, InlineCode):
             out.append(i.text)

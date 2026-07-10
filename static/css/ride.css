@@ -554,6 +554,15 @@ main.ride-shell {
 .ride-note__back                { margin-left: var(--ride-space-2); color: var(--ride-fg-tertiary); text-decoration: none; }
 .ride-note__back:hover          { color: var(--ride-accent); }
 
+/* Post-publication amendments (<mod>). Inline marker mirrors the footnote
+   marker; the apparate panel lists each original text plus the reviewer note
+   with a back-link. */
+.ride-amendment                 { /* inline amendment marker; superscript wrapper renders the @n value */ }
+.ride-amendment__n              { font-weight: 600; }
+.ride-amendment__label          { font-style: italic; color: var(--ride-fg-tertiary); }
+.ride-amendment__note           { display: block; margin-top: var(--ride-space-1); }
+.ride-amendment__date           { color: var(--ride-fg-tertiary); }
+
 /* Sidebar boxes — TOC, Factsheet, Meta, Cite, Tags. Welle 8.E:
    visuell mit dem Home-Widget-Panel angeglichen (gleiche Radius,
    Border, Padding-Spur), aber ohne Schatten weil die Sidebar als
@@ -1090,7 +1099,21 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
    page-break-* properties — kept simple here; tune per-template if a
    review's tables overflow. */
 @media print {
-  @page { size: A4; margin: 18mm 16mm; }
+  @page {
+    size: A4; margin: 18mm 16mm;
+    /* Running footers (parity with the legacy PDF chain). string(citeline)
+       is the DOI line captured below; on non-review pages the string is
+       never set, so string() yields empty and the box renders blank
+       rather than crashing. counter(page) is always available. */
+    @bottom-left {
+      content: string(citeline);
+      font-size: 8pt; color: #666;
+    }
+    @bottom-right {
+      content: "Page " counter(page);
+      font-size: 8pt; color: #666;
+    }
+  }
   body { font-size: 11pt; }
   .ride-wip, .ride-header, .ride-nav, .ride-footer,
   .ride-sidebar, .ride-skip,
@@ -1100,6 +1123,10 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
   .ride-review__doi-print {
     display: block; margin: 0 0 var(--ride-space-4) 0;
     font-size: 10pt; color: #444;
+    /* Feed the bottom-left running footer. WeasyPrint captures the
+       element's text content (e.g. "DOI: 10.xxxx/...") as the named
+       string; must not be display:none for string-set to fire. */
+    string-set: citeline content();
   }
   a { color: inherit; text-decoration: none; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.9em; color: #555; }

@@ -16,7 +16,7 @@ from typing import Optional
 
 from src.model.bibliography import BibEntry
 from src.model.block import Figure
-from src.model.inline import Note
+from src.model.inline import Amendment, Note
 from src.model.questionnaire import Questionnaire
 from src.model.section import Section
 
@@ -151,6 +151,14 @@ class Review:
     order. Footnote anchors live in ``Note.xml_id``; renderers use this
     tuple for the apparate Notes sub-block and for build-time validation
     that every ``<ref target="#ftnN">`` resolves to a known note."""
+
+    amendments: tuple[Amendment, ...] = field(default_factory=tuple)
+    """All post-publication amendments (``<mod change="#revisionN">``) reachable
+    from front/body/back, in document order. Each carries the ``<del>`` original
+    and reviewer ``<note>`` for the Amendments apparate plus the ``@when``/``@resp``
+    joined from the matching ``<revisionDesc>`` change. Empty for every review
+    except the two that carry corrections (melville, sandrart); see
+    ``knowledge/data.md``."""
 
     bibliography: tuple[BibEntry, ...] = field(default_factory=tuple)
     """The back-bibliography as a flat sequence of ``BibEntry`` values.
