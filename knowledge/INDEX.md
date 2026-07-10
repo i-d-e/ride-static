@@ -18,6 +18,7 @@ related:
   - "[[pipeline]]"
   - "[[exploration]]"
   - "[[redirects-feeds]]"
+  - "[[workflow]]"
   - "[[data]]"
   - "[[schema]]"
 ---
@@ -40,6 +41,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [[exploration]] | Form/Construction — proposal: interactive explore view and narrative story view, with implementation plan | when the two data views are scoped or built |
 | [[redirects-feeds]] | Construction — rationale and evidence for legacy-URL redirects and the syndication feeds | when redirect or feed decisions change |
+| [[workflow]] | Construction — target publication workflow, legacy-stack replacement inventory, parity gaps | when editorial decisions land or gaps close |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.
@@ -55,6 +57,8 @@ The two generated documents (`data`, `schema`) carry `generated:`, `source:`, an
 **Reproducing the build pipeline.** [[pipeline]] *Local development* → run the discovery scripts in dependency order (full list in `CLAUDE.md`) → `python -m src.build` → inspect `site/` plus `site/api/build-info.json`. The pipeline is read-only against TEI; nothing writes back.
 
 **Migrating legacy URLs and feeds.** [[redirects-feeds]] (rationale and external evidence) → [docs/url-scheme.md](../docs/url-scheme.md) *Redirects* (the path contract) → `src/render/redirects.py` and `src/render/feed.py`. Establishes which old WordPress path maps where and why the feeds carry legacy-path copies.
+
+**Understanding the publication workflow and what replaces the legacy stack.** [[workflow]] (target workflow, replacement table, parity gaps, open editorial decisions) → [[pipeline]] *Staging* (the preview decision) → [[redirects-feeds]] (OAI and syndication evidence).
 
 ## Convention
 
