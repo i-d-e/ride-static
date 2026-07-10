@@ -87,7 +87,10 @@
 
     {%- if abstract_section -%}
     <section class="ride-review__abstract" aria-labelledby="abstract-heading">
-      <h3 id="abstract-heading">{{ site.strings.abstract | default('Abstract') }}</h3>
+      {#- h2: first heading after the review h1 — an h3 here skips a
+          level and breaks the document outline. Visual size stays h3
+          via the stylesheet. -#}
+      <h2 id="abstract-heading">{{ site.strings.abstract | default('Abstract') }}</h2>
       {{ r.blocks(abstract_section.blocks) }}
     </section>
     {%- endif -%}

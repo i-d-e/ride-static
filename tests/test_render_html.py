@@ -304,6 +304,20 @@ def test_render_review_never_nests_anchors(corpus_review):
     assert _max_anchor_nesting(html) <= 1
 
 
+def test_render_review_heading_levels_never_skip(corpus_review):
+    """Real-corpus regression (W3C Nu validation 2026-07-10): the Abstract
+    heading was an h3 directly after the h1, skipping a level — an outline
+    break for screenreader heading navigation. No heading anywhere on a
+    review page may be more than one level deeper than its predecessor."""
+    html = render_review(corpus_review)
+    levels = [int(m) for m in re.findall(r"<h([1-6])", html)]
+    assert levels, "review page renders no headings?"
+    prev = levels[0]
+    for level in levels[1:]:
+        assert level <= prev + 1, f"heading level skip: h{prev} -> h{level}"
+        prev = level
+
+
 def test_render_review_email_is_obfuscated_text_not_mailto(corpus_review):
     """Real-corpus regression (W3C Nu validation 2026-07-10): the byline
     email is obfuscated for harvesters, so a mailto: href built from the

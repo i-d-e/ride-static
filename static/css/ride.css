@@ -926,7 +926,7 @@ main.ride-shell {
 .ride-review__orcid             { display: inline-block; margin: 0 4px; padding: 0 var(--ride-space-2); background: var(--ride-bg-muted); border: 1px solid var(--ride-rule); border-radius: 2px; font-size: var(--ride-text-tiny); text-decoration: none; vertical-align: middle; }
 
 .ride-review__abstract          { background: var(--ride-bg-muted); padding: var(--ride-space-4) var(--ride-space-6); margin: var(--ride-space-6) 0; border-radius: 2px; }
-.ride-review__abstract h3       { margin-top: 0; font-size: var(--ride-text-h3); }
+.ride-review__abstract h2       { margin-top: 0; font-size: var(--ride-text-h3); }
 
 .ride-review__footer            { margin-top: var(--ride-space-12); padding-top: var(--ride-space-4); border-top: 1px solid var(--ride-rule); font-family: var(--ride-font-sans); font-size: var(--ride-text-small); color: var(--ride-fg-secondary); }
 .ride-review__footer p          { margin: 0 0 var(--ride-space-2); }
