@@ -41,7 +41,7 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 - RSS-guid ist der Atom-`tag:`-Identifier mit `isPermaLink="false"`, damit Reader beide Feeds deduplizieren; Entity-Escaping statt CDATA; kein `ttl`.
 - Alte Feed-URLs bekommen keine HTML-Stubs (Reader parsen kein Meta-Refresh), sondern Kopien der Feed-XML; bewusster Kompromiss mit Content-Type-Decke (`text/html`), Upgrade-Pfad sind echte 301 auf Server-Ebene beim Domain-Umzug.
 
-**Offen:** RDF-Feed streichen (Redaktionsbestätigung), OAI-Frage wer den live antwortenden Endpoint harvestet (Snapshot vs. dünner Proxy), Server-301s der Feed-URLs beim Domain-Umzug (wer administriert Apache und DNS).
+**Offen:** OAI-Frage wer den live antwortenden Endpoint harvestet (Snapshot vs. dünner Proxy). Nachtrag am selben Tag: Apache wird abgeschaltet (Redaktionsentscheidung), RDF-Feed auf Wunsch doch gebaut (rdf.py, volle WP-Parität), drei adversariale Verifikationsläufe haben die Content-Sniffing-Aussage geschärft (Miniflux/FreshRSS gaten auf Content-Type, nur .xml-URLs bewerben), Details in [[redirects-feeds]].
 
 **Nächster Einstieg:** OAI- und RDF-Entscheidung bei der Redaktion einholen; danach weiter mit P2 Antwort-Matrix-Heatmap.
 

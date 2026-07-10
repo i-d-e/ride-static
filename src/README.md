@@ -61,6 +61,7 @@ Renderers consume domain objects only; they never re-read TEI.
 | `oai_pmh.py` | static OAI-PMH snapshot |
 | `feed.py` | Atom 1.0 syndication feed |
 | `rss.py` | RSS 2.0 syndication feed, same entries and identifiers as Atom |
+| `rdf.py` | RSS 1.0 (RDF) syndication feed, WordPress parity |
 | `sitemap.py` | `sitemap.xml` |
 | `redirects.py` | `<meta refresh>` stub pages at legacy WordPress URLs |
 | `pdf.py` | per-review PDF via WeasyPrint |

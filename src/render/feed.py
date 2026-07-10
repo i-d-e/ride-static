@@ -120,6 +120,7 @@ LEGACY_FEED_ALIASES: dict[str, str] = {
     "feed/index.html": "feed/rss.xml",
     "feed/rss/index.html": "feed/rss.xml",
     "feed/atom/index.html": "feed/atom.xml",
+    "feed/rdf/index.html": "feed/rdf.xml",
 }
 
 

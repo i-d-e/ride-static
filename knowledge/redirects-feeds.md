@@ -55,13 +55,25 @@ Direct checks against the running `ride.i-d-e.de`, snapshot evidence for the mig
 
 ## Legacy feed URLs (decided)
 
-Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. The build therefore copies the feed XML itself to the legacy paths (`LEGACY_FEED_ALIASES` in `src/render/feed.py`): `/feed/` and `/feed/rss/` serve the RSS document, `/feed/atom/` the Atom document. Known ceiling: GitHub Pages types the copies `text/html`, which most readers content-sniff past but none is guaranteed to. The editorial decision (2026-07-10) is to retire the Apache host entirely, so this is the permanent mechanism, and readers that reject the content type re-subscribe via autodiscovery. The only remaining route to real 301s would be a DNS-level proxy (e.g. Cloudflare in front of GitHub Pages), a new infrastructure component to be weighed on its own.
+Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. The build therefore copies the feed XML itself to the legacy paths (`LEGACY_FEED_ALIASES` in `src/render/feed.py`): `/feed/` and `/feed/rss/` serve the RSS document, `/feed/atom/` the Atom document, `/feed/rdf/` the RSS 1.0 document. The editorial decision (2026-07-10) is to retire the Apache host entirely, so this is the permanent mechanism. The only remaining route to real 301s would be a DNS-level proxy (e.g. Cloudflare in front of GitHub Pages), a new infrastructure component to be weighed on its own.
+
+Ceiling, sharpened by adversarial verification (below): GitHub Pages types the copies `text/html` (Content-Type follows the file extension, no header configuration exists). Parser **libraries** ignore the header and sniff the content (feedparser parses with a `bozo` warning, gofeed and ROME detect the type from the first bytes), so readers built on them keep working. But several widespread self-hosted readers **gate on the Content-Type before parsing**: Miniflux rejects a valid feed served as `text/html` on every refresh (maintainer-confirmed intended behaviour, miniflux/v2#3998), FreshRSS/SimplePie gate likewise. Cloud pollers (Feedly, Inoreader, NewsBlur) could not be verified either way. Affected subscribers re-subscribe once; autodiscovery on every page points at the correctly served `.xml` endpoints. Consequence: never publish or advertise the directory paths, only the `.xml` URLs.
+
+An HTML page with autodiscovery links at `/feed/` instead of the raw XML copy was considered and rejected: it would break the tolerant majority (sniffing parsers get HTML they cannot parse as a feed) to serve the strict minority, which rejects either way.
+
+## Adversarial verification (2026-07-10)
+
+Three independent research passes tried to refute the load-bearing claims. Verdicts:
+
+- **"Readers content-sniff past a `text/html` feed" — overreached, corrected.** True for the parser libraries (feedparser, gofeed, ROME sniff content, sources in their repos/docs), false as a statement about readers in general: Miniflux ([miniflux/v2#3998](https://github.com/miniflux/v2/issues/3998), labelled "behaves correctly") and FreshRSS/SimplePie ([FreshRSS#1264](https://github.com/FreshRSS/FreshRSS/issues/1264)) gate on the Content-Type before parsing. Cloud pollers unverifiable. Wording above and in outward communication adjusted accordingly.
+- **"Feeds on GitHub Pages work reliably" — holds for the `.xml` endpoints.** Live header probes confirm `application/xml` with `ETag`/`Last-Modified` (conditional polling works); no documented failure class in the jekyll-feed ecosystem; the 2012 `text/xml`/us-ascii defect is historical. The two real limits are the directory copies (previous section) and the generic `application/xml` instead of the feed-specific MIME types, which GitHub Pages cannot be configured to send (renaming to `.atom`/`.rss` would force them; not done, the generic type is validator-accepted).
+- **"RSS 1.0/RDF has no remaining consumer" — holds.** No active service requires RSS 1.0 specifically; scholarly infrastructure (DOAJ, OpenAIRE, BASE) harvests via OAI-PMH with Dublin Core, not feeds; WordPress-core data put RDF at a marginal share of feed requests, mostly search engines ([WP Trac #2277](https://core.trac.wordpress.org/ticket/2277)).
 
 ## Decided by the editors (2026-07-10)
 
 - **The Apache host is being retired.** It is still reachable but will not be maintained; server-level 301s are therefore not an option. The static feed copies above are the permanent continuity mechanism.
+- **RDF feed is kept after all** (`src/render/rdf.py`, `/feed/rdf.xml` plus legacy copy at `/feed/rdf/`). The verification found no consumer that needs it; the editors chose full WordPress parity for a journal publication anyway, and the cost is one more static file. Dublin Core metadata, the same vocabulary as the OAI snapshot.
 
 ## Open (editorial decisions)
 
-- **RDF feed.** RSS 1.0, served by WordPress automatically. No known consumer; proposal is to drop it without replacement.
 - **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files); ResourceSync over the existing sitemap covers standards-based static harvesting. Prior question: who actually harvests the live endpoint (BASE, OpenAIRE, a library network)?

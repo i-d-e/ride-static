@@ -106,17 +106,21 @@ def test_legacy_feed_aliases_copy_the_xml(corpus_reviews, tmp_path: Path):
     feed URL) and /feed/rss serve the RSS document, /feed/atom/ the Atom
     document."""
     from src.render.feed import write_legacy_feed_aliases
+    from src.render.rdf import write_rdf_feed
     from src.render.rss import write_rss_feed
 
     write_atom_feed(_reviews(corpus_reviews), BASE, tmp_path)
     write_rss_feed(_reviews(corpus_reviews), BASE, tmp_path)
+    write_rdf_feed(_reviews(corpus_reviews), BASE, tmp_path)
     n = write_legacy_feed_aliases(tmp_path)
-    assert n == 3
+    assert n == 4
     rss = (tmp_path / "feed" / "rss.xml").read_text(encoding="utf-8")
     atom = (tmp_path / "feed" / "atom.xml").read_text(encoding="utf-8")
+    rdf = (tmp_path / "feed" / "rdf.xml").read_text(encoding="utf-8")
     assert (tmp_path / "feed" / "index.html").read_text(encoding="utf-8") == rss
     assert (tmp_path / "feed" / "rss" / "index.html").read_text(encoding="utf-8") == rss
     assert (tmp_path / "feed" / "atom" / "index.html").read_text(encoding="utf-8") == atom
+    assert (tmp_path / "feed" / "rdf" / "index.html").read_text(encoding="utf-8") == rdf
 
 
 def test_legacy_feed_aliases_skip_when_feeds_absent(tmp_path: Path):

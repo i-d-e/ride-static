@@ -494,6 +494,7 @@ def _print_build_summary(
     sitemap_written: bool,
     feed_written: bool,
     rss_written: bool,
+    rdf_written: bool,
     feed_aliases: int,
     oai_files: int,
     redirect_count: int,
@@ -520,6 +521,8 @@ def _print_build_summary(
         print("Wrote feed/atom.xml")
     if rss_written:
         print("Wrote feed/rss.xml")
+    if rdf_written:
+        print("Wrote feed/rdf.xml")
     if feed_aliases:
         print(f"Wrote {feed_aliases} legacy feed aliases")
     print("Wrote api/corpus.json")
@@ -608,6 +611,7 @@ def build(
     sitemap_written = _write_sitemap(rendered, site, out_root)
     feed_written = _write_atom_feed(rendered, site, out_root)
     rss_written = _write_rss_feed(rendered, site, out_root)
+    rdf_written = _write_rdf_feed(rendered, site, out_root)
     feed_aliases = _write_legacy_feed_aliases(out_root)
     _write_corpus_dump(rendered, site, out_root)
     oai_files = _write_oai_pmh_snapshot(rendered, site, out_root)
@@ -638,6 +642,7 @@ def build(
         sitemap_written=sitemap_written,
         feed_written=feed_written,
         rss_written=rss_written,
+        rdf_written=rdf_written,
         feed_aliases=feed_aliases,
         oai_files=oai_files,
         redirect_count=redirect_count,
@@ -843,6 +848,19 @@ def _write_rss_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pat
     build_date = _build_date(site)
     return bool(
         write_rss_feed(
+            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
+        )
+    )
+
+
+def _write_rdf_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
+    """Write the RSS 1.0 feed (``site/feed/rdf.xml``) when a base_url is
+    set — same deploy-only rule as its siblings."""
+    from src.render.rdf import write_rdf_feed
+
+    build_date = _build_date(site)
+    return bool(
+        write_rdf_feed(
             reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
         )
     )

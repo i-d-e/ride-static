@@ -100,6 +100,7 @@ at `/<name>/` until they are placed.
 /oai/                                   OAI-PMH static snapshot, see verb routing below
 /feed/atom.xml                          Atom 1.0 feed (RFC 4287), newest reviews
 /feed/rss.xml                           RSS 2.0 feed, same entries and identifiers as Atom
+/feed/rdf.xml                           RSS 1.0 (RDF) feed, same entries (WP parity)
 /sitemap.xml                            sitemap with last-modified dates
 /pagefind/                              client-side search index, served as static assets
 ```
@@ -145,9 +146,10 @@ The legacy feed URLs cannot use meta-refresh stubs, feed readers fetch XML and i
 /feed/          <-  RSS 2.0 (the canonical WordPress feed URL)
 /feed/rss/      <-  RSS 2.0
 /feed/atom/     <-  Atom
+/feed/rdf/      <-  RSS 1.0 (RDF)
 ```
 
-Known ceiling: GitHub Pages serves these copies as `text/html` (Content-Type follows the file extension), which most readers content-sniff past but none is guaranteed to. Real 301s for the feed URLs need the server layer at the domain switch; `/feed/rdf` is dropped without replacement (see the redirects-and-feeds knowledge document).
+Known ceiling: GitHub Pages serves these copies as `text/html` (Content-Type follows the file extension). Parser libraries (feedparser, gofeed, ROME) tolerate that; readers that gate on the Content-Type before parsing (verified for Miniflux, FreshRSS) reject the copies, and affected subscribers re-subscribe once via the advertised `.xml` URLs. The `.xml` endpoints above are the only URLs to publish or link (see the redirects-and-feeds knowledge document for the evidence).
 
 ## What this scheme does not cover
 
