@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-from lxml import etree
 
 from src.model.review import Affiliation, Author, Person, RelatedItem, Review
 from src.parser.datasets import (
@@ -18,7 +16,7 @@ from src.parser.datasets import (
 from src.parser.review import parse_review
 
 
-_RIDE = Path(__file__).resolve().parent.parent / "issues"
+from tests._shared import iter_tei_files, needs_corpus
 
 
 def _r(rid: str, **kw) -> Review:
@@ -219,13 +217,13 @@ def test_resource_personnel_names_dedupe_and_drop_placeholders():
 # -- Real-corpus smoke ----------------------------------------------------
 
 
-@pytest.mark.skipif(not _RIDE.exists(), reason="corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_aggregates() -> None:
     """The full corpus aggregates to plausible magnitudes:
     - ~107 reviewers (one per review, with some reuse)
     - ~107 reviewed resources (one per review)
     - hundreds of tags after dedup."""
-    files = sorted(_RIDE.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     reviews = tuple(parse_review(f) for f in files)
 
     tags = aggregate_tags(reviews)

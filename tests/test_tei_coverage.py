@@ -43,9 +43,9 @@ from pathlib import Path
 import pytest
 from lxml import etree
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from tests._shared import CORPUS_DIR as ISSUES_DIR, REPO_ROOT
+
 PAGES_DIR = REPO_ROOT / "pages"
-ISSUES_DIR = REPO_ROOT / "issues"
 
 needs_corpus = pytest.mark.skipif(
     not ISSUES_DIR.is_dir() and not PAGES_DIR.is_dir(),

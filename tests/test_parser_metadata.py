@@ -5,21 +5,17 @@ covers: id, issue, title, date, language, licence, keywords, authors
 (with affiliation, ORCID, email), editors (with role + ORCID), and
 related items.
 
-A separate smoke test parses a real RIDE review when the sibling
-``../ride/`` directory is present.
+A separate smoke test parses a real RIDE review when the in-repo
+corpus is present.
 """
 from __future__ import annotations
-
-from pathlib import Path
 
 import pytest
 
 from src.model.review import Affiliation, Author, Editor, Person, RelatedItem, Review
 from src.parser.review import parse_review
 from src._corpus import find_tei
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
+from tests._shared import iter_tei_files, needs_corpus
 
 
 FIXTURE = """<?xml version="1.0" encoding="UTF-8"?>
@@ -207,7 +203,7 @@ def test_related_item_with_idno_uri_and_accessed_date(tmp_path: Path) -> None:
     assert reviewed.publication_date == "2020"  # <date type="publication">
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_reviewed_resource_publication_date_from_real_corpus() -> None:
     """The makingandknowing review (issue 21) carries the reviewed work's
     own publication date as <bibl>/<date type="publication">2020</date>.
@@ -219,7 +215,7 @@ def test_reviewed_resource_publication_date_from_real_corpus() -> None:
     assert reviewed.last_accessed == "2025-05-05"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_related_item_title_extracted_from_real_corpus() -> None:
     """1641 carries '1641 Depositions' as the canonical reviewed-work
     title in <bibl>/<title>; the parser exposes it on RelatedItem.title
@@ -273,7 +269,7 @@ def test_related_item_personnel_from_respStmt(tmp_path: Path) -> None:
     )
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_related_item_personnel_from_real_corpus() -> None:
     """makingandknowing lists its project people in <respStmt>; the parser
     surfaces ('Editor', 'Smith, Pamela') and a Programmer among them."""
@@ -289,10 +285,10 @@ def test_review_is_immutable(fixture_path: Path) -> None:
         r.id = "different"  # type: ignore[misc]
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_smoke_real_corpus_smallest_file() -> None:
     """Parse the smallest review in the real corpus end-to-end without errors."""
-    smallest = sorted(RIDE_TEI_DIR.glob("**/*.xml"), key=lambda p: p.stat().st_size)[0]
+    smallest = min(iter_tei_files(), key=lambda p: p.stat().st_size)
     r = parse_review(smallest)
     assert r.id.startswith("ride.")
     assert r.issue.isdigit()
@@ -304,7 +300,7 @@ def test_smoke_real_corpus_smallest_file() -> None:
     assert any(ri.type == "reviewed_resource" for ri in r.related_items)
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_doi_extracted_from_publicationStmt_in_real_corpus() -> None:
     """Pin the canonical DOI shape: <publicationStmt>/<idno type="DOI">.
 
@@ -317,7 +313,7 @@ def test_doi_extracted_from_publicationStmt_in_real_corpus() -> None:
     assert r.doi == "10.18716/ride.a.5.4"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_reviewed_resource_carries_uri_and_last_accessed_in_real_corpus() -> None:
     """The reviewed_resource RelatedItem in 1641 holds the reviewed work's
     URL as <bibl>/<idno type="URI"> and the last-accessed date as
@@ -330,7 +326,7 @@ def test_reviewed_resource_carries_uri_and_last_accessed_in_real_corpus() -> Non
     assert reviewed.last_accessed == "2017-02-01"
 
 
-@pytest.mark.skipif(not RIDE_TEI_DIR.is_dir(), reason="corpus not present")
+@needs_corpus
 def test_doi_consistent_across_three_corpus_reviews() -> None:
     """Three independently-authored reviews exercise the same parse path."""
     cases = {

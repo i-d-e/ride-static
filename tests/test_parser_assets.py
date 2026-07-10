@@ -28,9 +28,9 @@ from src.parser.assets import (
 )
 from src.parser.review import parse_review
 from src._corpus import find_tei
+from tests._shared import iter_tei_files
 
 
-_RIDE = Path(__file__).resolve().parent.parent / "issues"
 _RIDE_ROOT = Path(__file__).resolve().parent.parent.parent / "ride"
 
 # Real-corpus fixture choices:
@@ -39,10 +39,15 @@ _RIDE_ROOT = Path(__file__).resolve().parent.parent.parent / "ride"
 #   (extension-less URLs from issue 8) → missing-file branch.
 # - bayeux-tei.xml: figure-in-cell pattern → cell-walk coverage.
 # - godwin-tei.xml: //wp-content double-slash typo → URL parser robustness.
-_HAPPY_PATH = find_tei("1641")
-_MISSING_FILES = find_tei("anemoskala")
-_FIGURE_IN_CELL = find_tei("bayeux")
-_DOUBLE_SLASH = find_tei("godwin")
+# Resolved tolerantly so a partial checkout skips instead of erroring
+# at collection time.
+try:
+    _HAPPY_PATH = find_tei("1641")
+    _MISSING_FILES = find_tei("anemoskala")
+    _FIGURE_IN_CELL = find_tei("bayeux")
+    _DOUBLE_SLASH = find_tei("godwin")
+except FileNotFoundError:
+    _HAPPY_PATH = _MISSING_FILES = _FIGURE_IN_CELL = _DOUBLE_SLASH = None
 
 
 # -- Pure URL parser unit tests -------------------------------------------
@@ -229,7 +234,7 @@ def test_smoke_real_corpus_asset_report_consistent(tmp_path) -> None:
     Uses copy=False to avoid duplicating ~800 images on disk during the
     test run.
     """
-    files = sorted(_RIDE.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     total_with_url = 0
     bucket_total = 0
     site_root = tmp_path / "site"

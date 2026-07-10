@@ -14,13 +14,12 @@ Test-data philosophy per CLAUDE.md hard rule:
   the function signature is the only data form richer than the input
   (per CLAUDE.md "Pure-function unit tests" exception). Each such test
   carries a docstring noting the explicit exception.
-* The whole module skips cleanly when ``../ride/`` is absent, so the
-  unit suite still runs on a fresh clone.
+* The whole module skips cleanly when the in-repo corpus is absent, so
+  the unit suite still runs on a fresh clone.
 """
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
 
 import pytest
 from lxml import etree
@@ -28,18 +27,12 @@ from lxml import etree
 from src.model.section import Section
 from src.parser.sections import parse_sections
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
 NS = {"t": TEI}
 XID = "{http://www.w3.org/XML/1998/namespace}id"
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 # ── Real-corpus fixtures ────────────────────────────────────────────
@@ -296,7 +289,7 @@ def test_real_all_reviews_parse_without_error():
     """All ~107 reviews must parse through parse_sections without raising.
     Of those, exactly seven trigger the wrap branch (4 with <p>,
     3 with <cit>) per knowledge/data.md."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     assert len(files) >= 100, "expected at least 100 reviews in corpus"
     wrap_count = 0
     for f in files:

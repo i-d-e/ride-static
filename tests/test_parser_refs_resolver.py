@@ -19,27 +19,29 @@ is added.
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 
-from src.model.bibliography import BibEntry
 from src.model.block import Citation, Figure, List as ListBlock, Paragraph, Table
 from src.model.inline import Emphasis, Highlight, Note, Reference
 from src.model.review import Review
 from src.parser.refs_resolver import classify_target, resolve_references
 from src.parser.review import parse_review
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
-
-_RIDE = Path(__file__).resolve().parent.parent / "issues"
 
 # Two real corpus reviews chosen for their bucket coverage:
 # - bayeux: 78 local / 55 external / 3 orphan; has figure-in-cell pattern,
 #   mailto: target, bibliography with @ref_target.
 # - 1641: 9 figures all present on disk, external refs (Wayback URLs).
-_BAYEUX = find_tei("bayeux")
-_REVIEW_1641 = find_tei("1641")
+# Resolved tolerantly so a partial checkout skips instead of erroring
+# at collection time.
+try:
+    _BAYEUX = find_tei("bayeux")
+    _REVIEW_1641 = find_tei("1641")
+except FileNotFoundError:
+    _BAYEUX = _REVIEW_1641 = None
 
 
 # -- Pure classify_target unit tests --------------------------------------
@@ -95,9 +97,7 @@ def test_classify_none_when_no_target():
 # -- Real-corpus integration tests ----------------------------------------
 
 
-pytestmark_corpus = pytest.mark.skipif(
-    not _RIDE.exists(), reason="corpus not present"
-)
+pytestmark_corpus = needs_corpus
 
 
 def _all_references(review: Review):
@@ -228,7 +228,7 @@ def test_resolver_classifies_every_corpus_ref() -> None:
     ``None`` when the source ``<ref>`` had no ``@target``)."""
     valid = {"local", "criteria", "external", "orphan", None}
     bucket_counts: dict[object, int] = {}
-    for f in sorted(_RIDE.glob("**/*-tei.xml")):
+    for f in iter_tei_files():
         review = parse_review(f)
         for ref in _all_references(review):
             assert ref.bucket in valid, f"{f.name}: bucket={ref.bucket!r} target={ref.target!r}"
@@ -304,7 +304,7 @@ def test_resolver_descends_through_emphasis_and_note() -> None:
     walker must recurse into ``Note.children``.
     """
     found_nested = False
-    for f in sorted(_RIDE.glob("**/*-tei.xml"))[:20]:  # 20 reviews suffice
+    for f in list(iter_tei_files())[:20]:  # 20 reviews suffice
         review = parse_review(f)
         for note in review.notes:
             for inline in note.children:

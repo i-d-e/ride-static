@@ -20,21 +20,14 @@ The pairs we pin:
 """
 from __future__ import annotations
 
-from pathlib import Path
 
-import pytest
 
 from src.parser.review import parse_review
 from src.render.html import SiteConfig, make_env, render_review
+from tests._shared import REPO_ROOT, iter_tei_files, needs_corpus
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
 JS_DIR = REPO_ROOT / "static" / "js"
 TEMPLATES_DIR = REPO_ROOT / "templates" / "html"
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 # -- existence + non-empty ------------------------------------------------
@@ -154,7 +147,7 @@ def test_review_html_carries_cite_hooks() -> None:
     silently no-op."""
     env = make_env()
     site = SiteConfig()
-    candidates = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))[:10]
+    candidates = list(iter_tei_files())[:10]
     assert candidates, "no TEI files to test against"
     for f in candidates:
         review = parse_review(f)
@@ -181,7 +174,7 @@ def test_paragraph_anchor_hook_is_corpus_gap() -> None:
     env = make_env()
     site = SiteConfig()
     seen = False
-    for f in sorted(RIDE_TEI_DIR.glob("**/*-tei.xml")):
+    for f in iter_tei_files():
         review = parse_review(f)
         html = render_review(review, site=site, env=env)
         if 'class="ride-paragraph__anchor"' in html:

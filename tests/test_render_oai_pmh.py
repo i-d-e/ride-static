@@ -15,7 +15,6 @@ substring matching.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 import pytest
 
@@ -39,8 +38,7 @@ from src.render.oai_pmh import (
     write_oai_pmh,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
+from tests._shared import iter_tei_files, needs_corpus
 
 NS = {
     "oai": "http://www.openarchives.org/OAI/2.0/",
@@ -312,7 +310,7 @@ def test_write_skips_review_with_empty_id(tmp_path):
 # ── Real-corpus integration ─────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="../ride/ corpus not checked out")
+@needs_corpus
 def test_real_corpus_oai_snapshot_is_well_formed(tmp_path):
     """Walk the first 10 reviews through the full driver and verify XML.
 
@@ -323,7 +321,7 @@ def test_real_corpus_oai_snapshot_is_well_formed(tmp_path):
     from src.parser.review import parse_review
 
     reviews = [
-        parse_review(p) for p in sorted(CORPUS_DIR.glob("**/*.xml"))[:10]
+        parse_review(p) for p in list(iter_tei_files())[:10]
     ]
     written = write_oai_pmh(
         reviews,

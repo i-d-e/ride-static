@@ -15,7 +15,6 @@ Test-data philosophy per CLAUDE.md hard rule:
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 from src.model.questionnaire import (
     Questionnaire,
@@ -34,7 +33,7 @@ from src.render.charts import (
     render_charts_html,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from tests._shared import REPO_ROOT
 
 
 # ── Slug + label registry ─────────────────────────────────────────────

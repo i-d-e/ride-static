@@ -7,13 +7,12 @@ The sitemap module has two layers; the tests follow that split:
   output shape (xmlns, ``<url>`` rows, ``<lastmod>`` filtering).
 * :func:`collect_entries` walks the build's domain inputs. Pure-formatter
   tests (synthetic Reviews and aggregates) verify the URL scheme; one
-  real-corpus integration test walks ``../ride/`` end-to-end so any
+  real-corpus integration test walks the in-repo corpus end-to-end so any
   drift in actual aggregator output surfaces here.
 """
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 import pytest
 
@@ -27,8 +26,6 @@ from src.render.sitemap import (
     collect_entries,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Pure formatter ───────────────────────────────────────────────────

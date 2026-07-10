@@ -9,17 +9,15 @@ Two layers, mirroring the Phase 8 render-test pattern:
 2. Real-corpus integration — parse one TEI file end-to-end and assert that
    the produced JSON-LD survives the embedding round-trip (valid JSON,
    load-able by stdlib) with the load-bearing fields populated. Skips
-   cleanly when ``../ride/`` is absent.
+   cleanly when the in-repo corpus is absent.
 """
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import pytest
 
 from src.model.block import Paragraph
-from src.model.inline import Emphasis, Reference, Text
+from src.model.inline import Emphasis, Text
 from src.model.review import (
     Affiliation,
     Author,
@@ -32,8 +30,7 @@ from src.model.section import Section
 from src.render.jsonld import to_jsonld, to_jsonld_string
 from src._corpus import find_tei
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
+from tests._shared import needs_corpus
 
 
 # ── Fixture helpers ──────────────────────────────────────────────────
@@ -256,7 +253,7 @@ def test_to_jsonld_string_returns_loadable_json():
 # ── Real-corpus integration ──────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="../ride/ corpus not checked out")
+@needs_corpus
 def test_real_corpus_review_round_trips_through_jsonld():
     """Parse 1641-tei.xml end-to-end and verify the load-bearing keys appear.
 

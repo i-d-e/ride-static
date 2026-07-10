@@ -9,28 +9,30 @@ parse without raising.
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 
 from src.model.review import Review
 from src.parser.review import parse_review
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
 
-_RIDE = Path(__file__).resolve().parent.parent / "issues"
+pytestmark = needs_corpus
 
 # Fixture choices grounded in real corpus shapes:
 # - 1641-tei.xml (ride.5.4, issue 5): small, 4 body sections, dense figures.
 # - bayeux-tei.xml: rich body with 6 sections, 32 figures, 11 notes,
 #   figure-in-cell pattern, full back-bibliography.
 # - tustep-tei.xml (ride.11.2): one of seven reviews with no <back>.
-_REVIEW_1641 = find_tei("1641")
-_BAYEUX = find_tei("bayeux")
-_TUSTEP = find_tei("tustep")
-
-
-pytestmark = pytest.mark.skipif(not _RIDE.exists(), reason="corpus not present")
+# Resolved lazily-tolerant so a partial checkout skips instead of
+# erroring at collection time.
+try:
+    _REVIEW_1641 = find_tei("1641")
+    _BAYEUX = find_tei("bayeux")
+    _TUSTEP = find_tei("tustep")
+except FileNotFoundError:
+    _REVIEW_1641 = _BAYEUX = _TUSTEP = None
 
 
 # -- Per-review wiring (real corpus) ---------------------------------------
@@ -120,7 +122,7 @@ def test_smoke_real_corpus_all_reviews_parse_through_parse_review() -> None:
     review has at least one body section. Aggregate magnitudes pin the
     inventory's documented counts (874 figures, 1926 notes corpus-wide)
     with headroom for parser drift."""
-    files = sorted(_RIDE.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     assert len(files) >= 100
     figure_count_total = 0
     note_count_total = 0

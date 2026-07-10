@@ -19,8 +19,7 @@ from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
+from tests._shared import iter_tei_files, needs_corpus
 
 
 # WeasyPrint import is wrapped — both ImportError (package missing) and
@@ -36,10 +35,6 @@ except (ImportError, OSError):
 needs_weasyprint = pytest.mark.skipif(
     not HAS_WEASYPRINT,
     reason="WeasyPrint or its system libraries are unavailable",
-)
-needs_corpus = pytest.mark.skipif(
-    not CORPUS_DIR.exists(),
-    reason="corpus not present",
 )
 
 
@@ -94,7 +89,7 @@ def test_pdf_for_real_corpus_review_renders_to_a_valid_pdf(tmp_path: Path) -> No
 
     env = make_env()
     chosen = None
-    for sample in sorted(CORPUS_DIR.glob("**/*.xml")):
+    for sample in iter_tei_files():
         review = parse_review(sample)
         if review.doi:
             chosen = review

@@ -7,9 +7,8 @@ so no corpus fixture applies.
 """
 
 import re
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from tests._shared import REPO_ROOT
 STYLESHEET = REPO_ROOT / "static" / "css" / "ride.css"
 
 # `--ride-foo:` at a declaration position (definition).

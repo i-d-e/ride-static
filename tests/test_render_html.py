@@ -19,7 +19,6 @@ exact HTML; templates can evolve without forcing test rewrites.
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
 import pytest
 
@@ -44,8 +43,6 @@ from src.render.html import (
     to_csl_dict,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Fixture builders ─────────────────────────────────────────────────

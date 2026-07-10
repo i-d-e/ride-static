@@ -14,7 +14,6 @@ integration test at the bottom drives a full issue end to end.
 from __future__ import annotations
 
 import dataclasses
-from pathlib import Path
 
 import pytest
 
@@ -39,7 +38,7 @@ from src.render.aggregations import (
 )
 from src.render.html import SiteConfig, make_env
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from tests._shared import REPO_ROOT
 
 
 def _review(

@@ -16,7 +16,6 @@ Test-data philosophy per CLAUDE.md hard rule:
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 from lxml import etree
@@ -27,16 +26,10 @@ from src.parser.questionnaire import (
     parse_questionnaires,
 )
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 def _root(xml: str) -> etree._Element:
@@ -207,7 +200,7 @@ def test_parse_questionnaire_taxonomy_without_xml_base():
 def test_smoke_real_corpus_questionnaire_count() -> None:
     """The corpus inventory reports ~20053 ``<num>`` elements across 110
     ``<taxonomy>`` blocks. The parser should reach the same magnitude."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     total_taxonomies = 0
     total_answers = 0
     anomaly_value_3_seen = False

@@ -26,16 +26,7 @@ from src.validate import (
 from lxml import etree
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_DIR = REPO_ROOT
-DEFAULT_RNG = RIDE_DIR / "schema" / "ride.rng"
-
-needs_corpus = pytest.mark.skipif(
-    not (REPO_ROOT / "issues").is_dir(), reason="corpus not present"
-)
-needs_schema = pytest.mark.skipif(
-    not DEFAULT_RNG.exists(), reason="ride.rng schema not available"
-)
+from tests._shared import SCHEMA_RNG as DEFAULT_RNG, needs_corpus, needs_schema
 
 
 def test_classify_returns_warning_for_relaxng_findings() -> None:

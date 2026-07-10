@@ -15,25 +15,17 @@ Test-data philosophy per CLAUDE.md hard rule:
 """
 from __future__ import annotations
 
-from pathlib import Path
 
-import pytest
 from lxml import etree
 
 from src.model.bibliography import BibEntry
-from src.model.inline import Reference, Text
+from src.model.inline import Text
 from src.parser.bibliography import parse_bibl, parse_bibliography
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 def _text_el(xml: str) -> etree._Element:
@@ -181,7 +173,7 @@ def test_smoke_real_corpus_aggregate_bibl_count() -> None:
     """The corpus inventory reports 1389 ``<bibl>``s inside ``<listBibl>``.
     The bibliography parser should reach approximately that magnitude
     when run across all 107 reviews."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     total = 0
     no_back_count = 0
     for f in files:
@@ -205,7 +197,7 @@ def test_real_corpus_bibliography_rich_review_yields_many_entries() -> None:
     The choice of review is whichever has the largest <listBibl> in
     the corpus — discovered at test time so the test stays robust to
     editorial drift."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     best_path = None
     best_count = 0
     for f in files:

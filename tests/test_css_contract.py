@@ -8,9 +8,8 @@ of these requirements break the test.
 """
 from __future__ import annotations
 
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+from tests._shared import REPO_ROOT
 RIDE_CSS = REPO_ROOT / "static" / "css" / "ride.css"
 EXPLORE_TMPL = REPO_ROOT / "templates" / "html" / "explore.html"
 

@@ -23,7 +23,6 @@ Test-data philosophy per CLAUDE.md hard rule:
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import pytest
 from lxml import etree
@@ -47,17 +46,11 @@ from src.parser.blocks import (
 )
 from src.parser.common import UnknownTeiElement
 from src._corpus import find_tei
+from tests._shared import iter_tei_files, needs_corpus
 
 
 TEI = "http://www.tei-c.org/ns/1.0"
 NS = {"t": TEI}
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 def _el(xml: str) -> etree._Element:
@@ -74,7 +67,7 @@ def _corpus_iter(*, file_name: str = None):
             pytest.skip(f"{file_name} not in corpus")
         yield path
         return
-    yield from sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    yield from iter_tei_files()
 
 
 def _first_descendant(root: etree._Element, localname: str, predicate=None):
@@ -546,7 +539,7 @@ def test_smoke_real_corpus_all_reviews_section_blocks_parse() -> None:
     `parse_block_sequence` recursively) must parse without raising. This is
     the corpus-wide validation that wires Phases 1–5 together."""
     from src.parser.sections import parse_sections
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
+    files = list(iter_tei_files())
     assert len(files) >= 100
     for f in files:
         tree = etree.parse(str(f))
@@ -567,7 +560,7 @@ def test_smoke_real_corpus_figure_with_eg():
     Pick the first such figure and confirm parse_figure yields kind=code_example.
     """
     found = False
-    for f in sorted(RIDE_TEI_DIR.glob("**/*-tei.xml")):
+    for f in iter_tei_files():
         tree = etree.parse(str(f))
         for fig in tree.iter("{%s}figure" % TEI):
             eg = fig.find("{%s}eg" % TEI)
