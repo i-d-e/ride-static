@@ -65,7 +65,9 @@
             {%- if a.person.orcid %} <a class="ride-review__orcid" href="{{ a.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>{%- endif %}
             {{ a.person.full_name }}
             {%- if a.affiliation and a.affiliation.org_name %} ({{ a.affiliation.org_name }}){% endif -%}
-            {%- if a.email %}, <a href="mailto:{{ a.email | obfuscate_mail }}">{{ a.email | obfuscate_mail }}</a>{% endif -%}
+            {#- Obfuscated text only — a mailto: built from the obfuscated
+                form is an invalid URL and a dead link. -#}
+            {%- if a.email %}, <span class="ride-review__email">{{ a.email | obfuscate_mail }}</span>{% endif -%}
             {%- if not loop.last %};{% endif -%}
           {%- endfor -%}.
         {%- endif %}

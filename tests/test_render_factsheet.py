@@ -195,6 +195,9 @@ def test_render_factsheet_obfuscates_reviewer_email():
     html = render_factsheet(_review_with_factsheet())
     assert "jane@example.org" not in html
     assert "[at]" in html
+    # Obfuscated text only — a mailto: built from the obfuscated form
+    # would be an invalid URL and a dead link (W3C Nu finding 2026-07-10).
+    assert "mailto:" not in html
 
 
 # ── Real-corpus smoke ─────────────────────────────────────────────────

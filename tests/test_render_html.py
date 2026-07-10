@@ -18,6 +18,7 @@ exact HTML; templates can evolve without forcing test rewrites.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -279,6 +280,38 @@ def test_render_review_apparate_renders_bibliography():
     assert 'href="https://doi.org/10.1234/x"' in html
     # Entry without ref_target renders without surrounding anchor
     assert 'id="bib2"' in html
+
+
+def _max_anchor_nesting(html: str) -> int:
+    """Deepest <a> nesting in the document; valid HTML never exceeds 1."""
+    depth = max_depth = 0
+    for m in re.finditer(r"<a[\s>]|</a>", html):
+        if m.group(0).startswith("</"):
+            depth = max(depth - 1, 0)
+        else:
+            depth += 1
+            max_depth = max(max_depth, depth)
+    return max_depth
+
+
+def test_render_review_never_nests_anchors(corpus_review):
+    """Real-corpus regression (W3C Nu validation 2026-07-10): ride.21.4
+    carries bibliography entries whose @target duplicates a DOI link that
+    also appears as an inline <ref> in the entry text. bib_entry must not
+    wrap such entries in a second outer anchor — <a> inside <a> is invalid
+    and browsers shred the outer element into stray links."""
+    html = render_review(corpus_review)
+    assert _max_anchor_nesting(html) <= 1
+
+
+def test_render_review_email_is_obfuscated_text_not_mailto(corpus_review):
+    """Real-corpus regression (W3C Nu validation 2026-07-10): the byline
+    email is obfuscated for harvesters, so a mailto: href built from the
+    obfuscated form ('slang [at] …') is an invalid URL and a dead link.
+    The obfuscated address renders as text only."""
+    html = render_review(corpus_review)
+    assert "mailto:" not in html
+    assert "[at]" in html
 
 
 def test_render_review_factsheet_summary():

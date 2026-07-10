@@ -90,6 +90,27 @@ def test_clipboard_helper_is_shared() -> None:
         )
 
 
+def test_explore_template_is_valid_inside_base_chrome() -> None:
+    """W3C Nu findings (2026-07-10): explore.html rendered a second <main>
+    inside base.html's <main> (duplicate landmark) and an empty <tr> in
+    <thead> (a row group row with no cells). The template now uses a div
+    and an empty <thead> that explore.js fills with a full row."""
+    tmpl = (TEMPLATES_DIR / "explore.html").read_text(encoding="utf-8")
+    assert "<main" not in tmpl, "explore.html must not nest a second <main>"
+    assert 'class="xp-main"' in tmpl  # the styling hook stays
+    assert '<thead id="xp-thead"></thead>' in tmpl
+    js = (JS_DIR / "explore.js").read_text(encoding="utf-8")
+    assert 'getElementById("xp-thead")' in js
+
+
+def test_base_chrome_has_no_redundant_landmark_roles() -> None:
+    """header/footer carry implicit banner/contentinfo roles; the explicit
+    role attributes were validator noise and are gone."""
+    base = (TEMPLATES_DIR / "base.html").read_text(encoding="utf-8")
+    assert 'role="banner"' not in base
+    assert 'role="contentinfo"' not in base
+
+
 def test_explore_js_is_es_module() -> None:
     """explore.js is loaded as an ES module with the vendored d3 as a
     classic script before it (window.d3 global), and no longer wraps its

@@ -59,13 +59,17 @@
 {%- endmacro -%}
 
 {#- One bibliography entry as a list item. ref_target is the canonical URL
-    or DOI; if present we wrap the rendered text as a link. -#}
+    or DOI; if present we wrap the rendered text as a link — but only when
+    the text carries no link of its own. Several corpus bibls repeat the
+    target as an inline <ref>, and <a> inside <a> is invalid HTML
+    (browsers shred the outer anchor into stray links). -#}
 {%- macro bib_entry(b) -%}
   <li{% if b.xml_id %} id="{{ b.xml_id }}"{% endif %}>
-    {%- if b.ref_target -%}
-      <a href="{{ b.ref_target }}">{{ inlines(b.inlines) }}</a>
+    {%- set body = inlines(b.inlines) -%}
+    {%- if b.ref_target and '<a ' not in (body | string) -%}
+      <a href="{{ b.ref_target }}">{{ body }}</a>
     {%- else -%}
-      {{ inlines(b.inlines) }}
+      {{ body }}
     {%- endif -%}
   </li>
 {%- endmacro -%}

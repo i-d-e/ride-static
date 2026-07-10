@@ -241,8 +241,10 @@ const runExplore = (data) => {
   ];
 
   const buildHead = () => {
-    const tr = document.getElementById("xp-thead");
-    tr.innerHTML = "";
+    // The template ships an empty <thead> (a <tr> without cells is
+    // invalid HTML); the full header row is built here.
+    const thead = document.getElementById("xp-thead");
+    const tr = document.createElement("tr");
     COLS.forEach((c) => {
       const th = document.createElement("th");
       th.textContent = c.label;
@@ -260,6 +262,7 @@ const runExplore = (data) => {
       });
       tr.appendChild(th);
     });
+    thead.replaceChildren(tr);
   };
 
   const renderTable = () => {

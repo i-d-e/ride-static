@@ -33,7 +33,9 @@
       </div>
     </aside>
 
-    <main class="xp-main">
+    {#- div on purpose: base.html already provides the page's single
+        main landmark and nesting a second one is invalid. -#}
+    <div class="xp-main">
       <figure class="xp-figure xp-figure--hero">
         <svg id="xp-beeswarm" role="img" aria-label="Beeswarm of all reviews along the chosen axis, coloured by criteria set"></svg>
       </figure>
@@ -47,11 +49,13 @@
       </div>
       <div class="xp-table-wrap">
         <table class="xp-table" id="xp-table">
-          <thead><tr id="xp-thead"></tr></thead>
+          {#- Kept empty of rows — a <tr> without cells is invalid; explore.js
+              builds the full header row on load. -#}
+          <thead id="xp-thead"></thead>
           <tbody id="xp-tbody"></tbody>
         </table>
       </div>
-    </main>
+    </div>
   </div>
 </article>
 
