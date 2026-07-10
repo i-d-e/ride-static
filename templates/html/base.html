@@ -5,7 +5,7 @@
     - knowledge/interface.md §4 (layout architecture, six page types)
     - knowledge/interface.md §8 (lang propagation down to inline level)
     - knowledge/interface.md §9 (skip link, focus, sprache, kontrast)
-    - knowledge/interface.md §12 (CSS one file, JS four small modules)
+    - knowledge/interface.md §12 (CSS one file, JS as small vanilla modules)
     - knowledge/specification.md R13 (Open-Graph), R15 (JSON-LD), N5 (a11y)
     - knowledge/architecture.md §Renderers (templates see only domain objects)
 
@@ -115,6 +115,7 @@
       Dropdown items use native <details> so the menu works without JS
       (interface.md §4, specification.md R11.5). The summary is the
       click target; submenu items live inside the same <details>.
+      nav.js adds exclusive-open on top (opening one closes the others).
       The search container on the right mounts the Pagefind UI in
       static/js/pagefind.js. Without JS or before Pagefind has loaded,
       the inline form falls back to a GET to /search/ which today
@@ -205,6 +206,7 @@
       (both import the shared clipboard helper); pagefind mounts the search
       UI bound to #ride-search. -#}
   {% block scripts %}
+  <script type="module" src="{{ static_path('js/nav.js') }}"></script>
   <script type="module" src="{{ static_path('js/copy-link.js') }}"></script>
   <script type="module" src="{{ static_path('js/cite-copy.js') }}"></script>
   {#- Pagefind: bundle path is on the #ride-search container; the runtime

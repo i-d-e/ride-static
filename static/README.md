@@ -20,6 +20,7 @@ is small and self-contained.
 | `copy-link.js` | paragraph-permalink affordance: copies the absolute paragraph URL on click |
 | `clipboard.js` | shared clipboard helper used by `cite-copy` and `copy-link`; async Clipboard API with a `<textarea>`/`execCommand` fallback for non-secure contexts |
 | `explore.js` | interactive corpus exploration for `/data/explore/`; renders the facet browser and issue timeline with D3 from an inline JSON island |
+| `nav.js` | exclusive-open for the `<details>` nav dropdowns (open one closes the rest, outside click / Escape close all); additive over the native no-JS behaviour |
 | `pagefind.js` | defers loading of the Pagefind UI bundle into the navbar search container |
 
 `vendor/d3.v7.min.js` is vendored (no CDN); `explore.js` consumes D3 as the

@@ -43,7 +43,7 @@ needs_corpus = pytest.mark.skipif(
 def test_js_modules_exist() -> None:
     """Every JS file referenced in base.html must ship under static/js/."""
     base = (TEMPLATES_DIR / "base.html").read_text(encoding="utf-8")
-    for name in ("copy-link.js", "cite-copy.js", "pagefind.js"):
+    for name in ("copy-link.js", "cite-copy.js", "pagefind.js", "nav.js"):
         assert name in base, f"{name} not referenced from base.html"
         assert (JS_DIR / name).exists(), f"{name} missing from static/js/"
 
@@ -56,9 +56,23 @@ def test_tooltip_stub_is_gone() -> None:
 
 
 def test_js_modules_non_empty() -> None:
-    for name in ("copy-link.js", "cite-copy.js", "clipboard.js", "pagefind.js"):
+    for name in ("copy-link.js", "cite-copy.js", "clipboard.js", "pagefind.js", "nav.js"):
         text = (JS_DIR / name).read_text(encoding="utf-8")
         assert text.strip(), f"{name} is empty"
+
+
+def test_nav_module_targets_dropdown_details() -> None:
+    """nav.js is the progressive enhancement over the <details>-based
+    dropdowns: opening one closes the others, outside click and Escape
+    close all. It must target the details element base.html renders and
+    must not replace the native mechanism (no preventDefault on summary)."""
+    js = (JS_DIR / "nav.js").read_text(encoding="utf-8")
+    assert ".ride-nav__dropdown" in js
+    assert "toggle" in js, "nav.js no longer listens to the details toggle event"
+    assert "Escape" in js
+    assert "preventDefault" not in js, (
+        "nav.js must stay additive — native <details> is the no-JS fallback"
+    )
 
 
 def test_clipboard_helper_is_shared() -> None:
