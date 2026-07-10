@@ -52,6 +52,7 @@ from src.render.aggregations import (
     render_tags_overview,
     reviewer_slug,
 )
+from src.render.bibexport import write_bibliography_exports
 from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL, to_corpus_dump_string
 from src.render.explorer import to_explorer_dump_string
 from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
@@ -350,6 +351,9 @@ def _render_aggregations(
         to_explorer_dump_string(reviews, base_url=site.base_url, build_date=build_date),
         encoding="utf-8",
     )
+
+    # Corpus-wide bibliography export (Zotero mass-import channel).
+    write_bibliography_exports(reviews, data_dir)
 
     return pages
 

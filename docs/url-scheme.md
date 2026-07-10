@@ -97,6 +97,8 @@ at `/<name>/` until they are placed.
 ```
 /api/corpus.json                        full corpus dump
 /data/explorer.json                     flat per-review data table backing /data/explore/
+/data/ride-corpus.bib                   corpus-wide BibTeX, one entry per review (Zotero mass import)
+/data/ride-corpus.csl.json              corpus-wide CSL-JSON array, one object per review
 /oai/                                   OAI-PMH static snapshot, see verb routing below
 /feed/atom.xml                          Atom 1.0 feed (RFC 4287), newest reviews
 /feed/rss.xml                           RSS 2.0 feed, same entries and identifiers as Atom

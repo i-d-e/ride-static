@@ -74,6 +74,19 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 - **A new editorial page** — add a TEI file under `pages/` that validates against `schema/ride-pages.rng`; its location decides the URL section. See `docs/extending.md` (Editorial pages) and `docs/url-scheme.md`. The Markdown under `content/` is only the `--no-tei-editorials` fallback.
 - **A new test** — name it `tests/test_<thing>.py` and run `python -m pytest tests/test_<thing>.py -v`.
 
+## Wordclouds
+
+Issue pages show a per-review word cloud thumbnail from `static/images/wordclouds/{review_id}.png`. When a new review is published, generate and commit its image:
+
+```sh
+pip install wordcloud                    # optional dependency, not in requirements.txt
+python scripts/wordclouds.py --review <slug>
+# or by path:
+python scripts/wordclouds.py issues/<N>/reviews/<slug>-tei.xml
+```
+
+The script extracts `//tei:body//text()`, applies a language-specific stopword list (`scripts/wordcloud-assets/stopwords_{de,en,fr}.txt`, ported from `i-d-e/ride-scripts`; other languages fall back to the library's built-in list), renders through a silhouette mask (`scripts/wordcloud-assets/cloud_mask.png`) with a fixed `random_state`, and writes `static/images/wordclouds/{review_id}.png`. The fixed seed makes the output reproducible, so re-running for the same review yields a byte-identical image. Commit the generated PNG; the render is a one-shot maintenance step, not part of the build.
+
 ## Running a session with Claude Code
 
 Claude reads `CLAUDE.md` automatically and the journal entries in `knowledge/journal.md` when a session starts. Append a new dated entry to `knowledge/journal.md` at the end of each working session — five fields, two to four lines each. The format is documented at the top of `knowledge/journal.md`.
