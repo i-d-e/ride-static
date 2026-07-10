@@ -33,7 +33,7 @@ ride-static/
   static/                 css/, js/ (incl. js/vendor/ for bundled libs), fonts/
   config/                 element-mapping.yaml, navigation.yaml
   pages/                  editorial pages as TEI (editorial, team, imprint, …); profile schema/ride-pages.rng
-  content/                editorial Markdown: home widgets + Markdown fallback (about, data charts/questionnaires)
+  content/                editorial Markdown: home widgets, Markdown fallback (about, data charts/questionnaires), factsheet-help/ criteria definitions
   issues/{N}/             TEI corpus, grouped per issue
     metadata.yaml         editorially curated issue metadata (DOI, editors, …)
     reviews/*-tei.xml     the TEI review files for this issue

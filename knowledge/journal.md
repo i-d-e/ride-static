@@ -30,6 +30,24 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-07-10 — Workflow-Abgleich und Legacy-Paritaet komplett
+
+**Ziel:** Die Workflow-Skizze der Projektpartnerin verifizieren, den Alt-Stack-Abloeseplan festhalten und alle Paritaetsluecken der statischen Site schliessen.
+
+**Erledigt:** Drei Recherchen (ride-tech, ride-scripts, eXist-Live-Inventar) plus adversariale Web-Verifikation; Befunde und Abloesetabelle in [[workflow]]. Sechs Arbeitspakete umgesetzt: Amendments-Apparat (strukturierter Inline-Typ statt Passthrough, viertes Apparate-Panel), Identifier-Autoritaeten (ORCID/VIAF/GND, Normalisierung, JSON-LD), PDF-Fusszeilen (`@page`-Margin-Boxes), Korpus-Bibliographie-Export (`/data/ride-corpus.bib` + `.csl.json` als Zotero-Kanal), Wordcloud-Skript (deterministisch, Seed fixiert), Factsheet-Komplett (Hilfetexte als editierbares Markdown unter `content/factsheet-help/`, Select-Glosses, Compound-Review-Beschriftung). Issue-Comment-Text zum Workflow erstellt und nach Verifikation korrigiert.
+
+**Entscheidungen:**
+- DOAJ hat keinen OAI-Ingest (verifiziert); `oai_doajxml` ist ein Convenience-Export. Die DataCite-Registrierung laeuft ueber den Client der USB Koeln.
+- Hilfetexte leben als GitHub-editierbares Markdown mit `## {Kriterium-ID}`-Abschnitten, nicht als zweite XML-Quelle; natives `<details>` ohne JS.
+- Compound-Factsheets bleiben sequenzielle, pro Ressource beschriftete Bloecke statt Mehrspalten-Tabellen (Upgrade-Pfad kommentiert).
+- Wordclouds sind ein Maintenance-Skript mit committetem Ergebnis, kein Build-Schritt.
+
+**Offen:** Sechs Redaktionsentscheidungen in [[workflow]] (Staging, DOI im Build, DOAJ-Weg, OAI-Stilllegung, Freischaltungs-Mechanik, Bilder-Repo). Comment wird vom Operator gepostet. `site.strings` aus `content/` verdrahten als Kandidat.
+
+**Nächster Einstieg:** Redaktionsantworten zu den sechs Fragen einarbeiten; danach P2 Antwort-Matrix-Heatmap.
+
+---
+
 ## 2026-07-10 — Aufraeum-Arbeitsgang: Doku-Abgleich, Refactorings, Test-Konsolidierung
 
 **Ziel:** Die Funde eines Drei-Lanes-Audits (Doku-Konsistenz, Code-Redundanz, Frontend/Tests) umsetzen, soweit sie eindeutig sind.
