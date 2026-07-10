@@ -6,9 +6,9 @@ project:
 method:
   name: Promptotyping
   url: https://dhcraft.org/excellence/blog/Promptotyping
-status: proposal
+status: partial
 created: 2026-06-25
-updated: 2026-06-25
+updated: 2026-07-10
 version: 0.1
 language: de
 related:
@@ -21,7 +21,9 @@ related:
 
 # Explorations-Seite und Narrativ-View
 
-Konzept und Implementierungsplan für zwei neue datengetriebene Seiten von [ride.i-d-e.de](https://ride.i-d-e.de): einen interaktiven Explorations-View (`/data/explore/`) und einen narrativen Scrollytelling-View (`/data/story/`). Das Dokument hält fest, was der Korpus an explorierbarem Potenzial hergibt, welche Forschungsfragen er trägt, welche zwei Views daraus folgen und wie sie gebaut werden. Status ist Vorschlag, mehrere Grundsatzentscheidungen sind offen (Abschnitt *Offene Entscheidungen*).
+Konzept und Implementierungsplan für zwei neue datengetriebene Seiten von [ride.i-d-e.de](https://ride.i-d-e.de): einen interaktiven Explorations-View (`/data/explore/`) und einen narrativen Scrollytelling-View (`/data/story/`). Das Dokument hält fest, was der Korpus an explorierbarem Potenzial hergibt, welche Forschungsfragen er trägt, welche zwei Views daraus folgen und wie sie gebaut werden. Der Status ist teilimplementiert.
+
+**Umsetzungsstand.** View 1 (`/data/explore/`) ist live, mit P1 als Beeswarm plus gekoppeltem Crossfilter und Brushing und P3 als Issue-Timeline. Gebaut wird die Seite von `render_explore()`, der Datendump nach `site/data/explorer.json` von `to_explorer_dump()`. View 2 (`/data/story/`) sowie die restlichen Ansichten P2 und P4 bis P7 sind noch nicht gebaut; mehrere Grundsatzentscheidungen bleiben offen (Abschnitt *Offene Entscheidungen*).
 
 Die gemessenen Korpus-Zahlen in diesem Dokument geben den Analysestand vom 2026-06-25 wieder. Sie begründen Designentscheidungen und Leitplanken, sind aber nicht die Wahrheitsquelle. Die laufende Strukturreferenz ist [[data]]; die hier neu erhobenen Kennzahlen werden mit der Umsetzung in den generierten `explorer-dump` (AP2/AP3) überführt und von dort regenerierbar.
 
@@ -133,7 +135,7 @@ AP7  Test-Anbindung durchgehend je AP   (TDD mit Realkorpus, nicht am Ende)
 - **AP1 Modell/Parser.** `Affiliation` um `geo_ref` (der `placeName/@ref` ist im Korpus eine volle GeoNames-URL, heute verworfen von `parse_authors()`). `RelatedItem` trägt bereits Datum/Titel/Personnel/Targets, kein Wachstum nötig. Editor-ORCID-Dedup und Rollen-pro-Zelle-Regel als reine Aggregationsfunktion.
 - **AP2 Stage-1-Skripte** nach dem `scripts/taxonomy.py`-Muster (`run()`/`main()`, Ausgabe nach `inventory/`, gitignored): `explorer_dump.py` (Pro-Review-Zeile mit Umfang, Apparat als Präsenz plus Rohwert, set-interne Ja-Quote ohne value=3, Ressourcen-Felder), `host_edges.py` (bipartite Review-Host-Kanten plus web.archive.org-Wrapper-Parser), `geonames_lookup.py` (die GeoNames-IDs einmalig auf Koordinaten auflösen). Die Frageknoten-Matrix kommt direkt aus `Review.questionnaires[].questions`, kein neues Skript.
 - **AP3 Build-Artefakt** `src/render/explorer.py` nach dem `corpus_dump.py`-Muster, `to_explorer_dump(...)` bündelt Pro-Review-Zeilen, Host-Kanten, Geo-Koordinaten, Frageknoten-Matrix je Set und Editor-Matrix; geschrieben nach `site/data/explorer.json` über einen neuen `_write_explorer_dump()`-Helfer in `src/build.py`.
-- **AP4 Schale.** `config/navigation.yaml` um die Data-Kinder Explore und Story ergänzen (reine YAML-Änderung, `navigation.py` liest daraus). Neue Templates `explore.html` und `story.html` plus Vis-Partials; Render-Modul `src/render/explore.py` mit `render_explore()` und `render_story()` nach dem `aggregations.py`-Muster.
+- **AP4 Schale.** `config/navigation.yaml` um die Data-Kinder Explore und Story ergänzen (reine YAML-Änderung, `navigation.py` liest daraus). Neue Templates `explore.html` und `story.html` plus Vis-Partials. In der Umsetzung liegt `render_explore()` in `src/render/aggregations.py` (ein eigenes `explore.py` entstand nicht); der zugehörige JSON-Dump (`to_explorer_dump()`/`to_explorer_dump_string()`) sitzt in `src/render/explorer.py`.
 - **AP5/AP6.** P1 zuerst als Verteiler, P2 bis P7 und Inventar additiv. Der Narrativ-View hängt an AP5 und triggert je Etappe den vorkonfigurierten Zustand der geteilten Vis-Module.
 - **AP7 Tests** gemäß der Hard-Rule TDD-mit-Realkorpus: synthetische Fixtures nur für den Modell-Contract und Pure-Function-Parser (Wrapper, Datumsbereiche, Docstring nennt die Ausnahme); Realkorpus-Integrationstests je `run()` und für `to_explorer_dump` (111 Zeilen, set_slug-Pflicht, keine globale Ja-Quote, exakte Output-Pfade), `needs_corpus`-Skip; JS-Module als statischer Contract wie `test_js_modules.py`. Unbekannte Frageknoten-Strukturen, unauflösbare GeoNames-IDs und unparsebare Ressourcen-Datumsbereiche werden benannte Branches oder raisen.
 

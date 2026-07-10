@@ -125,15 +125,17 @@ site/
   reviewers/, reviewers/<id>/             reviewer overview + profiles
   resources/                              reviewed resources table
   data/charts/, data/questionnaires/      editorial data pages
+  data/explore/, data/explorer.json       interactive exploration page + dump
   api/corpus.json, api/build-info.json    machine artefacts (R15, N4/N7)
   oai/                                    OAI-PMH snapshot
-  feed/atom.xml                           Atom feed (--base-url)
+  feed/atom.xml, feed/rss.xml, feed/rdf.xml   three syndication feeds (--base-url)
   sitemap.xml                             crawler sitemap (--base-url)
-  redirects/                              legacy WordPress meta-refresh stubs
   pagefind/                               search bundle (built by npx pagefind, not src.build)
   static/
     css/, js/, fonts/
 ```
+
+There is no `redirects/` subtree. The legacy-WordPress meta-refresh stubs are written at their real legacy paths (e.g. `issues/issue-{N}/{slug}/index.html`, `data/by-tag/index.html`), so an old URL resolves in place; the three feeds additionally copy their XML to the legacy feed paths (`feed/`, `feed/rss/`, `feed/atom/`, `feed/rdf/`). Rationale in [[redirects-feeds]].
 
 URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 

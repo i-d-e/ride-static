@@ -2,7 +2,7 @@
 
 Static-site generator for [ride.i-d-e.de](https://ride.i-d-e.de) — *RIDE. A review journal for digital editions and resources*, published by the Institut für Dokumentologie und Editorik (IDE).
 
-The pipeline reads the TEI XML review corpus under `issues/{N}/reviews/`, the editorial pages as TEI under `pages/` (with a Markdown fallback under `content/`), and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree with per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, a sitemap, and an Atom feed. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
+The pipeline reads the TEI XML review corpus under `issues/{N}/reviews/`, the editorial pages as TEI under `pages/` (with a Markdown fallback under `content/`), and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree with per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, a sitemap, three syndication feeds (Atom, RSS 2.0, RSS 1.0/RDF), and a redirect layer that keeps the old WordPress URLs and feed paths working. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
 
 It replaces the previous eXist-based dynamic site. Written in Python with Jinja templates. Every script and parser module ships with pytest coverage; integration tests drive off the in-repo TEI files (Real-Corpus-Drive).
 
@@ -125,12 +125,10 @@ pip install -r requirements.txt
 
 python -m pytest tests/                             # full suite, run from repo root
 python -m src.build                                 # full build → site/
-python -m src.build --pdf                           # also produces per-review PDFs (WeasyPrint)
-python -m src.build --linkcheck                     # probes external bibliography URLs (slow)
-python -m src.build --base-url=/ride-static         # path prefix for GitHub Pages project page
-
 python -m http.server -d site                       # local preview at http://localhost:8000
 ```
+
+`--pdf`, `--linkcheck`, `--base-url` and the remaining build flags are documented in full in `knowledge/pipeline.md`.
 
 `python -m src.build` runs three stages in order: **validate** (`src/validate.py`, RelaxNG against `schema/ride.rng`), **parse** (`src/parser/`, TEI into immutable `Review` dataclasses; classifies references, copies figures from `../ride/issues/.../pictures/` if the sibling repo is present), **render** (`src/render/`, HTML + optional PDF + aggregations + OAI-PMH + JSON-LD + sitemap + corpus dump + redirects).
 
@@ -166,7 +164,7 @@ Per-directory READMEs describe their own folder:
 
 ## Status
 
-Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, Atom feed, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (staging section of `knowledge/pipeline.md`). Current state and next entry point are in `knowledge/journal.md`.
+Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, three syndication feeds (Atom, RSS 2.0, RDF) with legacy-path redirects, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (staging section of `knowledge/pipeline.md`). Current state and next entry point are in `knowledge/journal.md`.
 
 ## Licence
 

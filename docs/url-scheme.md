@@ -149,7 +149,7 @@ The legacy feed URLs cannot use meta-refresh stubs, feed readers fetch XML and i
 /feed/rdf/      <-  RSS 1.0 (RDF)
 ```
 
-Known ceiling: GitHub Pages serves these copies as `text/html` (Content-Type follows the file extension). Parser libraries (feedparser, gofeed, ROME) tolerate that; readers that gate on the Content-Type before parsing (verified for Miniflux, FreshRSS) reject the copies, and affected subscribers re-subscribe once via the advertised `.xml` URLs. The `.xml` endpoints above are the only URLs to publish or link (see the redirects-and-feeds knowledge document for the evidence).
+Only the `.xml` endpoints are published or linked, because the legacy directory copies carry a content-type ceiling on GitHub Pages; the rationale and the supporting evidence live in [../knowledge/redirects-feeds.md](../knowledge/redirects-feeds.md).
 
 ## What this scheme does not cover
 

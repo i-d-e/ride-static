@@ -269,7 +269,7 @@ Akzeptanzkriterien
 
 **N7 Build-Bericht.** Nach jedem Build entsteht ein aggregierter Bericht aller Warnungen, gruppiert nach Rezension und Typ.
 
-**N8 Übergabefähigkeit.** `CONTRIBUTING.md`, `ARCHITECTURE.md` mit Diagramm und ein Troubleshooting-Abschnitt sind Bestandteil des Repositorys, sodass Mitarbeit innerhalb eines halben Tages produktiv möglich ist.
+**N8 Übergabefähigkeit.** `CONTRIBUTING.md`, [[architecture]] (`knowledge/architecture.md`) mit Diagramm und ein Troubleshooting-Abschnitt sind Bestandteil des Repositorys, sodass Mitarbeit innerhalb eines halben Tages produktiv möglich ist.
 
 **N9 Performance.** Build des vollen Korpus innerhalb von zwei Minuten auf einem aktuellen Notebook. Inkrementelles Build ist konzeptionell vorgesehen, aber nicht zwingend implementiert.
 

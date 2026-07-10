@@ -17,6 +17,7 @@ related:
   - "[[interface]]"
   - "[[pipeline]]"
   - "[[exploration]]"
+  - "[[redirects-feeds]]"
   - "[[data]]"
   - "[[schema]]"
 ---
@@ -51,7 +52,9 @@ The two generated documents (`data`, `schema`) carry `generated:`, `source:`, an
 
 **Adding or changing a TEI element rendering.** [[architecture]] *Element-Mapping* → [docs/extending.md](../docs/extending.md) (the mechanical recipe) → [[interface]] (visual rules the new variant must respect) → tests under `tests/test_render_*.py`. Most extensions are YAML-only; only structurally new semantics need a dataclass plus parser function.
 
-**Reproducing the build pipeline.** [[pipeline]] *Local development* → run the eleven discovery scripts in dependency order → `python -m src.build` → inspect `site/` plus `site/api/build-info.json`. The pipeline is read-only against TEI; nothing writes back.
+**Reproducing the build pipeline.** [[pipeline]] *Local development* → run the discovery scripts in dependency order (full list in `CLAUDE.md`) → `python -m src.build` → inspect `site/` plus `site/api/build-info.json`. The pipeline is read-only against TEI; nothing writes back.
+
+**Migrating legacy URLs and feeds.** [[redirects-feeds]] (rationale and external evidence) → [docs/url-scheme.md](../docs/url-scheme.md) *Redirects* (the path contract) → `src/render/redirects.py` and `src/render/feed.py`. Establishes which old WordPress path maps where and why the feeds carry legacy-path copies.
 
 ## Convention
 
@@ -79,7 +82,7 @@ Methodical practice of iterative prompting against a language model in which com
 
 ### Sonderfall-Branch
 
-A named, comment-marked code path in the parser that handles a known corpus anomaly. The contract is asymmetric: known anomalies become explicit branches, unknown anomalies must raise. Silent coercion of unexpected structures is forbidden — the build breaks rather than producing quietly wrong output. Examples: seven reviews without `<back>`, `<num value="3">`, flat-content reviews without top-level `<div>` wrapping. Catalogued in [[data#Document patterns]] and [[architecture#Domain model]].
+A named, comment-marked code path in the parser that handles a known corpus anomaly. The contract is asymmetric: known anomalies become explicit branches, unknown anomalies must raise. Silent coercion of unexpected structures is forbidden — the build breaks rather than producing quietly wrong output. Examples: reviews without `<back>`, `<num value="3">`, flat-content reviews without top-level `<div>` wrapping (counts in [[data#Document patterns]]). Catalogued in [[data#Document patterns]] and [[architecture#Domain model]].
 
 ### Wissensdokument / Knowledge Document
 

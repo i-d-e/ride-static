@@ -87,8 +87,10 @@ Two axes of stakeholder load shape the architecture:
 - `site/api/build-info.json` — aggregated build report (commit, date, validation, optional linkcheck, asset counts) with the same licence field (N4 / N7).
 - `site/oai/` — OAI-PMH static snapshot (verb-per-file, A5).
 - `site/sitemap.xml` — when `--base-url` is set; A5.
-- `site/feed/atom.xml` — Atom feed of the most recent reviews (RFC 4287), when `--base-url` is set.
-- `site/redirects/` — meta-refresh stubs from legacy WordPress paths (R17).
+- `site/feed/atom.xml`, `site/feed/rss.xml`, `site/feed/rdf.xml` — the three syndication feeds of the most recent reviews (Atom/RFC 4287, RSS 2.0, RSS 1.0/RDF), each with legacy-path copies; all `--base-url`-gated. Rationale in [[redirects-feeds]].
+- `site/data/explore/index.html` — interactive exploration page (P1 beeswarm/crossfilter, P3 timeline), see [[exploration]].
+- `site/data/explorer.json` — flat per-review explorer dump feeding the exploration page.
+- meta-refresh redirect stubs from legacy WordPress paths, each written in place at its own real legacy path under `site/` (e.g. `site/issues/issue-{N}/{slug}/index.html`), so an old URL resolves where a crawler expects it (R17).
 
 ## Layers
 
@@ -169,14 +171,14 @@ The parser handles the known anomalies named in [[data]] and [[schema]] explicit
 
 | Anomaly | Parser branch |
 |---|---|
-| 7 reviews without `<back>` | `Review.bibliography = ()`, `Review.back = ()` |
+| Reviews without `<back>` (a minority, count in [[data]]) | `Review.bibliography = ()`, `Review.back = ()` |
 | `<num value="3">` | raw value kept in `QuestionnaireAnswer.value`; Factsheet walker sets `anomaly=True` and drops the leaf from selection; charts renderer counts it separately |
 | `<list rend="numbered"`>, `"unordered">` | normalise to `ordered` / `bulleted` |
 | `<ref type="crosssref">` | normalise to `crossref` |
 | `<sourceDesc>` duplicated (`wwr`) | not read by the parser, so the duplicate is inert |
 | `<body>` starting with `<p>` or `<cit>` (7 reviews) | wrap in implicit single section |
 | `<ref target="#K…">` — the dominant internal-prefix ref (counts in [[data#Reference resolution]]) | resolve against the criteria document at the taxonomy's `@xml:base`, not as local anchors |
-| `<ref target="#abb…">` and ~10 other prefixes (~70 refs) | unresolved — emit a warning and render as plain text |
+| `<ref target="#abb…">` and the other minor internal prefixes (counts in [[data#Reference resolution]]) | unresolved, emit a warning and render as plain text |
 
 Anything not yet listed but unknown should raise — silent coercion is forbidden.
 
@@ -231,7 +233,7 @@ The per-review wordcloud thumbnails under `static/images/wordclouds/{review_id}.
 
 ## Search and cross-references
 
-- **Search index** — Pagefind, per [[specification#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/search.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
+- **Search index** — Pagefind, per [[specification#A4 Volltextsuche]]. Build-time generation against the rendered HTML in `site/`, client-side runtime via `static/js/pagefind.js`. No bespoke `search_index.py` — Pagefind handles indexing and querying.
 - **`<ref @target>` resolution** — four-bucket lookup at build time, fully specified in [[pipeline#Cross-cutting concerns]] and acceptance-tested against [[specification#R1 Rezension lesen]]:
   1. Local anchor present in the per-review `xml_id → object` map → in-page HTML anchor.
   2. `#K…` prefix (the dominant internal ref — see `inventory/refs.json`) → external link to `{xml:base}#K…` on the criteria document. v1 does not resolve K-IDs to category titles; that is a possible later enhancement.
@@ -244,12 +246,12 @@ The site exposes its content to non-browser consumers through four distinct inte
 
 | Interface | Audience | Purpose | Output |
 |---|---|---|---|
-| Atom feed | a human via a feed reader | subscribe to the newest reviews | `site/feed/atom.xml` (RFC 4287) |
+| Syndication feeds | a human via a feed reader | subscribe to the newest reviews | `site/feed/{atom,rss,rdf}.xml` (Atom/RFC 4287, RSS 2.0, RSS 1.0/RDF) |
 | OAI-PMH | repositories, aggregators | bulk, datestamp-based metadata harvesting | `site/oai/` |
 | sitemap.xml | search-engine crawlers | URL discovery | `site/sitemap.xml` |
 | JSON-LD + corpus dump | search engines, data consumers | embedded `schema.org` semantics, full dataset | per-review JSON-LD + `site/api/corpus.json` |
 
-The rich-bibliographic-metadata role that scholarly RSS 1.0 / PRISM feeds once filled is already covered here by OAI-PMH, per-review JSON-LD, and `corpus.json`. What none of those provides is the plain human subscription to "a new review was published" — that is the Atom feed's distinct job, which is why the legacy RDF (RSS 1.0) feed is deliberately not reproduced. The feed, sitemap, and OAI snapshot are `--base-url`-gated because they need absolute URLs; JSON-LD and the corpus dump are always written.
+Three syndication feeds are built. Atom (RFC 4287) and RSS 2.0 serve the plain human subscription to "a new review was published"; both are advertised in the page-head autodiscovery links. The RSS 1.0 / RDF feed carries Dublin Core, the same vocabulary as the OAI snapshot, and was kept for full WordPress parity by editorial decision even though the migration research found no consumer that requires it; it exists for direct URLs only and stays out of the autodiscovery links. The full rationale, the legacy-path copies, and the content-type ceiling on GitHub Pages live in [[redirects-feeds]]. The feeds, sitemap, and OAI snapshot are `--base-url`-gated because they need absolute URLs; JSON-LD and the corpus dump are always written.
 
 ## Element-Mapping (declarative)
 
@@ -299,8 +301,6 @@ extensibility:
 **What this covers and what it does not.** The mapping resolves the binding `domain class → template + CSS`. It does not encode parsing rules, anomaly handling, or business logic. Adding a new block kind that has new structural semantics still requires a dataclass in `src/model/` and a parser function in `src/parser/`. Adding a new visual variant of an existing kind, or rewiring a template path, is YAML-only.
 
 This separation is the formal answer to [[specification#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — map onto two action paths: the YAML for presentation, Python for semantics. The mechanics of each path live in `docs/extending.md`.
-
-The mapping file is loaded in Phase 8 ([[pipeline#Phasenplan]]) and is the single source for all template-class associations from then on. CI fails if the mapping references a template path that does not exist or a domain class that the parser does not produce.
 
 ## Build vs. runtime
 
