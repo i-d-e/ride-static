@@ -30,6 +30,23 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-07-10 — Frontend-Haertung: Nav-Dropdowns, Resources-Tabelle, W3C-Validitaet
+
+**Ziel:** Die beim Screenshot-Abgleich mit WordPress gefundenen Frontend-Maengel beheben und die HTML-Validitaet der Live-Seiten systematisch pruefen.
+
+**Erledigt:** nav.js als Progressive Enhancement ueber den `<details>`-Dropdowns (exklusives Oeffnen, Outside-Click, Escape; ohne JS bleibt das native Verhalten). Resources-Tabelle auf kanonischen Titel als Link plus gedaempfte Credits-Zeile umgebaut; Korpus-Platzhalter "too many" (escher) gefiltert, Zugriffsdatum bleibt dem Factsheet vorbehalten. W3C-Nu-Validierung von sechs Live-Seitentypen; vier Fundklassen behoben: verschachtelte Anker in den References (bib_entry wrappt nur noch linkfreie Eintraege), mailto aus verschleierten Adressen (jetzt Text-Span), doppeltes main-Landmark plus leere thead-Zeile auf der Explore-Seite, Abstract-Heading h3→h2 (Outline-Sprung). Redundante banner/contentinfo-Rollen entfernt. Issue-Kommentar zu den Listing-Seiten (Punkte 1–6) nach drei Verifikationslaeufen finalisiert; OAI-Harvester-Recherche: kein Harvester nachweisbar, Verteilkanal ist DataCite, Befunde in [[redirects-feeds]].
+
+**Entscheidungen:**
+- Die interface.md-§12-Festlegung "Dropdown ohne eigenes JS" wurde revidiert: native `<details>` kennen einander nicht, exklusives Oeffnen braucht die kleine additive Schicht.
+- E-Mail-Adressen erscheinen nur noch als verschleierter Text; ein mailto aus der verschleierten Form war ungueltige URL und toter Link zugleich.
+- bib_entry wrappt Eintraege mit eigenem Inline-Link nicht mehr (Korpus-Bibls wiederholen ihr Target als Inline-Ref).
+
+**Offen:** WCAG-Vollaudit (N5) als eigener Arbeitsgang. DOAJ-Ingestion-Frage (Pull vs. Upload) liegt bei der Redaktion.
+
+**Nächster Einstieg:** Antwort der Redaktion zur DOAJ-Frage einarbeiten; danach P2 Antwort-Matrix-Heatmap.
+
+---
+
 ## 2026-07-10 — WordPress-Paritaet: Legacy-Redirects und RSS-2.0-Feed
 
 **Ziel:** Die dynamisch generierten WordPress-Seiten gegen die Static-Site abgleichen und die Quick Wins schliessen (Redirects der Listing-Seiten, RSS-Feed).
