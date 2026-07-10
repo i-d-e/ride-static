@@ -55,10 +55,13 @@ Direct checks against the running `ride.i-d-e.de`, snapshot evidence for the mig
 
 ## Legacy feed URLs (decided)
 
-Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. The build therefore copies the feed XML itself to the legacy paths (`LEGACY_FEED_ALIASES` in `src/render/feed.py`): `/feed/` and `/feed/rss/` serve the RSS document, `/feed/atom/` the Atom document. Deliberate shortcut with a known ceiling, GitHub Pages types the copies `text/html`, which most readers content-sniff past but none is guaranteed to; the clean upgrade path is a server-level 301 at the domain switch (Apache `.htaccess` on the existing host, or a proxy layer such as Cloudflare in front of GitHub Pages).
+Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. The build therefore copies the feed XML itself to the legacy paths (`LEGACY_FEED_ALIASES` in `src/render/feed.py`): `/feed/` and `/feed/rss/` serve the RSS document, `/feed/atom/` the Atom document. Known ceiling: GitHub Pages types the copies `text/html`, which most readers content-sniff past but none is guaranteed to. The editorial decision (2026-07-10) is to retire the Apache host entirely, so this is the permanent mechanism, and readers that reject the content type re-subscribe via autodiscovery. The only remaining route to real 301s would be a DNS-level proxy (e.g. Cloudflare in front of GitHub Pages), a new infrastructure component to be weighed on its own.
+
+## Decided by the editors (2026-07-10)
+
+- **The Apache host is being retired.** It is still reachable but will not be maintained; server-level 301s are therefore not an option. The static feed copies above are the permanent continuity mechanism.
 
 ## Open (editorial decisions)
 
-- **Server-level 301s at the domain switch.** Who administers the Apache host and the `i-d-e.de` DNS zone, and does the server stay up after the switch? A dozen `.htaccess` lines would give the feed URLs real 301s and remove the content-type ceiling above.
 - **RDF feed.** RSS 1.0, served by WordPress automatically. No known consumer; proposal is to drop it without replacement.
-- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files). Prior question: who actually harvests the live endpoint (BASE, OpenAIRE, a library network)?
+- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files); ResourceSync over the existing sitemap covers standards-based static harvesting. Prior question: who actually harvests the live endpoint (BASE, OpenAIRE, a library network)?
