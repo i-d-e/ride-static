@@ -30,6 +30,24 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-07-10 — Refactoring in zwei Wellen: Contracts, Frontend-Angleichung, Realkorpus-Tests, READMEs
+
+**Ziel:** Repo-weiter Refactoring-Durchgang ohne Verhaltensänderung: drei parallele Audits (Pipeline, Frontend, Doku), daraus ein Plan in zwei Wellen, umgesetzt mit parallelen Agent-Lanes.
+
+**Erledigt:** Welle 1: Review-URL-Contract und Render-Basiskontext zentralisiert (`review_url`, `base_ctx` in render/html.py, vorher sechs unabhängige Baustellen), toter Code entfernt (corpus-stats.json ohne Konsument, og-Slot, BuildInfo-Leerfelder, tooltip.js-Stub, tote CSS-Selektoren), Explore-Frontend an den Rest angeglichen (Inline-CSS nach ride.css auf Tokens, explore.js als ES-Modul, geteiltes clipboard.js). Doku-Wahrheitsabgleich: staging.md-Leichen raus, exploration.md in CLAUDE.md, element-mapping.yaml als spec-only klargestellt, redirects.yaml-Phantom korrigiert, `/data/explore/` im URL-Vertrag (E5 damit entschieden), CONTRIBUTING auf TEI-Default. Welle 2: gemeinsame Realkorpus-Fixtures in conftest.py, elf test_render_-Dateien von synthetischen Buildern auf echte geparste Reviews umgestellt, AP7-Tests für explorer.py (Zeilen-Contract, set-interne Ja-Quote, exakte Pfade), explorer.json-Schnittstellen-Contract gegen die real von explore.js konsumierten Felder, Build-E2E-Smoke-Test, READMEs für scripts/, src/, config/, static/, tests/.
+
+**Entscheidungen:**
+- Die Wordcloud-PNGs gelten als vendored Source-Assets (kein Generator im Repo, dokumentiert in architecture.md), statt sie als verbotene Build-Artefakte zu behandeln.
+- Verbleibende synthetische Test-Builder sind auf dokumentierte Pure-Function-Ausnahmen beschränkt; Randfälle entstehen bevorzugt per dataclasses.replace() auf echten geparsten Reviews.
+- explorer.py und factsheet.py behalten eigene URL-Konstruktion, weil ihre Contracts abweichen (Fallback-Semantik bzw. /factsheet/-Suffix); nur identische Contracts laufen über review_url.
+- D3 bleibt als Vollbundle vendored; Subset-Build erst bei realem Performance-Druck.
+
+**Offen:** Explore-Ausbau unverändert (P2 Heatmap, P4–P7, Ressourcen-Inventar, Story-View AP6; E1–E4, E6, E7, E9). Staging-Redaktionsentscheidung und CI-Doc-Drift-Politik weiter offen. Die fünf menülosen TEI-Seiten und die submission-guidelines-Doppelung ungeklärt. i18n-Gerüst (site.strings) bewusst belassen.
+
+**Nächster Einstieg:** P2 Antwort-Matrix-Heatmap je Kriterien-Set bauen; die AP7-Testbasis dafür liegt jetzt.
+
+---
+
 ## 2026-06-25 — Explorations-Seite: Plan plus erster interaktiver Explore-View
 
 **Ziel:** Klären, was der Korpus an explorierbarem Potenzial für eine eigene interaktive Daten-Seite hergibt, welche Forschungsfragen er trägt, und ob ein zweiter, narrativer View machbar ist — mündend in einen Implementierungsplan und einen ersten sichtbaren View.
