@@ -31,6 +31,8 @@ import sys
 from pathlib import Path
 from typing import Iterable, Optional
 
+import yaml
+
 from src.model.review import Review
 from src.parser.assets import AssetReport, rewrite_figure_assets
 from src.parser.datasets import (
@@ -73,6 +75,56 @@ from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
 from src.validate import validate_corpus
 
+CONTENT_DIR = REPO_ROOT / "content"
+STRINGS_PATH = CONTENT_DIR / "strings.yaml"
+
+# Vocabulary of localisable UI-string keys the templates consume via
+# ``site.strings.<key> | default('…')`` or ``strings.get('<key>', '…')``.
+# An override in content/strings.yaml for any other key is a typo and
+# fails the build. Regenerate after adding/renaming a template label:
+#   grep -rhoE "strings\.get\('[a-z_]+'|strings\.[a-z_]+" templates/html
+# and reconcile; tests/test_strings_config.py greps the real templates
+# and fails if this constant drifts from them.
+STRING_KEYS: frozenset[str] = frozenset({
+    "abstract", "accessed", "amendment_original", "amendments", "apparate",
+    "back_to_review", "cite", "cite_note", "contact", "copy_bibtex",
+    "copy_csl", "criteria", "doi", "download_pdf", "download_tei",
+    "edited_by", "editors", "explanation", "factsheet", "factsheet_link",
+    "figure_default", "figures", "full_factsheet", "imprint", "issue",
+    "last_accessed", "last_updated", "licence", "licence_short",
+    "main_navigation", "meta", "not_answered", "not_evaluated", "notes",
+    "people", "published", "questionnaire", "references", "reviewed_by",
+    "reviewed_resource", "sidebar", "skip_to_content", "tags", "title",
+    "toc", "uri",
+})
+
+
+def _load_strings(path: Path = STRINGS_PATH) -> dict:
+    """Load the editorial UI-string overrides from ``content/strings.yaml``.
+
+    Returns ``{}`` when the file is absent, empty, or all-commented — the
+    override layer is optional and the shipped file carries every key as a
+    comment, so the deployed output stays byte-identical. Any active key
+    outside :data:`STRING_KEYS` fails the build (typo protection).
+    """
+    if not path.exists():
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"{path.name}: expected a YAML mapping of string keys to labels, "
+            f"got {type(data).__name__}"
+        )
+    unknown = set(data) - STRING_KEYS
+    if unknown:
+        raise ValueError(
+            f"{path.name}: unknown UI-string key(s) {sorted(unknown)}. "
+            f"Valid keys are the vocabulary in src.build.STRING_KEYS "
+            f"({len(STRING_KEYS)} keys, mirrored from templates/html/)."
+        )
+    return data
+
+
 CORPUS_DIR = REPO_ROOT / "issues"
 # Issue-Bilder bleiben (vorerst) im Schwester-Repo ../ride/. Die Asset-Pipeline
 # degradiert sauber, wenn der Pfad fehlt — fehlende Bilder erscheinen im
@@ -112,7 +164,7 @@ def _site_config(
         title="RIDE — Reviews in Digital Editions",
         default_language="en",
         base_url=base_url,
-        strings={},  # localised UI strings — Phase 9 wires them from content/
+        strings=_load_strings(),  # UI-string overrides from content/strings.yaml (empty when all-commented)
         build_info=_build_info(),
         matomo_url=matomo_url,
         matomo_site_id=matomo_site_id,

@@ -1,0 +1,76 @@
+# UI string overrides for the RIDE static site.
+#
+# Every localisable label the HTML templates render is listed below with
+# its built-in English default, COMMENTED OUT. Uncomment a line and edit
+# the value to override that label site-wide; leave it commented to keep
+# the default. The file ships with no active overrides, so the generated
+# site is byte-identical whether or not this file is present.
+#
+# Rules:
+#   - A key not in this list fails the build (typo protection). The valid
+#     vocabulary lives in src/build.py as STRING_KEYS, derived from the
+#     templates under templates/html/.
+#   - Values are plain strings. Quote a value that starts with a special
+#     YAML character or contains a colon.
+#
+# Grouped by the template that reads each key.
+
+# --- base.html (site chrome: skip link, nav, footer) ---
+# skip_to_content: "Skip to content"
+# main_navigation: "Main"
+# licence_short: "CC BY 4.0"
+# contact: "Contact"
+# imprint: "Imprint and Privacy"
+
+# --- review.html (per-review page) ---
+# reviewed_by: "Reviewed by"
+# last_accessed: "Last Accessed"      # factsheet.html uses "Last accessed"
+# abstract: "Abstract"
+# sidebar: "Sidebar"
+# toc: "Contents"
+# meta: "Meta"
+# published: "Published"
+# issue: "Issue"
+# doi: "DOI"
+# factsheet_link: "Factsheet of this project"
+# download_tei: "XML of this review, including formal evaluation data"
+# download_pdf: "PDF of this review article"
+# cite: "Citation Suggestion"
+# edited_by: "ed. by"
+# accessed: "Accessed"
+# cite_note: "You can use the running numbers on the left side to refer to a specific paragraph."
+# copy_bibtex: "Copy BibTeX"
+# copy_csl: "Copy CSL-JSON"
+# tags: "Tags"
+
+# --- partials/render.html (shared article footer) ---
+# licence: "Licence"
+
+# --- partials/apparate.html (references / figures / notes / amendments) ---
+# apparate: "Apparate"
+# references: "References"
+# figures: "Figures"
+# figure_default: "Figure"
+# notes: "Notes"
+# amendments: "Amendments"
+# amendment_original: "Original"
+
+# --- partials/factsheet.html (sidebar factsheet summary) ---
+# factsheet: "Factsheet"
+# criteria: "Criteria"                # factsheet.html uses "Reviewing criteria"
+# full_factsheet: "Full factsheet"
+
+# --- factsheet.html (full factsheet page) ---
+# editors: "Issue editors"
+# reviewed_resource: "Reviewed resource"
+# title: "Title"
+# uri: "URI"
+# people: "People"
+# questionnaire: "Questionnaire"
+# not_evaluated: "Not evaluated"
+# not_answered: "—"
+# explanation: "Explanation"
+# back_to_review: "Back to the review"
+
+# --- editorial.html (editorial pages) ---
+# last_updated: "Last updated"
