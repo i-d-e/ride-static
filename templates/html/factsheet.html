@@ -117,7 +117,15 @@
       <h2 id="questionnaire-heading">{{ site.strings.questionnaire | default('Questionnaire') }}</h2>
 
       {%- for q in review.questionnaires %}
+      {#- Compound reviews carry one taxonomy per reviewed resource; a heading
+          attributes each block. Single-resource reviews yield no heading and
+          keep sections at h3. -#}
+      {%- set resource_heading = questionnaire_heading(q) %}
+      {%- set section_tag = 'h4' if resource_heading else 'h3' %}
       <div class="ride-questionnaire">
+        {%- if resource_heading %}
+        <h3 class="ride-questionnaire__resource">{{ resource_heading }}</h3>
+        {%- endif %}
         {%- if q.criteria_url %}
         <p class="ride-questionnaire__criteria">
           <a href="{{ q.criteria_url }}" rel="noopener noreferrer">{{ site.strings.criteria | default('Reviewing criteria') }}</a>
@@ -128,7 +136,7 @@
         {%- for question in q.questions %}
           {%- if question.section_label != ns.section %}
             {%- set ns.section = question.section_label %}
-            <h3 class="ride-questionnaire__section">{{ humanize_label(question.section_label) }}</h3>
+            <{{ section_tag }} class="ride-questionnaire__section">{{ humanize_label(question.section_label) }}</{{ section_tag }}>
           {%- endif %}
           <div class="ride-question">
             <p class="ride-question__label">
@@ -150,6 +158,15 @@
                 <span class="ride-question__unanswered">{{ site.strings.not_answered | default('—') }}</span>
               {%- endif %}
             </p>
+            {#- Native help toggle — <details> is flow content, so it sits as a
+                sibling of the label/answer paragraphs, never nested in a <p>. -#}
+            {%- set help_html = question_help(question) %}
+            {%- if help_html %}
+            <details class="ride-question__help">
+              <summary class="ride-question__help-badge" aria-label="{{ site.strings.explanation | default('Explanation') }}">?</summary>
+              <div class="ride-question__help-body">{{ help_html | safe }}</div>
+            </details>
+            {%- endif %}
           </div>
         {%- endfor %}
       </div>

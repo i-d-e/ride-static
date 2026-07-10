@@ -34,6 +34,15 @@ class QuestionnaireAnswer:
 
     category_xml_id: str
     value: str
+    gloss: str = ""
+    """Free-text ``<gloss>`` inside the answer category, when present.
+
+    Many reviews qualify a selected option (typically "Other") with a
+    plain ``<gloss>`` giving the concrete value, e.g. ``"doc, rtf, epub"``
+    or ``"Print (selection)"``. Empty string when the category carries no
+    such gloss. Distinct from the master questionnaire's typed
+    ``<gloss type="definition">`` help texts, which are not per-review
+    answers and live in ``content/factsheet-help/``."""
 
 
 @dataclass(frozen=True)
@@ -69,6 +78,12 @@ class QuestionnaireQuestion:
     Renderers prefer it over the raw ``criteria_ref`` target as link text;
     None when the question carries no K-ref."""
 
+    category_xml_id: str = ""
+    """The question category's ``@xml:id`` (e.g. ``se016``, or ``rev1-te042``
+    in a compound review). Renderers strip any ``revN-`` resource prefix and
+    look the remainder up against ``content/factsheet-help/`` to attach the
+    criterion's help text. Empty when the category carries no id."""
+
 
 @dataclass(frozen=True)
 class Questionnaire:
@@ -91,6 +106,15 @@ class Questionnaire:
     criteria_url: str
     answers: tuple[QuestionnaireAnswer, ...]
     questions: tuple[QuestionnaireQuestion, ...] = field(default_factory=tuple)
+    resource_key: str = ""
+    """Reviewed-resource key for compound reviews, e.g. ``"rev1"``.
+
+    Compound reviews (``collationtools``, ``carlyle-addams``) carry one
+    ``<taxonomy>`` per reviewed resource, and every leaf ``@xml:id`` is
+    prefixed ``revN-`` matching a ``<relatedItem xml:id="revN">``. The
+    parser reads that prefix so the renderer can label each questionnaire
+    block with its resource's title. Empty for single-resource reviews
+    (leaf ids like ``se001`` carry no prefix)."""
 
 
 @dataclass(frozen=True)

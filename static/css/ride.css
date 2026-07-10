@@ -590,6 +590,31 @@ main.ride-shell {
 .ride-factsheet__bar            { flex: 1; height: 6px; }
 .ride-factsheet__anomaly        { color: var(--ride-fg-secondary); font-size: var(--ride-text-tiny); }
 
+/* Compound-review block heading — names the reviewed resource of a taxonomy. */
+.ride-questionnaire__resource   { margin-top: var(--ride-space-8); }
+
+/* Native criteria help toggle. The summary is a small "?" badge; the body is
+   muted explanatory prose from content/factsheet-help/. JS-free (<details>). */
+.ride-question__help            { margin: var(--ride-space-1) 0 var(--ride-space-3); }
+.ride-question__help-badge      {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; min-height: 22px; padding: 0 var(--ride-space-2);
+  border: 1px solid var(--ride-rule); border-radius: 50%;
+  background: var(--ride-bg-muted); color: var(--ride-fg-secondary);
+  font-size: var(--ride-text-small); line-height: 1; cursor: pointer;
+  list-style: none; user-select: none;
+}
+.ride-question__help-badge::-webkit-details-marker { display: none; }
+.ride-question__help-badge:hover { background: var(--ride-rule); }
+.ride-question__help[open] .ride-question__help-badge { background: var(--ride-rule); }
+.ride-question__help-body       {
+  margin-top: var(--ride-space-2); padding-left: var(--ride-space-3);
+  border-left: 2px solid var(--ride-rule);
+  color: var(--ride-fg-secondary); font-size: var(--ride-text-small);
+}
+.ride-question__help-body p     { margin: 0 0 var(--ride-space-2); }
+.ride-question__help-body ul    { margin: 0; padding-left: var(--ride-space-6); }
+
 .ride-meta                      { margin: 0; }
 .ride-meta dt                   { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); }
 .ride-meta dd                   { margin: 0 0 var(--ride-space-2); }
@@ -1117,7 +1142,10 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
   body { font-size: 11pt; }
   .ride-wip, .ride-header, .ride-nav, .ride-footer,
   .ride-sidebar, .ride-skip,
-  .ride-cite__btns, .ride-cite-data { display: none; }
+  .ride-cite__btns, .ride-cite-data,
+  /* Interactive help toggles carry no static print value — a closed
+     <details> would print only a bare "?" badge. */
+  .ride-question__help { display: none; }
   .ride-page { grid-template-columns: minmax(0, 1fr); }
   .ride-content, .ride-shell { max-width: 100%; padding: 0; margin: 0; }
   .ride-review__doi-print {

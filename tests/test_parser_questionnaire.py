@@ -424,6 +424,115 @@ def test_real_corpus_collationtools_three_question_blocks() -> None:
     assert all(questions for _, questions in blocks)
 
 
+# -- Feature 2: free-text gloss on select answers -------------------------
+
+
+def test_parse_answer_captures_free_text_gloss():
+    """Pure-function unit (synthetic per CLAUDE.md exception): an option
+    category with a plain ``<gloss>`` yields its free text on the answer.
+    The typed ``<gloss type="definition">`` help gloss is NOT captured."""
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category xml:id="q1">
+                    <catDesc>Input format</catDesc>
+                    <category xml:id="q1-other">
+                      <catDesc>Other</catDesc>
+                      <catDesc><num type="boolean" value="1"/></catDesc>
+                      <catDesc><gloss>doc, rtf, epub</gloss></catDesc>
+                    </category>
+                    <category xml:id="q1-help">
+                      <catDesc>Helped</catDesc>
+                      <catDesc><num type="boolean" value="0"/></catDesc>
+                      <catDesc><gloss type="definition">ignored help text</gloss></catDesc>
+                    </category>
+                  </category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    answers = {a.category_xml_id: a for a in parse_questionnaires(root)[0].answers}
+    assert answers["q1-other"].gloss == "doc, rtf, epub"
+    assert answers["q1-help"].gloss == ""  # typed definition gloss excluded
+
+
+@needs_corpus
+def test_real_corpus_collationtools_gloss_on_answer_and_selection() -> None:
+    """collationtools rev1-te041 is an "Other" option (value=1) qualified by
+    a ``<gloss>doc, rtf, epub</gloss>``. The gloss reaches both the flat
+    answer model and the folded selection label."""
+    tree = etree.parse(str(find_tei("collationtools")))
+    root = tree.getroot()
+    answers = {
+        a.category_xml_id: a
+        for q in parse_questionnaires(root)
+        for a in q.answers
+    }
+    assert answers["rev1-te041"].gloss == "doc, rtf, epub"
+    # The same free text is folded into the question-view selection label.
+    blocks = parse_questionnaire_questions(root)
+    labels = [
+        opt
+        for _, questions in blocks
+        for question in questions
+        for opt in question.selected
+    ]
+    assert any("doc, rtf, epub" in lbl for lbl in labels)
+
+
+@needs_corpus
+def test_real_corpus_review_without_gloss_has_empty_glosses() -> None:
+    """A review carrying no free-text answer glosses keeps every answer's
+    gloss empty — the field is additive and does not disturb the norm.
+    carolingian_scholarship is a corpus review with zero answer glosses."""
+    path = find_tei("carolingian_scholarship")
+    if not path.exists():
+        pytest.skip("carolingian_scholarship-tei.xml not in corpus")
+    answers = [a for q in parse_questionnaires(etree.parse(str(path)).getroot()) for a in q.answers]
+    assert answers, "review should yield answers"
+    assert all(a.gloss == "" for a in answers)
+
+
+# -- Feature 3: compound-review resource keys -----------------------------
+
+
+@needs_corpus
+def test_real_corpus_collationtools_resource_keys() -> None:
+    """Each of collationtools' three taxonomies exposes the revN resource
+    key derived from its leaf-id prefix, in document order."""
+    tree = etree.parse(str(find_tei("collationtools")))
+    qs = parse_questionnaires(tree.getroot())
+    assert [q.resource_key for q in qs] == ["rev1", "rev2", "rev3"]
+
+
+def test_single_resource_review_has_empty_resource_key():
+    """Bare leaf ids (``se001``) carry no ``revN-`` prefix, so the resource
+    key stays empty and no block heading is emitted."""
+    root = _root("""
+        <TEI xmlns="http://www.tei-c.org/ns/1.0"
+             xmlns:xml="http://www.w3.org/XML/1998/namespace">
+          <teiHeader>
+            <encodingDesc>
+              <classDecl>
+                <taxonomy xml:base="http://example.org/c">
+                  <category xml:id="se001"><catDesc>X<num value="1"/></catDesc></category>
+                </taxonomy>
+              </classDecl>
+            </encodingDesc>
+          </teiHeader>
+          <text><body><p>x</p></body></text>
+        </TEI>
+    """)
+    assert parse_questionnaires(root)[0].resource_key == ""
+
+
 @needs_corpus
 def test_real_corpus_questionnaire_carries_questions() -> None:
     """``parse_questionnaires`` now populates the per-taxonomy ``questions``

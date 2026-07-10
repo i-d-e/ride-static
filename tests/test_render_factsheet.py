@@ -25,7 +25,9 @@ from src.model.review import Author, Person, RelatedItem, Review
 from src.render.factsheet import (
     criteria_link,
     group_personnel,
+    help_lookup_key,
     humanize_label,
+    load_help_texts,
     render_factsheet,
     reviewed_resource,
 )
@@ -213,6 +215,93 @@ def test_render_factsheet_obfuscates_reviewer_email():
     assert "mailto:" not in html
 
 
+# ── Feature 1: criteria help texts ────────────────────────────────────
+
+
+def test_help_lookup_key_strips_compound_prefix():
+    # Pure function: revN- prefix stripped, bare ids untouched.
+    assert help_lookup_key("rev1-te042") == "te042"
+    assert help_lookup_key("se016") == "se016"
+    assert help_lookup_key("") == ""
+
+
+def test_load_help_texts_parses_sections(tmp_path):
+    """Synthetic fixture (pure loader over a tiny vault): ``## id`` sections
+    become an id→HTML map; the intro comment before the first heading is
+    ignored."""
+    d = tmp_path / "factsheet-help"
+    d.mkdir()
+    (d / "se.md").write_text(
+        "<!-- provenance comment -->\n\n"
+        "## se016\n\n*Archiving of data*\n\nChoose yes if the data is cared for.\n\n"
+        "## se075\n\n- **Letters** — letters of one or several authors.\n",
+        encoding="utf-8",
+    )
+    texts = load_help_texts(d)
+    assert set(texts) == {"se016", "se075"}
+    assert "Archiving of data" in texts["se016"]
+    assert "<p>" in texts["se016"]
+    assert "provenance comment" not in texts["se016"]
+    assert "Letters" in texts["se075"]
+
+
+def test_load_help_texts_missing_dir_degrades(tmp_path):
+    assert load_help_texts(tmp_path / "nope") == {}
+
+
+def test_render_factsheet_attaches_help_details():
+    """A question whose category id has a help entry renders a native
+    ``<details>`` toggle with the help HTML; ``<details>`` sits as a sibling
+    of the label/answer paragraphs (flow content, not inside a ``<p>``)."""
+    q = QuestionnaireQuestion(
+        section_label="Documentation",
+        question_label="Archiving of data",
+        question_text="Is archiving documented?",
+        criteria_ref=None,
+        selected=("Yes",),
+        category_xml_id="se016",
+    )
+    questionnaire = Questionnaire(criteria_url="", answers=(), questions=(q,))
+    review = _review_with_factsheet(questionnaires=(questionnaire,))
+    help_texts = {"se016": "<p>archiving help body</p>"}
+    html = render_factsheet(review, help_texts=help_texts)
+    assert 'class="ride-question__help"' in html
+    assert "archiving help body" in html
+    assert 'aria-label="Explanation"' in html
+    # details must not be nested inside the label paragraph.
+    assert "<p class=\"ride-question__label\">" in html
+
+
+def test_render_factsheet_no_help_when_absent():
+    """A question without a matching help entry renders no details toggle."""
+    html = render_factsheet(_review_with_factsheet(), help_texts={})
+    assert "ride-question__help" not in html
+
+
+# ── Feature 3: compound-review resource headings ───────────────────────
+
+
+def test_render_factsheet_labels_compound_blocks():
+    """Two taxonomies with revN resource keys each get a heading naming the
+    matching reviewed resource; single-resource reviews get none."""
+    res1 = RelatedItem(type="reviewed_resource", bibl_text="", xml_id="rev1", title="Juxta")
+    res2 = RelatedItem(type="reviewed_resource", bibl_text="", xml_id="rev2", title="LERA")
+    q1 = Questionnaire(criteria_url="", answers=(), questions=(), resource_key="rev1")
+    q2 = Questionnaire(criteria_url="", answers=(), questions=(), resource_key="rev2")
+    review = _review_with_factsheet(
+        related_items=(res1, res2), questionnaires=(q1, q2)
+    )
+    html = render_factsheet(review)
+    assert 'class="ride-questionnaire__resource"' in html
+    assert "Juxta" in html
+    assert "LERA" in html
+
+
+def test_render_factsheet_single_resource_has_no_block_heading():
+    html = render_factsheet(_review_with_factsheet())
+    assert "ride-questionnaire__resource" not in html
+
+
 # ── Real-corpus smoke ─────────────────────────────────────────────────
 
 
@@ -227,3 +316,45 @@ def test_render_factsheet_real_corpus_makingandknowing(corpus_review):
     assert "Smith, Pamela" in html
     # A resolved K-ref link against the criteria document.
     assert "criteria-version-1-1#K1.2" in html
+
+
+def test_render_factsheet_real_corpus_makingandknowing_help(corpus_review):
+    """Feature 1 end to end: the se016 criterion ("Archiving of data") carries
+    a help entry, so its rendered row gains a native help toggle with the
+    definition body from content/factsheet-help/se.md."""
+    html = render_factsheet(corpus_review)
+    assert 'class="ride-question__help"' in html
+    assert "long term sustainability" in html
+
+
+def _find_tei_or_skip(stem):
+    from src._corpus import find_tei
+
+    path = find_tei(stem)
+    if not path.exists():
+        import pytest
+
+        pytest.skip(f"{stem} not in corpus")
+    return path
+
+
+def test_render_factsheet_real_corpus_collationtools_labels_three_blocks():
+    """Feature 3 end to end: collationtools reviews three resources across
+    three taxonomies; each block renders a heading naming its resource."""
+    from src.parser.review import parse_review
+
+    review = parse_review(_find_tei_or_skip("collationtools"))
+    html = render_factsheet(review)
+    assert html.count('class="ride-questionnaire__resource"') == 3
+    for title in ("Juxta Web Service", "LERA", "Variance Viewer"):
+        assert title in html, f"missing resource heading: {title}"
+
+
+def test_render_factsheet_real_corpus_collationtools_gloss():
+    """Feature 2 end to end: the "Other" free-text gloss surfaces in the
+    rendered selection."""
+    from src.parser.review import parse_review
+
+    review = parse_review(_find_tei_or_skip("collationtools"))
+    html = render_factsheet(review)
+    assert "doc, rtf, epub" in html

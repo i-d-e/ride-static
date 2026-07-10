@@ -88,12 +88,52 @@ def _parse_taxonomy(tax: etree._Element) -> Questionnaire:
         value = num.get("value")
         if value is None:
             continue
-        answers.append(QuestionnaireAnswer(category_xml_id=xid, value=value))
+        answers.append(
+            QuestionnaireAnswer(
+                category_xml_id=xid, value=value, gloss=_find_gloss_text(cat)
+            )
+        )
     return Questionnaire(
         criteria_url=criteria_url,
         answers=tuple(answers),
         questions=_parse_questions(tax),
+        resource_key=_resource_key(tax),
     )
+
+
+def _resource_key(tax: etree._Element) -> str:
+    """Reviewed-resource prefix shared by a compound taxonomy's leaf ids.
+
+    Compound reviews prefix every leaf ``@xml:id`` with ``revN-`` (e.g.
+    ``rev1-te001``); the substring before the first ``-`` names the
+    resource. Returns ``""`` when the first leaf id carries no such prefix
+    (single-resource reviews use bare ids like ``se001``)."""
+    for cat in tax.iter(f"{{{TEI_NS}}}category"):
+        xid = attr(cat, "xml:id")
+        if not xid:
+            continue
+        prefix, sep, _ = xid.partition("-")
+        return prefix if sep and prefix.startswith("rev") else ""
+    return ""
+
+
+def _find_gloss_text(cat: etree._Element) -> str:
+    """Free-text ``<gloss>`` (no ``@type``) inside a leaf answer category.
+
+    Per-review answers qualify an option with a plain ``<gloss>`` giving the
+    concrete value ("doc, rtf, epub"). The master questionnaire's typed
+    ``<gloss type="definition">`` help glosses never appear inside review
+    corpus answers, so the untyped filter keeps the two apart."""
+    for cat_desc in cat.findall("t:catDesc", NS):
+        gloss = cat_desc.find("t:gloss", NS)
+        if gloss is not None and gloss.get("type") is None:
+            text = "".join(gloss.itertext())
+            import re
+
+            text = re.sub(r"\s+", " ", text).strip()
+            if text:
+                return text
+    return ""
 
 
 def parse_taxonomy_sections(
@@ -263,7 +303,12 @@ def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQ
                 anomaly = True
                 continue
             if value == "1":
-                selected.append(_option_label(opt))
+                opt_label = _option_label(opt)
+                # A selected option may carry a free-text <gloss> naming the
+                # concrete value (e.g. "Other" → "doc, rtf, epub"). Render it
+                # inline as "label: gloss" for parity with the legacy factsheet.
+                gloss = _find_gloss_text(opt)
+                selected.append(f"{opt_label}: {gloss}" if gloss else opt_label)
     else:
         # Inline-num binary question (text-collections boolean shape).
         num = _find_num_in_any_catdesc(q_cat)
@@ -283,6 +328,7 @@ def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQ
         criteria_ref_label=criteria_ref_label,
         selected=tuple(selected),
         anomaly=anomaly,
+        category_xml_id=attr(q_cat, "xml:id") or "",
     )
 
 
