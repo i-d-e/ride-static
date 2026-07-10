@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-04-29
+updated: 2026-07-10
 version: 0.1
 topics:
   - "[[Static Site Generation]]"
@@ -224,6 +224,10 @@ templates/html/
 Charts are not a template: `render/charts.py` emits inline SVG directly.
 
 The page-type set follows [[interface#4 Layout-Architektur]]; the parallel apparate block follows [[interface#6 Apparate als parallele Blöcke]].
+
+### Wordcloud thumbnails (vendored source assets)
+
+The per-review wordcloud thumbnails under `static/images/wordclouds/{review_id}.{ext}` are consumed by `render/aggregations.py` (`_wordcloud_url`) and shown on issue and aggregation entries. They are git-tracked and treated as **vendored source assets**. They originate upstream, no build step in this repo reproduces them, and there is no generator here to regenerate them from the corpus. A review without a matching image renders its entry without a thumbnail, so the fallback is graceful and the set may stay partial. If the generation ever moves in-repo, that fallback stays but the assets become build output.
 
 ## Search and cross-references
 

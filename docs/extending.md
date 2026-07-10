@@ -16,36 +16,42 @@ How to add a new TEI element, attribute, or render variant. Anchored to `specifi
 
 Most extensions are the first two — pure YAML. The remainder require Python work.
 
-## Path 1 — YAML-only extension
+## Path 1 — presentation-only change
 
-The file `config/element-mapping.yaml` (introduced in Phase 8) maps domain classes to Jinja templates and CSS classes. Edit it, run `python -m pytest tests/test_mapping.py`, run the build. No Python touched.
+Changing how an existing element renders touches the dispatcher template and CSS, not the parser or model.
 
-Until Phase 8 lands, the file does not yet exist; the schema is specified in [[architecture#Element-Mapping (declarative)]] and frozen for implementation.
+The relevant fact about `config/element-mapping.yaml`: **`src.build` does not load it.** The dispatcher partial `templates/html/partials/render.html` dispatches directly on dataclass class names and emits hard-coded BEM classes; the charts and aggregation renderers emit their markup in Python. The YAML is documentation of the domain-class-to-template-and-CSS contract plus a CI pin. `tests/test_element_mapping.py` and `tests/test_tei_coverage.py` assert that every modelled Block/Inline kind and every `Reference` bucket has an entry, so the file cannot silently drift from the model. See [[architecture#Element-Mapping (declarative)]] for the spec-only status.
 
-### Example: rewire the Figure template
+The operative edit is therefore in the template and CSS; update the YAML in the same change so the documented contract stays true and the pin stays green.
 
-```yaml
-blocks:
-  Figure:
-    template: blocks/figure.html        # change to: blocks/figure-card.html
-    css_class: ride-figure
-    variants:
-      graphic:      ride-figure--image
-      code_example: ride-figure--code
-```
+### Example: rewire the Figure rendering
 
-Save, rebuild. Every Figure on every review page now renders through the new template.
+1. Edit the Figure branch in `templates/html/partials/render.html` (and, if you split into a new template file, add it under `templates/html/blocks/`).
+2. Add or adjust the CSS in `static/css/ride.css`.
+3. Update the `blocks.Figure` entry in `config/element-mapping.yaml` to describe the new template and CSS class:
+
+   ```yaml
+   blocks:
+     Figure:
+       template: blocks/figure.html
+       css_class: ride-figure
+       variants:
+         graphic:      ride-figure--image
+         code_example: ride-figure--code
+   ```
+
+4. Run `python -m pytest tests/test_element_mapping.py`, rebuild.
 
 ### Example: add a fourth list variant
 
 If the corpus introduces `<list rend="checklist">` and you want to render it differently:
 
 1. In `src/parser/blocks.py`, extend the `kind` normalisation to accept `"checklist"` (one line).
-2. In `config/element-mapping.yaml`, add `checklist: ride-list--checklist` under `blocks.List.variants`.
+2. In `templates/html/partials/render.html`, emit the `ride-list--checklist` class for the new `kind`.
 3. Add CSS for `.ride-list--checklist` in `static/css/ride.css`.
-4. Done.
+4. Record `checklist: ride-list--checklist` under `blocks.List.variants` in `config/element-mapping.yaml` so the documented contract and the coverage test agree.
 
-No new Python class, no new template file (the existing `blocks/list.html` handles all variants via the `kind` field).
+No new Python class, no new template file (the existing list rendering handles all variants via the `kind` field).
 
 ## Path 2 — Python + YAML extension
 
@@ -64,7 +70,9 @@ Required when the new element has different semantics, not just different appear
 
 2. **Parser.** Add `_parse_diplomatic(el) -> Diplomatic` in `src/parser/blocks.py` and dispatch to it from `parse_block()`. Synthetic test in `tests/test_parser_blocks.py`.
 
-3. **Mapping.** Add an entry in `config/element-mapping.yaml`:
+3. **Dispatch and template.** Add the `Diplomatic` branch to the dispatcher partial `templates/html/partials/render.html` (this is what the build actually renders), creating `templates/html/blocks/diplomatic.html` if the branch warrants its own file. Use the same conventions as the existing block templates.
+
+4. **Mapping entry.** Record the contract in `config/element-mapping.yaml` so the coverage tests pass and the file documents the new kind:
 
    ```yaml
    blocks:
@@ -73,7 +81,7 @@ Required when the new element has different semantics, not just different appear
        css_class: ride-diplomatic
    ```
 
-4. **Template.** Create `templates/html/blocks/diplomatic.html`. Use the same conventions as the existing block templates.
+   The build does not read this file; `tests/test_element_mapping.py` does, and it fails if a modelled Block kind has no entry.
 
 5. **CSS.** Add `.ride-diplomatic` styles to `static/css/ride.css`.
 
@@ -109,7 +117,7 @@ The TEI page renderer and the Markdown editorial renderer share one shell (`src.
 
 **Unknown elements must raise.** The default strategy in `config/element-mapping.yaml` is `unknown_element_strategy: warn-and-render-text`, which is safe for production but masks bugs during development. Set it to `raise` locally to catch unhandled elements early.
 
-**The mapping file is validated at build start.** CI fails if the mapping references a template path that does not exist or a domain class the parser does not produce. So you cannot ship a half-finished mapping; either it is consistent or the build refuses.
+**The mapping file is a documented contract, pinned by pytest, not by the build.** `src.build` never loads `config/element-mapping.yaml`; the render dispatches directly in `templates/html/partials/render.html`. What keeps the file honest is CI: `tests/test_element_mapping.py` and `tests/test_tei_coverage.py` fail if a modelled Block/Inline kind or a `Reference` bucket is missing an entry. So a half-finished mapping breaks the test suite rather than the build, and editing the YAML alone changes no rendered output.
 
 **Inventory updates first.** If the corpus changes (new element, new attribute value), regenerate `inventory/` before extending the parser:
 
@@ -140,10 +148,10 @@ Figure URL rewriting and image copying live in `src/parser/assets.py::rewrite_fi
 
 ## Validation
 
-After any extension, run the full test suite. Real-corpus smoke tests in `tests/test_parser_*.py` exercise all 111 reviews shipped under `issues/{N}/reviews/`. Per the test data philosophy in `CLAUDE.md`, integration tests should drive off real corpus reviews; only pure-function unit tests (regex, classifier) may use synthetic inputs.
+After any extension, run the full test suite. Real-corpus smoke tests in `tests/test_parser_*.py` exercise every review shipped under `issues/{N}/reviews/` (corpus size in `knowledge/data.md`). Per the test data philosophy in `CLAUDE.md`, integration tests should drive off real corpus reviews; only pure-function unit tests (regex, classifier) may use synthetic inputs.
 
 ```sh
 python -m pytest tests/ -v
 ```
 
-A clean run means no element raised, the mapping is consistent, and all 111 reviews parse end-to-end with their references classified.
+A clean run means no element raised, the mapping is consistent, and every review parses end-to-end with its references classified.

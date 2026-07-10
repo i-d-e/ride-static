@@ -25,7 +25,8 @@ See `CLAUDE.md` for the layout reference. In short:
 - `src/render/` — Stage 3 onwards, HTML and PDF.
 - `templates/html/` — Jinja templates, dumb (consume domain objects, never XML).
 - `config/element-mapping.yaml` — declarative binding of domain classes to templates and CSS classes (introduced in Phase 8; see `docs/extending.md` for the schema).
-- `content/` — editorial Markdown with frontmatter; per-issue YAML configs (introduced in Phase 9).
+- `pages/` — editorial pages as TEI, validated against `schema/ride-pages.rng`. This is the build default for the non-review pages.
+- `content/` — editorial Markdown fallback (home widgets plus the `--no-tei-editorials` legacy path); per-issue YAML configs (introduced in Phase 9).
 - `tests/` — pytest, run from repo root with `python -m pytest tests/`.
 - `knowledge/` — Obsidian-style vault, `.md` only, internal links use `[[wikilink]]`.
 - `inventory/` — generated JSON artifacts, gitignored, regeneratable from `scripts/`.
@@ -70,7 +71,7 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 ## Adding things
 
 - **A new TEI element or variant** — see `docs/extending.md`. Most variants are YAML-only via `config/element-mapping.yaml`; structural additions need a dataclass and parser.
-- **A new editorial page** — drop a Markdown file with frontmatter in `content/`. The build picks it up.
+- **A new editorial page** — add a TEI file under `pages/` that validates against `schema/ride-pages.rng`; its location decides the URL section. See `docs/extending.md` (Editorial pages) and `docs/url-scheme.md`. The Markdown under `content/` is only the `--no-tei-editorials` fallback.
 - **A new test** — name it `tests/test_<thing>.py` and run `python -m pytest tests/test_<thing>.py -v`.
 
 ## Running a session with Claude Code

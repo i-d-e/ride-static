@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-06-12
+updated: 2026-07-10
 version: 0.2
 topics:
   - "[[Static Site Generation]]"

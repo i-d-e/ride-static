@@ -9,7 +9,7 @@ changes do not reach this repository on their own:
   new files are copied in — otherwise review pages keep showing the old
   (or no) figures until the next unrelated build.
 - **`i-d-e/ride-editors`** holds reviews in preparation. Once the preview
-  environment is in place (see `knowledge/staging.md`), a push there
+  environment is in place (see the staging section of `knowledge/pipeline.md`), a push there
   should regenerate the preview.
 
 GitHub's mechanism for this is `repository_dispatch`: a small workflow in
@@ -42,5 +42,5 @@ Install `ride-trigger-build.yml` now: publishing a review usually
 includes pushing its images to `i-d-e/ride`, and without the sender those
 images only appear on the site after the next unrelated build. Install
 `ride-editors-trigger-build.yml` once the preview environment decision is
-made (`knowledge/staging.md`) — until the build consumes drafts, the
+made (staging section of `knowledge/pipeline.md`) — until the build consumes drafts, the
 event triggers a rebuild that changes nothing.

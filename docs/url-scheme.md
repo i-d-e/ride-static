@@ -52,7 +52,7 @@ The corpus is verified clean on `xml:id` uniqueness within each file (see `knowl
 /reviewers/                             reviewer list
 /reviewers/{reviewer_slug}/             reviewer detail
 /resources/                             reviewed resources table
-/data/                                  questionnaire-derived charts
+/data/                                  Data overview (section root)
 ```
 
 Slugs (`{tag_slug}`, `{reviewer_slug}`) are derived from the source identifier with whitespace collapsed and non-word characters dropped. Slug derivation is deterministic and lossless given the inputs.
@@ -78,6 +78,7 @@ lives under `/about/…`:
 /data/                           Data overview (section root)
 /data/questionnaires/
 /data/charts/
+/data/explore/                   interactive explore view (navigation.yaml entry)
 /imprint/                        standalone (footer)
 /criteria/                       Reviewing Criteria (top-level nav entry)
 ```
@@ -95,6 +96,7 @@ at `/<name>/` until they are placed.
 
 ```
 /api/corpus.json                        full corpus dump
+/data/explorer.json                     flat per-review data table backing /data/explore/
 /oai/                                   OAI-PMH static snapshot, see verb routing below
 /sitemap.xml                            sitemap with last-modified dates
 /pagefind/                              client-side search index, served as static assets
@@ -123,7 +125,7 @@ Currently unused. When introduced, the unversioned URL will continue to serve th
 
 ## Redirects
 
-When a path moves, a meta-refresh redirect is emitted at the old path. This satisfies R17 without requiring server-side configuration that GitHub Pages does not provide. Redirects are pinned in `redirects.yaml` at repo root and applied during the build (Phase 15).
+When a path moves, a meta-refresh redirect is emitted at the old path. This satisfies R17 without requiring server-side configuration that GitHub Pages does not provide. Redirects live in `src/render/redirects.py` (`EDITORIAL_REDIRECTS` for the legacy menu paths, plus the per-review and per-issue redirect logic) and are written during the build (Phase 15).
 
 ## What this scheme does not cover
 

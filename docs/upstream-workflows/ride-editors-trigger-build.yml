@@ -1,7 +1,7 @@
 # Sender workflow for i-d-e/ride-editors — install as
 # .github/workflows/trigger-site-build.yml in that repository, but only
-# once the preview environment decision is made (knowledge/staging.md in
-# ride-static). Until the build consumes drafts, the event triggers a
+# once the preview environment decision is made (staging section of
+# knowledge/pipeline.md in ride-static). Until the build consumes drafts, the event triggers a
 # rebuild that changes nothing.
 #
 # Notifies ride-static that work-in-progress reviews changed, so the
