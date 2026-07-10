@@ -126,6 +126,12 @@ def _reviewer_key(author: Author) -> str:
 # -- Reviewed resources ---------------------------------------------------
 
 
+# Corpus placeholder for "the project has more contributors than the
+# reviewer listed" — escher-tei.xml carries <name>too many</name> for
+# Encoder/Contributor. A raw-data quirk, never a display value.
+_PLACEHOLDER_NAMES = frozenset({"too many"})
+
+
 @dataclass(frozen=True)
 class ReviewedResourceAggregate:
     """One reviewed resource and the reviews about it.
@@ -135,15 +141,37 @@ class ReviewedResourceAggregate:
     uses the first ``bibl_targets`` URL when available, falling back
     to the bibl text. Some resources are reviewed more than once
     (rolling-issue updates); those collect multiple review IDs.
+
+    ``title`` is the canonical ``<title>`` under ``<bibl>`` when present,
+    the flat bibl text only as fallback — the listing links the title,
+    not the full citation. ``personnel`` / ``publication_date`` come from
+    the first-encountered relatedItem; the accessed date stays out on
+    purpose (it belongs to the factsheet citation, not the index).
     """
 
     title: str
     targets: tuple[str, ...]
     review_ids: tuple[str, ...]
+    personnel: tuple[tuple[str, str], ...] = ()
+    publication_date: str = ""
 
     @property
     def count(self) -> int:
         return len(self.review_ids)
+
+    @property
+    def personnel_names(self) -> tuple[str, ...]:
+        """Display names for the credits line: unique, document order,
+        role labels dropped, corpus placeholders filtered."""
+        seen: set[str] = set()
+        names: list[str] = []
+        for _resp, name in self.personnel:
+            clean = name.strip()
+            if not clean or clean.lower() in _PLACEHOLDER_NAMES or clean in seen:
+                continue
+            seen.add(clean)
+            names.append(clean)
+        return tuple(names)
 
 
 def aggregate_reviewed_resources(
@@ -159,8 +187,12 @@ def aggregate_reviewed_resources(
             entry = by_key.setdefault(
                 key,
                 {
-                    "title": ri.bibl_text.strip() or "(untitled)",
+                    "title": (ri.title or "").strip()
+                    or ri.bibl_text.strip()
+                    or "(untitled)",
                     "targets": ri.bibl_targets,
+                    "personnel": ri.personnel,
+                    "publication_date": ri.publication_date or "",
                     "ids": [],
                 },
             )
@@ -170,6 +202,8 @@ def aggregate_reviewed_resources(
             title=info["title"],
             targets=info["targets"],
             review_ids=tuple(info["ids"]),
+            personnel=info["personnel"],
+            publication_date=info["publication_date"],
         )
         for _, info in sorted(
             by_key.items(),

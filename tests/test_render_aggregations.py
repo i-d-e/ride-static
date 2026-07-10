@@ -14,6 +14,7 @@ integration test at the bottom drives a full issue end to end.
 from __future__ import annotations
 
 import dataclasses
+from pathlib import Path
 
 import pytest
 
@@ -35,6 +36,8 @@ from src.render.aggregations import (
     reviewer_slug,
 )
 from src.render.html import SiteConfig, make_env
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _review(
@@ -245,6 +248,31 @@ def test_render_resources_resource_review_link_uses_review_index(env, corpus_rev
     html = render_resources((rev,), _site(), env)
     # The review link uses the review title as anchor text, not the bare id.
     assert ">The Reviewing Article<" in html
+
+
+def test_render_resources_escher_shows_title_and_credits_not_runon(env):
+    """Real-corpus regression for the resources table (2026-07-10 screenshot
+    review): the escher bibl carries respStmts, a publication date, an idno
+    and an accessed date. The cell must link the canonical title only, list
+    the people in a separate credits line without the 'too many' placeholder
+    and without role labels, and drop the accessed date entirely (it lives
+    in the factsheet citation, not in the index)."""
+    from src.parser.review import parse_review
+
+    escher = REPO_ROOT / "issues" / "10" / "reviews" / "escher-tei.xml"
+    if not escher.exists():
+        pytest.skip("corpus not present")
+    review = parse_review(escher)
+    html = render_resources((review,), _site(), env)
+
+    assert ">Alfred Escher-Briefedition</a>" in html
+    assert 'href="https://www.briefedition.alfred-escher.ch/"' in html
+    assert "too many" not in html
+    assert "2018-05-22" not in html  # accessed date stays out of the index
+    # Credits line: people without role labels, plus the publication year.
+    assert "Joseph Jung" in html
+    assert "Encoder" not in html
+    assert "2015" in html
 
 
 # ── Real-corpus integration ───────────────────────────────────────────

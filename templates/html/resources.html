@@ -22,9 +22,21 @@
       <tbody>
         {%- for r in resources -%}
         <tr>
-          <td class="ride-resources__title">
-            {%- if r.targets %}<a href="{{ r.targets[0] }}">{{ r.title }}</a>
-            {%- else %}{{ r.title }}{% endif -%}
+          <td class="ride-resources__resource">
+            {#- Only the canonical title is the link; people and year go
+                into a muted credits line. Role labels and the accessed
+                date stay in the factsheet, not in this index. -#}
+            <span class="ride-resources__title">
+              {%- if r.targets %}<a href="{{ r.targets[0] }}">{{ r.title }}</a>
+              {%- else %}{{ r.title }}{% endif -%}
+            </span>
+            {%- if r.personnel_names or r.publication_date %}
+            <span class="ride-resources__credits">
+              {{- r.personnel_names | join(', ') -}}
+              {%- if r.personnel_names and r.publication_date %}, {% endif -%}
+              {{- r.publication_date -}}
+            </span>
+            {%- endif %}
           </td>
           <td class="ride-resources__reviews">
             {%- for rid in r.review_ids -%}

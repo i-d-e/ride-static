@@ -785,7 +785,8 @@ main.ride-shell {
 .ride-resources                 { width: 100%; border-collapse: collapse; font-size: var(--ride-text-small); }
 .ride-resources th              { text-align: left; border-bottom: 1px solid var(--ride-rule); padding: var(--ride-space-2); font-family: var(--ride-font-sans); }
 .ride-resources td              { border-bottom: 1px solid var(--ride-rule); padding: var(--ride-space-3) var(--ride-space-2); vertical-align: top; }
-.ride-resources__title          { font-weight: var(--ride-weight-medium); }
+.ride-resources__title          { display: block; font-weight: var(--ride-weight-medium); }
+.ride-resources__credits        { display: block; margin-top: var(--ride-space-1); color: var(--ride-fg-secondary); font-size: var(--ride-text-tiny); }
 
 @media (max-width: 719px) {
   .ride-tag-list                { column-count: 1; }

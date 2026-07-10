@@ -164,6 +164,58 @@ def test_aggregate_reviewed_resources_no_related_items_yields_empty():
     assert out == ()
 
 
+def test_aggregate_reviewed_resources_prefers_canonical_title():
+    """The aggregate title is the <title> under <bibl>, so the listing shows
+    'Alfred Escher-Briefedition' rather than the flat itertext run-on with
+    every respStmt and date concatenated. bibl_text stays the fallback for
+    resources whose bibl carries no <title>."""
+    ri = RelatedItem(
+        type="reviewed_resource",
+        bibl_text="Edition X Jane Editor Jane 2015 https://x.example 2018-05-22",
+        title="Edition X",
+        bibl_targets=("https://x.example",),
+    )
+    out = aggregate_reviewed_resources((_r("a", related_items=(ri,)),))
+    assert out[0].title == "Edition X"
+
+    no_title = RelatedItem(type="reviewed_resource", bibl_text="Plain Bibl Text")
+    out = aggregate_reviewed_resources((_r("a", related_items=(no_title,)),))
+    assert out[0].title == "Plain Bibl Text"
+
+
+def test_aggregate_reviewed_resources_carries_credits():
+    ri = RelatedItem(
+        type="reviewed_resource",
+        bibl_text="whatever",
+        title="Edition X",
+        personnel=(("Editor", "Jane Smith"), ("Designer", "Max Vogel")),
+        publication_date="2015",
+    )
+    out = aggregate_reviewed_resources((_r("a", related_items=(ri,)),))
+    assert out[0].publication_date == "2015"
+    assert out[0].personnel == (("Editor", "Jane Smith"), ("Designer", "Max Vogel"))
+
+
+def test_resource_personnel_names_dedupe_and_drop_placeholders():
+    """personnel_names is the display form for the resources table: unique
+    names in document order, the corpus placeholder 'too many' dropped
+    (escher-tei.xml carries <name>too many</name> for Encoder/Contributor)."""
+    ri = RelatedItem(
+        type="reviewed_resource",
+        bibl_text="whatever",
+        title="Edition X",
+        personnel=(
+            ("Editor", "Jane Smith"),
+            ("Encoder", "Jane Smith"),
+            ("Encoder", "too many"),
+            ("Contributor", "too many"),
+            ("Designer", "Max Vogel"),
+        ),
+    )
+    out = aggregate_reviewed_resources((_r("a", related_items=(ri,)),))
+    assert out[0].personnel_names == ("Jane Smith", "Max Vogel")
+
+
 # -- Real-corpus smoke ----------------------------------------------------
 
 
