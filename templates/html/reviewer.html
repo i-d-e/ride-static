@@ -11,8 +11,9 @@
   <div class="ride-content">
     <header class="ride-reviewer__header">
       <h1>{{ reviewer.person.full_name }}</h1>
-      {%- if reviewer.person.orcid -%}
-        <p><a class="ride-reviewer__orcid" href="{{ reviewer.person.orcid }}" rel="me">ORCID</a></p>
+      {%- if reviewer.person.identifier_url -%}
+        {%- set id_label = reviewer.person.identifier_authority | upper -%}
+        <p><a class="ride-reviewer__orcid" href="{{ reviewer.person.identifier_url }}" rel="me" aria-label="{{ id_label }}">{{ id_label }}</a></p>
       {%- endif -%}
       {%- if reviewer.affiliation_hint %}<p class="ride-reviewer__aff">{{ reviewer.affiliation_hint }}</p>{% endif -%}
       <p class="ride-reviewer__count">{{ reviewer.count }} {% if reviewer.count == 1 %}review{% else %}reviews{% endif %}.</p>

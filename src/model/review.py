@@ -23,12 +23,30 @@ from src.model.section import Section
 
 @dataclass(frozen=True)
 class Person:
-    """A named person extracted from <name>/<forename>+<surname> or plain text."""
+    """A named person extracted from <name>/<forename>+<surname> or plain text.
+
+    ``identifier_url`` / ``identifier_authority`` hold the person's normalised
+    authority identifier from the ``@ref`` on the wrapping ``<author>``/``<editor>``.
+    The corpus mixes authorities in that attribute (ORCID URLs, bare ORCID ids,
+    VIAF URLs, GND URLs, plus junk like ``"/"`` or ``"none"``); the parser
+    classifies each and degrades junk to ``None``. ``identifier_authority`` is
+    one of ``"orcid" | "gnd" | "viaf"`` and drives the rendered link label.
+    """
 
     full_name: str
     forename: Optional[str] = None
     surname: Optional[str] = None
-    orcid: Optional[str] = None  # value of @ref on the wrapping <author>/<editor>
+    identifier_url: Optional[str] = None
+    identifier_authority: Optional[str] = None  # "orcid" | "gnd" | "viaf"
+
+    @property
+    def orcid(self) -> Optional[str]:
+        """Backwards-compatible view: the identifier URL only when it is an ORCID.
+
+        Kept so ORCID-only consumers (reviewer dedup key) need no change;
+        generic identifier consumers read ``identifier_url`` directly.
+        """
+        return self.identifier_url if self.identifier_authority == "orcid" else None
 
 
 @dataclass(frozen=True)

@@ -136,9 +136,11 @@ def _person_to_jsonld(person: Person) -> dict[str, Any]:
         p["givenName"] = person.forename
     if person.surname:
         p["familyName"] = person.surname
-    if person.orcid:
-        p["@id"] = person.orcid
-        p["sameAs"] = person.orcid
+    # sameAs/@id accept any authority URI (ORCID, VIAF, GND), so use the
+    # generic identifier rather than the ORCID-only view.
+    if person.identifier_url:
+        p["@id"] = person.identifier_url
+        p["sameAs"] = person.identifier_url
     return p
 
 

@@ -30,7 +30,7 @@
         {{ site.strings.reviewed_by | default('Reviewed by') }}
         {%- for a in review.authors %}
           {{ a.person.full_name }}
-          {%- if a.person.orcid %} <a class="ride-review__orcid" href="{{ a.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>{%- endif %}
+          {%- if a.person.identifier_url %} <a class="ride-review__orcid" href="{{ a.person.identifier_url }}" rel="me" aria-label="{{ a.person.identifier_authority | upper }}">{{ a.person.identifier_authority | upper }}</a>{%- endif %}
           {%- if a.affiliation and a.affiliation.org_name %} ({{ a.affiliation.org_name }}
             {%- if a.affiliation.place_name %}, {{ a.affiliation.place_name }}{% endif -%}
           ){% endif -%}

@@ -62,7 +62,7 @@
         {%- if review.authors %}
           {{ site.strings.reviewed_by | default('Reviewed by') }}
           {%- for a in review.authors %}
-            {%- if a.person.orcid %} <a class="ride-review__orcid" href="{{ a.person.orcid }}" rel="me" aria-label="ORCID">ORCID</a>{%- endif %}
+            {%- if a.person.identifier_url %} <a class="ride-review__orcid" href="{{ a.person.identifier_url }}" rel="me" aria-label="{{ a.person.identifier_authority | upper }}">{{ a.person.identifier_authority | upper }}</a>{%- endif %}
             {{ a.person.full_name }}
             {%- if a.affiliation and a.affiliation.org_name %} ({{ a.affiliation.org_name }}){% endif -%}
             {#- Obfuscated text only — a mailto: built from the obfuscated
