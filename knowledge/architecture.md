@@ -90,6 +90,7 @@ Two axes of stakeholder load shape the architecture:
 - `site/feed/atom.xml`, `site/feed/rss.xml`, `site/feed/rdf.xml` — the three syndication feeds of the most recent reviews (Atom/RFC 4287, RSS 2.0, RSS 1.0/RDF), each with legacy-path copies; all `--base-url`-gated. Rationale in [[redirects-feeds]].
 - `site/data/explore/index.html` — interactive exploration page (P1 beeswarm/crossfilter, P3 timeline), see [[exploration]].
 - `site/data/explorer.json` — flat per-review explorer dump feeding the exploration page.
+- `site/data/ride-corpus.bib`, `site/data/ride-corpus.csl.json` — corpus-wide bibliography export (BibTeX plus CSL-JSON), the Zotero mass-import channel. Both come from the same per-review formatters that back the per-review citation buttons (`src/render/bibexport.py`), so corpus and single-review citations cannot drift. Contract in [[url-scheme|docs/url-scheme.md]].
 - meta-refresh redirect stubs from legacy WordPress paths, each written in place at its own real legacy path under `site/` (e.g. `site/issues/issue-{N}/{slug}/index.html`), so an old URL resolves where a crawler expects it (R17).
 
 ## Layers
@@ -158,7 +159,15 @@ The TEI element `<bibl>` lives at three sites in the corpus and is parsed by thr
 
 - **`Block`** types: `Paragraph`, `List`, `Table`, `Figure`, `Citation`. Empirically verified against the corpus: `<note>` is always inline (every occurrence under `<p>`/`<head>`/`<quote>`/`<item>`), `<code>` is always inline (no children), `<head>` is consumed by the section parser as section heading, `<eg>` lives only inside `<figure>` (modelled as `Figure(kind="code_example")`).
 
-- **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`.
+- **`Inline`** types: `Text`, `Emphasis`, `Highlight`, `Reference`, `Note`, `InlineCode`, `Amendment`. `Amendment` (`<mod change="#revisionN">`) is a post-publication correction: `children` are the `<add>` replacement inlines shown in the running text, `deleted` the original `<del>` inlines and `note` the reviewer's amendment note, both carried for the Amendments apparate rather than the regular footnotes; `marker`/`xml_id` link the inline position to its apparate entry, and `date`/`resp` are joined post-parse from the matching `<revisionDesc>` change. Rendered by `src/parser/inlines.py` (`_parse_amendment`) and enriched in `src/parser/review.py`.
+
+- **`Person`** identifier fields — `Author`/`Editor` carry the person's normalised authority identifier as `identifier_url` plus `identifier_authority` ∈ {`orcid`, `gnd`, `viaf`}, classified from the TEI `@ref` by `src/parser/metadata.py` (`classify_identifier`), which degrades a junk ref to `None`. The render-consumers are the authority-labelled badge in review, factsheet and reviewer templates plus the JSON-LD `@id`/`sameAs`, which emit the URI.
+
+`Review.amendments: tuple[Amendment, ...]` aggregates every `Amendment` reachable from front/body/back in document order, feeding a fourth apparate panel beside references, figures and notes ([[interface#6]]).
+
+The `<mod>`/`<del>` handling is a named-branch story. `<mod>`/`<del>` inside a `<mod>` was previously lossy passthrough of the raw text; it is now parsed structurally into `Amendment` (replacement inline, original and note in the apparate). A **standalone** `<del>`, a strikethrough mark inside a reviewed edition's transcription, stays passthrough as a plain text run, so the two `<del>` roles do not collide. Any child of `<mod>` other than `subst`/`del`/`add`/`note` raises per the anomaly policy.
+
+A single shared walker underlies the block-tree traversals. `src/model/walk.py` (`iter_blocks`, `iter_inline_groups`) is the one depth-first descent over Paragraph/List/Table/Citation/Figure and their nested block children; the aggregators in `src/parser/aggregate.py` (figure and note collection) and the explorer content metrics in `src/render/explorer.py` build on it instead of reimplementing the recursion.
 
 - **`Page`** — one per editorial page, parsed from `pages/<slug>.xml` (separate from the per-review path)
   - header metadata: `slug`, `title`, `source_url`, `licence`, `journal_title`, `editors`

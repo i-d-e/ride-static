@@ -87,7 +87,7 @@ Path lookups go through `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_
 
 ## Stage 0/1 outputs
 
-Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` that writes to `inventory/` (or `knowledge/` for renderers):
+Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` that writes to `inventory/` (or `knowledge/` for renderers, `static/` for the wordcloud maintenance script):
 
 | Script | Output | Purpose |
 |---|---|---|
@@ -102,6 +102,7 @@ Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` th
 | `taxonomy.py` | `taxonomy.json` | RIDE criteria taxonomies grouped by `@xml:base`, plus per-review category answers (`@value` 0/1) |
 | `render_data.py` | `knowledge/data.md` | structure-and-knowledge reference for code that walks the corpus |
 | `render_schema.py` | `knowledge/schema.md` | RIDE-specific schema reference, including ODD-vs-corpus diffs |
+| `wordclouds.py` | `static/images/wordclouds/{id}.png` | deterministic wordcloud thumbnail for a new review (maintenance script, fixed seed) |
 
 Run any: `python scripts/<name>.py`. Run tests: `python -m pytest tests/`.
 

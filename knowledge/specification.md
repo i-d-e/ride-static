@@ -136,6 +136,12 @@ Datenmodell (umgesetzt): `Questionnaire` trägt neben den Antworten die Frage-Eb
 
 Nicht im TEI vorhanden, daher nicht Teil der Seite: „Last updated" (kein `<revisionDesc>` im Korpus; offene Frage in §8, Zeile „Beitrag"). ISSN ist Footer-Konstante (R10), kein Rezensionsfeld.
 
+**R19 Legacy-Parität der Leseansichten.** Als Leserin will ich, dass die statischen Ansichten Artikel, Factsheet und PDF jede leserseitig sichtbare Funktion der abgelösten WordPress-Transformationen tragen, sodass die Umstellung keine gewohnte Funktion verliert.
+
+Akzeptanzkriterien
+- Jede in den abgelösten WordPress-Transformationen leserseitig sichtbare Funktion der Artikel-, Factsheet- und PDF-Ansicht ist in der statischen Fassung abgedeckt; die Bestandsaufnahme und die verbliebenen Paritätslücken führt [[workflow]]
+- Eine Funktion ohne Entsprechung wird in [[workflow]] als bewusste Auslassung mit Begründung geführt. Stillschweigendes Fallenlassen ist ausgeschlossen
+
 ### 5.2 Aggregationsbereich
 
 **R5 Issue-Übersicht.** Als Leserin will ich eine Übersicht aller Issues, sortiert nach Erscheinungsdatum.

@@ -83,6 +83,10 @@ WeasyPrint (Phase 14) braucht GTK/Pango zur Laufzeit. Auf Linux genügt `apt ins
 
 For local preview after a build: `python -m http.server -d site/` is sufficient. No `--serve` flag is in scope.
 
+### Wordcloud-Thumbnails (Wartung bei neuen Reviews)
+
+Die Vorschau-Thumbnails unter `static/images/wordclouds/{review_id}.png` sind git-getrackte Quell-Assets, kein Build-Schritt reproduziert sie. Kommt ein neues Review hinzu, wird das Bild einmal mit `python scripts/wordclouds.py <tei-file>` erzeugt und committet. Der Lauf ist deterministisch (fester Seed), sodass ein erneuter Lauf dasselbe Bild liefert und der Diff leer bleibt. Details in `CONTRIBUTING.md`; die Einbettung in den redaktionellen Zielworkflow steht in [[workflow]].
+
 ## GitHub Actions workflow (Phase 15)
 
 A single workflow file `.github/workflows/build.yml` per [[specification#N10 Single-Workflow-Build]] — triggered on push to `main` (TEI corpus, Markdown texts, pipeline code), via `workflow_dispatch`, and via `repository_dispatch`, a cross-repository notification, from the two companion repositories whose pushes do not reach this repo on their own: a push to `i-d-e/ride` (picture assets) fires `corpus-updated`, a push to `i-d-e/ride-editors` (work in progress) fires `editors-updated`. The sender side is one copy-ready workflow file per companion repository plus a shared token secret; templates and install steps live in `docs/upstream-workflows/`. The `editors-updated` event stays dormant until the staging decision lands — see the Staging section below.
@@ -126,6 +130,7 @@ site/
   resources/                              reviewed resources table
   data/charts/, data/questionnaires/      editorial data pages
   data/explore/, data/explorer.json       interactive exploration page + dump
+  data/ride-corpus.bib, data/ride-corpus.csl.json   corpus bibliography export (Zotero mass import)
   api/corpus.json, api/build-info.json    machine artefacts (R15, N4/N7)
   oai/                                    OAI-PMH snapshot
   feed/atom.xml, feed/rss.xml, feed/rdf.xml   three syndication feeds (--base-url)

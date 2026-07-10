@@ -35,7 +35,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 |---|---|---|
 | [[data]] | Material — empirical reality of the TEI corpus | regenerated when corpus changes (script-driven) |
 | [[schema]] | Material — `ride.odd` customisations and schema-vs-corpus diff | regenerated when ODD changes (script-driven) |
-| [[specification]] | Substance — 17 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
+| [[specification]] | Substance — 19 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
@@ -68,9 +68,13 @@ This knowledge base follows the Promptotyping Documents convention: Markdown wit
 
 Project-defining terms used consistently across multiple documents. Sibling documents link here rather than redefining the term in place.
 
+### Amendment
+
+A post-publication correction to a review, recorded in TEI as `<mod change="#revisionN">` in the body with a matching `<change>` in `<revisionDesc>`. The replacement (`<add>`) is shown as an inline substitution in the running text; the original (`<del>`) and the reviewer's note plus its date are carried to a conditional Amendments apparate panel. A standalone `<del>` (a strikethrough in a reviewed edition's transcription) is unrelated and stays plain-text passthrough. Modelled as an inline type with a `Review.amendments` aggregation; defined in [[architecture#Domain model]].
+
 ### Apparate-Block
 
-The three parallel sub-blocks at the end of a review — References, Figures, Notes — set side by side under a shared horizontal rule, each with its own h3 sub-header. The parallel layout replaces the legacy site's sequential single-list rendering and makes the three different functions (citation evidence, visual apparatus, commentary) visually distinct. Bidirectional linking is mandatory: every figure number, footnote, and reference links back to its inline call site. Defined in [[interface#6 Apparate als parallele Blöcke]].
+The parallel sub-blocks at the end of a review — References, Figures, Notes — set side by side under a shared horizontal rule, each with its own h3 sub-header. The parallel layout replaces the legacy site's sequential single-list rendering and makes the different functions (citation evidence, visual apparatus, commentary) visually distinct. A fourth panel, [Amendments](#amendment), appears only when a review carries post-publication corrections. Bidirectional linking is mandatory: every figure number, footnote, reference, and amendment marker links back to its inline call site. Defined in [[interface#6 Apparate als parallele Blöcke]].
 
 ### Element-Mapping
 
