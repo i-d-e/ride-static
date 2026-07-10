@@ -34,14 +34,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 **Ziel:** Die dynamisch generierten WordPress-Seiten gegen die Static-Site abgleichen und die Quick Wins schliessen (Redirects der Listing-Seiten, RSS-Feed).
 
-**Erledigt:** Fünf Redirects für die alten WP-Listing-Pfade (Charts zweimal mit Chart-Anker, by-tag, reviewed-resources, list-of-reviewers) in `EDITORIAL_REDIRECTS`; Redirect-Stubs tragen jetzt zusätzlich `location.replace()`. RSS-2.0-Renderer als Geschwister von feed.py (gleiche Einträge, gleiche `tag:`-Identifier), Autodiscovery für beide Feeds in base.html, E2E-Pfade gepinnt. Recherche-Evidenz und Begründungen als Vault-Doc [[redirects-feeds]]; URL-Vertrag ergänzt.
+**Erledigt:** Fünf Redirects für die alten WP-Listing-Pfade (Charts zweimal mit Chart-Anker, by-tag, reviewed-resources, list-of-reviewers) in `EDITORIAL_REDIRECTS`; Redirect-Stubs tragen jetzt zusätzlich `location.replace()`. RSS-2.0-Renderer als Geschwister von feed.py (gleiche Einträge, gleiche `tag:`-Identifier), Autodiscovery für beide Feeds in base.html, E2E-Pfade gepinnt. Live-Probe der laufenden WP-Site (Apache/Debian, `/feed/` als kanonische Abo-URL, OAI-Endpoint antwortet real); daraufhin Feed-XML-Kopien an den alten Pfaden `/feed/`, `/feed/rss/`, `/feed/atom/` (`LEGACY_FEED_ALIASES`). Recherche-Evidenz und Begründungen als Vault-Doc [[redirects-feeds]]; URL-Vertrag ergänzt.
 
 **Entscheidungen:**
 - Meta-Refresh mit Delay 0 bleibt der tragende Redirect-Mechanismus (Google wertet ihn als permanent, WCAG-2.2.1-konform); JS-replace nur additiv.
 - RSS-guid ist der Atom-`tag:`-Identifier mit `isPermaLink="false"`, damit Reader beide Feeds deduplizieren; Entity-Escaping statt CDATA; kein `ttl`.
-- Alte Feed-URLs (`/feed/rss` u.a.) bekommen keine HTML-Stubs, Reader parsen kein Meta-Refresh; Kontinuität ist eine Infrastruktur-Entscheidung beim Domain-Umzug.
+- Alte Feed-URLs bekommen keine HTML-Stubs (Reader parsen kein Meta-Refresh), sondern Kopien der Feed-XML; bewusster Kompromiss mit Content-Type-Decke (`text/html`), Upgrade-Pfad sind echte 301 auf Server-Ebene beim Domain-Umzug.
 
-**Offen:** RDF-Feed streichen (Redaktionsbestätigung), OAI-Frage wer harvestet (Snapshot vs. dünner Proxy), Server-Redirect der alten Feed-URLs beim Domain-Umzug.
+**Offen:** RDF-Feed streichen (Redaktionsbestätigung), OAI-Frage wer den live antwortenden Endpoint harvestet (Snapshot vs. dünner Proxy), Server-301s der Feed-URLs beim Domain-Umzug (wer administriert Apache und DNS).
 
 **Nächster Einstieg:** OAI- und RDF-Entscheidung bei der Redaktion einholen; danach weiter mit P2 Antwort-Matrix-Heatmap.
 

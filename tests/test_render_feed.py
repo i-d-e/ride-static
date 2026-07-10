@@ -100,6 +100,33 @@ def test_write_atom_feed_skips_without_base_url(tmp_path: Path):
     assert not (tmp_path / "feed" / "atom.xml").exists()
 
 
+def test_legacy_feed_aliases_copy_the_xml(corpus_reviews, tmp_path: Path):
+    """The legacy WordPress feed URLs get the feed XML itself (readers
+    fetch XML and ignore HTML redirect stubs): /feed/ (the canonical WP
+    feed URL) and /feed/rss serve the RSS document, /feed/atom/ the Atom
+    document."""
+    from src.render.feed import write_legacy_feed_aliases
+    from src.render.rss import write_rss_feed
+
+    write_atom_feed(_reviews(corpus_reviews), BASE, tmp_path)
+    write_rss_feed(_reviews(corpus_reviews), BASE, tmp_path)
+    n = write_legacy_feed_aliases(tmp_path)
+    assert n == 3
+    rss = (tmp_path / "feed" / "rss.xml").read_text(encoding="utf-8")
+    atom = (tmp_path / "feed" / "atom.xml").read_text(encoding="utf-8")
+    assert (tmp_path / "feed" / "index.html").read_text(encoding="utf-8") == rss
+    assert (tmp_path / "feed" / "rss" / "index.html").read_text(encoding="utf-8") == rss
+    assert (tmp_path / "feed" / "atom" / "index.html").read_text(encoding="utf-8") == atom
+
+
+def test_legacy_feed_aliases_skip_when_feeds_absent(tmp_path: Path):
+    """Dev builds without base_url write no feeds, so no aliases either."""
+    from src.render.feed import write_legacy_feed_aliases
+
+    assert write_legacy_feed_aliases(tmp_path) == 0
+    assert not (tmp_path / "feed").exists()
+
+
 def test_rfc3339_widens_partial_dates():
     """Pure function — synthetic inputs are the only data form (CLAUDE.md)."""
     assert _rfc3339("2026-03-15") == "2026-03-15T00:00:00Z"

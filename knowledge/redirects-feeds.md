@@ -45,8 +45,20 @@ Atom (RFC 4287) was already served; RSS 2.0 is added as a sibling (`src/render/r
 - **Omissions.** `ttl` adds nothing over `lastBuildDate` for a journal publishing in issue rhythm.
 - **Serving.** GitHub Pages sets the Content-Type by file extension; an `.xml` file is served as generic XML, which the validator and all common readers accept. The semantically specific `application/rss+xml` cannot be forced server-side and is instead declared in the autodiscovery `<link rel="alternate">` in the page head. Source: [UnexpectedContentType](https://validator.w3.org/feed/docs/warning/UnexpectedContentType.html).
 
+## Live probe of the WordPress site (2026-07-10)
+
+Direct checks against the running `ride.i-d-e.de`, snapshot evidence for the migration decisions:
+
+- The site answers 200, Apache 2.4 on Debian, WordPress active (`wp-json` link header). An Apache stays available for real 301 rules (`.htaccess`) at the domain switch, whoever administers it.
+- `/feed/rss` 301s to `/feed/`, which is the **canonical WordPress feed URL** (RSS 2.0). Existing subscriptions most likely point at `/feed/`, which was missing from the original migration list. `/feed/atom/` answers 200 directly.
+- `/apis/oai?verb=Identify` answers with `text/xml`, a **working protocol endpoint**, so switching to the static snapshot loses real capability unless no harvester uses it.
+
+## Legacy feed URLs (decided)
+
+Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. The build therefore copies the feed XML itself to the legacy paths (`LEGACY_FEED_ALIASES` in `src/render/feed.py`): `/feed/` and `/feed/rss/` serve the RSS document, `/feed/atom/` the Atom document. Deliberate shortcut with a known ceiling, GitHub Pages types the copies `text/html`, which most readers content-sniff past but none is guaranteed to; the clean upgrade path is a server-level 301 at the domain switch (Apache `.htaccess` on the existing host, or a proxy layer such as Cloudflare in front of GitHub Pages).
+
 ## Open (editorial decisions)
 
-- **Legacy feed URLs** (`/feed/rss`, `/feed/atom/`, `/feed/rdf`). Meta-refresh stubs do not work for feed readers, which fetch XML and ignore HTML. Continuity for existing subscriptions needs a server-level redirect at the domain switch (DNS/proxy layer), outside this repo.
+- **Server-level 301s at the domain switch.** Who administers the Apache host and the `i-d-e.de` DNS zone, and does the server stay up after the switch? A dozen `.htaccess` lines would give the feed URLs real 301s and remove the content-type ceiling above.
 - **RDF feed.** RSS 1.0, served by WordPress automatically. No known consumer; proposal is to drop it without replacement.
-- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files). Prior question: who actually harvests the endpoint.
+- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files). Prior question: who actually harvests the live endpoint (BASE, OpenAIRE, a library network)?

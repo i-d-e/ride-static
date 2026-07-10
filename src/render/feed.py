@@ -113,6 +113,40 @@ def build_atom_feed(
     )
 
 
+# Legacy WordPress feed URL -> which feed XML serves it. /feed/ is the
+# canonical WP feed URL (live probe 2026-07-10: /feed/rss 301s there),
+# so it is the path existing subscriptions most likely point at.
+LEGACY_FEED_ALIASES: dict[str, str] = {
+    "feed/index.html": "feed/rss.xml",
+    "feed/rss/index.html": "feed/rss.xml",
+    "feed/atom/index.html": "feed/atom.xml",
+}
+
+
+def write_legacy_feed_aliases(out_root: Path) -> int:
+    """Copy the feed XML to the legacy WordPress feed paths.
+
+    Feed readers fetch XML and ignore HTML meta-refresh stubs, so the only
+    static way to keep old subscriptions alive is serving the XML itself at
+    the old paths. Deliberate shortcut with a known ceiling: GitHub Pages
+    types the copies text/html (extension-based), which most readers sniff
+    past but none is guaranteed to; real 301s need the server layer at the
+    domain switch (see knowledge/redirects-feeds.md). Returns the number of
+    aliases written; sources missing (dev build without base_url) are
+    skipped silently.
+    """
+    written = 0
+    for alias, source in LEGACY_FEED_ALIASES.items():
+        src = out_root / source
+        if not src.is_file():
+            continue
+        dest = out_root / alias
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+        written += 1
+    return written
+
+
 def write_atom_feed(
     reviews: Sequence[Review],
     base_url: str,

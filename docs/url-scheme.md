@@ -139,7 +139,15 @@ The dynamically generated WordPress listing pages redirect to their static repla
 /reviewers/list-of-reviewers/     ->  /reviewers/
 ```
 
-The legacy feed URLs (`/feed/rss`, `/feed/atom/`, `/feed/rdf`) are not covered by meta-refresh stubs, feed readers fetch XML and ignore HTML redirect pages; continuity for existing subscriptions is an infrastructure decision at the domain switch (see the redirects-and-feeds knowledge document).
+The legacy feed URLs cannot use meta-refresh stubs, feed readers fetch XML and ignore HTML redirect pages. Instead the build copies the feed XML itself to the legacy paths (`src/render/feed.py`, `LEGACY_FEED_ALIASES`):
+
+```
+/feed/          <-  RSS 2.0 (the canonical WordPress feed URL)
+/feed/rss/      <-  RSS 2.0
+/feed/atom/     <-  Atom
+```
+
+Known ceiling: GitHub Pages serves these copies as `text/html` (Content-Type follows the file extension), which most readers content-sniff past but none is guaranteed to. Real 301s for the feed URLs need the server layer at the domain switch; `/feed/rdf` is dropped without replacement (see the redirects-and-feeds knowledge document).
 
 ## What this scheme does not cover
 
