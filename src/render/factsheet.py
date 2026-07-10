@@ -15,9 +15,8 @@ from jinja2 import Environment
 from src.model.review import RelatedItem, Review
 from src.render.html import (
     SiteConfig,
+    base_ctx,
     make_env,
-    media_path_factory,
-    static_path_factory,
 )
 
 
@@ -94,22 +93,16 @@ def render_factsheet(
 
     template = env.get_template("factsheet.html")
     return template.render(
-        site=site,
+        **base_ctx(site, page_lang=review.language),
         review=review,
         reviewed=item,
         personnel_groups=group_personnel(item),
         criteria_link=criteria_link,
         humanize_label=humanize_label,
-        page_lang=review.language or site.default_language,
         page_title=f"{review.title} — Factsheet" if review.title else "Factsheet",
         page_url=(
             f"{site.base_url}/issues/{review.issue}/{review.id}/factsheet/"
             if site.base_url
             else None
         ),
-        page_description=None,
-        og=None,
-        json_ld=None,
-        static_path=static_path_factory(site.base_url),
-        media_path=media_path_factory(site.base_url),
     )

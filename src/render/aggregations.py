@@ -32,16 +32,16 @@ from src.parser.datasets import (
     aggregate_reviewers,
     aggregate_tags,
 )
-from src.render.editorial import HomeWidget, discover_home_widgets
+from src.render.editorial import HomeWidget
 from src.render.html import (
     REPO_ROOT,
     SiteConfig,
     abstract_excerpt,
+    base_ctx,
     make_env,
-    media_path_factory,
     slugify,
-    static_path_factory,
 )
+from src.render.issues_config import IssueConfig, order_reviews
 
 WORDCLOUD_DIR = REPO_ROOT / "static" / "images" / "wordclouds"
 
@@ -62,7 +62,6 @@ def _wordcloud_url(review: Review, base_url: str) -> Optional[str]:
             prefix = base_url.rstrip("/") if base_url else ""
             return f"{prefix}/static/images/wordclouds/{review.id}.{ext}"
     return None
-from src.render.issues_config import IssueConfig, order_reviews
 
 
 # ── helpers ────────────────────────────────────────────────────────────
@@ -70,15 +69,7 @@ from src.render.issues_config import IssueConfig, order_reviews
 
 def _common_ctx(site: SiteConfig) -> dict:
     """Variables every aggregation template needs in addition to its own."""
-    return {
-        "site": site,
-        "static_path": static_path_factory(site.base_url),
-        "media_path": media_path_factory(site.base_url),
-        "page_lang": site.default_language,
-        "og": None,
-        "json_ld": None,
-        "page_description": None,
-    }
+    return base_ctx(site)
 
 
 def _abs_url(site: SiteConfig, path: str) -> Optional[str]:

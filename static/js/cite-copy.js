@@ -7,29 +7,13 @@
 // Buttons carry data-cite-format="bibtex" or "csl-json"; on click we
 // look up the matching block and copy its content.
 
-const FEEDBACK_MS = 1500;
+import { copyToClipboard, FEEDBACK_MS } from './clipboard.js';
 
 function findCitation(format) {
   const el = document.querySelector(
     `.ride-cite-data[data-format="${format}"]`
   );
   return el ? el.textContent.trim() : null;
-}
-
-async function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.setAttribute('readonly', '');
-  ta.style.position = 'absolute';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  ta.remove();
 }
 
 function flashLabel(button, text) {

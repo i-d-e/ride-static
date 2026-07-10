@@ -32,7 +32,7 @@ from typing import Optional, Sequence
 from xml.sax.saxutils import escape
 
 from src.model.review import Review
-from src.render.html import abstract_first_paragraph_text, doi_url
+from src.render.html import abstract_first_paragraph_text, doi_url, review_url
 
 
 REPOSITORY_NAME = "RIDE — Reviews in Digital Editions"
@@ -314,7 +314,7 @@ def _metadata_xml(review: Review, base_url: str) -> str:
 def _page_url(review: Review, base_url: str) -> Optional[str]:
     if not review.id or not review.issue:
         return None
-    return f"{base_url}/issues/{review.issue}/{review.id}/"
+    return review_url(review, base_url)
 
 
 def _datestamp_or_default(publication_date: str) -> str:

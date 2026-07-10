@@ -25,11 +25,12 @@ from src.model.section import Section
 from src.render.html import (
     BuildInfo,
     SiteConfig,
-    _inlines_to_text,
     _obfuscate_mail,
+    inlines_to_plain_text,
     make_env,
     media_path_factory,
     render_review,
+    review_url,
     slugify,
     split_abstract,
     to_bibtex,
@@ -135,9 +136,21 @@ def test_media_path_factory_handles_empty_and_relative():
     assert mp("figures/x.png") == "figures/x.png"
 
 
+def test_review_url_formats_the_shared_contract():
+    """review_url is a pure formatter; a synthetic stand-in with the two
+    attributes it reads (issue, id) is the whole input surface, so no
+    real-corpus fixture is needed."""
+    from types import SimpleNamespace
+
+    review = SimpleNamespace(issue="7", id="ride.7.3")
+    assert review_url(review, "https://ride.i-d-e.de") == "https://ride.i-d-e.de/issues/7/ride.7.3/"
+    # Empty base_url yields a root-relative URL (dev/preview mode).
+    assert review_url(review) == "/issues/7/ride.7.3/"
+
+
 def test_inlines_to_text_recurses_into_emphasis():
     seq = (Text(text="hello "), Emphasis(children=(Text(text="bold"),)), Text(text=" world"))
-    assert _inlines_to_text(seq) == "hello bold world"
+    assert inlines_to_plain_text(seq) == "hello bold world"
 
 
 # ── split_abstract ────────────────────────────────────────────────────

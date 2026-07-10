@@ -19,6 +19,7 @@ from src.model.review import Affiliation, Author, Editor, Person, Review
 from src.render.html import (
     abstract_first_paragraph_text,
     doi_url,
+    review_url,
 )
 
 
@@ -105,7 +106,7 @@ def to_jsonld_string(review: Review, base_url: str = "") -> str:
 def _page_url(review: Review, base_url: str) -> Optional[str]:
     if not base_url or not review.issue or not review.id:
         return None
-    return f"{base_url}/issues/{review.issue}/{review.id}/"
+    return review_url(review, base_url)
 
 
 def _author_to_jsonld(author: Author) -> dict[str, Any]:

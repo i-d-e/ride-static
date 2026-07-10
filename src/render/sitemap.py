@@ -31,7 +31,7 @@ from src.model.review import Review
 from src.parser.datasets import ReviewerAggregate, TagAggregate
 from src.render.aggregations import reviewer_slug
 from src.render.editorial import EditorialPage
-from src.render.html import slugify
+from src.render.html import review_url, slugify
 
 
 SITEMAP_XMLNS = "http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -114,7 +114,7 @@ def collect_entries(
             continue
         entries.append(
             SitemapEntry(
-                loc=f"{base_url}/issues/{review.issue}/{review.id}/",
+                loc=review_url(review, base_url),
                 lastmod=review.publication_date or build_date,
             )
         )

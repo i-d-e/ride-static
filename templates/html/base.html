@@ -198,12 +198,12 @@
   </script>
   {%- endif %}
 
-  {#- Four small JS modules (interface.md §12). Each is loaded as a plain ES module,
-      no bundler. copy-link / tooltip / cite-copy are the click + hover features
-      from Phase 8; pagefind mounts the search UI bound to #ride-search. -#}
+  {#- Small JS modules (interface.md §12). Each is loaded as a plain ES module,
+      no bundler. copy-link / cite-copy are the click features from Phase 8
+      (both import the shared clipboard helper); pagefind mounts the search
+      UI bound to #ride-search. -#}
   {% block scripts %}
   <script type="module" src="{{ static_path('js/copy-link.js') }}"></script>
-  <script type="module" src="{{ static_path('js/tooltip.js') }}"></script>
   <script type="module" src="{{ static_path('js/cite-copy.js') }}"></script>
   {#- Pagefind: bundle path is on the #ride-search container; the runtime
       stylesheet ships alongside the bundle and is picked up here. -#}

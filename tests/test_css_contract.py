@@ -12,10 +12,23 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RIDE_CSS = REPO_ROOT / "static" / "css" / "ride.css"
+EXPLORE_TMPL = REPO_ROOT / "templates" / "html" / "explore.html"
 
 
 def _css() -> str:
     return RIDE_CSS.read_text(encoding="utf-8")
+
+
+def test_explore_styles_live_in_the_stylesheet_not_inline():
+    """The /data/explore/ page-scoped CSS was moved out of an inline
+    ``<style>`` block in explore.html into the single stylesheet. No
+    template may carry an inline style block, and the explore rules
+    (``.xp-`` hooks) must be present in ride.css."""
+    tmpl = EXPLORE_TMPL.read_text(encoding="utf-8")
+    assert "<style" not in tmpl, "explore.html still carries an inline <style> block"
+    css = _css()
+    for hook in (".xp-layout", ".xp-chip", ".xp-tooltip", "table.xp-table"):
+        assert hook in css, f"{hook} missing from ride.css"
 
 
 def test_focus_visible_covers_every_interactive_element_family():

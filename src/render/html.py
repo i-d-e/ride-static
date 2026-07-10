@@ -37,8 +37,6 @@ class BuildInfo:
     commit: str = "dev"
     commit_short: str = "dev"
     date: str = ""
-    corpus_version: str = ""
-    schema_version: str = ""
 
 
 @dataclass(frozen=True)
@@ -109,10 +107,6 @@ def inlines_to_plain_text(seq: Optional[Iterable], *, drop_notes: bool = False) 
         elif isinstance(i, InlineCode):
             out.append(i.text)
     return "".join(out).strip()
-
-
-# Backwards-compat alias — the original name is referenced in test_render_html.
-_inlines_to_text = inlines_to_plain_text
 
 
 def static_path_factory(base_url: str):
@@ -270,7 +264,7 @@ def make_env(templates_dir: Path = TEMPLATES_DIR) -> Environment:
     )
     env.filters["slugify"] = slugify
     env.filters["obfuscate_mail"] = _obfuscate_mail
-    env.filters["inlines_to_text"] = _inlines_to_text
+    env.filters["inlines_to_text"] = inlines_to_plain_text
     env.filters["to_bibtex"] = to_bibtex
     env.filters["to_csl_dict"] = to_csl_dict
     return env
@@ -364,6 +358,42 @@ def doi_url(doi: Optional[str]) -> Optional[str]:
     return f"https://doi.org/{doi}"
 
 
+def review_url(review: Review, base_url: str = "") -> str:
+    """The canonical review page URL ``{base_url}/issues/{issue}/{id}/``.
+
+    Single source for the per-review URL contract shared by the HTML page,
+    the Atom feed, the sitemap, JSON-LD, and OAI-PMH. Callers that need to
+    suppress the URL when ``base_url`` or the review identity is missing
+    keep that guard themselves; this helper only formats the string.
+    """
+    return f"{base_url}/issues/{review.issue}/{review.id}/"
+
+
+def base_ctx(
+    site: SiteConfig,
+    *,
+    page_lang: Optional[str] = None,
+    page_description: Optional[str] = None,
+    json_ld: Optional[str] = None,
+) -> dict:
+    """Shared per-page template context.
+
+    Carries the values every page template reads regardless of page type,
+    the site config, the two path factories, and the meta slots. Callers
+    layer ``page_title``, ``page_url`` and any page-specific keys on top.
+    ``page_lang`` falls back to the site default when the caller passes
+    None, matching the previous inline behaviour.
+    """
+    return {
+        "site": site,
+        "static_path": static_path_factory(site.base_url),
+        "media_path": media_path_factory(site.base_url),
+        "page_lang": page_lang or site.default_language,
+        "page_description": page_description,
+        "json_ld": json_ld,
+    }
+
+
 def render_editorial_shell(
     env: Environment,
     site: SiteConfig,
@@ -383,15 +413,9 @@ def render_editorial_shell(
     """
     template = env.get_template("editorial.html")
     return template.render(
-        site=site,
-        page_lang=lang,
+        **base_ctx(site, page_lang=lang),
         page_title=title,
         page_url=f"{site.base_url}/{slug}/" if site.base_url else None,
-        page_description=None,
-        og=None,
-        json_ld=None,
-        static_path=static_path_factory(site.base_url),
-        media_path=media_path_factory(site.base_url),
         page_html=body_html,
         last_updated=last_updated,
     )
@@ -412,18 +436,17 @@ def render_review(
 
     template = env.get_template("review.html")
     return template.render(
-        site=site,
+        **base_ctx(
+            site,
+            page_lang=review.language,
+            page_description=inlines_to_plain_text(_first_paragraph_inlines(review))[:200] or None,
+            json_ld=to_jsonld_string(review, base_url=site.base_url),
+        ),
         review=review,
         abstract_section=abstract,
         body_sections=body_sections,
-        page_lang=review.language or site.default_language,
         page_title=review.title,
-        page_url=f"{site.base_url}/issues/{review.issue}/{review.id}/" if site.base_url else None,
-        page_description=inlines_to_plain_text(_first_paragraph_inlines(review))[:200] or None,
-        og=None,
-        json_ld=to_jsonld_string(review, base_url=site.base_url),
-        static_path=static_path_factory(site.base_url),
-        media_path=media_path_factory(site.base_url),
+        page_url=review_url(review, site.base_url) if site.base_url else None,
     )
 
 

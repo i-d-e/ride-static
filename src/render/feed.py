@@ -19,7 +19,7 @@ from typing import Optional, Sequence
 from xml.sax.saxutils import escape
 
 from src.model.review import Review
-from src.render.html import abstract_first_paragraph_text
+from src.render.html import abstract_first_paragraph_text, review_url
 
 FEED_PATH = "feed/atom.xml"
 TAG_AUTHORITY = "ride.i-d-e.de"
@@ -61,13 +61,13 @@ def _recent(reviews: Sequence[Review], limit: int) -> list[Review]:
 
 
 def _entry_xml(review: Review, base_url: str) -> str:
-    review_url = f"{base_url}/issues/{review.issue}/{review.id}/"
+    url = review_url(review, base_url)
     entry_id = f"tag:{TAG_AUTHORITY},{TAG_DATE}:{review.id}"
     lines = [
         "  <entry>",
         f"    <id>{escape(entry_id)}</id>",
         f"    <title>{escape(review.title or review.id or '')}</title>",
-        f'    <link href="{escape(review_url)}"/>',
+        f'    <link href="{escape(url)}"/>',
         f"    <updated>{_rfc3339(review.publication_date)}</updated>",
     ]
     for author in review.authors:

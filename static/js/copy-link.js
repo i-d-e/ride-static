@@ -8,7 +8,7 @@
 //
 // No framework, no bundling — vanilla ES module per interface.md §12.
 
-const FEEDBACK_MS = 1500;
+import { copyToClipboard, FEEDBACK_MS } from './clipboard.js';
 
 function showFeedback(target, text) {
   const tip = document.createElement('span');
@@ -18,23 +18,6 @@ function showFeedback(target, text) {
   // Trigger transition by deferring opacity flip to the next frame.
   requestAnimationFrame(() => tip.classList.add('ride-copy-feedback--visible'));
   setTimeout(() => tip.remove(), FEEDBACK_MS);
-}
-
-async function copyToClipboard(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
-  // Fallback for non-secure contexts (file://, plain http on non-localhost).
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.setAttribute('readonly', '');
-  ta.style.position = 'absolute';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  ta.remove();
 }
 
 document.addEventListener('click', async (event) => {

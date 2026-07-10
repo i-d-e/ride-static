@@ -12,9 +12,11 @@ The pairs we pin:
   numbered paragraph in a Review).
 * ``cite-copy.js`` ↔ ``.ride-cite__btn`` plus ``.ride-cite-data``
   (rendered in the Review sidebar Citation box).
-* ``tooltip.js`` is currently a stub; we only assert it exists and
-  is a parseable ES module (``export {};``).
+* ``clipboard.js`` is the shared copy helper both of the above import;
+  it is not referenced from base.html directly.
 * ``pagefind.js`` is a Phase 11 stub; existence-only.
+* ``explore.js`` is the /data/explore/ view, loaded as an ES module
+  with the vendored d3 as a classic script before it.
 """
 from __future__ import annotations
 
@@ -41,15 +43,52 @@ needs_corpus = pytest.mark.skipif(
 def test_js_modules_exist() -> None:
     """Every JS file referenced in base.html must ship under static/js/."""
     base = (TEMPLATES_DIR / "base.html").read_text(encoding="utf-8")
-    for name in ("copy-link.js", "cite-copy.js", "tooltip.js", "pagefind.js"):
+    for name in ("copy-link.js", "cite-copy.js", "pagefind.js"):
         assert name in base, f"{name} not referenced from base.html"
         assert (JS_DIR / name).exists(), f"{name} missing from static/js/"
 
 
+def test_tooltip_stub_is_gone() -> None:
+    """The tooltip.js no-op stub was removed; base.html no longer loads it."""
+    base = (TEMPLATES_DIR / "base.html").read_text(encoding="utf-8")
+    assert "tooltip.js" not in base, "base.html still references the removed tooltip.js"
+    assert not (JS_DIR / "tooltip.js").exists(), "tooltip.js stub should be deleted"
+
+
 def test_js_modules_non_empty() -> None:
-    for name in ("copy-link.js", "cite-copy.js", "tooltip.js", "pagefind.js"):
+    for name in ("copy-link.js", "cite-copy.js", "clipboard.js", "pagefind.js"):
         text = (JS_DIR / name).read_text(encoding="utf-8")
         assert text.strip(), f"{name} is empty"
+
+
+def test_clipboard_helper_is_shared() -> None:
+    """copy-link.js and cite-copy.js import the shared clipboard helper
+    rather than each defining their own ``copyToClipboard`` — the byte-
+    identical duplicate was extracted into clipboard.js."""
+    clip = (JS_DIR / "clipboard.js").read_text(encoding="utf-8")
+    assert "export async function copyToClipboard" in clip
+    assert "export const FEEDBACK_MS" in clip
+    for name in ("copy-link.js", "cite-copy.js"):
+        js = (JS_DIR / name).read_text(encoding="utf-8")
+        assert "from './clipboard.js'" in js, f"{name} does not import clipboard.js"
+        assert "async function copyToClipboard" not in js, (
+            f"{name} still defines its own copyToClipboard"
+        )
+
+
+def test_explore_js_is_es_module() -> None:
+    """explore.js is loaded as an ES module with the vendored d3 as a
+    classic script before it (window.d3 global), and no longer wraps its
+    body in an ES5 IIFE."""
+    tmpl = (TEMPLATES_DIR / "explore.html").read_text(encoding="utf-8")
+    assert 'type="module" src="{{ static_path(\'js/explore.js\') }}"' in tmpl
+    # d3 stays a classic (non-module) script tag.
+    assert 'src="{{ static_path(\'js/vendor/d3.v7.min.js\') }}" defer' in tmpl
+    js = (JS_DIR / "explore.js").read_text(encoding="utf-8")
+    assert "(function ()" not in js and 'var d3 = window.d3' not in js, (
+        "explore.js still looks like the ES5 IIFE"
+    )
+    assert "const d3 = window.d3" in js
 
 
 # -- module ↔ DOM-hook contract -------------------------------------------

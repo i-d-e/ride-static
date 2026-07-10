@@ -97,6 +97,11 @@ def _build_info() -> BuildInfo:
         return BuildInfo()
 
 
+def _build_date(site: SiteConfig) -> Optional[str]:
+    """The build commit date, or None when no BuildInfo is attached."""
+    return site.build_info.date if site.build_info else None
+
+
 def _site_config(
     base_url: str = "",
     matomo_url: str = "",
@@ -331,7 +336,7 @@ def _render_aggregations(
     pages += 1
 
     # Interactive data exploration (knowledge/exploration.md View 1).
-    build_date = site.build_info.date if site.build_info else None
+    build_date = _build_date(site)
     data_dir = out_root / "data"
     explore_dir = data_dir / "explore"
     explore_dir.mkdir(parents=True, exist_ok=True)
@@ -715,7 +720,7 @@ def _write_build_info(
         "build": {
             "commit": site.build_info.commit if site.build_info else None,
             "commit_short": site.build_info.commit_short if site.build_info else None,
-            "date": site.build_info.date if site.build_info else None,
+            "date": _build_date(site),
         },
         "reviews": {
             "rendered": len(reviews),
@@ -749,7 +754,7 @@ def _write_oai_pmh_snapshot(
     """
     if not site.base_url:
         return 0
-    build_date = site.build_info.date if site.build_info else None
+    build_date = _build_date(site)
     return write_oai_pmh(
         reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
     )
@@ -764,7 +769,7 @@ def _write_corpus_dump(reviews: tuple[Review, ...], site: SiteConfig, out_root: 
     """
     api_dir = out_root / "api"
     api_dir.mkdir(parents=True, exist_ok=True)
-    build_date = site.build_info.date if site.build_info else None
+    build_date = _build_date(site)
     payload = to_corpus_dump_string(
         reviews,
         base_url=site.base_url,
@@ -788,7 +793,7 @@ def _write_sitemap(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path
     tag_aggregates = aggregate_tags(reviews)
     reviewer_aggregates = aggregate_reviewers(reviews)
     editorials = discover_editorials()
-    build_date = site.build_info.date if site.build_info else None
+    build_date = _build_date(site)
 
     entries = collect_entries(
         reviews,
@@ -812,7 +817,7 @@ def _write_atom_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pa
     """
     from src.render.feed import write_atom_feed
 
-    build_date = site.build_info.date if site.build_info else None
+    build_date = _build_date(site)
     return bool(
         write_atom_feed(
             reviews, base_url=site.base_url, out_root=out_root, build_date=build_date

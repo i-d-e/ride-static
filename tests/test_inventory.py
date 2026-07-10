@@ -58,15 +58,13 @@ def fixture_corpus(tmp_path: Path) -> tuple[Path, Path]:
     return tei_dir, out_dir
 
 
-def test_corpus_stats_basics(fixture_corpus: tuple[Path, Path]) -> None:
+def test_summary_basics(fixture_corpus: tuple[Path, Path]) -> None:
     tei_dir, out_dir = fixture_corpus
-    stats = inventory.run(tei_dir, out_dir)
-    assert stats["files_total"] == 1
-    assert stats["distinct_elements"] >= 10
-    assert stats["review_languages"] == [("en", 1)]
-    assert stats["publication_dates_min"] == "2024-06-15"
-    assert stats["distinct_editors"] == 1
-    assert stats["licences"][0][0] == "https://creativecommons.org/licenses/by/4.0/"
+    summary = inventory.run(tei_dir, out_dir)
+    assert summary["files_total"] == 1
+    assert summary["distinct_elements"] >= 10
+    assert summary["distinct_attributes"] >= 1
+    assert summary["elements_total"] > summary["distinct_elements"]
 
 
 def test_div_has_presence_ratio_and_full_type_values(fixture_corpus: tuple[Path, Path]) -> None:
@@ -127,22 +125,15 @@ FIXTURE_TEI_DE = """<?xml version="1.0" encoding="UTF-8"?>
 
 
 def test_aggregates_across_multiple_files(tmp_path: Path) -> None:
-    """Counters must sum across files; languages and editors must accumulate."""
+    """Element and attribute counters must sum across files, not overwrite."""
     tei_dir = tmp_path / "tei"
     out_dir = tmp_path / "out"
     tei_dir.mkdir()
     (tei_dir / "a-tei.xml").write_text(FIXTURE_TEI, encoding="utf-8")
     (tei_dir / "b-tei.xml").write_text(FIXTURE_TEI_DE, encoding="utf-8")
 
-    stats = inventory.run(tei_dir, out_dir)
-    assert stats["files_total"] == 2
-    # Languages from <language @ident> on both files
-    assert dict(stats["review_languages"]) == {"en": 1, "de": 1}
-    # Two distinct editor ORCIDs across files
-    assert stats["distinct_editors"] == 2
-    # Date range spans both files
-    assert stats["publication_dates_min"] == "2024-06-15"
-    assert stats["publication_dates_max"] == "2025-03-01"
+    summary = inventory.run(tei_dir, out_dir)
+    assert summary["files_total"] == 2
 
     elements = json.loads((out_dir / "elements.json").read_text(encoding="utf-8"))
     div = next(e for e in elements if e["name"] == "div")

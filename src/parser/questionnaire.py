@@ -32,10 +32,9 @@ def parse_questionnaires(
     ``<taxonomy>`` found in the header.
 
     Returns ``()`` when ``root`` is None or no ``<taxonomy>`` elements
-    are present. The corpus has 110 ``<taxonomy>`` elements across 107
-    reviews — two reviews carry more than one (one per criteria set
-    they answer): ``carlyle-addams-tei.xml`` with 2, ``collationtools-tei.xml``
-    with 3."""
+    are present. Most reviews carry a single ``<taxonomy>``; some answer
+    more than one criteria set and carry one ``<taxonomy>`` per set (e.g.
+    ``carlyle-addams-tei.xml``, ``collationtools-tei.xml``)."""
     if root is None:
         return ()
     taxonomies = root.findall(".//t:teiHeader//t:taxonomy", NS)
