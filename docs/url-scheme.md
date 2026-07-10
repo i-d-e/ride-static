@@ -98,6 +98,8 @@ at `/<name>/` until they are placed.
 /api/corpus.json                        full corpus dump
 /data/explorer.json                     flat per-review data table backing /data/explore/
 /oai/                                   OAI-PMH static snapshot, see verb routing below
+/feed/atom.xml                          Atom 1.0 feed (RFC 4287), newest reviews
+/feed/rss.xml                           RSS 2.0 feed, same entries and identifiers as Atom
 /sitemap.xml                            sitemap with last-modified dates
 /pagefind/                              client-side search index, served as static assets
 ```
@@ -126,6 +128,18 @@ Currently unused. When introduced, the unversioned URL will continue to serve th
 ## Redirects
 
 When a path moves, a meta-refresh redirect is emitted at the old path. This satisfies R17 without requiring server-side configuration that GitHub Pages does not provide. Redirects live in `src/render/redirects.py` (`EDITORIAL_REDIRECTS` for the legacy menu paths, plus the per-review and per-issue redirect logic) and are written during the build (Phase 15).
+
+The dynamically generated WordPress listing pages redirect to their static replacements:
+
+```
+/data/charts-scholarly-editions/   ->  /data/charts/#chart-digital-editions-1.1
+/data/charts-text-collections/    ->  /data/charts/#chart-text-collections-1.0
+/data/by-tag/                     ->  /tags/
+/data/reviewed-resources/         ->  /resources/
+/reviewers/list-of-reviewers/     ->  /reviewers/
+```
+
+The legacy feed URLs (`/feed/rss`, `/feed/atom/`, `/feed/rdf`) are not covered by meta-refresh stubs, feed readers fetch XML and ignore HTML redirect pages; continuity for existing subscriptions is an infrastructure decision at the domain switch (see the redirects-and-feeds knowledge document).
 
 ## What this scheme does not cover
 

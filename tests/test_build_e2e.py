@@ -41,6 +41,7 @@ def test_core_artefact_paths_exist(built_site):
     expected = [
         "index.html",
         "feed/atom.xml",
+        "feed/rss.xml",
         "sitemap.xml",
         "api/build-info.json",
         "api/corpus.json",
@@ -85,8 +86,26 @@ def test_explorer_json_row_count_equals_review_count(built_site, corpus_reviews)
     assert len(payload["reviews"]) == len(corpus_reviews)
 
 
-def test_sitemap_and_feed_reference_the_base_url(built_site):
+def test_sitemap_and_feeds_reference_the_base_url(built_site):
     sitemap = (built_site / "sitemap.xml").read_text(encoding="utf-8")
     feed = (built_site / "feed" / "atom.xml").read_text(encoding="utf-8")
+    rss = (built_site / "feed" / "rss.xml").read_text(encoding="utf-8")
     assert BASE_URL in sitemap
     assert BASE_URL in feed
+    assert BASE_URL in rss
+
+
+def test_pages_advertise_both_feeds(built_site):
+    """Feed autodiscovery: the page head links Atom and RSS."""
+    head = (built_site / "index.html").read_text(encoding="utf-8")
+    assert 'type="application/atom+xml"' in head
+    assert 'type="application/rss+xml"' in head
+    assert f"{BASE_URL}/feed/rss.xml" in head
+
+
+def test_dynamic_wp_page_redirect_stub_exists(built_site):
+    """The legacy dynamic WP listing pages get redirect stubs in a full
+    build (unit coverage in test_render_redirects.py; this pins wiring)."""
+    stub = built_site / "data" / "by-tag" / "index.html"
+    assert stub.is_file()
+    assert f'{BASE_URL}/tags/' in stub.read_text(encoding="utf-8")

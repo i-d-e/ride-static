@@ -84,6 +84,47 @@ def test_write_redirects_emits_editorial_stubs(tmp_path: Path) -> None:
         assert legacy in rel_paths
 
 
+def test_write_redirects_covers_dynamic_wp_pages(tmp_path: Path) -> None:
+    """The dynamically generated WordPress listing pages redirect to their
+    static replacements; the charts pages land on their per-set anchor."""
+    write_redirects((), tmp_path)
+    expected = {
+        "data/charts-scholarly-editions": "/data/charts/#chart-digital-editions-1.1",
+        "data/charts-text-collections": "/data/charts/#chart-text-collections-1.0",
+        "data/by-tag": "/tags/",
+        "data/reviewed-resources": "/resources/",
+        "reviewers/list-of-reviewers": "/reviewers/",
+    }
+    for legacy, target in expected.items():
+        stub = tmp_path / Path(legacy) / "index.html"
+        assert stub.exists(), f"missing stub for {legacy}"
+        html = stub.read_text(encoding="utf-8")
+        assert f'url={target}"' in html, f"{legacy} does not refresh to {target}"
+        assert f'href="{target}"' in html
+
+
+def test_charts_redirect_anchor_matches_chart_slug() -> None:
+    """The chart anchors in the redirect targets must match the ids the
+    charts renderer emits (chart-{slug}); guards against slug drift."""
+    from src.render.charts import CRITERIA_LABELS
+
+    slugs = {slug for slug, _ in CRITERIA_LABELS.values()}
+    for target in EDITORIAL_REDIRECTS.values():
+        if "#chart-" in target:
+            anchor_slug = target.split("#chart-", 1)[1]
+            assert anchor_slug in slugs, f"unknown chart slug in target {target}"
+
+
+def test_redirect_stub_carries_js_replace(tmp_path: Path) -> None:
+    """Stubs carry an additive location.replace() so JS-capable clients
+    redirect before the meta refresh is parsed; the meta tag stays the
+    load-bearing mechanism for no-JS clients and crawlers."""
+    write_redirects((), tmp_path)
+    html = (tmp_path / "publishing-policies" / "index.html").read_text(encoding="utf-8")
+    assert 'location.replace("/about/publishing-policy/")' in html
+    assert 'http-equiv="refresh"' in html
+
+
 def test_write_redirects_skips_self_redirect_slugs(tmp_path: Path) -> None:
     """Live WP paths whose slug is unchanged (about, ethical-code, data) must
     NOT get a redirect stub — it would clobber the real page at that slug with

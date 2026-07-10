@@ -41,6 +41,14 @@ from src.model.review import Review
 # the data. The same guard also drops the unchanged top-level slugs
 # (/about/, /ethical-code/, /data/) that already serve a real page.
 EDITORIAL_REDIRECTS: dict[str, str] = {
+    # Dynamically generated WP listing pages -> their static replacements.
+    # The two charts pages merged into one page with per-set anchors; the
+    # anchor slugs come from charts.CRITERIA_LABELS (pinned by test).
+    "data/charts-scholarly-editions": "/data/charts/#chart-digital-editions-1.1",
+    "data/charts-text-collections": "/data/charts/#chart-text-collections-1.0",
+    "data/by-tag": "/tags/",
+    "data/reviewed-resources": "/resources/",
+    "reviewers/list-of-reviewers": "/reviewers/",
     "about/copyright": "/imprint/",
     "publishing-policies": "/about/publishing-policy/",
     "reviewers/submission": "/reviewers/submitting-a-review/",
@@ -53,9 +61,11 @@ EDITORIAL_REDIRECTS: dict[str, str] = {
 def _redirect_html(target: str) -> str:
     """Minimal HTML 5 stub with meta-refresh + canonical link.
 
-    Browsers honour the meta-refresh; crawlers follow the canonical
-    link. Both belt and braces because some screen readers ignore
-    meta-refresh and a manual link gives users a way out.
+    Browsers honour the meta-refresh (delay 0 counts as a permanent
+    redirect for Google and is the WCAG-2.2.1-conformant case); crawlers
+    follow the canonical link. location.replace() is additive speed-up
+    for JS clients and keeps the stub out of the back-button history;
+    the manual link is the way out when everything else is ignored.
     """
     return (
         "<!doctype html>\n"
@@ -63,6 +73,7 @@ def _redirect_html(target: str) -> str:
         '  <meta charset="utf-8">\n'
         f'  <meta http-equiv="refresh" content="0; url={target}">\n'
         f'  <link rel="canonical" href="{target}">\n'
+        f'  <script>location.replace("{target}")</script>\n'
         f"  <title>Moved — {target}</title>\n"
         "</head>\n<body>\n"
         f'  <p>This page has moved to <a href="{target}">{target}</a>.</p>\n'

@@ -493,6 +493,7 @@ def _print_build_summary(
     aggregations: int,
     sitemap_written: bool,
     feed_written: bool,
+    rss_written: bool,
     oai_files: int,
     redirect_count: int,
     validation_report,
@@ -516,6 +517,8 @@ def _print_build_summary(
         print("Wrote sitemap.xml")
     if feed_written:
         print("Wrote feed/atom.xml")
+    if rss_written:
+        print("Wrote feed/rss.xml")
     print("Wrote api/corpus.json")
     if oai_files:
         print(f"Wrote {oai_files} OAI-PMH snapshot files")
@@ -601,6 +604,7 @@ def build(
     # Machine-readable artefacts and legacy-URL redirects.
     sitemap_written = _write_sitemap(rendered, site, out_root)
     feed_written = _write_atom_feed(rendered, site, out_root)
+    rss_written = _write_rss_feed(rendered, site, out_root)
     _write_corpus_dump(rendered, site, out_root)
     oai_files = _write_oai_pmh_snapshot(rendered, site, out_root)
     redirect_count = write_redirects(rendered, out_root, base_url=site.base_url)
@@ -629,6 +633,7 @@ def build(
         aggregations=aggregations,
         sitemap_written=sitemap_written,
         feed_written=feed_written,
+        rss_written=rss_written,
         oai_files=oai_files,
         redirect_count=redirect_count,
         validation_report=validation_report,
@@ -820,6 +825,19 @@ def _write_atom_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pa
     build_date = _build_date(site)
     return bool(
         write_atom_feed(
+            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
+        )
+    )
+
+
+def _write_rss_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
+    """Write the RSS 2.0 feed (``site/feed/rss.xml``) when a base_url is
+    set — same deploy-only rule as the Atom feed."""
+    from src.render.rss import write_rss_feed
+
+    build_date = _build_date(site)
+    return bool(
+        write_rss_feed(
             reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
         )
     )
