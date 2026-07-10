@@ -30,6 +30,23 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-07-10 — Aufraeum-Arbeitsgang: Doku-Abgleich, Refactorings, Test-Konsolidierung
+
+**Ziel:** Die Funde eines Drei-Lanes-Audits (Doku-Konsistenz, Code-Redundanz, Frontend/Tests) umsetzen, soweit sie eindeutig sind.
+
+**Erledigt:** Doku auf den gebauten Stand gehoben (architecture/pipeline nennen jetzt alle drei Feeds, Explore-Outputs und die Stubs an den echten Legacy-Pfaden; interface.md traegt die Frontend-Entscheidungen vom Vortag als Vertrag; exploration.md auf Status partial; [[redirects-feeds]] in INDEX und CLAUDE.md verankert). Code-Refactorings: gemeinsamer Block-Walker `src/model/walk.py` ersetzt drei Kopien, OAI-Datestamps laufen ueber `feed._date_parts`, ein Issue-Sortier-Helper fuer navigation und aggregations, No-op `_figures_in_inlines` und `_common_ctx` geloescht, Explore-Beschreibung dynamisch statt hartkodierter Zahlen. CSS-Token-Bug behoben (undefinierte `--ride-border`/`--ride-bg-soft`/`--ride-space-5`, Chart-Rahmen und Gridlines rendern jetzt; Vertragstest test_css_tokens.py). Artikel-Footer als gemeinsames Macro. Test-Bootstrap in `tests/_shared.py` konsolidiert (ein Skip-Marker, Iteration via `iter_tei_files`, Modul-Level-`find_tei` skipt statt Collection-Error).
+
+**Entscheidungen:**
+- Die Reviewer-Byline bleibt in review.html und factsheet.html bewusst dupliziert; ein Macro braeuchte Reihenfolge- und place_name-Parameter und wuerde komplexer als die Duplikation.
+- Explorer-Content-Metriken zaehlen jetzt auch Citation-`bibl`-Inlines mit (Nebenwirkung des gemeinsamen Walkers, inhaltlich korrekter).
+- Nicht umgesetzt, weil entscheidungsbeduerftig: `SiteConfig.strings` (verdrahten oder entfernen), fehlendes Factsheet-Seiten-CSS (bewusst oder Luecke), Umzug von datasets.py aus parser/.
+
+**Offen:** Die drei entscheidungsbeduerftigen Punkte aus dem Audit. WCAG-Vollaudit (N5), DOAJ-Frage bei der Redaktion.
+
+**Nächster Einstieg:** Antwort der Redaktion zur DOAJ-Frage einarbeiten; danach P2 Antwort-Matrix-Heatmap.
+
+---
+
 ## 2026-07-10 — Frontend-Haertung: Nav-Dropdowns, Resources-Tabelle, W3C-Validitaet
 
 **Ziel:** Die beim Screenshot-Abgleich mit WordPress gefundenen Frontend-Maengel beheben und die HTML-Validitaet der Live-Seiten systematisch pruefen.
