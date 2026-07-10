@@ -49,10 +49,14 @@ reference resolution, editorial pages, plus RelaxNG validation and the
 frozen dataclass model.
 
 **Render** (`test_render_*.py`) — domain → output: per-review HTML,
-factsheet, aggregation pages, JSON-LD, the corpus dump, sitemap, Atom feed,
-OAI-PMH, redirects, navigation, questionnaire charts, and the explorer data
-basis. Integration layers run on the shared corpus fixtures; documented
-pure-formatter layers stay synthetic.
+factsheet, aggregation pages, JSON-LD, the corpus dump, sitemap, the three
+syndication feeds (Atom in `test_render_feed.py`, RSS 2.0 in
+`test_render_rss.py`, RSS 1.0/RDF in `test_render_rdf.py`, including the
+legacy-path XML copies), OAI-PMH, redirects (including the legacy WP
+listing-page stubs), navigation, questionnaire charts, and the explorer
+data basis. Integration layers run on the shared corpus fixtures;
+documented pure-formatter layers (e.g. the `_rfc3339` / `_rfc822` date
+wideners) stay synthetic.
 
 **Stage 0/1 scripts** (`test_inventory.py`, `test_structure.py`,
 `test_sections.py`, `test_odd_extract.py`, `test_ids.py`, `test_refs.py`,

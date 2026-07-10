@@ -72,7 +72,7 @@ Three independent research passes tried to refute the load-bearing claims. Verdi
 ## Decided by the editors (2026-07-10)
 
 - **The Apache host is being retired.** It is still reachable but will not be maintained; server-level 301s are therefore not an option. The static feed copies above are the permanent continuity mechanism.
-- **RDF feed is kept after all** (`src/render/rdf.py`, `/feed/rdf.xml` plus legacy copy at `/feed/rdf/`). The verification found no consumer that needs it; the editors chose full WordPress parity for a journal publication anyway, and the cost is one more static file. Dublin Core metadata, the same vocabulary as the OAI snapshot.
+- **RDF feed is kept after all** (`src/render/rdf.py`, `/feed/rdf.xml` plus legacy copy at `/feed/rdf/`). The verification found no consumer that needs it; the editors chose full WordPress parity for a journal publication anyway, and the cost is one more static file. Dublin Core metadata, the same vocabulary as the OAI snapshot. Deliberately absent from the autodiscovery links in `base.html`: readers picking a feed from the page head should land on Atom or RSS 2.0, the RDF feed exists for direct URLs only.
 
 ## Open (editorial decisions)
 

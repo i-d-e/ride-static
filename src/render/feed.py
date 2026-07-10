@@ -29,25 +29,35 @@ DEFAULT_LIMIT = 20
 _FALLBACK_DATETIME = f"{TAG_DATE}-06-01T00:00:00Z"
 
 
-def _rfc3339(publication_date: str) -> str:
-    """Widen a corpus date (``YYYY`` / ``YYYY-MM`` / ``YYYY-MM-DD``) to an
-    RFC 3339 UTC datetime.
+_FALLBACK_DATE = (2014, 6, 1)  # first RIDE issue
 
-    Atom's ``atom:updated`` is an ``xsd:dateTime``, so a bare date is not
-    enough; the missing granularity is pinned to midnight UTC on the first
-    of the month/year. Unparseable values fall back to the earliest issue
-    date so a reader always sees a sortable value.
+
+def _date_parts(publication_date: str) -> tuple[int, int, int]:
+    """Widen a corpus date (``YYYY`` / ``YYYY-MM`` / ``YYYY-MM-DD``) to a
+    ``(year, month, day)`` tuple.
+
+    Single source for the corpus date-widening rule shared by all three
+    feed renderers: missing granularity is pinned to the first of the
+    month/year, empty or unparseable values fall back to the earliest
+    issue date so a reader always sees a sortable value.
     """
-    if not publication_date:
-        return _FALLBACK_DATETIME
-    parts = publication_date.split("T")[0].split("-")
-    if len(parts) == 3 and all(p.isdigit() for p in parts):
-        return f"{parts[0]}-{parts[1]}-{parts[2]}T00:00:00Z"
-    if len(parts) == 2 and all(p.isdigit() for p in parts):
-        return f"{parts[0]}-{parts[1]}-01T00:00:00Z"
-    if len(parts) == 1 and parts[0].isdigit() and len(parts[0]) == 4:
-        return f"{parts[0]}-01-01T00:00:00Z"
-    return _FALLBACK_DATETIME
+    if publication_date:
+        parts = publication_date.split("T")[0].split("-")
+        if all(p.isdigit() for p in parts):
+            if len(parts) == 3:
+                return int(parts[0]), int(parts[1]), int(parts[2])
+            if len(parts) == 2:
+                return int(parts[0]), int(parts[1]), 1
+            if len(parts) == 1 and len(parts[0]) == 4:
+                return int(parts[0]), 1, 1
+    return _FALLBACK_DATE
+
+
+def _rfc3339(publication_date: str) -> str:
+    """Corpus date as RFC 3339 UTC datetime — Atom's ``atom:updated`` is an
+    ``xsd:dateTime``, so a bare date is not enough."""
+    year, month, day = _date_parts(publication_date)
+    return f"{year:04d}-{month:02d}-{day:02d}T00:00:00Z"
 
 
 def _recent(reviews: Sequence[Review], limit: int) -> list[Review]:

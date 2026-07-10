@@ -30,35 +30,26 @@ from src.render.feed import (
     TAG_AUTHORITY,
     TAG_DATE,
     DEFAULT_LIMIT,
+    _FALLBACK_DATE,
+    _date_parts,
     _recent,
     _rfc3339,
 )
 from src.render.html import abstract_first_paragraph_text, review_url
 
 FEED_PATH = "feed/rss.xml"
-_FALLBACK_DATE = (2014, 6, 1)  # first RIDE issue year, mirrors feed.py
 
 
 def _rfc822(publication_date: str) -> str:
-    """Widen a corpus date (``YYYY`` / ``YYYY-MM`` / ``YYYY-MM-DD``) to an
-    RFC-822 date-time as RSS ``pubDate`` requires.
+    """Corpus date as an RFC-822 date-time, the form RSS ``pubDate``
+    requires (widening rule shared via ``feed._date_parts``).
 
-    Missing granularity is pinned to midnight UTC on the first of the
-    month/year — artificial precision forced by the format, not real
-    knowledge. ``email.utils.format_datetime`` guarantees english
+    The pinned midnight is artificial precision forced by the format, not
+    real knowledge. ``email.utils.format_datetime`` guarantees english
     day/month names regardless of locale and emits the universally
     compatible ``+0000`` timezone.
     """
-    year, month, day = _FALLBACK_DATE
-    if publication_date:
-        parts = publication_date.split("T")[0].split("-")
-        if all(p.isdigit() for p in parts):
-            if len(parts) == 3:
-                year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
-            elif len(parts) == 2:
-                year, month, day = int(parts[0]), int(parts[1]), 1
-            elif len(parts) == 1 and len(parts[0]) == 4:
-                year, month, day = int(parts[0]), 1, 1
+    year, month, day = _date_parts(publication_date)
     try:
         dt = datetime(year, month, day, tzinfo=timezone.utc)
     except ValueError:  # out-of-range corpus value, e.g. month 13
