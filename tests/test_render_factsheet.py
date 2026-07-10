@@ -1,20 +1,20 @@
 """Tests for src.render.factsheet — the Factsheet full page (R18).
 
-Two layers:
+Two layers, per the CLAUDE.md hard rule:
 
-1. Synthetic fixtures — a small Review with personnel and a question,
-   rendered to HTML and asserted against the contract (block headings,
-   a selected answer, a personnel name, the criteria-ref link).
-2. Real-corpus smoke — parse and render makingandknowing end-to-end and
-   pin the documented first question and a known contributor.
+1. Contract fixture — ``_review_with_factsheet`` is a documented
+   render-contract builder: a small Review with controlled personnel and
+   a single question, so the block-heading / selected-answer / K-ref
+   assertions stay crisp. The helper unit tests (``group_personnel``,
+   ``humanize_label``, ``criteria_link``) are pure functions over their
+   argument shape.
+2. Real-corpus drive — the ``corpus_review`` fixture (conftest.py) is
+   makingandknowing (ride.21.4), the documented reference factsheet;
+   the smoke test renders it end to end.
 
 Tests assert the contract, not exact HTML, so the template can evolve.
 """
 from __future__ import annotations
-
-from pathlib import Path
-
-import pytest
 
 from src.model.questionnaire import (
     Questionnaire,
@@ -22,21 +22,12 @@ from src.model.questionnaire import (
     QuestionnaireQuestion,
 )
 from src.model.review import Author, Person, RelatedItem, Review
-from src.parser.review import parse_review
 from src.render.factsheet import (
     criteria_link,
     group_personnel,
     humanize_label,
     render_factsheet,
     reviewed_resource,
-)
-from src._corpus import find_tei
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
 )
 
 
@@ -209,10 +200,10 @@ def test_render_factsheet_obfuscates_reviewer_email():
 # ── Real-corpus smoke ─────────────────────────────────────────────────
 
 
-@needs_corpus
-def test_render_factsheet_real_corpus_makingandknowing():
-    review = parse_review(find_tei("makingandknowing"))
-    html = render_factsheet(review)
+def test_render_factsheet_real_corpus_makingandknowing(corpus_review):
+    """corpus_review is makingandknowing (ride.21.4) — the documented
+    reference factsheet with reviewed resource, personnel and a K-ref."""
+    html = render_factsheet(corpus_review)
     for heading in ("Reviewed resource", "People", "Questionnaire"):
         assert heading in html, f"missing block: {heading}"
     # Documented first question and a known contributor.

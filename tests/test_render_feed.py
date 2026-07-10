@@ -11,34 +11,27 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-import pytest
-
-from src.parser.review import parse_review
 from src.render.feed import (
     _rfc3339,
     build_atom_feed,
     write_atom_feed,
 )
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS = REPO_ROOT / "issues"
 BASE = "/ride-static"
-
-needs_corpus = pytest.mark.skipif(not CORPUS.is_dir(), reason="corpus not present")
 
 ATOM = "{http://www.w3.org/2005/Atom}"
 # RFC 3339 date-time, the form Atom requires for atom:updated.
 _RFC3339_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$")
 
 
-def _reviews(n: int = 8):
-    files = sorted(CORPUS.glob("**/*-tei.xml"))[:n]
-    return [parse_review(f) for f in files]
+def _reviews(corpus_reviews, n: int = 8):
+    """A slice of the shared real-corpus fixture (order-independent: the
+    feed sorts newest-first internally)."""
+    return list(corpus_reviews[:n])
 
 
-@needs_corpus
-def test_feed_has_required_feed_level_elements():
-    xml = build_atom_feed(_reviews(), BASE)
+def test_feed_has_required_feed_level_elements(corpus_reviews):
+    xml = build_atom_feed(_reviews(corpus_reviews), BASE)
     assert '<feed xmlns="http://www.w3.org/2005/Atom">' in xml
     assert "<id>tag:ride.i-d-e.de,2014:feed/atom</id>" in xml
     assert "<title>" in xml and "</title>" in xml
@@ -46,9 +39,8 @@ def test_feed_has_required_feed_level_elements():
     assert '<link rel="self" href="/ride-static/feed/atom.xml"/>' in xml
 
 
-@needs_corpus
-def test_every_entry_carries_id_title_link_updated():
-    reviews = _reviews()
+def test_every_entry_carries_id_title_link_updated(corpus_reviews):
+    reviews = _reviews(corpus_reviews)
     valid = [r for r in reviews if r.id and r.issue]
     xml = build_atom_feed(reviews, BASE)
     assert xml.count("<entry>") == len(valid)
@@ -58,22 +50,20 @@ def test_every_entry_carries_id_title_link_updated():
     assert xml.count("<updated>") == len(valid) + 1
 
 
-@needs_corpus
-def test_feed_respects_limit_and_orders_newest_first():
-    xml = build_atom_feed(_reviews(40), BASE, limit=5)
+def test_feed_respects_limit_and_orders_newest_first(corpus_reviews):
+    xml = build_atom_feed(_reviews(corpus_reviews, 40), BASE, limit=5)
     assert xml.count("<entry>") == 5
     entry_dates = re.findall(r"<entry>.*?<updated>(.*?)</updated>", xml, re.DOTALL)
     assert entry_dates == sorted(entry_dates, reverse=True)
 
 
-@needs_corpus
-def test_feed_conforms_to_rfc4287_required_rules():
+def test_feed_conforms_to_rfc4287_required_rules(corpus_reviews):
     """Algorithmic conformance check. Parse the feed (proving it is
     well-formed and namespaced) and assert the RFC 4287 MUST rules for the
     elements we emit: exactly one id/title/updated on the feed and on each
     entry, RFC 3339 datestamps, non-empty ids, and at least one entry link
     with an href. This encodes the spec rules rather than matching strings."""
-    xml = build_atom_feed(_reviews(12), BASE, limit=12)
+    xml = build_atom_feed(_reviews(corpus_reviews, 12), BASE, limit=12)
     root = ET.fromstring(xml)
 
     assert root.tag == f"{ATOM}feed"
@@ -96,9 +86,8 @@ def test_feed_conforms_to_rfc4287_required_rules():
         assert links and all(link.get("href") for link in links)
 
 
-@needs_corpus
-def test_write_atom_feed_writes_file(tmp_path: Path):
-    n = write_atom_feed(_reviews(), BASE, tmp_path)
+def test_write_atom_feed_writes_file(corpus_reviews, tmp_path: Path):
+    n = write_atom_feed(_reviews(corpus_reviews), BASE, tmp_path)
     assert n == 1
     feed = tmp_path / "feed" / "atom.xml"
     assert feed.exists()

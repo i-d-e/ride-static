@@ -19,7 +19,6 @@ import yaml
 
 from src.model.review import Review
 from src.parser.page import discover_pages
-from src.parser.review import parse_review
 from src.render.editorial import discover_editorials
 from src.render.navigation import (
     NavItem,
@@ -29,12 +28,7 @@ from src.render.navigation import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
 NAV_PATH = REPO_ROOT / "config" / "navigation.yaml"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 needs_sources = pytest.mark.skipif(
     not (REPO_ROOT / "pages").is_dir() or not (REPO_ROOT / "content").is_dir(),
@@ -224,12 +218,10 @@ def test_real_navigation_yaml_reviewing_criteria_is_leaf_only() -> None:
     assert crit.url == "/criteria/"
 
 
-@needs_corpus
-def test_real_corpus_resolves_issues_submenu() -> None:
+def test_real_corpus_resolves_issues_submenu(corpus_reviews) -> None:
     """Resolve the live navigation YAML against a slice of the corpus
     so YAML drift, parser drift, and resolver drift each surface here."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))[:30]
-    reviews = tuple(parse_review(f) for f in files)
+    reviews = corpus_reviews[:30]
     items = load_navigation(NAV_PATH)
     resolved = resolve_navigation(items, reviews=reviews)
     issues = next(i for i in resolved if i.label == "Issues")

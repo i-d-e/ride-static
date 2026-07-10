@@ -17,15 +17,11 @@ the only data form richer than the input.
 from __future__ import annotations
 
 import json
-from pathlib import Path
-
-import pytest
 
 from src.model.block import Paragraph
 from src.model.inline import Emphasis, Reference, Text
 from src.model.review import Review
 from src.model.section import Section
-from src._corpus import find_tei
 from src.render.corpus_dump import (
     LICENCE_NAME,
     LICENCE_URL,
@@ -33,9 +29,6 @@ from src.render.corpus_dump import (
     to_corpus_dump,
     to_corpus_dump_string,
 )
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-CORPUS_DIR = REPO_ROOT / "issues"
 
 
 # ── Fixture helpers ──────────────────────────────────────────────────
@@ -237,17 +230,14 @@ def test_unicode_passes_through_unescaped():
 # ── Real-corpus integration ──────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="../ride/ corpus not checked out")
-def test_real_corpus_review_round_trips_through_json():
+def test_real_corpus_review_round_trips_through_json(corpus_review):
     """Parse a real review, dump it, reload the JSON, verify shape.
 
-    Uses 1641-tei.xml as the rich-metadata reference fixture (matches
-    the JSON-LD smoke test) so any drift in the model's field set
-    surfaces in both modules at once.
+    Drives the shared ``corpus_review`` fixture (makingandknowing /
+    ride.21.4) — a rich review with body, bibliography and paragraphs —
+    so any drift in the model's field set surfaces here.
     """
-    from src.parser.review import parse_review
-
-    review = parse_review(find_tei("1641"))
+    review = corpus_review
     dump = to_corpus_dump([review], base_url="https://ride.i-d-e.de")
 
     # Round-trip through JSON.

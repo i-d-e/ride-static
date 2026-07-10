@@ -17,17 +17,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-from lxml import etree
-
 from src.model.questionnaire import (
     Questionnaire,
     QuestionnaireAnswer,
     TaxonomySection,
 )
 from src.model.review import Review
-from src.parser.questionnaire import parse_taxonomy_sections
-from src.parser.review import parse_review
 from src.render.charts import (
     CRITERIA_LABELS,
     aggregate_questionnaires,
@@ -39,13 +34,7 @@ from src.render.charts import (
     render_charts_html,
 )
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 # ── Slug + label registry ─────────────────────────────────────────────
@@ -240,18 +229,9 @@ def test_render_charts_block_with_empty_inputs_is_empty():
 # ── Real-corpus drive ────────────────────────────────────────────────
 
 
-@needs_corpus
-def test_collect_sections_finds_every_criteria_url_in_corpus():
+def test_collect_sections_finds_every_criteria_url_in_corpus(corpus_parsed):
     """The four corpus criteria URLs each yield a non-empty section list."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
-    parsed = []
-    for f in files:
-        try:
-            r = parse_review(f)
-        except Exception:
-            continue
-        if r.questionnaires:
-            parsed.append((f, r))
+    parsed = [(f, r) for f, r in corpus_parsed if r.questionnaires]
     sections_by_url = collect_sections_from_corpus(parsed)
     # Each URL has at least 5 top-level sections.
     for url in CRITERIA_LABELS:
@@ -261,21 +241,12 @@ def test_collect_sections_finds_every_criteria_url_in_corpus():
         )
 
 
-@needs_corpus
-def test_real_corpus_charts_block_carries_three_sets_and_anomaly():
+def test_real_corpus_charts_block_carries_three_sets_and_anomaly(corpus_parsed):
     """Render the block from the real corpus and pin its corpus-level
     invariants: three logical criteria sets, the value=3 anomaly is
     reported, and review_count totals match the questionnaire count."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
-    reviews = []
-    parsed = []
-    for f in files:
-        try:
-            r = parse_review(f)
-        except Exception:
-            continue
-        reviews.append(r)
-        parsed.append((f, r))
+    parsed = list(corpus_parsed)
+    reviews = [r for _, r in parsed]
     block = render_charts_block(tuple(reviews), parsed_paths=parsed)
 
     assert "Criteria for Reviewing Digital Editions (1.1)" in block
@@ -301,8 +272,7 @@ def test_real_corpus_charts_block_carries_three_sets_and_anomaly():
     assert by_slug["text-collections-1.0"].review_count >= 18
 
 
-@needs_corpus
-def test_real_corpus_aggregation_has_no_other_bucket():
+def test_real_corpus_aggregation_has_no_other_bucket(corpus_parsed):
     """Every answered leaf must land under a known top-level section.
 
     The (other) bucket only appears when a review answers a leaf whose
@@ -312,16 +282,8 @@ def test_real_corpus_aggregation_has_no_other_bucket():
     same URL within one review (carlyle-addams-tei.xml carries two,
     rev1-* and rev2-*) and (b) union across files. Both invariants
     are exercised here against the full corpus."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
-    parsed = []
-    reviews = []
-    for f in files:
-        try:
-            r = parse_review(f)
-        except Exception:
-            continue
-        reviews.append(r)
-        parsed.append((f, r))
+    parsed = list(corpus_parsed)
+    reviews = [r for _, r in parsed]
     sections_by_url = collect_sections_from_corpus(parsed)
     charts = aggregate_questionnaires(tuple(reviews), sections_by_url)
     for chart in charts:
@@ -333,24 +295,15 @@ def test_real_corpus_aggregation_has_no_other_bucket():
         )
 
 
-@needs_corpus
-def test_real_corpus_data_charts_page_substitutes_marker(tmp_path):
+def test_real_corpus_data_charts_page_substitutes_marker(corpus_parsed):
     """Integration: rendering content/data-charts.md with a corpus-derived
     chart block substitutes the marker and emits inline SVG. Skips the
     full build() to avoid coupling the chart contract to the issue-config
     validator — that path is exercised by tests/test_render_editorial.py."""
     from src.render.editorial import parse_editorial, render_editorial
 
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))
-    parsed = []
-    reviews = []
-    for f in files[:30]:
-        try:
-            r = parse_review(f)
-        except Exception:
-            continue
-        reviews.append(r)
-        parsed.append((f, r))
+    parsed = list(corpus_parsed[:30])
+    reviews = [r for _, r in parsed]
 
     chart_html = render_charts_block(tuple(reviews), parsed_paths=parsed)
     page = parse_editorial(REPO_ROOT / "content" / "data-charts.md")

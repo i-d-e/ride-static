@@ -1,11 +1,17 @@
 """Tests for src.render.html — Phase 8 HTML rendering.
 
-Two layers:
+Two layers, split per the CLAUDE.md hard rule:
 
-1. Synthetic fixtures — small Review instances built in code, rendered
-   to HTML, asserted against expected markers. Independent of the corpus.
-2. Real-corpus smoke test — parse and render up to N reviews from
-   ``issues/{N}/reviews/`` end-to-end. Skips when the corpus is absent.
+1. Contract fixtures — ``_minimal_review`` builds a small Review with a
+   controlled body so the markup-contract tests can pin exact anchors,
+   BEM classes and macro branches (numbered-paragraph anchor, ref
+   buckets, apparate panels), and the citation helpers (``to_bibtex`` /
+   ``to_csl_dict``) are pure formatters whose signature is the only data
+   form. Both are the documented synthetic exceptions: a render-contract
+   over a known domain shape and a pure formatter.
+2. Real-corpus drive — the ``corpus_review`` fixture (conftest.py) is a
+   real parsed review; the smoke test renders it end to end and pins the
+   apparate, factsheet and citation blocks against real data.
 
 Tests assert the *contract* (right elements, classes, anchors), not the
 exact HTML; templates can evolve without forcing test rewrites.
@@ -572,12 +578,30 @@ def test_matomo_snippet_omitted_when_only_url_set():
 # ── Real-corpus smoke ────────────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="in-repo corpus not present")
-def test_smoke_render_first_corpus_review_without_raising():
-    from src.parser.review import parse_review
-
-    sample = sorted(CORPUS_DIR.glob("**/*.xml"))[0]
-    review = parse_review(sample)
-    html = render_review(review)
+def test_smoke_render_corpus_review_without_raising(corpus_review):
+    """Render a real parsed review end to end and pin the blocks that a
+    rich review must carry: the page skeleton, its title, and — because
+    makingandknowing has notes, a bibliography and a questionnaire — the
+    apparate and factsheet panels plus the embedded citation data."""
+    html = render_review(corpus_review)
     assert "<!doctype html>" in html
-    assert review.title in html
+    assert corpus_review.title in html
+    assert "ride-review__title" in html
+    # The fixture carries notes + bibliography → apparate renders.
+    assert corpus_review.notes
+    assert corpus_review.bibliography
+    assert "ride-apparate" in html
+    assert "ride-apparate__panel--refs" in html
+    # A questionnaire → the factsheet summary box.
+    assert corpus_review.questionnaires
+    assert "ride-sidebar__box--factsheet" in html
+    # Machine-readable citation islands are always embedded.
+    assert 'class="ride-cite-data" data-format="bibtex"' in html
+
+
+def test_smoke_render_every_corpus_review(corpus_reviews):
+    """Every real review renders without raising and carries its title."""
+    for review in corpus_reviews:
+        html = render_review(review)
+        assert "<!doctype html>" in html
+        assert review.title in html

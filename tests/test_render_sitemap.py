@@ -208,8 +208,7 @@ def test_collect_falls_back_to_build_date_when_editorial_has_no_last_updated():
 # ── Real-corpus integration ──────────────────────────────────────────
 
 
-@pytest.mark.skipif(not CORPUS_DIR.exists(), reason="../ride/ corpus not checked out")
-def test_real_corpus_sitemap_round_trips_through_xml():
+def test_real_corpus_sitemap_round_trips_through_xml(corpus_reviews):
     """Walk the real corpus, build a sitemap, parse it back, sanity-check.
 
     Smoke verifies that the formatter handles every actual
@@ -217,12 +216,8 @@ def test_real_corpus_sitemap_round_trips_through_xml():
     and that the resulting XML is well-formed.
     """
     from src.parser.datasets import aggregate_reviewers, aggregate_tags
-    from src.parser.review import parse_review
 
-    reviews = tuple(
-        parse_review(p)
-        for p in sorted(CORPUS_DIR.glob("**/*.xml"))[:20]
-    )
+    reviews = corpus_reviews[:20]
     issues = sorted({r.issue for r in reviews if r.issue})
     entries = collect_entries(
         reviews,

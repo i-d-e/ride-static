@@ -8,7 +8,6 @@ import pytest
 from src.model.review import Review
 from src.render.issues_config import (
     IssueConfig,
-    IssueEditor,
     discover_issue_configs,
     expected_id_from_doi,
     find_duplicate_review_dois,
@@ -233,17 +232,10 @@ def test_validate_review_locations_collects_multiple_errors(tmp_path: Path):
     assert len(errors) == 2
 
 
-def test_validate_review_locations_real_corpus_is_clean():
+def test_validate_review_locations_real_corpus_is_clean(corpus_parsed):
     """Every TEI in the shipped corpus must live in the folder its
     biblScope @n points to. Catches regressions of the migration mapping."""
-    from src._corpus import iter_tei_files
-    from src.parser.review import parse_review
-
-    files = list(iter_tei_files())
-    if not files:
-        pytest.skip("no corpus present")
-    parsed = [(p, parse_review(p)) for p in files]
-    errors = validate_review_locations(parsed)
+    errors = validate_review_locations(list(corpus_parsed))
     assert errors == [], "\n".join(errors)
 
 
@@ -320,35 +312,21 @@ def test_find_duplicate_review_dois_detects_shared_doi():
 # ── real-corpus integration: the id↔DOI fix and the known anomaly ───
 
 
-def test_real_corpus_every_xml_id_matches_its_doi():
+def test_real_corpus_every_xml_id_matches_its_doi(corpus_parsed):
     """After the id↔DOI correction every shipped review's xml:id is the
     local form of its registered DOI. Locks the fix and guards regressions
     of the everynamecounts/godwin copied-header class."""
-    from src._corpus import iter_tei_files
-    from src.parser.review import parse_review
-
-    files = list(iter_tei_files())
-    if not files:
-        pytest.skip("no corpus present")
-    parsed = [(p, parse_review(p)) for p in files]
-    errors = validate_review_ids(parsed)
+    errors = validate_review_ids(list(corpus_parsed))
     assert errors == [], "\n".join(errors)
 
 
-def test_real_corpus_only_known_duplicate_doi_remains():
+def test_real_corpus_only_known_duplicate_doi_remains(corpus_parsed):
     """Documented editorial anomaly (CLAUDE.md: anomalies are explicit):
     crowdsourcing.wien and papyrieditor share DOI 10.18716/ride.a.21.2.
     Until the editors re-register one, this is the *only* duplicate DOI.
     When they fix it this test fails, signalling that the build's soft
     warning can be promoted to a hard check."""
-    from src._corpus import iter_tei_files
-    from src.parser.review import parse_review
-
-    files = list(iter_tei_files())
-    if not files:
-        pytest.skip("no corpus present")
-    parsed = [(p, parse_review(p)) for p in files]
-    dups = find_duplicate_review_dois(parsed)
+    dups = find_duplicate_review_dois(list(corpus_parsed))
     assert len(dups) == 1
     assert "10.18716/ride.a.21.2" in dups[0]
     assert "crowdsourcingwien-tei.xml" in dups[0]

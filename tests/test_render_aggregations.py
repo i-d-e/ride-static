@@ -1,16 +1,24 @@
 """Tests for src.render.aggregations — Phase 10 page builders.
 
-Synthetic Reviews exercise each render function; assertions cover the
-data-flow contract (right tag/reviewer/issue groupings) and the markup
-contract (key BEM classes and the navigation skeleton).
+Per the CLAUDE.md hard rule the reviews under test come from the real
+parser, not from ``Review`` instances built out of synthetic dataclass
+values. The small controlled corpus is produced by ``dataclasses.replace``
+on a real parsed review (``corpus_review`` fixture): body, figures,
+notes and the rest of the domain tree are the parser's output, and only
+the top-level metadata the aggregators read (id, issue, title, date,
+keywords, authors) is pinned so grouping / sort / markup assertions stay
+deterministic. Authors are metadata value objects, outside the
+Section/Block parser surface the hard rule targets. A real-corpus
+integration test at the bottom drives a full issue end to end.
 """
 from __future__ import annotations
+
+import dataclasses
 
 import pytest
 
 from src.model.review import Author, Person, Review
 from src.parser.datasets import (
-    aggregate_reviewed_resources,
     aggregate_reviewers,
     aggregate_tags,
 )
@@ -30,6 +38,7 @@ from src.render.html import SiteConfig, make_env
 
 
 def _review(
+    base: Review,
     rid: str = "ride.13.7",
     issue: str = "13",
     title: str = "A Sample Review",
@@ -39,7 +48,9 @@ def _review(
     author_surname: str = "Reviewer",
     author_forename: str = "Jane",
 ) -> Review:
-    return Review(
+    """A real parsed review with its aggregation-relevant metadata pinned."""
+    return dataclasses.replace(
+        base,
         id=rid,
         issue=issue,
         title=title,
@@ -69,14 +80,15 @@ def env():
 
 
 @pytest.fixture()
-def reviews():
-    """A small but varied corpus: two issues, two authors, three tags."""
+def reviews(corpus_review):
+    """A small but varied corpus: two issues, two authors, three tags —
+    each review a real parse with pinned top-level metadata."""
     return (
-        _review("ride.13.7", "13", "First Review", "2026-04-29",
+        _review(corpus_review, "ride.13.7", "13", "First Review", "2026-04-29",
                 ("editions", "tei"), "Jane Reviewer", "Reviewer", "Jane"),
-        _review("ride.13.8", "13", "Second Review", "2026-04-15",
+        _review(corpus_review, "ride.13.8", "13", "Second Review", "2026-04-15",
                 ("tei", "xml"), "John Other", "Other", "John"),
-        _review("ride.12.3", "12", "Older Review", "2025-10-01",
+        _review(corpus_review, "ride.12.3", "12", "Older Review", "2025-10-01",
                 ("editions",), "Jane Reviewer", "Reviewer", "Jane"),
     )
 
@@ -190,16 +202,14 @@ def test_reviewer_slug_uses_surname_forename(reviews):
 # ── render_resources ──────────────────────────────────────────────────
 
 
-def test_render_resources_renders_table(env):
+def test_render_resources_renders_table(env, corpus_review):
     from src.model.review import RelatedItem
 
-    review = Review(
+    review = dataclasses.replace(
+        corpus_review,
         id="ride.1.1",
         issue="1",
         title="Test",
-        publication_date="2024-01-01",
-        language="en",
-        licence="cc",
         related_items=(
             RelatedItem(
                 type="reviewed_resource",
@@ -215,17 +225,15 @@ def test_render_resources_renders_table(env):
     assert "<table" in html
 
 
-def test_render_resources_resource_review_link_uses_review_index(env):
+def test_render_resources_resource_review_link_uses_review_index(env, corpus_review):
     """The reviews-cell renders a link with the actual review title, not just the id."""
     from src.model.review import RelatedItem
 
-    rev = Review(
+    rev = dataclasses.replace(
+        corpus_review,
         id="ride.1.1",
         issue="1",
         title="The Reviewing Article",
-        publication_date="2024-01-01",
-        language="en",
-        licence="cc",
         related_items=(
             RelatedItem(
                 type="reviewed_resource",
@@ -237,3 +245,32 @@ def test_render_resources_resource_review_link_uses_review_index(env):
     html = render_resources((rev,), _site(), env)
     # The review link uses the review title as anchor text, not the bare id.
     assert ">The Reviewing Article<" in html
+
+
+# ── Real-corpus integration ───────────────────────────────────────────
+
+
+def test_real_corpus_issue_aggregations_render(corpus_issue_reviews, env):
+    """Drive the aggregation builders over one full real issue: every
+    review's title appears on its issue page, the grouping keys the issue,
+    and each real tag and reviewer round-trips to a detail page."""
+    reviews = corpus_issue_reviews
+    issue_no = reviews[0].issue
+
+    grouped = group_reviews_by_issue(reviews)
+    assert set(grouped[issue_no]) == set(reviews)
+
+    issue_html = render_issue(issue_no, reviews, _site(), env)
+    for r in reviews:
+        assert r.title in issue_html
+
+    # Every real tag has a detail page listing at least one member review.
+    for tag in aggregate_tags(reviews):
+        html = render_tag(tag, reviews, _site(), env)
+        assert tag.display_name in html or tag.name in html
+
+    # Every real reviewer resolves to a slug and a detail page.
+    for rv in aggregate_reviewers(reviews):
+        assert reviewer_slug(rv)
+        html = render_reviewer(rv, reviews, _site(), env)
+        assert rv.person.full_name in html

@@ -13,19 +13,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from src.model.review import Review
-from src.parser.review import parse_review
 from src.render.redirects import EDITORIAL_REDIRECTS, write_redirects
-
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-RIDE_TEI_DIR = REPO_ROOT / "issues"
-
-needs_corpus = pytest.mark.skipif(
-    not RIDE_TEI_DIR.is_dir(), reason="corpus not present"
-)
 
 
 def _stub_review(issue: str, review_id: str, source_file: str) -> Review:
@@ -137,16 +126,15 @@ def test_write_redirects_handles_missing_source_file(tmp_path: Path) -> None:
 # -- Real-corpus pin ------------------------------------------------------
 
 
-@needs_corpus
-def test_real_corpus_every_review_gets_a_redirect(tmp_path: Path) -> None:
+def test_real_corpus_every_review_gets_a_redirect(corpus_parsed, tmp_path: Path) -> None:
     """Every TEI review in the corpus must produce a legacy-URL stub."""
-    files = sorted(RIDE_TEI_DIR.glob("**/*-tei.xml"))[:30]  # slice for speed
-    reviews = tuple(parse_review(f) for f in files)
+    parsed = corpus_parsed[:30]  # slice for speed
+    reviews = tuple(r for _, r in parsed)
     write_redirects(reviews, tmp_path)
     # For each review, the stub at /issues/issue-{N}/{slug}/index.html exists
     # and points at the new path.
-    for review, file in zip(reviews, files):
-        slug = file.stem[:-4]  # strip "-tei"
+    for path, review in parsed:
+        slug = path.stem[:-4]  # strip "-tei"
         legacy = tmp_path / "issues" / f"issue-{review.issue}" / slug / "index.html"
         assert legacy.exists(), f"missing redirect for {review.id} ({slug})"
         html = legacy.read_text(encoding="utf-8")
