@@ -41,9 +41,9 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 - RSS-guid ist der Atom-`tag:`-Identifier mit `isPermaLink="false"`, damit Reader beide Feeds deduplizieren; Entity-Escaping statt CDATA; kein `ttl`.
 - Alte Feed-URLs bekommen keine HTML-Stubs (Reader parsen kein Meta-Refresh), sondern Kopien der Feed-XML; bewusster Kompromiss mit Content-Type-Decke (`text/html`), Upgrade-Pfad sind echte 301 auf Server-Ebene beim Domain-Umzug.
 
-**Offen:** OAI-Frage wer den live antwortenden Endpoint harvestet (Snapshot vs. dünner Proxy). Nachtrag am selben Tag: Apache wird abgeschaltet (Redaktionsentscheidung), RDF-Feed auf Wunsch doch gebaut (rdf.py, volle WP-Parität), drei adversariale Verifikationsläufe haben die Content-Sniffing-Aussage geschärft (Miniflux/FreshRSS gaten auf Content-Type, nur .xml-URLs bewerben), Details in [[redirects-feeds]].
+**Offen:** OAI-Frage wer den live antwortenden Endpoint harvestet (Snapshot vs. dünner Proxy). Nachtrag am selben Tag: Apache wird abgeschaltet (Redaktionsentscheidung), RDF-Feed auf Wunsch doch gebaut (rdf.py, volle WP-Parität), drei adversariale Verifikationsläufe haben die Content-Sniffing-Aussage geschärft (Miniflux/FreshRSS gaten auf Content-Type, nur .xml-URLs bewerben), Details in [[redirects-feeds]]. Zweiter Nachtrag: Issue-Kommentar zu den Listing-Seiten (Punkte 1–6) verifiziert (Live-Check aller Ziele und Stubs bestanden; Redirect-SEO-Aussagen abgeschwächt, Signaltransfer schwächer als 301 und nur für Google belegt) und Harvester-Recherche gelaufen — kein OAI-Harvester nachweisbar, Metadaten fliessen über DataCite (ZB MED) nach OpenAIRE, offen nur der DOAJ-Mechanismus (Pull vs. Upload), Befunde in [[redirects-feeds]].
 
-**Nächster Einstieg:** OAI- und RDF-Entscheidung bei der Redaktion einholen; danach weiter mit P2 Antwort-Matrix-Heatmap.
+**Nächster Einstieg:** DOAJ-Ingestion-Frage bei der Redaktion einholen; danach weiter mit P2 Antwort-Matrix-Heatmap.
 
 ---
 

@@ -74,6 +74,14 @@ Three independent research passes tried to refute the load-bearing claims. Verdi
 - **The Apache host is being retired.** It is still reachable but will not be maintained; server-level 301s are therefore not an option. The static feed copies above are the permanent continuity mechanism.
 - **RDF feed is kept after all** (`src/render/rdf.py`, `/feed/rdf.xml` plus legacy copy at `/feed/rdf/`). The verification found no consumer that needs it; the editors chose full WordPress parity for a journal publication anyway, and the cost is one more static file. Dublin Core metadata, the same vocabulary as the OAI snapshot. Deliberately absent from the autodiscovery links in `base.html`: readers picking a feed from the page head should land on Atom or RSS 2.0, the RDF feed exists for direct URLs only.
 
+## OAI harvester research (2026-07-10)
+
+External research on who actually consumes the live endpoint, snapshot evidence:
+
+- **The endpoint itself.** `Identify` answers (repositoryName "ride. A review journal for digital editions and resources", earliestDatestamp 2014-06-01, no `friends`/`provenance` naming harvesters). `ListMetadataFormats` offers `oai_dc`, `oai_marcxml` and `oai_doajxml` (schema doaj.org), so the endpoint was visibly built as a DOAJ feed. `ListRecords` delivers the full corpus as Dublin Core with DOIs and CC-BY rights.
+- **No harvester demonstrable.** OpenAIRE indexes RIDE reviews with `collectedFrom: Datacite` throughout; the metadata reaches aggregators via the DataCite DOIs (prefix 10.18716, client ZB MED / University of Cologne), the OAI endpoint plays no role there. Crossref does not know the ISSN (RIDE DOIs are DataCite). The OpenArchives data-provider register has no entry, and registration was discontinued 2025-07-18.
+- **Unverifiable from outside.** DOAJ lists the journal (ISSN 2363-4952) but whether it pulls `oai_doajxml` via OAI or receives uploads could not be determined (automated access blocked); BASE likewise (bot wall). Closing question to the editors: how do article metadata reach DOAJ? If DOAJ does not pull, nobody demonstrably harvests the endpoint and the static snapshot suffices.
+
 ## Open (editorial decisions)
 
-- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files); ResourceSync over the existing sitemap covers standards-based static harvesting. Prior question: who actually harvests the live endpoint (BASE, OpenAIRE, a library network)?
+- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files); ResourceSync over the existing sitemap covers standards-based static harvesting. Remaining prior question after the harvester research above: the DOAJ ingestion mechanism (OAI pull vs. upload), which only the editors or DOAJ can answer.
