@@ -26,7 +26,7 @@ from typing import Optional, Sequence
 import yaml
 
 from src.model.review import Review
-from src.render.html import REPO_ROOT
+from src.render.html import REPO_ROOT, issue_numeric_prefix
 
 CONFIG_PATH = REPO_ROOT / "config" / "navigation.yaml"
 
@@ -100,21 +100,8 @@ def _issue_children(reviews: Sequence[Review], count: int) -> tuple[NavLink, ...
 
 
 def _issue_sort_key(issue: str) -> tuple[int, str]:
-    """Sort key — numeric where possible, alpha fallback.
-
-    Issue numbers are usually integers ("1", "2", ..., "20"), but the
-    spec allows letter suffixes ("11x") for special editions. The tuple
-    keeps numeric ordering for the common case and falls back to
-    lexicographic for the rest.
-    """
-    digits = ""
-    for ch in issue:
-        if ch.isdigit():
-            digits += ch
-        else:
-            break
-    n = int(digits) if digits else -1
-    return (n, issue)
+    """Sort key — numeric prefix first, label as lexicographic tiebreaker."""
+    return (issue_numeric_prefix(issue), issue)
 
 
 def resolve_navigation(

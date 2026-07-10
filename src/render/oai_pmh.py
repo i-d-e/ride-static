@@ -32,6 +32,7 @@ from typing import Optional, Sequence
 from xml.sax.saxutils import escape
 
 from src.model.review import Review
+from src.render.feed import _date_parts
 from src.render.html import abstract_first_paragraph_text, doi_url, review_url
 
 
@@ -208,7 +209,10 @@ def _wrap_response(*, verb: str, base_url: str, response_date: str, body: str) -
 
 def _header_xml(review: Review) -> str:
     identifier = oai_identifier(review)
-    datestamp = _datestamp_or_default(review.publication_date)
+    # OAI-PMH datestamps must be YYYY-MM-DD; feed._date_parts is the single
+    # source for the corpus date-widening rule (empty/freeform -> earliest).
+    year, month, day = _date_parts(review.publication_date)
+    datestamp = f"{year:04d}-{month:02d}-{day:02d}"
     return (
         "    <header>\n"
         f"      <identifier>{escape(identifier)}</identifier>\n"
@@ -315,24 +319,5 @@ def _page_url(review: Review, base_url: str) -> Optional[str]:
     if not review.id or not review.issue:
         return None
     return review_url(review, base_url)
-
-
-def _datestamp_or_default(publication_date: str) -> str:
-    """OAI-PMH datestamps must be ``YYYY-MM-DD`` per the protocol.
-
-    Reviews with year-only or year-month dates are widened to the first
-    of the month/year; freeform strings fall back to a fixed sentinel
-    so a harvester sees a parseable value.
-    """
-    if not publication_date:
-        return EARLIEST_DATESTAMP
-    parts = publication_date.split("T")[0].split("-")
-    if len(parts) == 3 and all(p.isdigit() for p in parts):
-        return publication_date.split("T")[0]
-    if len(parts) == 2 and all(p.isdigit() for p in parts):
-        return f"{parts[0]}-{parts[1]}-01"
-    if len(parts) == 1 and parts[0].isdigit() and len(parts[0]) == 4:
-        return f"{parts[0]}-01-01"
-    return EARLIEST_DATESTAMP
 
 

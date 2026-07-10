@@ -38,6 +38,7 @@ from src.render.html import (
     SiteConfig,
     abstract_excerpt,
     base_ctx,
+    issue_numeric_prefix,
     make_env,
     slugify,
 )
@@ -67,11 +68,6 @@ def _wordcloud_url(review: Review, base_url: str) -> Optional[str]:
 # ── helpers ────────────────────────────────────────────────────────────
 
 
-def _common_ctx(site: SiteConfig) -> dict:
-    """Variables every aggregation template needs in addition to its own."""
-    return base_ctx(site)
-
-
 def _abs_url(site: SiteConfig, path: str) -> Optional[str]:
     """Absolute canonical URL, or None when no base_url is set (preview mode)."""
     if not site.base_url:
@@ -91,11 +87,7 @@ def _issue_sort_key(item: tuple[str, list[Review]]) -> tuple:
     """Latest publication date first; integer issue order as tiebreaker."""
     issue_no, reviews = item
     latest = max((r.publication_date or "" for r in reviews), default="")
-    try:
-        issue_int = int(issue_no)
-    except ValueError:
-        issue_int = 0
-    return (latest, issue_int)
+    return (latest, issue_numeric_prefix(issue_no))
 
 
 def reviewer_slug(reviewer: ReviewerAggregate) -> str:
@@ -129,7 +121,7 @@ def render_index(
     if by_issue:
         current_issue, current_reviews = max(by_issue.items(), key=_issue_sort_key)
     return env.get_template("index.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title=site.title,
         page_url=_abs_url(site, "/"),
         current_issue=current_issue,
@@ -151,7 +143,7 @@ def render_issues_overview(
     configs = issue_configs or {}
     issues_with_cfg = [(no, revs, configs.get(no)) for no, revs in issues]
     return env.get_template("issues.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title="Issues",
         page_url=_abs_url(site, "/issues/"),
         issues=issues_with_cfg,
@@ -180,7 +172,7 @@ def render_issue(
         for r in issue_reviews
     ]
     return env.get_template("issue.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title=title,
         page_url=_abs_url(site, f"/issues/{issue_no}/"),
         issue_no=issue_no,
@@ -212,11 +204,13 @@ def render_explore(
     data_json = to_explorer_dump_string(
         reviews, base_url=site.base_url, build_date=build_date, indent=None
     )
-    ctx = _common_ctx(site)
+    review_count = len(reviews)
+    issue_count = len({r.issue for r in reviews if r.issue})
+    ctx = base_ctx(site)
     ctx["page_description"] = (
-        "Interactive exploration of the RIDE review corpus — "
-        "111 reviews across 22 issues, filterable by criteria set, "
-        "language, issue and scope."
+        f"Interactive exploration of the RIDE review corpus — "
+        f"{review_count} reviews across {issue_count} issues, filterable by "
+        "criteria set, language, issue and scope."
     )
     return env.get_template("explore.html").render(
         **ctx,
@@ -229,7 +223,7 @@ def render_explore(
 def render_tags_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
     tags = aggregate_tags(reviews)
     return env.get_template("tags.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title="Tags",
         page_url=_abs_url(site, "/tags/"),
         tags=tags,
@@ -240,7 +234,7 @@ def render_tag(tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig,
     by_id = {r.id: r for r in reviews}
     matched = [by_id[rid] for rid in tag.review_ids if rid in by_id]
     return env.get_template("tag.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title=f"Tag: {tag.display_name}",
         page_url=_abs_url(site, f"/tags/{slugify(tag.name)}/"),
         tag=tag,
@@ -254,7 +248,7 @@ def render_tag(tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig,
 def render_reviewers_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
     reviewers = aggregate_reviewers(reviews)
     return env.get_template("reviewers.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title="Reviewers",
         page_url=_abs_url(site, "/reviewers/"),
         reviewers=[(reviewer_slug(r), r) for r in reviewers],
@@ -265,7 +259,7 @@ def render_reviewer(reviewer: ReviewerAggregate, reviews: tuple[Review, ...], si
     by_id = {r.id: r for r in reviews}
     matched = [by_id[rid] for rid in reviewer.review_ids if rid in by_id]
     return env.get_template("reviewer.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title=reviewer.person.full_name,
         page_url=_abs_url(site, f"/reviewers/{reviewer_slug(reviewer)}/"),
         reviewer=reviewer,
@@ -280,7 +274,7 @@ def render_resources(reviews: tuple[Review, ...], site: SiteConfig, env: Environ
     resources = aggregate_reviewed_resources(reviews)
     review_index = {r.id: r for r in reviews}
     return env.get_template("resources.html").render(
-        **_common_ctx(site),
+        **base_ctx(site),
         page_title="Reviewed Resources",
         page_url=_abs_url(site, "/resources/"),
         resources=resources,

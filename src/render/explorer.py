@@ -20,9 +20,10 @@ from __future__ import annotations
 import json
 from typing import Any, Optional, Sequence
 
-from src.model.block import Citation, Figure, List, Paragraph, Table
+from src.model.block import Paragraph
 from src.model.inline import InlineCode, Reference, Text
 from src.model.review import Review
+from src.model.walk import iter_inline_groups
 from src.render.charts import criteria_label, criteria_slug
 from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL
 
@@ -30,33 +31,6 @@ VERSION = 1
 
 
 # ── text-content helpers ──────────────────────────────────────────────
-
-
-def _block_inline_groups(block: Any):
-    """Yield every inline-tuple reachable from a block, recursing into the
-    block-level children that ``List``/``Table`` cells may carry."""
-    if isinstance(block, Paragraph):
-        yield block.inlines
-    elif isinstance(block, List):
-        for item in block.items:
-            yield item.inlines
-            if item.label:
-                yield item.label
-            for sub in item.blocks:
-                yield from _block_inline_groups(sub)
-    elif isinstance(block, Table):
-        if block.head:
-            yield block.head
-        for row in block.rows:
-            for cell in row.cells:
-                yield cell.inlines
-                for sub in cell.blocks:
-                    yield from _block_inline_groups(sub)
-    elif isinstance(block, Citation):
-        yield block.quote_inlines
-    elif isinstance(block, Figure):
-        if block.head:
-            yield block.head
 
 
 def _walk_inlines(inlines):
@@ -86,7 +60,7 @@ def _content_metrics(review: Review) -> dict[str, int]:
     for block in _iter_blocks(review.front + review.body):
         if isinstance(block, Paragraph):
             paragraphs += 1
-        for group in _block_inline_groups(block):
+        for group in iter_inline_groups([block]):
             for inl in _walk_inlines(group):
                 if isinstance(inl, (Text, InlineCode)):
                     chars += len(inl.text)

@@ -29,6 +29,7 @@ from src.render.factsheet import (
     render_factsheet,
     reviewed_resource,
 )
+from src.render.html import SiteConfig
 
 
 # ── Fixture builder ───────────────────────────────────────────────────
@@ -189,6 +190,18 @@ def test_render_factsheet_without_reviewed_resource_does_not_crash():
     # Reviewed-resource and People blocks are omitted, questionnaire stays.
     assert "Questionnaire" in html
     assert "Smith, Pamela" not in html
+
+
+def test_render_factsheet_canonical_url_is_review_url_plus_factsheet():
+    """The canonical/og:url is the single-source review URL with a
+    ``factsheet/`` suffix, so it stays in lockstep with ``review_url`` and
+    the page's own address ``/issues/{issue}/{id}/factsheet/``."""
+    site = SiteConfig(title="RIDE", base_url="https://ride.i-d-e.de", default_language="en")
+    html = render_factsheet(_review_with_factsheet(), site)
+    assert (
+        '<link rel="canonical" href="https://ride.i-d-e.de/issues/21/ride.21.4/factsheet/">'
+        in html
+    )
 
 
 def test_render_factsheet_obfuscates_reviewer_email():

@@ -17,6 +17,7 @@ from src.render.html import (
     SiteConfig,
     base_ctx,
     make_env,
+    review_url,
 )
 
 
@@ -101,7 +102,7 @@ def render_factsheet(
         humanize_label=humanize_label,
         page_title=f"{review.title} — Factsheet" if review.title else "Factsheet",
         page_url=(
-            f"{site.base_url}/issues/{review.issue}/{review.id}/factsheet/"
+            review_url(review, site.base_url) + "factsheet/"
             if site.base_url
             else None
         ),

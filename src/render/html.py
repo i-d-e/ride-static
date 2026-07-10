@@ -369,6 +369,24 @@ def review_url(review: Review, base_url: str = "") -> str:
     return f"{base_url}/issues/{review.issue}/{review.id}/"
 
 
+def issue_numeric_prefix(issue: str) -> int:
+    """Leading-digit prefix of an issue label as an int, for numeric ordering.
+
+    Issue numbers are usually integers ("1".."22"), but the spec allows a
+    letter suffix ("11x") for special editions. Returns the numeric prefix
+    ("11x" -> 11); an issue with no leading digit yields -1 so it sorts
+    before any numbered issue. Single source for both the navigation and the
+    aggregation issue ordering.
+    """
+    digits = ""
+    for ch in issue:
+        if ch.isdigit():
+            digits += ch
+        else:
+            break
+    return int(digits) if digits else -1
+
+
 def base_ctx(
     site: SiteConfig,
     *,

@@ -16,16 +16,10 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from src.model.block import (
-    Block,
-    Citation,
-    Figure,
-    List,
-    Paragraph,
-    Table,
-)
+from src.model.block import Figure
 from src.model.inline import Emphasis, Highlight, Inline, Note, Reference
 from src.model.section import Section
+from src.model.walk import iter_blocks, iter_inline_groups
 
 
 def collect_figures(sections: tuple[Section, ...]) -> tuple[Figure, ...]:
@@ -44,10 +38,9 @@ def collect_notes(sections: tuple[Section, ...]) -> tuple[Note, ...]:
 
 def _iter_figures(sections: tuple[Section, ...]) -> Iterator[Figure]:
     for s in sections:
-        if s.heading:
-            yield from _figures_in_inlines(s.heading)
-        for b in s.blocks:
-            yield from _figures_in_block(b)
+        for b in iter_blocks(s.blocks):
+            if isinstance(b, Figure):
+                yield b
         yield from _iter_figures(s.subsections)
 
 
@@ -55,67 +48,9 @@ def _iter_notes(sections: tuple[Section, ...]) -> Iterator[Note]:
     for s in sections:
         if s.heading:
             yield from _notes_in_inlines(s.heading)
-        for b in s.blocks:
-            yield from _notes_in_block(b)
+        for group in iter_inline_groups(s.blocks):
+            yield from _notes_in_inlines(group)
         yield from _iter_notes(s.subsections)
-
-
-def _figures_in_block(b: Block) -> Iterator[Figure]:
-    if isinstance(b, Figure):
-        yield b
-    elif isinstance(b, Paragraph):
-        yield from _figures_in_inlines(b.inlines)
-    elif isinstance(b, List):
-        for item in b.items:
-            yield from _figures_in_inlines(item.inlines)
-            if item.label:
-                yield from _figures_in_inlines(item.label)
-            for nested in item.blocks:
-                yield from _figures_in_block(nested)
-    elif isinstance(b, Table):
-        if b.head:
-            yield from _figures_in_inlines(b.head)
-        for row in b.rows:
-            for cell in row.cells:
-                yield from _figures_in_inlines(cell.inlines)
-                for nested in cell.blocks:
-                    yield from _figures_in_block(nested)
-    elif isinstance(b, Citation):
-        yield from _figures_in_inlines(b.quote_inlines)
-        if b.bibl is not None:
-            yield from _figures_in_inlines(b.bibl.inlines)
-
-
-def _notes_in_block(b: Block) -> Iterator[Note]:
-    if isinstance(b, Figure):
-        yield from _notes_in_inlines(b.head)
-    elif isinstance(b, Paragraph):
-        yield from _notes_in_inlines(b.inlines)
-    elif isinstance(b, List):
-        for item in b.items:
-            yield from _notes_in_inlines(item.inlines)
-            if item.label:
-                yield from _notes_in_inlines(item.label)
-            for nested in item.blocks:
-                yield from _notes_in_block(nested)
-    elif isinstance(b, Table):
-        if b.head:
-            yield from _notes_in_inlines(b.head)
-        for row in b.rows:
-            for cell in row.cells:
-                yield from _notes_in_inlines(cell.inlines)
-                for nested in cell.blocks:
-                    yield from _notes_in_block(nested)
-    elif isinstance(b, Citation):
-        yield from _notes_in_inlines(b.quote_inlines)
-        if b.bibl is not None:
-            yield from _notes_in_inlines(b.bibl.inlines)
-
-
-def _figures_in_inlines(inlines: tuple[Inline, ...]) -> Iterator[Figure]:
-    """Inlines never contain Figures (the model forbids it). Empty iterator,
-    kept for symmetry and as a no-op call site."""
-    return iter(())
 
 
 def _notes_in_inlines(inlines: tuple[Inline, ...]) -> Iterator[Note]:

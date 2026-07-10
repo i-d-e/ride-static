@@ -29,7 +29,7 @@ from src.model.review import (
 from src.render.oai_pmh import (
     EARLIEST_DATESTAMP,
     REPOSITORY_NAME,
-    _datestamp_or_default,
+    _header_xml,
     build_get_record,
     build_identify,
     build_list_identifiers,
@@ -228,26 +228,35 @@ def test_special_characters_in_title_are_escaped():
 
 
 # ── Datestamp normalisation ─────────────────────────────────────────
+#
+# The datestamp is now built from feed._date_parts (single source for the
+# corpus date-widening rule). These tests drive the value through the OAI
+# header fragment to pin the YYYY-MM-DD contract at the OAI boundary.
+
+
+def _datestamp(publication_date: str) -> str:
+    header = ET.fromstring(_header_xml(_r(publication_date=publication_date)))
+    return header.find("datestamp").text
 
 
 def test_datestamp_year_only_widens_to_first_of_january():
-    assert _datestamp_or_default("2017") == "2017-01-01"
+    assert _datestamp("2017") == "2017-01-01"
 
 
 def test_datestamp_year_month_widens_to_first_of_month():
-    assert _datestamp_or_default("2017-02") == "2017-02-01"
+    assert _datestamp("2017-02") == "2017-02-01"
 
 
 def test_datestamp_year_month_day_passes_through():
-    assert _datestamp_or_default("2017-02-15") == "2017-02-15"
+    assert _datestamp("2017-02-15") == "2017-02-15"
 
 
 def test_datestamp_freeform_falls_back_to_earliest():
-    assert _datestamp_or_default("forthcoming") == EARLIEST_DATESTAMP
+    assert _datestamp("forthcoming") == EARLIEST_DATESTAMP
 
 
 def test_datestamp_iso_with_time_strips_time():
-    assert _datestamp_or_default("2017-02-15T12:00:00Z") == "2017-02-15"
+    assert _datestamp("2017-02-15T12:00:00Z") == "2017-02-15"
 
 
 # ── write_oai_pmh driver ────────────────────────────────────────────

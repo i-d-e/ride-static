@@ -24,7 +24,9 @@ from src.parser.datasets import (
     aggregate_tags,
 )
 from src.render.aggregations import (
+    _issue_sort_key,
     group_reviews_by_issue,
+    render_explore,
     render_index,
     render_issue,
     render_issues_overview,
@@ -273,6 +275,33 @@ def test_render_resources_escher_shows_title_and_credits_not_runon(env):
     assert "Joseph Jung" in html
     assert "Encoder" not in html
     assert "2015" in html
+
+
+def test_issue_sort_key_orders_by_numeric_prefix_with_letter_suffix():
+    """Pure-function test of the issue ordering key.
+
+    Synthetic input (empty review lists) is the documented exception per
+    the hard rule: no letter-suffixed issue (an "11x" special edition)
+    exists in the corpus, so the numeric-prefix branch can only be
+    exercised with a constructed value. With equal (empty) dates the
+    numeric prefix decides ordering, so "11x" must sort after "3" by its
+    prefix 11, rather than collapsing to 0 and jumping ahead of the
+    numbered issues.
+    """
+    items = [("11x", []), ("3", []), ("2", [])]
+    ordered = [issue for issue, _ in sorted(items, key=_issue_sort_key)]
+    assert ordered == ["2", "3", "11x"]
+
+
+def test_explore_description_counts_track_the_real_corpus(reviews, env):
+    """The explore meta description composes its counts from the reviews
+    passed in, never a hardcoded corpus size. The ``reviews`` fixture holds
+    three reviews across two issues, so the description must say exactly
+    that and must not carry a stale literal from a former corpus size."""
+    html = render_explore(reviews, _site(), env)
+    n_issues = len({r.issue for r in reviews if r.issue})
+    assert f"{len(reviews)} reviews across {n_issues} issues" in html
+    assert "111 reviews" not in html
 
 
 # ── Real-corpus integration ───────────────────────────────────────────
