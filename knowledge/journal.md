@@ -42,7 +42,9 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 - Compound-Factsheets bleiben sequenzielle, pro Ressource beschriftete Bloecke statt Mehrspalten-Tabellen (Upgrade-Pfad kommentiert).
 - Wordclouds sind ein Maintenance-Skript mit committetem Ergebnis, kein Build-Schritt.
 
-**Offen:** Sechs Redaktionsentscheidungen in [[workflow]] (Staging, DOI im Build, DOAJ-Weg, OAI-Stilllegung, Freischaltungs-Mechanik, Bilder-Repo). Comment wird vom Operator gepostet. `site.strings` aus `content/` verdrahten als Kandidat.
+**Offen:** Sechs Redaktionsentscheidungen in [[workflow]] (Staging, DOI im Build, DOAJ-Weg, OAI-Stilllegung, Freischaltungs-Mechanik, Bilder-Repo). Comment wird vom Operator gepostet.
+
+**Nachtrag (gleiche Session):** `site.strings` ist verdrahtet, alle Label-Schluessel liegen kommentiert mit ihren Defaults in `content/strings.yaml` (Tippfehler-Schutz im Build, Vertragstest gegen die Templates); die Wissensdokumente sind auf den Feature-Stand nachgezogen (architecture, interface, pipeline, INDEX-Glossar mit Amendment, specification R19 Legacy-Paritaet).
 
 **Nächster Einstieg:** Redaktionsantworten zu den sechs Fragen einarbeiten; danach P2 Antwort-Matrix-Heatmap.
 
