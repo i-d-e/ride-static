@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>About RIDE</title>
+      </titleStmt>
+      <publicationStmt>
+        <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+        <idno type="URI">https://ride.i-d-e.de/about/</idno>
+        <availability>
+          <licence target="http://creativecommons.org/licenses/by/4.0/"/>
+        </availability>
+      </publicationStmt>
+      <seriesStmt>
+        <title level="j">RIDE - A review journal for digital editions and resources</title>
+        <editor role="managing" ref="https://orcid.org/0000-0003-2852-065X">Ulrike Henny-Krahmer</editor>
+        <editor role="managing" ref="https://orcid.org/0000-0003-1438-3236">Martina Scholger</editor>
+      </seriesStmt>
+      <sourceDesc>
+        <p>born digital</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>RIDE is an <ref target="/about/publishing-policy/">open access</ref> review journal dedicated to digital editions and resources. RIDE aims to direct attention to digital editions and to provide a forum in which expert peers criticise and discuss the efforts of digital editors in order to improve current practices and advance future developments. It does so by asking its reviewers to pay attention not only to the traditional virtues and vices of any edition, but also to the progressing methodology and its technical implications. Read more about RIDE in our <ref target="/about/editorial/">editorial</ref>.</p>
+      <div>
+        <head>Forthcoming issues</head>
+        <p>If you are interested in contributing a review, <ref target="/reviewers/call-for-reviews/">please contact the editors</ref> beforehand. We maintain a <ref target="/reviewers/projects-for-review/">list of suggested projects</ref> we would like to see reviews of, but we are also happy to consider your suggestions. Please contact the editors in either case before beginning to work on your review.</p>
+      </div>
+      <div>
+        <head>Team</head>
+        <p>RIDE is published by the <ref target="https://www.i-d-e.de">Institute for Documentology and Scholarly Editing</ref> (IDE). Details about the editorial board and the technical realisation can be found on our <ref target="/about/team/">team page</ref>.</p>
+      </div>
+      <div>
+        <head>Privacy and Imprint</head>
+        <p>Refer to the <ref target="/imprint/">imprint</ref> for the legally required publisher information and the data-protection statement.</p>
+      </div>
+    </body>
+  </text>
+</TEI>

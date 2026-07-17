@@ -991,6 +991,25 @@ main.ride-shell {
 .ride-charts__anomaly                { margin: var(--ride-space-3) 0 0; font-size: var(--ride-text-tiny); color: var(--ride-fg-secondary); }
 .ride-charts__anomaly code           { font-size: inherit; }
 
+/* Data-Questionnaires per-question tables (/data/questionnaires/). Same
+   muted dataviz register as the charts; the yes-rate bar is a background
+   fill behind the percentage numeral so the number stays the truth. */
+.ride-questionnaires                 { display: flex; flex-direction: column; gap: var(--ride-space-6); margin: var(--ride-space-6) 0; }
+.ride-questionnaires__set            { margin: 0; }
+.ride-questionnaires__heading        { font-size: var(--ride-text-base); margin: 0 0 var(--ride-space-3); }
+.ride-questionnaires__count          { color: var(--ride-fg-secondary); font-weight: 400; }
+.ride-questionnaires__table          { width: 100%; border-collapse: collapse; font-size: var(--ride-text-small); }
+.ride-questionnaires__table th,
+.ride-questionnaires__table td       { text-align: left; padding: var(--ride-space-2) var(--ride-space-3); border-bottom: 1px solid var(--ride-rule); vertical-align: top; }
+.ride-questionnaires__section th     { background: var(--ride-bg-muted); font-weight: 600; }
+.ride-questionnaires__num            { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ride-questionnaires__kind           { color: var(--ride-fg-secondary); font-size: var(--ride-text-tiny); }
+.ride-questionnaires__rate           { position: relative; min-width: 6rem; }
+.ride-questionnaires__bar            { position: absolute; inset: 0; background: var(--ride-bg-muted); border-right: 2px solid var(--ride-accent); z-index: 0; }
+.ride-questionnaires__pct            { position: relative; z-index: 1; font-variant-numeric: tabular-nums; }
+.ride-questionnaires__anomaly        { margin: var(--ride-space-3) 0 0; font-size: var(--ride-text-tiny); color: var(--ride-fg-secondary); }
+.ride-questionnaires__anomaly code   { font-size: inherit; }
+
 /* ─── Explore view (P1 + P3) ───────────────────────────────────────────
    Interactive corpus exploration at /data/explore/ (knowledge/exploration.md).
    App layout: sticky filter sidebar left, visualisation centre. Drives

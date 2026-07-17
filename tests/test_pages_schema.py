@@ -29,7 +29,15 @@ needs_schema = pytest.mark.skipif(
 
 
 def _pages() -> list[Path]:
-    return sorted(PAGES_DIR.glob("*.xml"))
+    # rglob, not glob: nested pages (pages/about/*.xml, pages/reviewers/*.xml)
+    # are real editorial pages that discover_pages() renders, so they must pass
+    # the same profile gate. A top-level-only glob left half the pages
+    # unvalidated against ride-pages.rng.
+    return sorted(PAGES_DIR.rglob("*.xml"))
+
+
+def _page_id(p: Path) -> str:
+    return p.relative_to(PAGES_DIR).with_suffix("").as_posix()
 
 
 @needs_schema
@@ -40,7 +48,7 @@ def test_schema_compiles() -> None:
 
 @needs_corpus
 @needs_schema
-@pytest.mark.parametrize("page", _pages(), ids=lambda p: p.stem)
+@pytest.mark.parametrize("page", _pages(), ids=_page_id)
 def test_page_validates_against_profile(page: Path) -> None:
     """Each editorial page satisfies ``schema/ride-pages.rng`` exactly."""
     rng = etree.RelaxNG(etree.parse(str(PAGES_RNG)))

@@ -7,7 +7,7 @@
       </titleStmt>
       <publicationStmt>
         <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
-        <idno type="URI">https://ride.i-d-e.de/reviewers/submission-guidelines/</idno>
+        <idno type="URI">https://ride.i-d-e.de/reviewers/submitting-a-review/</idno>
         <availability>
           <licence target="http://creativecommons.org/licenses/by/4.0/"/>
         </availability>
@@ -26,7 +26,7 @@
     <body>
       <div>
         <head>Ethics</head>
-        <p>We invite scholars from all fields with digital expertise to review resources in RIDE. Please note that <hi rend="bold">as a reviewer, you must not be involved in the creation or publication of the reviewed resource yourself,</hi> as reviews in RIDE are intended to be critical assessments made by external reviewers rather than self-introductions of resources and projects (as someone interested in getting their project reviewed, you can of course <ref target="https://ride.i-d-e.de/reviewers/suggested-projects-for-review/">suggest it for review</ref>).</p>
+        <p>We invite scholars from all fields with digital expertise to review resources in RIDE. Please note that <hi rend="bold">as a reviewer, you must not be involved in the creation or publication of the reviewed resource yourself,</hi> as reviews in RIDE are intended to be critical assessments made by external reviewers rather than self-introductions of resources and projects (as someone interested in getting their project reviewed, you can of course <ref target="https://ride.i-d-e.de/reviewers/projects-for-review/">suggest it for review</ref>).</p>
         <p>Furthermore, reviews in RIDE should generally be done in a fair manner; i.e. <hi rend="bold">criticism should be expressed in a comprehensible and constructive way</hi>. The range of advances in digital methodology is broad between different resources and projects. As RIDE in general aims to encourage the use of digital methods and techniques, but also to contribute to the discussion of the state-of-the art in the field, we recommend that the critique expressed in the reviews takes into account the circumstances of each digital resource and is formulated appropriately.</p>
         <p>Before submitting an article to RIDE please consult the complete Ethical Code of the journal <ref target="https://ride.i-d-e.de/ethical-code/">here</ref>. </p>
       </div>

@@ -252,14 +252,17 @@ def _render_editorials(
     (``projects-for-review``, ``submitting-a-review``). Passing
     ``--no-tei-editorials`` falls back to the legacy Markdown-only build.
 
-    ``parsed`` is the build's ``[(path, review), …]`` list. When given
-    and the editorial page is the Data-Charts placeholder
-    (``data/charts``), the chart marker is substituted by inline SVG bar
-    charts derived from the parsed corpus (R9)."""
+    ``parsed`` is the build's ``[(path, review), …]`` list. When given,
+    the Data-Charts page (``data/charts``) has its chart marker
+    substituted by inline SVG bar charts (R9), and the Data-Questionnaires
+    page (``data/questionnaires``) has its marker substituted by the
+    per-question aggregate tables, both derived from the parsed corpus."""
     from src.render.charts import render_charts_block
+    from src.render.questionnaires import render_questionnaires_html
 
     written = 0
     chart_html = ""
+    quest_html = ""
 
     def _chart_for(slug: str) -> str:
         nonlocal chart_html
@@ -269,12 +272,27 @@ def _render_editorials(
             )
         return chart_html if slug == "data/charts" else ""
 
+    def _questionnaires_for(slug: str) -> str:
+        nonlocal quest_html
+        if slug == "data/questionnaires" and parsed and not quest_html:
+            quest_html = render_questionnaires_html(tuple(r for _, r in parsed))
+        return quest_html if slug == "data/questionnaires" else ""
+
     def _write(slug: str, html: str) -> None:
         nonlocal written
         page_dir = out_root / slug
         page_dir.mkdir(parents=True, exist_ok=True)
         (page_dir / "index.html").write_text(html, encoding="utf-8")
         written += 1
+
+    def _render_md(page) -> str:
+        return render_editorial(
+            page,
+            site=site,
+            env=env,
+            chart_html=_chart_for(page.slug),
+            questionnaires_html=_questionnaires_for(page.slug),
+        )
 
     if tei_editorials:
         covered: set[str] = set()
@@ -284,17 +302,11 @@ def _render_editorials(
         for page in discover_editorials():
             if page.slug in covered:
                 continue  # TEI page wins at this slug
-            _write(
-                page.slug,
-                render_editorial(page, site=site, env=env, chart_html=_chart_for(page.slug)),
-            )
+            _write(page.slug, _render_md(page))
         return written
 
     for page in discover_editorials():
-        _write(
-            page.slug,
-            render_editorial(page, site=site, env=env, chart_html=_chart_for(page.slug)),
-        )
+        _write(page.slug, _render_md(page))
     return written
 
 

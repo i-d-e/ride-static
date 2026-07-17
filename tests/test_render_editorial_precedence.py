@@ -35,52 +35,61 @@ def _has(out_root: Path, slug: str) -> bool:
 
 
 @needs_sources
-def test_default_renders_markdown_not_tei(tmp_path: Path) -> None:
-    """Default path ships the Markdown editorials; TEI-only slugs are absent."""
+def test_default_renders_only_the_generator_native_markdown(tmp_path: Path) -> None:
+    """Default (Markdown-only) path ships just the two generator-native data
+    views after the editorial-boundary consolidation (2026-07-17); every
+    prose page moved to TEI, so no prose slug renders in this mode."""
     n = _render_editorials(make_env(), SiteConfig(), tmp_path, parsed=None)
-    assert n > 0
-    # Markdown-native and rename-origin slugs are present.
-    assert _has(tmp_path, "reviewers/submitting-a-review")
-    assert _has(tmp_path, "reviewers/projects-for-review")
-    assert _has(tmp_path, "about")
-    # TEI-only slugs do not exist in the default build.
+    assert n == 2
+    assert _has(tmp_path, "data/charts")
+    assert _has(tmp_path, "data/questionnaires")
+    # Prose slugs are TEI-only now and absent from the Markdown-only build.
+    assert not _has(tmp_path, "about")
+    assert not _has(tmp_path, "reviewers/submitting-a-review")
     assert not _has(tmp_path, "writing-guidelines")
-    assert not _has(tmp_path, "submission-guidelines")
-    assert not _has(tmp_path, "dissemination-discussion")
 
 
 @needs_sources
 def test_tei_mode_renders_tei_with_markdown_fallback(tmp_path: Path) -> None:
-    """TEI precedence: all 16 TEI slugs plus the generator-native fallback."""
+    """TEI precedence: every TEI slug plus the two generator-native fallbacks.
+
+    The two consolidated twins now live as TEI under reviewers/, so their
+    old flat slugs (submission-guidelines, suggested-projects-for-review)
+    are gone; the only Markdown fallback left is the two data views."""
     n = _render_editorials(make_env(), SiteConfig(), tmp_path, parsed=None, tei_editorials=True)
     # Every TEI page slug is produced.
     for slug in (
-        "criteria", "about/publishing-policy", "writing-guidelines",
-        "submission-guidelines", "projects-currently-under-review",
-        "suggested-projects-for-review", "dissemination-discussion",
+        "criteria", "about", "about/publishing-policy", "writing-guidelines",
+        "reviewers/submitting-a-review", "projects-currently-under-review",
+        "reviewers/projects-for-review", "dissemination-discussion",
         "about/contact", "imprint", "about/team", "about/editorial",
         "about/ethical-code", "about/peer-reviewers", "reviewers/ride-award",
         "reviewers/call-for-reviews", "data",
     ):
         assert _has(tmp_path, slug), f"missing TEI slug: {slug}"
-    # Generator-native Markdown pages survive as fallback.
-    assert _has(tmp_path, "about")
+    # The consolidated twins no longer render at their old flat slugs.
+    assert not _has(tmp_path, "submission-guidelines")
+    assert not _has(tmp_path, "suggested-projects-for-review")
+    # Generator-native Markdown data views survive as fallback.
     assert _has(tmp_path, "data/charts")
     assert _has(tmp_path, "data/questionnaires")
-    # 16 TEI + 5 Markdown fallback (about, data/charts, data/questionnaires,
-    # reviewers/projects-for-review, reviewers/submitting-a-review) = 21.
-    assert n == 21
+    # 17 TEI + 2 Markdown fallback (data/charts, data/questionnaires) = 19.
+    assert n == 19
 
 
 @needs_sources
-def test_tei_page_wins_at_shared_slug(tmp_path: Path) -> None:
-    """At a slug both sets define, the rendered page is the TEI one."""
+def test_tei_twin_wins_at_consolidated_slug(tmp_path: Path) -> None:
+    """The consolidated twins render from TEI at the /reviewers/ URL the
+    navigation uses, and no Markdown fallback exists at that slug anymore
+    (the content/*.md twin was retired, 2026-07-17)."""
+    _render_editorials(make_env(), SiteConfig(), tmp_path, parsed=None, tei_editorials=True)
+    tei_html = (
+        tmp_path / "reviewers" / "submitting-a-review" / "index.html"
+    ).read_text(encoding="utf-8")
+    # The rich TEI body wins: it carries the Review Submission Checklist head
+    # that only the TEI page has.
+    assert "Review Submission Checklist" in tei_html
+    # Markdown-only mode produces nothing at this slug now.
     md_root = tmp_path / "md"
-    tei_root = tmp_path / "tei"
     _render_editorials(make_env(), SiteConfig(), md_root, parsed=None)
-    _render_editorials(make_env(), SiteConfig(), tei_root, parsed=None, tei_editorials=True)
-    md_html = (md_root / "criteria" / "index.html").read_text(encoding="utf-8")
-    tei_html = (tei_root / "criteria" / "index.html").read_text(encoding="utf-8")
-    # The two source sets are different documents (parity audit dacde82);
-    # at minimum the rendered bytes differ, proving TEI replaced Markdown.
-    assert md_html != tei_html
+    assert not (md_root / "reviewers" / "submitting-a-review" / "index.html").is_file()

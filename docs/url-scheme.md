@@ -86,11 +86,14 @@ lives under `/about/…`:
 The hierarchy is carried by the source location: a TEI page at
 `pages/<section>/<name>.xml` renders to `/<section>/<name>/`, a top-level
 `pages/<name>.xml` keeps the flat `/<name>/`. The Markdown fallback under
-`content/` carries it in the frontmatter `slug:` (e.g. `slug: about/team`).
+`content/` carries it in the frontmatter `slug:` (e.g. `slug: data/charts`).
 Adding a new editorial page is still one source file; its directory (TEI)
 or its `slug` (Markdown) decides the section. TEI pages with no section
-assignment (e.g. `writing-guidelines`, `submission-guidelines`) stay flat
-at `/<name>/` until they are placed.
+assignment (e.g. `writing-guidelines`, `dissemination-discussion`) stay flat
+at `/<name>/` until they are placed. The former flat `submission-guidelines`
+and `suggested-projects-for-review` were placed under `/reviewers/` as
+`submitting-a-review` and `projects-for-review` (2026-07-17), with redirect
+stubs from the old flat paths.
 
 ## Machine interfaces
 

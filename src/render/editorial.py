@@ -72,6 +72,7 @@ def parse_editorial(path: Path) -> EditorialPage:
 
 
 CHART_MARKER = "<!-- ride:charts -->"
+QUESTIONNAIRES_MARKER = "<!-- ride:questionnaires -->"
 
 
 def render_editorial(
@@ -79,14 +80,18 @@ def render_editorial(
     site: Optional[SiteConfig] = None,
     env: Optional[Environment] = None,
     chart_html: str = "",
+    questionnaires_html: str = "",
 ) -> str:
     """Render one EditorialPage to a full HTML page string.
 
-    ``chart_html`` is a pre-rendered HTML block that replaces the
-    ``<!-- ride:charts -->`` marker in the page body. Empty string
-    leaves the marker untouched so editors can preview the page
-    without the build pipeline; ``content/data-charts.md`` carries
-    the marker (see :func:`src.render.charts.render_charts_block`)."""
+    ``chart_html`` and ``questionnaires_html`` are pre-rendered HTML
+    blocks that replace the ``<!-- ride:charts -->`` and
+    ``<!-- ride:questionnaires -->`` markers in the page body. An empty
+    string leaves the marker untouched so editors can preview the page
+    without the build pipeline; ``content/data-charts.md`` and
+    ``content/data-questionnaires.md`` carry the respective markers (see
+    :func:`src.render.charts.render_charts_block` and
+    :func:`src.render.questionnaires.render_questionnaires_html`)."""
     site = site or SiteConfig()
     env = env or make_env()
 
@@ -97,6 +102,8 @@ def render_editorial(
     )
     if chart_html and CHART_MARKER in body_html:
         body_html = body_html.replace(CHART_MARKER, chart_html)
+    if questionnaires_html and QUESTIONNAIRES_MARKER in body_html:
+        body_html = body_html.replace(QUESTIONNAIRES_MARKER, questionnaires_html)
 
     return render_editorial_shell(
         env,

@@ -53,6 +53,12 @@ EDITORIAL_REDIRECTS: dict[str, str] = {
     "publishing-policies": "/about/publishing-policy/",
     "reviewers/submission": "/reviewers/submitting-a-review/",
     "reviewers/suggested-projects-for-review": "/reviewers/projects-for-review/",
+    # The submission-guidelines / suggested-projects-for-review TEI pages were
+    # consolidated onto the /reviewers/…/ URLs the navigation uses (twin
+    # Markdown retired, 2026-07-17). The flat slugs those TEI pages formerly
+    # rendered at keep landing on the new canonical URL.
+    "submission-guidelines": "/reviewers/submitting-a-review/",
+    "suggested-projects-for-review": "/reviewers/projects-for-review/",
     "reviewers/ride-award-for-best-review": "/reviewers/ride-award/",
     "reviewers/catalogue-criteria-for-reviewing-digital-editions-and-resources": "/criteria/",
 }

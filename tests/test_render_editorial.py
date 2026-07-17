@@ -94,22 +94,10 @@ def test_render_editorial_propagates_language():
 # ── Discovery against the actual content/ tree ──────────────────────
 
 
-def test_discover_editorials_finds_repo_content_files():
-    pages = discover_editorials()
-    slugs = {p.slug for p in pages}
-    # Stubs added in this commit
-    assert "about" in slugs
-    assert "imprint" in slugs
-    assert "criteria" in slugs
-    assert "about/contact" in slugs  # R14: Kontakt page must exist
-
-
-def test_contact_page_renders_with_email_and_imprint_pointer():
-    """R14: contact page surfaces an editorial mail address and links
-    onward to imprint for the legal information."""
-    pages = {p.slug: p for p in discover_editorials()}
-    contact = pages.get("about/contact")
-    assert contact is not None
-    html = render_editorial(contact)
-    assert "ride-editor" in html or "ride-editor@i-d-e.de" in html
-    assert "/imprint/" in html
+def test_discover_editorials_holds_only_the_generator_native_data_views():
+    """After the editorial-boundary consolidation (2026-07-17) the only
+    Markdown editorials left are the two generator-native data views; every
+    prose page is a TEI page under pages/. The inert content/*.md fallbacks
+    at TEI-covered slugs and the two Markdown twins were retired."""
+    slugs = {p.slug for p in discover_editorials()}
+    assert slugs == {"data/charts", "data/questionnaires"}

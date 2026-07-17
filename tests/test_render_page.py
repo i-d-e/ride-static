@@ -127,3 +127,14 @@ def test_render_ethical_code_full_page():
     assert '<a href="mailto:ride-editors@i-d-e.de">ride-editors@i-d-e.de</a>' in html
     # the four complaint bullet points
     assert html.count("<li>") >= 4
+
+
+@needs_corpus
+def test_contact_page_surfaces_editorial_address_and_imprint_pointer():
+    """R14: the contact page (a TEI page since the editorial-boundary
+    consolidation, 2026-07-17) surfaces the editorial mail address and links
+    onward to imprint for the legal information."""
+    page = parse_page(PAGES_DIR / "about" / "contact.xml")
+    html = render_page(page)
+    assert "ride-editor" in html
+    assert "/imprint/" in html

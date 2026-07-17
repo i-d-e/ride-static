@@ -30,7 +30,32 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
-## 2026-07-10 — Workflow-Abgleich und Legacy-Paritaet komplett
+## 2026-07-17 — Drei Operator-Entscheide umgesetzt (Editorial-Boundary, Data-Views, OAI)
+
+**Ziel:** Die drei entschiedenen Punkte aus dem Operator-Entscheid vom 17.07. umsetzen, Editorial-Boundary bereinigen, die questionnaires-View generator-nativ bauen, OAI stilllegen mit Snapshot-Export.
+
+**Erledigt:** Editorial-Boundary nach Option 3 der Entscheidungsvorlage bereinigt. Die zwoelf inerten `content/*.md`-Fallbacks an TEI-gedeckten Slugs geloescht, die zwei Twins auf ihre TEI-Quelle konsolidiert, indem `pages/submission-guidelines.xml` nach `pages/reviewers/submitting-a-review.xml` und `pages/suggested-projects-for-review.xml` nach `pages/reviewers/projects-for-review.xml` verschoben wurden, damit die TEI-Seite an der `/reviewers/…/`-URL rendert, die Navigation und interne Links ohnehin nutzen. Die zwei Markdown-Twins geloescht, `<idno>` und interne `<ref>` der verschobenen Seiten auf die neuen URLs gezogen, Redirect-Stubs von den alten Flat-Slugs (`submission-guidelines`, `suggested-projects-for-review`) auf die neuen URLs ergaenzt, sodass keine bestehende URL bricht. Die questionnaires-View generator-nativ gebaut (`src/render/questionnaires.py`), eine HTML-Tabelle pro Criteria-Set mit einer Zeile pro Frage und korpusweiter Yes-Rate, orientiert an der Charts-View aber eine Ebene feiner, per `<!-- ride:questionnaires -->`-Marker in `content/data-questionnaires.md` substituiert wie der Charts-Block. Tests nach dem Muster der Charts-Tests ergaenzt (`tests/test_render_questionnaires.py`). OAI nach Option 1 des Machbarkeitsdokuments entschieden und in [[oai-pmh-statisch]] als Entscheid-Vermerk festgehalten; der Snapshot-Export existierte bereits (`write_oai_pmh` schreibt den vollstaendigen Dublin-Core-Recordsatz unter `/oai/`) und ist die archivierbare Form des Entscheids.
+
+**Entscheidungen:**
+- Editorial-Boundary Option 3 statt Option 1, weil die Prosa bereits in TEI vorliegt und Option 3 die stille Doppelpflege ohne Aenderung des Editiermodells entfernt; der Twin-Move haelt die TEI-Single-Source-Disziplin und erhaelt zugleich die Live-URL.
+- Data-Views Option 2 (generator-native Markdown, keine Profil-Erweiterung), weil die generierte View ohnehin ein Build-Artefakt ausserhalb von TEI bleibt und ein TEI-Rahmen nur Uniformitaet gegen eine Profil-Erweiterung ohne Faehigkeitsgewinn kaufen wuerde.
+- OAI Option 1 (Endpoint stilllegen, statischen Snapshot als dokumentierten Export behalten), weil kein Harvester den Live-Endpoint nachweislich konsumiert und die Metadaten ueber DataCite fliessen.
+
+**Offen:** Die Aussenschritte zu OAI bleiben beim Operator, der Issue-Kommentar, die tatsaechliche Abschaltung des alten eXist-Endpoints unter `ride.i-d-e.de/apis/oai`, und der DOAJ-Weg (Dashboard-Upload vs. API-Push). Die uebrigen Redaktionsentscheidungen in [[workflow]] (Staging, DOI im Build, Freischaltungs-Mechanik, Bilder-Repo) unveraendert offen.
+
+**Nächster Einstieg:** P2 Antwort-Matrix-Heatmap, oder die offenen Workflow-Redaktionsentscheidungen einarbeiten, sobald die Operator-Antworten vorliegen.
+
+## 2026-07-14 — Drei offene Issues gesichtet, Page-Profil-Gate vervollstaendigt
+
+**Ziel:** Die drei offenen GitHub-Issues (#2 Publikationsworkflow, #3 TEIisierung der WP-Seiten, #4 dynamisch generierte Seiten) abarbeiten, umsetzen was ohne Redaktionsentscheidung geht, den Rest als Frage zurueckgeben.
+
+**Erledigt:** Issue-Texte ueber die oeffentliche GitHub-API geholt (gh nicht authentifiziert, `issues/` ist der Korpus, nicht die GitHub-Issues). Deckungsabgleich der drei Issues gegen den Ist-Stand: #3 ist bis auf `about`/`data/charts`/`data/questionnaires` als TEI umgesetzt (alle 16 WP-Editorialseiten der Liste haben `pages/**/*.xml`), #4 hat fuer alle zehn dynamischen Seiten einen statischen Ersatz ausser dem OAI-Endpoint, #2 ist in [[workflow]] dokumentiert und empfaengerseitig verdrahtet. Eine echte, nicht entscheidungsgebundene Luecke geschlossen: `tests/test_pages_schema.py` validierte per `glob("*.xml")` nur die acht Top-Level-Seiten, die acht verschachtelten (`about/`, `reviewers/`) blieben ungeprueft, obwohl `discover_pages()` sie per `rglob` rendert. Auf `rglob` umgestellt, Parametrize-IDs auf den POSIX-Relativpfad gezogen (Eindeutigkeit), alle 16 Seiten validieren gegen `ride-pages.rng`.
+
+**Entscheidungen:** Keine der drei Issues eigenmaechtig weiter umgesetzt: der substanzielle Rest (Staging, DOI-im-Build, DOAJ-Weg, OAI-Stilllegung, Freischaltungs-Mechanik, Bilder-Repo) ist redaktionsentscheidungsgebunden und in [[workflow#Offene Redaktionsentscheidungen]] bereits festgehalten. `about` bleibt vorerst Markdown, weil die Build-Doku es bewusst als generator-native fuehrt und eine TEIisierung eine Design-/Redaktionsfrage ist, kein mechanischer Rueckstand.
+
+**Offen:** Die sechs Redaktionsentscheidungen in [[workflow]] unveraendert offen. Ob `about` (echte Editorial-Prosa, noch Markdown) und die Data-View-Platzhalter `data/questionnaires`/`data/charts` im Sinne von #3 TEI werden sollen, ist als Operator-Frage offen.
+
+**Nächster Einstieg:** Redaktionsantworten zu den Workflow-Fragen einarbeiten; danach P2 Antwort-Matrix-Heatmap.
 
 **Ziel:** Die Workflow-Skizze der Projektpartnerin verifizieren, den Alt-Stack-Abloeseplan festhalten und alle Paritaetsluecken der statischen Site schliessen.
 
