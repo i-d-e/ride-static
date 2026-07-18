@@ -1,6 +1,6 @@
 ---
 status: befund
-updated: 2026-07-10
+updated: 2026-07-17
 ---
 
 # Publikationsworkflow — Zielbild und Ablösung des Alt-Stacks
@@ -40,7 +40,7 @@ TEI-Datei wandert von `ride-editors` in `issues/{N}/reviews/` dieses Repos (Mech
 | tei2wp Artikel + Factsheet | ride-tech | Parser + Templates dieses Repos | ersetzt; die früheren Paritätslücken sind geschlossen (unten) |
 | tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren, laufende Fußzeilen via `@page`-Margin-Boxes) |
 | Charts-, Reviewer-, Ressourcen-Abfragen | eXist-Mirrors in ride-tech | `/data/charts/`, `/reviewers/`, `/data/reviewed-resources/` | ersetzt |
-| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | Entscheidung offen: Endpoint stilllegen oder dünner Proxy über den Snapshot-Dateien, in jedem Fall ohne eXist; kein Harvester nachweisbar ([[redirects-feeds]]) |
+| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | stillgelegt mit Snapshot-Export (entschieden 2026-07-17, siehe [[oai-pmh-statisch]]); die Abschaltung des alten eXist-Endpoints folgt nach der DOAJ-Klärung |
 | wordclouds.py | ride-scripts | `scripts/wordclouds.py`, deterministisch (fixierter Seed), Ergebnis wird committet | ersetzt als Maintenance-Skript |
 | tei2doi (DataCite XML) | ride-tech | nicht portiert | Entscheidung offen: in den Build oder manuell bei USB Köln |
 | tei2doaj (DOAJ XML) | ride-scripts | nicht portiert | Entscheidung offen: Dashboard-Upload oder API-Push |
