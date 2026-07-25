@@ -55,7 +55,11 @@ RIDE reviews fill a structured questionnaire driven by a shared `<taxonomy>` emb
 - `https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections…` — 282 categories, depth 5, used by 10 taxonomy embedding(s).
 - `https://www.i-d-e.de/publikationen/weitereschriften/criteria-tools-version-1/` — 245 categories, depth 3, used by 17 taxonomy embedding(s).
 
-Inside each `<category>`, a `<num type="boolean" value="0"|"1">` records the review's yes/no answer. Some reviews embed multiple `<taxonomy>` blocks. The full structure plus per-review answers is in `inventory/taxonomy.json` — Stage 2.C will hydrate a `Questionnaire` model directly from there.
+Inside each `<category>`, a `<num type="boolean" value="0"|"1">` marks **which leaf option the reviewer selected**, not whether the answer was yes. A binary question carries two option leaves, a Yes leaf and a No leaf; the selected one carries `value="1"` and the other `value="0"`, so a selected *No* also carries `value="1"`. Categorical questions (Subject, Document era) carry several option leaves and every selected one carries `value="1"`. A `value="3"` occurs once in the corpus and is an anomaly.
+
+Counting `value="1"` flat therefore overstates the yes-rate. Two rendering sites did exactly that and are still uncorrected (M4, operator-gated): `aggregate_questionnaires` in `src/render/charts.py` (feeds the R9 charts page) and `templates/html/partials/factsheet.html` (feeds the R1 sidebar summary). The per-question view on the R18 factsheet page is correct, because it resolves option labels through `Questionnaire.questions` and counts only a selected Yes leaf. Any new aggregate must go through `Questionnaire.questions`/`selected` and must treat categorical questions separately; the green criterion is a test asserting that a categorical selection is not counted as a yes.
+
+Some reviews embed multiple `<taxonomy>` blocks. The full structure plus per-review answers is in `inventory/taxonomy.json` — Stage 2.C will hydrate a `Questionnaire` model directly from there.
 
 ## ID format conformance
 
