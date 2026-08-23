@@ -156,6 +156,9 @@ def test_local_draft_build_renders_every_complete_bundle_preview(
         assert wordcloud.is_file()
         html = (root / "index.html").read_text(encoding="utf-8")
         assert "Draft preview" in html
+        assert "review preview" in html
+        assert "formal publication outputs" in html
+        assert "local workflow testing" not in html
         assert 'name="robots" content="noindex, nofollow"' in html
         assert 'type="application/pdf"' not in html
         assert f"{review.id}.png" in draft_index

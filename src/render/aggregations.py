@@ -217,7 +217,7 @@ def render_drafts(
                 "their generated preview artifacts."
             ),
         ),
-        page_title="Draft review workspace",
+        page_title="Review workflow examples",
         page_url=None,
         reviews=drafts,
         entries=entries,

@@ -33,10 +33,10 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 ## 2026-08-23 — Öffentliche Pages-Vorschau der drei Self-Audits freigegeben
 
 **Ziel:** Die drei fachlich gekennzeichneten Self-Audits als direkt erreichbare RIDE-Workflowbeispiele auf GitHub Pages bereitstellen.
-**Erledigt:** Der Pages-Build rendert freigegebene, committete Drafts mit Review, Factsheet, TEI und PDF. Draft-Kennzeichnung, `noindex` und die Trennung von Issue-Listen, Suche, Feeds, Sitemap, OAI-PMH, Korpusdaten und Redirects bleiben erhalten. README, Pipeline, Workflow und URL-Vertrag beschreiben die öffentliche Beispielvorschau sowie die tatsächliche statische OAI-Ausgabe.
-**Entscheidungen:** Die drei Self-Audits dürfen öffentlich als Workflowbeispiele erscheinen. Vertrauliche künftige Reviews bleiben im privaten Redaktionskontext und benötigen weiterhin einen geschützten Vorschaukanal.
-**Offen:** Remote-CI, GitHub-Pages-Deployment und die vier Artefaktlinks je Review müssen nach dem Push geprüft werden. Die tatsächliche externe Nutzung des bisherigen OAI-Endpunkts bleibt ungeklärt.
-**Nächster Einstieg:** Arbeitsstand committen und pushen, den Pages-Lauf abwarten und Review, Factsheet, TEI sowie PDF aller drei Beispiele über ihre öffentlichen URLs öffnen.
+**Erledigt:** Der Pages-Build rendert die drei freigegebenen Drafts mit Review, Factsheet, TEI und PDF. CI und Deployment liefen erfolgreich; alle zwölf Artefakt-URLs sowie der Draft-Index antworten öffentlich. Die visuelle Browserprüfung bestätigte Layout, Artefaktnavigation und Draft-Kennzeichnung. Der dabei sichtbare falsche Hinweis auf ausschließlich lokale Nutzung wurde im aktuellen Stand korrigiert. `noindex` und die Trennung von Issue-Listen, Suche, Feeds, Sitemap, OAI-PMH, Korpusdaten und Redirects bleiben erhalten. README, Pipeline, Workflow und URL-Vertrag beschreiben die öffentliche Beispielvorschau sowie die tatsächliche statische OAI-Ausgabe.
+**Entscheidungen:** Die drei Self-Audits dürfen öffentlich als Workflowbeispiele erscheinen. Vertrauliche künftige Reviews bleiben im privaten Redaktionskontext und benötigen weiterhin einen geschützten Vorschaukanal. Wenn WeasyPrint 69 bei historischen Tabellen ausschließlich an PDF-Struktur-Tags scheitert, erzeugt der Build die vollständige PDF ohne Tags und meldet den Fallback; andere PDF-Fehler bleiben blockierend.
+**Offen:** Die tatsächliche externe Nutzung des bisherigen OAI-Endpunkts bleibt ungeklärt. Für vertrauliche Reviews fehlen weiterhin ein geschützter Hosting-Kanal und eine festgelegte Freigabeverantwortung.
+**Nächster Einstieg:** Den geschützten Vorschaukanal für vertrauliche Reviews anhand der in [[pipeline#4. Pre-Publication Preview (Staging)]] festgehaltenen Grenzen konkretisieren.
 
 ## 2026-08-23 — Vollständigen Draft-Prüfpfad überarbeitet und verifiziert
 

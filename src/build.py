@@ -737,7 +737,7 @@ def _print_build_summary(
     if wordclouds:
         print(f"Wordclouds: {wordclouds} generated from review bundles")
     if drafts:
-        print(f"Draft previews: {drafts} rendered locally")
+        print(f"Draft previews: {drafts} rendered")
     print("Wrote api/build-info.json")
 
     _print_asset_summary(asset_reports)
