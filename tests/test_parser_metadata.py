@@ -8,11 +8,14 @@ related items.
 A separate smoke test parses a real RIDE review when the in-repo
 corpus is present.
 """
+
 from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
-from src.model.review import Affiliation, Author, Editor, Person, RelatedItem, Review
+from src.model.review import Affiliation, Author, RelatedItem, Review
 from src.parser.review import parse_review
 from src._corpus import find_tei
 from tests._shared import iter_tei_files, needs_corpus

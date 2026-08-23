@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-06-12
+updated: 2026-08-22
 version: 0.2
 topics:
   - "[[Requirements Engineering]]"
@@ -76,6 +76,8 @@ Die folgenden sechs Entscheidungen liegen allen Anforderungen zugrunde und sind 
 **A5 Maschinenschnittstellen.** Ein statischer OAI-PMH-Snapshot wird zusammen mit einem moderneren Pfad bereitgestellt — JSON-LD pro Seite, vollständiger Korpus-Dump als JSON, Sitemap mit `schema.org/ScholarlyArticle`-Markup.
 
 **A6 PDF-Pfad.** Phase 8 liefert HTML; das bestehende PDF läuft als Übergangslösung weiter. Phase 14 implementiert PDF aus dem Domänenmodell über WeasyPrint mit eigenem Print-Stylesheet. Das Domänenmodell wird ab Phase 1 mit beiden Renderings im Blick entworfen — siehe [[architecture#Domain model]] und [[pipeline#Phasenplan]].
+
+**A7 Review-Bundle und Draft-Status.** Neue Reviews können als Ordner mit `review.xml` und `pictures/` eingehen. `revisionDesc/@status` führt den Workflowzustand. Drafts dürfen ohne DOI lokal gerendert werden und bleiben aus allen öffentlichen Seiten, Aggregationen und Maschinenschnittstellen ausgeschlossen. Veröffentlichte Reviews benötigen einen registrierten DOI und eine dazu passende `xml:id`. Das Legacy-Layout bleibt lesbar.
 
 ## 5. Funktionale Anforderungen
 

@@ -23,6 +23,7 @@ Usage:
     python -m src.build --matomo-url … --matomo-site-id …   # emit the cookieless tracker snippet
     python -m src.build --reviews 5               # build only the first N reviews — for quick iteration
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,16 +34,17 @@ from typing import Iterable, Optional
 
 import yaml
 
+from src._corpus import is_review_bundle, iter_tei_files
 from src.model.review import Review
 from src.parser.assets import AssetReport, rewrite_figure_assets
 from src.parser.datasets import (
-    aggregate_reviewed_resources,
     aggregate_reviewers,
     aggregate_tags,
 )
 from src.parser.page import discover_pages
 from src.parser.review import parse_review
 from src.render.aggregations import (
+    render_drafts,
     render_explore,
     render_index,
     render_issue,
@@ -73,10 +75,15 @@ from src.render.oai_pmh import write_oai_pmh
 from src.render.page import render_page
 from src.render.redirects import write_redirects
 from src.render.sitemap import build_sitemap, collect_entries
-from src.validate import validate_corpus
+from src.validate import ValidationReport, validate_corpus
 
 CONTENT_DIR = REPO_ROOT / "content"
 STRINGS_PATH = CONTENT_DIR / "strings.yaml"
+
+
+class BuildFailure(RuntimeError):
+    """Raised after the build report records one or more hard failures."""
+
 
 # Vocabulary of localisable UI-string keys the templates consume via
 # ``site.strings.<key> | default('…')`` or ``strings.get('<key>', '…')``.
@@ -85,18 +92,54 @@ STRINGS_PATH = CONTENT_DIR / "strings.yaml"
 #   grep -rhoE "strings\.get\('[a-z_]+'|strings\.[a-z_]+" templates/html
 # and reconcile; tests/test_strings_config.py greps the real templates
 # and fails if this constant drifts from them.
-STRING_KEYS: frozenset[str] = frozenset({
-    "abstract", "accessed", "amendment_original", "amendments", "apparate",
-    "back_to_review", "cite", "cite_note", "contact", "copy_bibtex",
-    "copy_csl", "criteria", "doi", "download_pdf", "download_tei",
-    "edited_by", "editors", "explanation", "factsheet", "factsheet_link",
-    "figure_default", "figures", "full_factsheet", "imprint", "issue",
-    "last_accessed", "last_updated", "licence", "licence_short",
-    "main_navigation", "meta", "not_answered", "not_evaluated", "notes",
-    "people", "published", "questionnaire", "references", "reviewed_by",
-    "reviewed_resource", "sidebar", "skip_to_content", "tags", "title",
-    "toc", "uri",
-})
+STRING_KEYS: frozenset[str] = frozenset(
+    {
+        "abstract",
+        "accessed",
+        "amendment_original",
+        "amendments",
+        "apparate",
+        "back_to_review",
+        "cite",
+        "cite_note",
+        "contact",
+        "copy_bibtex",
+        "copy_csl",
+        "criteria",
+        "doi",
+        "edited_by",
+        "editors",
+        "explanation",
+        "factsheet",
+        "answer",
+        "figure_default",
+        "figures",
+        "full_factsheet",
+        "imprint",
+        "issue",
+        "last_accessed",
+        "last_updated",
+        "licence",
+        "licence_short",
+        "main_navigation",
+        "meta",
+        "not_answered",
+        "not_evaluated",
+        "notes",
+        "people",
+        "published",
+        "questionnaire",
+        "references",
+        "reviewed_by",
+        "reviewed_resource",
+        "sidebar",
+        "skip_to_content",
+        "tags",
+        "title",
+        "toc",
+        "uri",
+    }
+)
 
 
 def _load_strings(path: Path = STRINGS_PATH) -> dict:
@@ -175,6 +218,7 @@ def _parse_one(
     path: Path,
     out_root: Path,
     ride_root: Path,
+    include_drafts: bool,
 ) -> tuple[Review, AssetReport]:
     """Parse one TEI file and copy its figures.
 
@@ -183,7 +227,13 @@ def _parse_one(
     page sees the populated Issues dropdown.
     """
     review = parse_review(path)
-    review, report = rewrite_figure_assets(review, ride_root=ride_root, site_root=out_root)
+    review, report = rewrite_figure_assets(
+        review,
+        ride_root=ride_root,
+        site_root=out_root,
+        copy=include_drafts or not review.is_draft,
+        source_path=path,
+    )
     return review, report
 
 
@@ -193,19 +243,31 @@ def _render_review(
     env,
     site: SiteConfig,
     out_root: Path,
+    pdf_available: bool,
 ) -> None:
     """Write a parsed Review to ``site/issues/{N}/{id}/`` plus its TEI."""
     page_dir = out_root / "issues" / (review.issue or "0") / (review.id or path.stem)
     page_dir.mkdir(parents=True, exist_ok=True)
 
-    html = render_review(review, site=site, env=env)
+    html = render_review(
+        review,
+        site=site,
+        env=env,
+        pdf_available=pdf_available,
+    )
     (page_dir / "index.html").write_text(html, encoding="utf-8")
 
     # Factsheet full page (R18) — /issues/{N}/{id}/factsheet/index.html.
     factsheet_dir = page_dir / "factsheet"
     factsheet_dir.mkdir(parents=True, exist_ok=True)
     (factsheet_dir / "index.html").write_text(
-        render_factsheet(review, site=site, env=env), encoding="utf-8"
+        render_factsheet(
+            review,
+            site=site,
+            env=env,
+            pdf_available=pdf_available,
+        ),
+        encoding="utf-8",
     )
 
     # Drop the original TEI alongside, per specification.md R3 (download).
@@ -267,9 +329,7 @@ def _render_editorials(
     def _chart_for(slug: str) -> str:
         nonlocal chart_html
         if slug == "data/charts" and parsed and not chart_html:
-            chart_html = render_charts_block(
-                tuple(r for _, r in parsed), parsed_paths=parsed
-            )
+            chart_html = render_charts_block(tuple(r for _, r in parsed), parsed_paths=parsed)
         return chart_html if slug == "data/charts" else ""
 
     def _questionnaires_for(slug: str) -> str:
@@ -319,6 +379,50 @@ def _copy_static(out_root: Path) -> None:
         shutil.copytree(STATIC_DIR, target)
 
 
+def _remove_excluded_draft_outputs(
+    parsed: list[tuple[Path, Review]],
+    out_root: Path,
+) -> None:
+    """Remove stale local draft pages and generated assets before publication."""
+    resolved_root = out_root.resolve()
+    for _, review in parsed:
+        if not review.is_draft:
+            continue
+        targets = (
+            out_root / "issues" / review.issue / review.id,
+            out_root / "static" / "images" / "wordclouds" / f"{review.id}.png",
+            out_root / "drafts",
+        )
+        for target in targets:
+            resolved_target = target.resolve()
+            try:
+                resolved_target.relative_to(resolved_root)
+            except ValueError as exc:
+                raise ValueError(f"Draft output escapes site root: {resolved_target}") from exc
+            if resolved_target.is_dir():
+                shutil.rmtree(resolved_target)
+            elif resolved_target.is_file():
+                resolved_target.unlink()
+
+
+def _generate_bundle_wordclouds(
+    parsed: list[tuple[Path, Review]],
+    out_root: Path,
+) -> tuple[Path, ...]:
+    """Generate deterministic wordclouds for every included review bundle."""
+    bundles = [(path, review) for path, review in parsed if is_review_bundle(path)]
+    if not bundles:
+        return ()
+
+    from scripts.wordclouds import run as generate_wordcloud
+
+    out_dir = out_root / "static" / "images" / "wordclouds"
+    generated: list[Path] = []
+    for path, _ in bundles:
+        generated.append(generate_wordcloud(path, out_dir))
+    return tuple(generated)
+
+
 def _render_aggregations(
     reviews: tuple[Review, ...],
     env,
@@ -326,6 +430,7 @@ def _render_aggregations(
     out_root: Path,
     issue_configs: Optional[dict] = None,
     home_widgets: Optional[list] = None,
+    wordcloud_dir: Optional[Path] = None,
 ) -> int:
     """Build every aggregation page — home, issues, tags, reviewers, resources.
 
@@ -357,7 +462,14 @@ def _render_aggregations(
         d = issues_dir / issue_no
         d.mkdir(parents=True, exist_ok=True)
         (d / "index.html").write_text(
-            render_issue(issue_no, reviews, site=site, env=env, config=configs.get(issue_no)),
+            render_issue(
+                issue_no,
+                reviews,
+                site=site,
+                env=env,
+                config=configs.get(issue_no),
+                wordcloud_dir=wordcloud_dir or STATIC_DIR / "images" / "wordclouds",
+            ),
             encoding="utf-8",
         )
         pages += 1
@@ -423,7 +535,7 @@ def _render_aggregations(
 
 
 def _iter_corpus(corpus_dir: Path, limit: Optional[int]) -> Iterable[Path]:
-    files = sorted(corpus_dir.glob("**/*-tei.xml"))
+    files = list(iter_tei_files(corpus_dir))
     return files[:limit] if limit else files
 
 
@@ -431,6 +543,7 @@ def _run_parse_pass(
     corpus_dir: Path,
     limit: Optional[int],
     out_root: Path,
+    include_drafts: bool,
 ) -> tuple[list[tuple[Path, Review]], list[AssetReport], list[tuple[Path, Exception]]]:
     """Walk every TEI under ``issues/{N}/reviews/``, parse it, and copy
     its referenced figures. Per-file failures are collected, not raised,
@@ -444,7 +557,12 @@ def _run_parse_pass(
     failed: list[tuple[Path, Exception]] = []
     for path in _iter_corpus(corpus_dir, limit):
         try:
-            review, report = _parse_one(path, out_root, ride_root=RIDE_ROOT)
+            review, report = _parse_one(
+                path,
+                out_root,
+                ride_root=RIDE_ROOT,
+                include_drafts=include_drafts,
+            )
             parsed.append((path, review))
             asset_reports.append(report)
         except Exception as exc:  # noqa: BLE001 — keep building on per-file failure
@@ -473,9 +591,9 @@ def _check_corpus_consistency(
       page URL and collides downstream — a hard error.
     - **Issue YAML ↔ corpus** (R11). Per-issue ``metadata.yaml`` must
       agree with what the TEI corpus actually contains.
-    - **Duplicate review DOIs** (warning). Two reviews claiming one DOI is
-      a mis-registration only the editors can resolve against the DOI
-      registry, so the build warns rather than blocks.
+    - **Duplicate review DOIs.** Two reviews claiming one DOI would overwrite
+      the same output path and publish contradictory identifiers, so the build
+      stops before rendering.
     """
     location_errors = validate_review_locations(parsed)
     if location_errors:
@@ -487,25 +605,21 @@ def _check_corpus_consistency(
     id_errors = validate_review_ids(parsed)
     if id_errors:
         raise IssueConfigError(
-            "review xml:id does not match its registered DOI:\n  - "
-            + "\n  - ".join(id_errors)
+            "review xml:id does not match its registered DOI:\n  - " + "\n  - ".join(id_errors)
         )
 
     duplicate_dois = find_duplicate_review_dois(parsed)
     if duplicate_dois:
-        print(
-            "WARNING: reviews share a DOI — editorial fix needed "
-            "(one page is overwritten if the issue also matches):\n  - "
+        raise IssueConfigError(
+            "reviews share a DOI and would overwrite one output path:\n  - "
             + "\n  - ".join(duplicate_dois),
-            file=sys.stderr,
         )
 
     issue_configs = discover_issue_configs()
     issue_errors = validate_issue_configs(issue_configs, rendered)
     if issue_errors:
         raise IssueConfigError(
-            "issue YAML and TEI corpus disagree:\n  - "
-            + "\n  - ".join(issue_errors)
+            "issue YAML and TEI corpus disagree:\n  - " + "\n  - ".join(issue_errors)
         )
     return issue_configs
 
@@ -516,6 +630,7 @@ def _run_render_pass(
     site: SiteConfig,
     out_root: Path,
     failed: list[tuple[Path, Exception]],
+    pdf_available: bool,
 ) -> None:
     """Render every parsed Review to its per-review page. Per-file render
     failures are appended to ``failed`` (mutated in place) so the build
@@ -523,7 +638,14 @@ def _run_render_pass(
     """
     for path, review in parsed:
         try:
-            _render_review(path, review, env, site, out_root)
+            _render_review(
+                path,
+                review,
+                env,
+                site,
+                out_root,
+                pdf_available=pdf_available,
+            )
         except Exception as exc:  # noqa: BLE001
             failed.append((path, exc))
             print(f"render failed: {path.name}: {exc}", file=sys.stderr)
@@ -542,7 +664,7 @@ def _run_validation_layer(
     validation_report = None
     if validate:
         try:
-            validation_report = validate_corpus(corpus_dir, RIDE_ROOT / "schema" / "ride.rng")
+            validation_report = validate_corpus(corpus_dir, REPO_ROOT / "schema" / "ride.rng")
         except FileNotFoundError as exc:
             print(f"validation skipped: {exc}", file=sys.stderr)
 
@@ -572,6 +694,8 @@ def _print_build_summary(
     pdf_count: int,
     pdf_failed: list,
     asset_reports: list,
+    wordclouds: int,
+    drafts: int,
 ) -> None:
     """Print the one-line-per-artefact summary to stdout, plus per-review
     failure detail to stderr. All files are already written; this only
@@ -610,9 +734,41 @@ def _print_build_summary(
         )
     if pdf:
         print(f"PDF: {pdf_count} rendered, {len(pdf_failed)} failed")
+    if wordclouds:
+        print(f"Wordclouds: {wordclouds} generated from review bundles")
+    if drafts:
+        print(f"Draft previews: {drafts} rendered locally")
     print("Wrote api/build-info.json")
 
     _print_asset_summary(asset_reports)
+
+
+def _raise_for_hard_failures(
+    *,
+    failed: list[tuple[Path, Exception]],
+    validation_report: Optional[ValidationReport],
+    asset_reports: list[AssetReport],
+    pdf_failed: list[tuple[str, str]],
+) -> None:
+    """Fail CI after all actionable diagnostics have been collected."""
+    messages: list[str] = []
+    for path, exc in failed:
+        messages.append(f"{path.as_posix()}: {exc}")
+    if validation_report:
+        for finding in validation_report.findings:
+            if finding.severity == "error":
+                messages.append(f"{finding.file}:{finding.line}: {finding.message}")
+    for report in asset_reports:
+        if not report.bundle:
+            continue
+        for url in report.missing:
+            messages.append(f"{report.review_id}: missing bundle asset {url}")
+        for url in report.unparseable:
+            messages.append(f"{report.review_id}: bundle figure must use pictures/...: {url}")
+    for review_id, error in pdf_failed:
+        messages.append(f"{review_id}: {error}")
+    if messages:
+        raise BuildFailure("Build completed with hard failures:\n  - " + "\n  - ".join(messages))
 
 
 def build(
@@ -625,14 +781,18 @@ def build(
     matomo_url: str = "",
     matomo_site_id: str = "",
     pdf: bool = False,
+    pdf_drafts_only: bool = False,
     tei_editorials: bool = True,
+    include_drafts: bool = False,
 ) -> int:
-    """Run the build. Returns the number of review pages written.
+    """Run the build and return the number of review pages written.
 
     The flow is parse → consistency-check → render → aux-pages →
     machine-artefacts → optional-PDF → validation-layer → summary. Each
-    step is a named helper so this function reads as a sequence and not
-    as a script.
+    step is a named helper. Drafts are parsed and validated in every run,
+    but are rendered only when ``include_drafts`` is true. Public
+    aggregations and machine-readable outputs always receive published
+    reviews exclusively.
     """
     if not corpus_dir.exists():
         raise FileNotFoundError(
@@ -649,58 +809,109 @@ def build(
     env = make_env()
 
     # Parse every TEI; collect Reviews, asset reports, and parse failures.
-    parsed, asset_reports, failed = _run_parse_pass(corpus_dir, limit, out_root)
-    rendered = tuple(r for _, r in parsed)
+    parsed, asset_reports, failed = _run_parse_pass(
+        corpus_dir,
+        limit,
+        out_root,
+        include_drafts,
+    )
+    published_parsed = [(path, review) for path, review in parsed if not review.is_draft]
+    published = tuple(review for _, review in published_parsed)
+    preview_parsed = parsed if include_drafts else published_parsed
+    preview_reviews = tuple(review for _, review in preview_parsed)
+    draft_count = sum(review.is_draft for _, review in parsed)
 
     # Consistency: folder ↔ biblScope @n; issue YAML ↔ corpus. Hard errors.
-    issue_configs = _check_corpus_consistency(parsed, rendered)
+    issue_configs = _check_corpus_consistency(parsed, published)
 
     # Navigation YAML resolved against the parsed corpus, then re-bound
     # onto site so every subsequent render call sees the populated Issues
     # dropdown.
-    site = _site_with_navigation(site, rendered)
+    site = _site_with_navigation(site, published)
 
     # Per-review HTML — render failures append to `failed`.
-    _run_render_pass(parsed, env, site, out_root, failed)
+    if not include_drafts:
+        _remove_excluded_draft_outputs(parsed, out_root)
+    _run_render_pass(
+        preview_parsed,
+        env,
+        site,
+        out_root,
+        failed,
+        pdf_available=pdf,
+    )
 
     # Editorial pages, aggregation pages, static asset tree.
     editorials = _render_editorials(
-        env, site, out_root, parsed=parsed, tei_editorials=tei_editorials
+        env,
+        site,
+        out_root,
+        parsed=published_parsed,
+        tei_editorials=tei_editorials,
     )
     home_widgets = discover_home_widgets()
+    _copy_static(out_root)
+    wordclouds = _generate_bundle_wordclouds(preview_parsed, out_root)
     aggregations = _render_aggregations(
-        rendered, env, site, out_root,
+        published,
+        env,
+        site,
+        out_root,
         issue_configs=issue_configs,
         home_widgets=home_widgets,
+        wordcloud_dir=out_root / "static" / "images" / "wordclouds",
     )
-    _copy_static(out_root)
+    if include_drafts:
+        drafts_dir = out_root / "drafts"
+        drafts_dir.mkdir(parents=True, exist_ok=True)
+        (drafts_dir / "index.html").write_text(
+            render_drafts(
+                preview_reviews,
+                site=site,
+                env=env,
+                wordcloud_dir=out_root / "static" / "images" / "wordclouds",
+                pdf_available=pdf,
+            ),
+            encoding="utf-8",
+        )
+        aggregations += 1
 
     # Machine-readable artefacts and legacy-URL redirects.
-    sitemap_written = _write_sitemap(rendered, site, out_root)
-    feed_written = _write_atom_feed(rendered, site, out_root)
-    rss_written = _write_rss_feed(rendered, site, out_root)
-    rdf_written = _write_rdf_feed(rendered, site, out_root)
+    sitemap_written = _write_sitemap(published, site, out_root)
+    feed_written = _write_atom_feed(published, site, out_root)
+    rss_written = _write_rss_feed(published, site, out_root)
+    rdf_written = _write_rdf_feed(published, site, out_root)
     feed_aliases = _write_legacy_feed_aliases(out_root)
-    _write_corpus_dump(rendered, site, out_root)
-    oai_files = _write_oai_pmh_snapshot(rendered, site, out_root)
-    redirect_count = write_redirects(rendered, out_root, base_url=site.base_url)
+    _write_corpus_dump(published, site, out_root)
+    oai_files = _write_oai_pmh_snapshot(published, site, out_root)
+    redirect_count = write_redirects(published, out_root, base_url=site.base_url)
 
-    # Optional PDF pass (Phase 14). Skipped silently when WeasyPrint is
-    # unavailable on the host (typical Windows dev).
-    pdf_count, pdf_failed = _render_pdfs(parsed, out_root) if pdf else (0, [])
+    # Optional PDF pass (Phase 14). Requested PDF failures are collected,
+    # written to build-info.json, and fail the build after the summary.
+    pdf_parsed = (
+        [(path, review) for path, review in preview_parsed if review.is_draft]
+        if pdf_drafts_only
+        else preview_parsed
+    )
+    pdf_count, pdf_failed = _render_pdfs(pdf_parsed, out_root) if pdf else (0, [])
 
     # Validation + linkcheck + aggregated build-info.json (Phase 13).
     validation_report, link_report = _run_validation_layer(
-        corpus_dir, rendered, validate, linkcheck
+        corpus_dir, published, validate, linkcheck
     )
     _write_build_info(
         out_root=out_root,
         site=site,
-        reviews=rendered,
+        reviews=published,
         asset_reports=asset_reports,
         failed=failed,
+        drafts_discovered=draft_count,
+        drafts_rendered=draft_count if include_drafts else 0,
         validation_report=validation_report,
         link_report=link_report,
+        pdf_requested=pdf,
+        pdf_rendered=pdf_count,
+        pdf_failed=pdf_failed,
     )
 
     _print_build_summary(
@@ -720,9 +931,18 @@ def build(
         pdf_count=pdf_count,
         pdf_failed=pdf_failed,
         asset_reports=asset_reports,
+        wordclouds=len(wordclouds),
+        drafts=draft_count if include_drafts else 0,
     )
 
-    return len(rendered)
+    _raise_for_hard_failures(
+        failed=failed,
+        validation_report=validation_report,
+        asset_reports=asset_reports,
+        pdf_failed=pdf_failed,
+    )
+
+    return len(preview_reviews)
 
 
 def _render_pdfs(
@@ -776,8 +996,13 @@ def _write_build_info(
     reviews: tuple,
     asset_reports: list,
     failed: list,
+    drafts_discovered: int = 0,
+    drafts_rendered: int = 0,
     validation_report=None,
     link_report=None,
+    pdf_requested: bool = False,
+    pdf_rendered: int = 0,
+    pdf_failed: tuple[tuple[str, str], ...] | list[tuple[str, str]] = (),
 ) -> None:
     """Write ``site/api/build-info.json`` — N7 aggregated build report.
 
@@ -806,15 +1031,30 @@ def _write_build_info(
             "date": _build_date(site),
         },
         "reviews": {
-            "rendered": len(reviews),
-            "failed": [
-                {"file": str(p.name), "error": str(exc)} for p, exc in failed
-            ],
+            "rendered": len(reviews) + drafts_rendered,
+            "published": len(reviews),
+            "drafts_discovered": drafts_discovered,
+            "drafts_rendered": drafts_rendered,
+            "failed": [{"file": str(p.name), "error": str(exc)} for p, exc in failed],
         },
         "assets": {
             "copied": sum(len(r.copied) for r in asset_reports),
             "missing": sum(len(r.missing) for r in asset_reports),
             "unparseable": sum(len(r.unparseable) for r in asset_reports),
+            "bundle_errors": [
+                {
+                    "review_id": report.review_id,
+                    "missing": list(report.missing),
+                    "unparseable": list(report.unparseable),
+                }
+                for report in asset_reports
+                if report.bundle and (report.missing or report.unparseable)
+            ],
+        },
+        "pdf": {
+            "requested": pdf_requested,
+            "rendered": pdf_rendered,
+            "failed": [{"review_id": review_id, "error": error} for review_id, error in pdf_failed],
         },
         "validation": validation_report.to_dict() if validation_report else None,
         "linkcheck": link_report.to_dict() if link_report else None,
@@ -826,9 +1066,7 @@ def _write_build_info(
     )
 
 
-def _write_oai_pmh_snapshot(
-    reviews: tuple[Review, ...], site: SiteConfig, out_root: Path
-) -> int:
+def _write_oai_pmh_snapshot(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> int:
     """Write the OAI-PMH snapshot under ``site/oai/`` if ``base_url`` is set.
 
     Like the sitemap, OAI-PMH identifiers and ``baseURL`` need an
@@ -838,9 +1076,7 @@ def _write_oai_pmh_snapshot(
     if not site.base_url:
         return 0
     build_date = _build_date(site)
-    return write_oai_pmh(
-        reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
-    )
+    return write_oai_pmh(reviews, base_url=site.base_url, out_root=out_root, build_date=build_date)
 
 
 def _write_corpus_dump(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> None:
@@ -902,9 +1138,7 @@ def _write_atom_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pa
 
     build_date = _build_date(site)
     return bool(
-        write_atom_feed(
-            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
-        )
+        write_atom_feed(reviews, base_url=site.base_url, out_root=out_root, build_date=build_date)
     )
 
 
@@ -915,9 +1149,7 @@ def _write_rss_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pat
 
     build_date = _build_date(site)
     return bool(
-        write_rss_feed(
-            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
-        )
+        write_rss_feed(reviews, base_url=site.base_url, out_root=out_root, build_date=build_date)
     )
 
 
@@ -928,9 +1160,7 @@ def _write_rdf_feed(reviews: tuple[Review, ...], site: SiteConfig, out_root: Pat
 
     build_date = _build_date(site)
     return bool(
-        write_rdf_feed(
-            reviews, base_url=site.base_url, out_root=out_root, build_date=build_date
-        )
+        write_rdf_feed(reviews, base_url=site.base_url, out_root=out_root, build_date=build_date)
     )
 
 
@@ -946,15 +1176,14 @@ def _print_asset_summary(reports: list[AssetReport]) -> None:
     """Aggregate per-review AssetReports into one build-summary line.
 
     Per-review missing/unparseable lists go to stderr so CI surfaces them
-    without polluting the success output. Phase 13 will turn this into
-    structured warnings tied to the validation pipeline.
+    without polluting the success output. New-bundle findings are also
+    recorded as hard failures; historical asset findings remain warnings.
     """
     total_copied = sum(len(r.copied) for r in reports)
     total_missing = sum(len(r.missing) for r in reports)
     total_unparseable = sum(len(r.unparseable) for r in reports)
     print(
-        f"Assets: copied {total_copied}, "
-        f"missing {total_missing}, unparseable {total_unparseable}"
+        f"Assets: copied {total_copied}, missing {total_missing}, unparseable {total_unparseable}"
     )
     for report in reports:
         if report.missing or report.unparseable:
@@ -966,30 +1195,78 @@ def _print_asset_summary(reports: list[AssetReport]) -> None:
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Build the ride.i-d-e.de static site.")
-    parser.add_argument("--reviews", type=int, default=None, help="Limit to first N reviews (for iteration)")
-    parser.add_argument("--base-url", default="", help="Deploy URL prefix; empty for relative paths")
-    parser.add_argument("--pdf", action="store_true", help="Render a PDF next to every review's HTML via WeasyPrint")
-    parser.add_argument("--no-validate", action="store_true", help="Skip the RelaxNG validation pre-check")
-    parser.add_argument("--linkcheck", action="store_true", help="Probe external bibliography URLs (slow ~5min, off by default)")
-    parser.add_argument("--matomo-url", default="", help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking")
-    parser.add_argument("--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set")
-    parser.add_argument("--no-tei-editorials", action="store_false", dest="tei_editorials", help="Fall back to the legacy content/*.md Markdown editorials. By default the build renders the pages/*.xml TEI editorials with precedence (Markdown remains the fallback for slugs no TEI page covers).")
+    parser.add_argument(
+        "--reviews", type=int, default=None, help="Limit to first N reviews (for iteration)"
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=SITE_DIR,
+        help="Output directory; defaults to site/.",
+    )
+    parser.add_argument(
+        "--base-url", default="", help="Deploy URL prefix; empty for relative paths"
+    )
+    parser.add_argument(
+        "--pdf", action="store_true", help="Render a PDF next to every review's HTML via WeasyPrint"
+    )
+    parser.add_argument(
+        "--pdf-drafts-only",
+        action="store_true",
+        help="With --include-drafts --pdf, render PDFs only for draft reviews.",
+    )
+    parser.add_argument(
+        "--include-drafts",
+        action="store_true",
+        help="Render marked draft preview pages; formal publication outputs still exclude drafts",
+    )
+    parser.add_argument(
+        "--no-validate", action="store_true", help="Skip the RelaxNG validation pre-check"
+    )
+    parser.add_argument(
+        "--linkcheck",
+        action="store_true",
+        help="Probe external bibliography URLs (slow ~5min, off by default)",
+    )
+    parser.add_argument(
+        "--matomo-url",
+        default="",
+        help="Matomo tracker URL (e.g. https://matomo.example.org/); empty disables tracking",
+    )
+    parser.add_argument(
+        "--matomo-site-id", default="", help="Matomo site id; required when --matomo-url is set"
+    )
+    parser.add_argument(
+        "--no-tei-editorials",
+        action="store_false",
+        dest="tei_editorials",
+        help="Fall back to the legacy content/*.md Markdown editorials. By default the build renders the pages/*.xml TEI editorials with precedence (Markdown remains the fallback for slugs no TEI page covers).",
+    )
     args = parser.parse_args(argv)
 
     if bool(args.matomo_url) != bool(args.matomo_site_id):
         parser.error("--matomo-url and --matomo-site-id must be set together")
+    if args.pdf_drafts_only and not (args.pdf and args.include_drafts):
+        parser.error("--pdf-drafts-only requires --pdf and --include-drafts")
 
-    written = build(
-        limit=args.reviews,
-        base_url=args.base_url,
-        validate=not args.no_validate,
-        linkcheck=args.linkcheck,
-        matomo_url=args.matomo_url,
-        matomo_site_id=args.matomo_site_id,
-        pdf=args.pdf,
-        tei_editorials=args.tei_editorials,
-    )
-    print(f"Wrote {written} review pages to {SITE_DIR}")
+    try:
+        written = build(
+            out_root=args.output,
+            limit=args.reviews,
+            base_url=args.base_url,
+            validate=not args.no_validate,
+            linkcheck=args.linkcheck,
+            matomo_url=args.matomo_url,
+            matomo_site_id=args.matomo_site_id,
+            pdf=args.pdf,
+            pdf_drafts_only=args.pdf_drafts_only,
+            tei_editorials=args.tei_editorials,
+            include_drafts=args.include_drafts,
+        )
+    except BuildFailure as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    print(f"Wrote {written} review pages to {args.output}")
     return 0
 
 

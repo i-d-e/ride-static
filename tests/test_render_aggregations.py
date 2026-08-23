@@ -11,6 +11,7 @@ deterministic. Authors are metadata value objects, outside the
 Section/Block parser surface the hard rule targets. A real-corpus
 integration test at the bottom drives a full issue end to end.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -25,6 +26,7 @@ from src.parser.datasets import (
 from src.render.aggregations import (
     _issue_sort_key,
     group_reviews_by_issue,
+    render_drafts,
     render_explore,
     render_index,
     render_issue,
@@ -88,12 +90,39 @@ def reviews(corpus_review):
     """A small but varied corpus: two issues, two authors, three tags —
     each review a real parse with pinned top-level metadata."""
     return (
-        _review(corpus_review, "ride.13.7", "13", "First Review", "2026-04-29",
-                ("editions", "tei"), "Jane Reviewer", "Reviewer", "Jane"),
-        _review(corpus_review, "ride.13.8", "13", "Second Review", "2026-04-15",
-                ("tei", "xml"), "John Other", "Other", "John"),
-        _review(corpus_review, "ride.12.3", "12", "Older Review", "2025-10-01",
-                ("editions",), "Jane Reviewer", "Reviewer", "Jane"),
+        _review(
+            corpus_review,
+            "ride.13.7",
+            "13",
+            "First Review",
+            "2026-04-29",
+            ("editions", "tei"),
+            "Jane Reviewer",
+            "Reviewer",
+            "Jane",
+        ),
+        _review(
+            corpus_review,
+            "ride.13.8",
+            "13",
+            "Second Review",
+            "2026-04-15",
+            ("tei", "xml"),
+            "John Other",
+            "Other",
+            "John",
+        ),
+        _review(
+            corpus_review,
+            "ride.12.3",
+            "12",
+            "Older Review",
+            "2025-10-01",
+            ("editions",),
+            "Jane Reviewer",
+            "Reviewer",
+            "Jane",
+        ),
     )
 
 
@@ -153,6 +182,30 @@ def test_render_issue_lists_only_that_issue(reviews, env):
     assert "Issue 13" in html
 
 
+def test_render_drafts_lists_only_drafts_with_noindex(reviews, env, tmp_path):
+    draft = dataclasses.replace(reviews[0], publication_status="draft", id="draft.sample")
+    wordcloud = tmp_path / "draft.sample.png"
+    wordcloud.write_bytes(b"png")
+
+    html = render_drafts(
+        (*reviews, draft),
+        _site(),
+        env,
+        wordcloud_dir=tmp_path,
+        pdf_available=True,
+    )
+
+    assert "Review workflow examples" in html
+    assert 'name="robots" content="noindex, nofollow"' in html
+    assert "draft.sample" in html
+    assert "draft.sample.png" in html
+    assert "Second Review" not in html
+    assert 'aria-label="Review files"' in html
+    assert "/issues/13/draft.sample/factsheet/" in html
+    assert "/issues/13/draft.sample/draft.sample.xml" in html
+    assert "/issues/13/draft.sample/draft.sample.pdf" in html
+
+
 # ── render_tags ───────────────────────────────────────────────────────
 
 
@@ -185,7 +238,7 @@ def test_render_reviewers_overview_alphabetical(reviews, env):
     # Sort by surname: Other before Reviewer
     assert html.index("John Other") < html.index("Jane Reviewer")
     assert "2 reviews" in html  # Jane has two
-    assert "1 review" in html   # John has one — singular
+    assert "1 review" in html  # John has one — singular
 
 
 def test_render_reviewer_lists_their_reviews(reviews, env):

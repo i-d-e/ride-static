@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">SZD-HTR workflow and audit findings</title>
+  <desc id="desc">Architecture diagram showing TEI metadata and facsimile references flowing through a VLM transcription pipeline into Page-JSON, the viewer and editorial workspace, and archival exports. Three audit findings mark approval promotion, invalid CER cohort mixing, and incomplete export coverage.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#526271"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f4ec; }
+      .heading { fill: #182a39; font-family: Arial, Helvetica, sans-serif; font-size: 34px; font-weight: 700; }
+      .subheading { fill: #526271; font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 400; }
+      .box { fill: #ffffff; stroke: #8c9aa6; stroke-width: 2; rx: 14; }
+      .box-title { fill: #182a39; font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: 700; }
+      .box-text { fill: #344957; font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 400; }
+      .small { fill: #526271; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 400; }
+      .layer { fill: #edf3f5; stroke: #b7c4cc; stroke-width: 1.5; rx: 8; }
+      .output { fill: #eef5ee; stroke: #6f9274; stroke-width: 2; rx: 12; }
+      .audit { fill: #fff5e6; stroke: #bc6c25; stroke-width: 2; rx: 12; }
+      .audit-title { fill: #8a3d13; font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: 700; }
+      .audit-text { fill: #5d4335; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 400; }
+      .line { fill: none; stroke: #526271; stroke-width: 3; marker-end: url(#arrow); }
+      .dashed { fill: none; stroke: #bc6c25; stroke-width: 2.5; stroke-dasharray: 8 7; marker-end: url(#arrow); }
+      .tag { fill: #d8e6ea; rx: 8; }
+      .tag-text { fill: #25485a; font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1440" height="900"/>
+  <text class="heading" x="60" y="62">SZD-HTR workflow and audit findings</text>
+  <text class="subheading" x="60" y="94">Public snapshot 0001f9e, assessed 22 August 2026</text>
+
+  <rect class="box" x="60" y="150" width="260" height="280"/>
+  <text class="box-title" x="90" y="190">Sources</text>
+  <rect class="layer" x="88" y="216" width="204" height="72"/>
+  <text class="box-text" x="108" y="246">TEI metadata</text>
+  <text class="small" x="108" y="270">collection context</text>
+  <rect class="layer" x="88" y="310" width="204" height="90"/>
+  <text class="box-text" x="108" y="342">Facsimile references</text>
+  <text class="small" x="108" y="367">remote JPEG images</text>
+  <text class="small" x="108" y="388">held by archive</text>
+
+  <path class="line" d="M320 290 H370"/>
+
+  <rect class="box" x="390" y="130" width="310" height="320"/>
+  <text class="box-title" x="420" y="172">Project-specific VLM pipeline</text>
+  <rect class="layer" x="420" y="200" width="250" height="48"/>
+  <text class="box-text" x="442" y="231">Context resolution</text>
+  <rect class="layer" x="420" y="262" width="250" height="48"/>
+  <text class="box-text" x="442" y="293">Nine prompt groups</text>
+  <rect class="layer" x="420" y="324" width="250" height="48"/>
+  <text class="box-text" x="442" y="355">VLM transcription</text>
+  <rect class="layer" x="420" y="386" width="250" height="42"/>
+  <text class="box-text" x="442" y="413">Chunking and merge</text>
+
+  <path class="line" d="M700 290 H750"/>
+
+  <rect class="box" x="770" y="118" width="300" height="344"/>
+  <text class="box-title" x="800" y="160">Page-JSON v0.2</text>
+  <rect class="layer" x="800" y="187" width="240" height="54"/>
+  <text class="box-text" x="820" y="220">Transcription + provenance</text>
+  <rect class="layer" x="800" y="255" width="240" height="54"/>
+  <text class="box-text" x="820" y="288">Quality signals</text>
+  <rect class="layer" x="800" y="323" width="240" height="54"/>
+  <text class="box-text" x="820" y="356">Review status + history</text>
+  <rect class="tag" x="800" y="396" width="110" height="34"/>
+  <text class="tag-text" x="820" y="419">2,069 files</text>
+  <rect class="tag" x="924" y="396" width="116" height="34"/>
+  <text class="tag-text" x="944" y="419">2,452 objects</text>
+
+  <path class="line" d="M1070 236 H1120"/>
+  <path class="line" d="M1070 365 H1120"/>
+
+  <rect class="output" x="1140" y="140" width="240" height="150"/>
+  <text class="box-title" x="1170" y="180">Shared frontend</text>
+  <text class="box-text" x="1170" y="214">Public viewer</text>
+  <text class="box-text" x="1170" y="244">Local editorial workspace</text>
+  <text class="small" x="1170" y="268">same application code</text>
+
+  <rect class="output" x="1140" y="320" width="240" height="142"/>
+  <text class="box-title" x="1170" y="360">Deterministic exports</text>
+  <text class="box-text" x="1170" y="394">METS/MODS + PAGE XML</text>
+  <text class="box-text" x="1170" y="424">TEI demonstrations</text>
+
+  <text class="heading" x="60" y="535" style="font-size:26px">Critical audit findings</text>
+
+  <rect class="audit" x="60" y="570" width="410" height="245"/>
+  <text class="audit-title" x="88" y="606">1  Approval promotion</text>
+  <text class="audit-text" x="88" y="640">A page edit omits review status.</text>
+  <text class="audit-text" x="88" y="666">The server default assigns approved</text>
+  <text class="audit-text" x="88" y="692">to the whole object.</text>
+  <text class="audit-text" x="88" y="730">Required correction</text>
+  <text class="audit-text" x="88" y="756">Separate edit persistence from</text>
+  <text class="audit-text" x="88" y="782">explicit object-level approval.</text>
+  <path class="dashed" d="M265 570 C300 520 760 520 875 462"/>
+
+  <rect class="audit" x="515" y="570" width="410" height="245"/>
+  <text class="audit-title" x="543" y="606">2  CER cohort invalidity</text>
+  <text class="audit-text" x="543" y="640">CER mixes human and agent changes.</text>
+  <text class="audit-text" x="543" y="666">Recomputed result is 2.523 percent</text>
+  <text class="audit-text" x="543" y="692">across 84 pages and 61 objects.</text>
+  <text class="audit-text" x="543" y="730">Required correction</text>
+  <text class="audit-text" x="543" y="756">Filter by review tier and edit source,</text>
+  <text class="audit-text" x="543" y="782">then record snapshot provenance.</text>
+  <path class="dashed" d="M720 570 C735 520 855 505 910 462"/>
+
+  <rect class="audit" x="970" y="570" width="410" height="245"/>
+  <text class="audit-title" x="998" y="606">3  Export and schema gaps</text>
+  <text class="audit-text" x="998" y="640">One PAGE XML and five TEI base</text>
+  <text class="audit-text" x="998" y="666">demonstrations cover 2,452 objects.</text>
+  <text class="audit-text" x="998" y="692">Schema identifier returns HTTP 404.</text>
+  <text class="audit-text" x="998" y="730">Required correction</text>
+  <text class="audit-text" x="998" y="756">Publish the schema, align runtime states,</text>
+  <text class="audit-text" x="998" y="782">and report export coverage per object.</text>
+  <path class="dashed" d="M1175 570 C1190 520 1240 510 1255 462"/>
+
+  <text class="small" x="60" y="858">Self-created diagram. No facsimile or personal document data. CC BY 4.0 with the review.</text>
+</svg>

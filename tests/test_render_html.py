@@ -16,6 +16,7 @@ Two layers, split per the CLAUDE.md hard rule:
 Tests assert the *contract* (right elements, classes, anchors), not the
 exact HTML; templates can evolve without forcing test rewrites.
 """
+
 from __future__ import annotations
 
 import re
@@ -25,7 +26,11 @@ import pytest
 from src.model.bibliography import BibEntry
 from src.model.block import Citation, Figure, List, ListItem, Paragraph
 from src.model.inline import Emphasis, Note, Reference, Text
-from src.model.questionnaire import Questionnaire, QuestionnaireAnswer
+from src.model.questionnaire import (
+    Questionnaire,
+    QuestionnaireAnswer,
+    QuestionnaireQuestion,
+)
 from src.model.review import Author, Person, Review
 from src.model.section import Section
 from src.render.html import (
@@ -42,7 +47,6 @@ from src.render.html import (
     to_bibtex,
     to_csl_dict,
 )
-
 
 
 # ── Fixture builders ─────────────────────────────────────────────────
@@ -69,9 +73,7 @@ def _section(xml_id: str, heading: str, blocks=(), type=None, level=1) -> Sectio
 
 def _minimal_review(**overrides) -> Review:
     body = (
-        _section(
-            "abstract", "Abstract", blocks=(_para("This is the abstract."),), type="abstract"
-        ),
+        _section("abstract", "Abstract", blocks=(_para("This is the abstract."),), type="abstract"),
         _section(
             "intro",
             "Introduction",
@@ -261,7 +263,11 @@ def test_render_review_apparate_renders_when_notes_present():
 def test_render_review_apparate_renders_bibliography():
     bib = (
         BibEntry(
-            inlines=(Text(text="Smith, "), Emphasis(children=(Text(text="Title"),)), Text(text=" 2024.")),
+            inlines=(
+                Text(text="Smith, "),
+                Emphasis(children=(Text(text="Title"),)),
+                Text(text=" 2024."),
+            ),
             xml_id="bib1",
             ref_target="https://doi.org/10.1234/x",
         ),
@@ -326,6 +332,11 @@ def test_render_review_email_is_obfuscated_text_not_mailto(corpus_review):
 
 
 def test_render_review_factsheet_summary():
+    questions = (
+        QuestionnaireQuestion("General", "A", "Question A?", None, ("Yes",)),
+        QuestionnaireQuestion("General", "B", "Question B?", None, ("Other",)),
+        QuestionnaireQuestion("General", "C", "Question C?", None, ()),
+    )
     q = Questionnaire(
         criteria_url="https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections/",
         answers=(
@@ -334,10 +345,17 @@ def test_render_review_factsheet_summary():
             QuestionnaireAnswer("se004", "1"),
             QuestionnaireAnswer("se005", "1"),
         ),
+        questions=questions,
     )
     html = render_review(_minimal_review(questionnaires=(q,)))
     assert "ride-sidebar__box--factsheet" in html
-    assert "3 / 4" in html  # three "1"s out of four valid answers
+    assert 'id="factsheet" class="ride-sidebar__box ride-sidebar__box--factsheet"' in html
+    assert 'aria-label="Review files"' in html
+    assert 'aria-current="page">Review' in html
+    assert 'href="factsheet/"' in html
+    assert 'href="#factsheet"' not in html
+    assert "2 / 3 answered" in html
+    assert "categories answered yes" not in html
     assert "https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections/" in html
 
 
@@ -351,8 +369,49 @@ def test_render_review_factsheet_excludes_anomaly_value_3():
         ),
     )
     html = render_review(_minimal_review(questionnaires=(q,)))
-    assert "1 / 2" in html  # value=3 excluded from both numerator and denominator
+    assert "1 selected response" in html
     assert "⚠ 1" in html  # anomaly counter visible
+
+
+def test_render_review_uses_escaped_abstract_for_meta_description():
+    review = _minimal_review(
+        body=(
+            _section(
+                "abstract",
+                "Abstract",
+                blocks=(_para('An abstract with "quoted text" & evidence.'),),
+                type="abstract",
+            ),
+            _section("intro", "Introduction", blocks=(_para("Body text."),)),
+        )
+    )
+
+    html = render_review(review)
+
+    assert 'content="An abstract with &#34;quoted text&#34; &amp; evidence."' in html
+    assert 'content="Body text."' not in html
+
+
+def test_render_draft_suppresses_publication_citation_language():
+    html = render_review(_minimal_review(publication_status="draft"))
+
+    assert "Draft date" in html
+    assert "Target issue" in html
+    assert "Draft reference" in html
+    assert "unpublished workflow artifact" in html
+    assert "Citation Suggestion" not in html
+    assert 'class="ride-cite-data"' not in html
+
+
+def test_render_draft_uses_static_note_and_real_factsheet_anchor():
+    site = SiteConfig(base_url="https://ride.example")
+    html = render_review(_minimal_review(publication_status="draft"), site)
+
+    assert 'class="ride-review__draft" role="note"' in html
+    assert 'rel="canonical"' not in html
+    assert 'property="og:url"' not in html
+    assert "application/ld+json" not in html
+    assert "Draft review: ride.13.7" in html
 
 
 def test_render_review_embeds_cite_data_blocks():
@@ -361,6 +420,14 @@ def test_render_review_embeds_cite_data_blocks():
     assert 'class="ride-cite-data" data-format="csl-json"' in html
     assert 'type="application/x-bibtex"' in html
     assert 'type="application/json"' in html
+
+
+def test_render_review_omits_pdf_link_when_no_pdf_was_requested():
+    html = render_review(_minimal_review(), pdf_available=False)
+
+    assert 'type="application/pdf"' not in html
+    assert 'type="application/tei+xml"' in html
+    assert "PDF unavailable" in html
 
 
 # ── Citation helpers ─────────────────────────────────────────────────
@@ -412,9 +479,7 @@ def test_to_csl_dict_shape():
 def test_to_csl_dict_handles_single_part_names():
     from src.model.review import Author, Person
 
-    review = _minimal_review(
-        authors=(Author(person=Person(full_name="Cher")),)
-    )
+    review = _minimal_review(authors=(Author(person=Person(full_name="Cher")),))
     obj = to_csl_dict(review)
     # Single-name persons fall through name-pair extraction with empty given.
     assert obj["author"] == [{"family": "Cher"}]

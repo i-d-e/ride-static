@@ -6,9 +6,10 @@ The dispatcher ``parse_block`` raises :class:`UnknownTeiElement` on
 anything not in the verified-present set (Paragraph, List, Table,
 Figure, Citation), per the hard rule in CLAUDE.md.
 """
+
 from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from lxml import etree
 
@@ -39,6 +40,9 @@ from src.parser.inlines import (
     parse_inline_element,
     parse_inlines,
 )
+
+if TYPE_CHECKING:
+    from src.model.bibliography import BibEntry
 
 # Block-level local names that may appear as direct children of <p> in the
 # RIDE corpus. ``parse_paragraph_or_split`` slices the paragraph at these
@@ -134,7 +138,7 @@ def _parse_table_cell(cell: etree._Element) -> TableCell:
     Cells may contain block-level children — 22 ``<figure>`` and 2 ``<list>``
     occurrences corpus-wide — which surface on ``TableCell.blocks``.
     """
-    is_header = (attr(cell, "role") == "label")
+    is_header = attr(cell, "role") == "label"
     inlines, blocks = _walk_inline_with_blocks(cell)
     return TableCell(inlines=inlines, is_header=is_header, blocks=blocks)
 
@@ -142,10 +146,9 @@ def _parse_table_cell(cell: etree._Element) -> TableCell:
 def parse_figure(fig: etree._Element) -> Figure:
     """``<figure>`` with two kinds.
 
-    The corpus has 833 figures with ``<graphic>`` (kind=graphic) and 41 with
-    ``<eg>`` instead (kind=code_example, typically TEI-markup samples).
-    ``<figDesc>`` does not occur in the corpus; ``alt`` is therefore always
-    ``None`` today, but the field is set up for the build-bericht in Phase 13.
+    ``<graphic>`` produces ``kind=graphic``; ``<eg>`` produces
+    ``kind=code_example`` for TEI-markup samples. An optional ``<figDesc>``
+    supplies accessible alternative text.
     """
     head = _head_inlines_or_none(fig) or ()
     xml_id = attr(fig, "xml:id")
@@ -190,6 +193,7 @@ def parse_cit(cit: etree._Element) -> Citation:
     bibl_target: Optional[str] = None
     if bibl_el is not None:
         from src.parser.bibliography import parse_bibl
+
         bibl = parse_bibl(bibl_el)
         bibl_target = bibl.ref_target
 
@@ -283,11 +287,13 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
             # Flush accumulated inlines as a Paragraph chunk, then the block.
             chunk = finalise_inlines(raw_inlines)
             if chunk:
-                out.append(Paragraph(
-                    inlines=chunk,
-                    xml_id=p_xml_id if is_first_chunk else None,
-                    n=p_n if is_first_chunk else None,
-                ))
+                out.append(
+                    Paragraph(
+                        inlines=chunk,
+                        xml_id=p_xml_id if is_first_chunk else None,
+                        n=p_n if is_first_chunk else None,
+                    )
+                )
                 is_first_chunk = False
             out.append(parse_block(child))
             raw_inlines = []
@@ -304,11 +310,13 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
 
     chunk = finalise_inlines(raw_inlines)
     if chunk:
-        out.append(Paragraph(
-            inlines=chunk,
-            xml_id=p_xml_id if is_first_chunk else None,
-            n=p_n if is_first_chunk else None,
-        ))
+        out.append(
+            Paragraph(
+                inlines=chunk,
+                xml_id=p_xml_id if is_first_chunk else None,
+                n=p_n if is_first_chunk else None,
+            )
+        )
 
     return tuple(out)
 

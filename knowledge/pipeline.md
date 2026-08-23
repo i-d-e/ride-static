@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-07-10
+updated: 2026-08-22
 version: 0.2
 topics:
   - "[[Static Site Generation]]"
@@ -30,6 +30,19 @@ related:
 
 ## Local development
 
+### Environment and review schema
+
+`pyproject.toml` and `uv.lock` define the Python environment. The ODD is the editable review-schema source; the Relax NG file is reproducible output:
+
+```sh
+uv sync --locked
+uv run ruff check .
+uv run python scripts/compile_schema.py --stylesheets ../tei-stylesheets
+uv run python scripts/compile_schema.py --stylesheets ../tei-stylesheets --check
+```
+
+The compiler accepts TEI Stylesheets 7.60.0 and requires Java. CI checks out the exact Stylesheets commit and fails when `schema/ride.odd` and `schema/ride.rng` differ. Review bundles use the current schema as a strict contract; historical flat reviews retain warnings for documented corpus drift.
+
 ### Discovery scripts (run when the corpus changes)
 
 The Stage 0/1 discovery scripts form a small DAG. Independent ones can run in
@@ -38,23 +51,23 @@ is safe and explicit:
 
 ```sh
 # Tier 1 — independent extractors (parallel-safe)
-python scripts/inventory.py        # elements.json, attributes.json
-python scripts/odd_extract.py      # odd-summary.json
-python scripts/structure.py        # structure.json
-python scripts/sections.py         # sections.json
-python scripts/ids.py              # ids.json (xml:id audit)
-python scripts/refs.py             # refs.json (link classification + dangling detection)
-python scripts/taxonomy.py         # taxonomy.json (criteria sets + per-review answers)
+uv run python scripts/inventory.py        # elements.json, attributes.json
+uv run python scripts/odd_extract.py      # odd-summary.json
+uv run python scripts/structure.py        # structure.json
+uv run python scripts/sections.py         # sections.json
+uv run python scripts/ids.py              # ids.json (xml:id audit)
+uv run python scripts/refs.py             # refs.json (link classification + dangling detection)
+uv run python scripts/taxonomy.py         # taxonomy.json (criteria sets + per-review answers)
 
 # Tier 2 — needs Tier 1's elements.json + attributes.json
-python scripts/p5_fetch.py         # tei-spec.json (caches p5subset.xml in inventory/_cache/)
+uv run python scripts/p5_fetch.py         # tei-spec.json (caches p5subset.xml in inventory/_cache/)
 
 # Tier 3 — needs elements.json, tei-spec.json, odd-summary.json
-python scripts/cross_reference.py  # cross-reference.json
+uv run python scripts/cross_reference.py  # cross-reference.json
 
 # Tier 4 — Markdown render, needs every JSON above
-python scripts/render_data.py      # knowledge/data.md
-python scripts/render_schema.py    # knowledge/schema.md
+uv run python scripts/render_data.py      # knowledge/data.md
+uv run python scripts/render_schema.py    # knowledge/schema.md
 ```
 
 Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes
@@ -63,29 +76,31 @@ Output is `inventory/*.json` (gitignored) plus refreshed knowledge notes
 ### Tests
 
 ```sh
-python -m pytest tests/
+uv run python -m pytest tests/
 ```
 
 ### Build the site
 
 ```sh
-python -m src.build                                # parses issues/*/reviews/, renders site/
-python -m src.build --base-url /ride-static        # deploy prefix for absolute URLs (feed, sitemap, OAI)
-python -m src.build --pdf                          # also produces a per-review PDF via WeasyPrint
-python -m src.build --linkcheck                    # probe external bibliography URLs (slow)
-python -m src.build --no-validate                  # skip the RelaxNG pre-flight (on by default)
-python -m src.build --no-tei-editorials            # fall back to the legacy content/*.md editorials
-python -m src.build --reviews N                    # parse only the first N reviews (fast dev loop)
-python -m src.build --matomo-url URL --matomo-site-id ID   # emit cookieless tracker snippet
+uv run python -m src.build                                # parses issues/*/reviews/, renders site/
+uv run python -m src.build --output draft-site --include-drafts
+uv run python -m src.build --include-drafts --pdf --pdf-drafts-only
+uv run python -m src.build --base-url /ride-static        # deploy prefix for absolute URLs (feed, sitemap, OAI)
+uv run python -m src.build --pdf                          # also produces a per-review PDF via WeasyPrint
+uv run python -m src.build --linkcheck                    # probe external bibliography URLs (slow)
+uv run python -m src.build --no-validate                  # skip the Relax NG pre-flight (on by default)
+uv run python -m src.build --no-tei-editorials            # fall back to the legacy content/*.md editorials
+uv run python -m src.build --reviews N                    # parse only the first N reviews (fast dev loop)
+uv run python -m src.build --matomo-url URL --matomo-site-id ID   # emit cookieless tracker snippet
 ```
 
 WeasyPrint (Phase 14) braucht GTK/Pango zur Laufzeit. Auf Linux genügt `apt install libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0`; auf Windows fehlt der GTK3-Runtime und PDFs werden lokal übersprungen — die Tests skippen sauber statt zu crashen.
 
-For local preview after a build: `python -m http.server -d site/` is sufficient. No `--serve` flag is in scope.
+For local preview after a build: `uv run python -m http.server -d site/` is sufficient. No `--serve` flag is in scope.
 
-### Wordcloud-Thumbnails (Wartung bei neuen Reviews)
+### Wordcloud-Thumbnails
 
-Die Vorschau-Thumbnails unter `static/images/wordclouds/{review_id}.png` sind git-getrackte Quell-Assets, kein Build-Schritt reproduziert sie. Kommt ein neues Review hinzu, wird das Bild einmal mit `python scripts/wordclouds.py <tei-file>` erzeugt und committet. Der Lauf ist deterministisch (fester Seed), sodass ein erneuter Lauf dasselbe Bild liefert und der Diff leer bleibt. Details in `CONTRIBUTING.md`; die Einbettung in den redaktionellen Zielworkflow steht in [[workflow]].
+Review-Bundles erhalten ihre Wortwolke automatisch während des Builds. Der Generator schreibt `site/static/images/wordclouds/{review_id}.png` und verwendet einen festen Seed. Legacy-Reviews beziehen ihre git-getrackten Thumbnails weiterhin aus `static/images/wordclouds/`; die CLI `uv run python scripts/wordclouds.py <tei-file>` regeneriert diese Dateien bei Bedarf. Details stehen in `CONTRIBUTING.md` und [[workflow]].
 
 ## GitHub Actions workflow (Phase 15)
 
@@ -94,14 +109,17 @@ A single workflow file `.github/workflows/build.yml` per [[specification#N10 Sin
 ```
 1. Checkout ride-static (this repo) — TEI corpus ships under issues/{N}/reviews/
 2. Checkout i-d-e/ride at sibling path ../ride — picture assets only
-3. Setup Python 3.11
-4. Install dependencies (lxml, requests, pytest, jinja2, pyyaml, markdown, weasyprint) + GTK/Pango for PDF
-5. Run pytest
-6. Run the discovery/render scripts in dependency order
-7. Run python -m src.build --base-url=/<repo> --pdf → site/  (RelaxNG validation runs inside the build)
-8. Build the Pagefind index: npx pagefind --site site  (separate step, not part of src.build)
-9. Upload site/ as artifact
-10. Deploy to GitHub Pages
+3. Checkout the pinned TEI Stylesheets commit and set up Java
+4. Setup uv with Python 3.11 and synchronize `uv.lock`
+5. Install GTK/Pango for PDF and verify ODD/RNG synchronization
+6. Run Ruff and pytest
+7. Run the discovery/render scripts in dependency order
+8. Build the public site with PDFs
+9. Build `draft-site/` with draft previews and draft PDFs at the artifact root
+10. Build the Pagefind index for `draft-site/`; upload the complete preview as a separate workflow artifact
+11. Build the Pagefind index for `site/`
+12. Upload `site/` as the Pages artifact
+13. Deploy to GitHub Pages
 ```
 
 The picture assets still live in the sibling `i-d-e/ride` repo;
@@ -148,7 +166,7 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
 
 ## Cross-cutting concerns
 
-- **Asset handling (Phase 7).** Images referenced via `<graphic @url>` live in `../ride/issues/issue{NN:02d}/{slug}/pictures/`. `src/parser/assets.py::rewrite_figure_assets(review, ride_root, site_root)` copies them into `site/issues/{N}/{review_id}/figures/` and rewrites `Figure.graphic_url` to the site-root-relative form `/issues/{N}/{review_id}/figures/{file}`. Missing source files become entries in `AssetReport.missing` — no crash; Phase 13 aggregates the per-review reports.
+- **Asset handling (Phase 7).** New bundles resolve only safe relative `pictures/...` paths beside `review.xml`; missing, external, or escaping references fail the build after diagnostics are written. Historical reviews resolve images from `../ride/issues/issue{NN:02d}/{slug}/pictures/` and retain warning-only behavior for missing sibling assets. Successful files are copied into `site/issues/{N}/{review_id}/figures/`, and `Figure.graphic_url` receives the site-root-relative form `/issues/{N}/{review_id}/figures/{file}`.
 - **Reference resolution (Phase 7).** `src/parser/refs_resolver.py::resolve_references(review)` runs as a post-pass in `parse_review` and writes `Reference.bucket ∈ {local, criteria, external, orphan, None}` on every `<ref>`:
   - `local` — `#xml-id` and the anchor exists in this review's `xml:id` index (sections, paragraphs, figures, notes, bibliography entries);
   - `criteria` — `#K…` (the dominant internal ref, all in `<teiHeader>/<catDesc>`, none in body — see [[data#Reference resolution]]). Renderer dispatches to the external criteria document at the taxonomy's `@xml:base`;
@@ -156,7 +174,7 @@ URL pattern: `https://ride-static.example/issues/{issue_no}/{review_id}/`
   - `orphan` — anything else (mailto:, bare bibkeys, `#abb…`-style dangling internals). Build-time warning, renderer falls back to plain text.
   Bucket is `None` when the source `<ref>` has no `@target` at all.
 - **Cross-review references.** Reviews citing one another (via `<relatedItem>`) become hyperlinks if the target is in the corpus; otherwise they stay as bibliographic citations.
-- **Schematron warnings.** Build prints (but does not fail on) Schematron violations from `inventory/cross-reference.json`. Hard failures are reserved for parsing errors. The full pre-build validation layer ([[specification#N3 Validierung als eigene Schicht]]) is implemented in Phase 13.
+- **Validation boundary.** The executable pre-build layer validates XML and Relax NG. New bundles fail on every schema finding; historical flat reviews report existing Relax NG drift as warnings. Schematron constraints remain embedded and documented in the ODD, while their execution as a second validator is still deferred; the current implementation therefore covers the Relax NG part of [[specification#N3 Validierung als eigene Schicht]].
 - **Lizenzhinweise pro Artefakt (N6).** Jedes maschinenlesbare Artefakt nennt seine Lizenz explizit, damit Konsumenten die Nutzungsbedingungen ohne Inferenz aus dem Footer kennen. Eine Quelle der Wahrheit: `LICENCE_NAME = "CC-BY-4.0"` und `LICENCE_URL = "https://creativecommons.org/licenses/by/4.0/"` in `src/render/corpus_dump.py`. Setzungs-Punkte: `site/api/corpus.json` (`licence: {name, url}` als Top-Level-Feld neben `version` und `review_count`); `site/api/build-info.json` (selbes Lizenzfeld); OAI-PMH `<dc:rights>` pro Record (aus `Review.licence` aus dem TEI-Quelltext); HTML-Footer als Mensch-lesbare Zeile mit ISSN, Brand und Imprint-Link. Die TEI-Dateien tragen ihre Lizenz im `<publicationStmt>/<licence>` selbst — kein Inject, keine zweite Wahrheit. PDFs (Phase 14) erben die Lizenzanzeige über das Print-Stylesheet aus dem HTML.
 - **Cookieless Matomo (R16).** Tracker-Konfiguration ist deploy-time-bound, nicht code-bound. Build-Flags `--matomo-url` + `--matomo-site-id` werden gemeinsam gesetzt — `parser.error` wenn nur eines kommt, weil ein halbkonfigurierter Deploy still mit `setSiteId('')` Hits sendet. Lokal und im Default-CI-Lauf bleibt der Snippet weg, kein Tracker, kein Cookie-Banner, nichts zum Opt-out. Sobald die produktive Matomo-URL in CI als Secret hinterlegt ist, steigt das Snippet ein.
 - **Console-Banner (N4-Manifestation).** Build-Commit + Datum erscheinen an drei Stellen: HTML-Footer (`<code>{commit_short}</code>` plus `data-commit`/`data-build-date`), `site/api/build-info.json` (`build.commit` und `build.commit_short`), und in der Devtools-Konsole als kleines `console.info`-Banner mit Brand-Pille. Das Banner ist gated auf `site.build_info.commit_short` — Dev-Builds ohne Git bleiben silent. Drei Manifestationen einer einzigen Quelle (`BuildInfo`-Dataclass aus `src/render/html.py`) — wer eine debuggt, hat sie alle.
@@ -174,14 +192,14 @@ Der redaktionelle Zielworkflow verlangt vor der Freischaltung eine passwortgesch
 | Option | Schutzgrad | Aufwand / Implikation |
 |---|---|---|
 | 4.1 Unverlinkter öffentlicher Build (`noindex`, ausgenommen aus allen Aggregaten, Suchindex, Sitemap, OAI, Korpus-Dump) | nur Nichtverlinkung | ein Build, kein zweites Deploy-Ziel; macht den Inhalt aber erstmals öffentlich erreichbar |
-| 4.2 Nur lokaler Build | — | **verworfen**: externe Begutachter haben keine Build-Umgebung |
+| 4.2 Lokaler Build | Zugriff über die lokale Arbeitsumgebung | als technische Basis umgesetzt; externe Begutachter benötigen weiterhin einen erreichbaren Vorschaukanal |
 | 4.3 Geschützter Bereich auf dem IDE-Server (HTTP Basic Auth) | echte Zugriffsbeschränkung | zweites Deploy-Ziel, Server- und Zugangsdaten-Pflege |
 | 4.4 Zugriffsschutz-Dienst vor einer Vorschau-Subdomain (z. B. Cloudflare Access) | echte, personengebundene Beschränkung | Drittanbieter-Abhängigkeit, DNS-Hoheit |
 | 4.5 Vorschau im privaten `ride-editors`-Repo | echte Beschränkung, nur Repo-Mitglieder | als alleinige Lösung untauglich (kein teilbarer Link; GitHub zeigt HTML als Quelltext) — das **PDF** rendert der Viewer aber, taugt als Teilbaustein für die IDE-interne Prüfung |
 
-**Empfehlung:** 4.1 als Default plus PDF-Rückspiel aus 4.5 für die IDE-interne Prüfung; ein Upgrade auf 4.3/4.4 bleibt möglich, weil sich nur das Deploy-Ziel der Vorschau ändert, nicht die Build-Mechanik. Gemeinsamer Baustein aller Varianten: die Vorschau baut die **ganze** Site (Drafts aus `ride-editors` zusätzlich in den Korpusbaum gelegt, mit Dublettenprüfung gegen das publizierte Korpus), mit asymmetrischer Fehlerbehandlung — Draft-Parse-Fehler warnen und überspringen, publizierte Beiträge bleiben harte Fehler.
+**Empfehlung:** Der lokale Build 4.2 bildet die gemeinsame technische Basis. Für vertrauliche externe Begutachtung eignen sich 4.3 oder 4.4, weil beide einen echten Zugriffsschutz bereitstellen. Option 4.1 setzt eine bewusste Zustimmung zur öffentlichen Erreichbarkeit der unveröffentlichten Quelle voraus. Der Build kann in allen Varianten dieselbe Site erzeugen; `revisionDesc/@status` trennt Drafts von den veröffentlichten Ableitungen.
 
-**Stand:** Die Trigger-Verkabelung (`repository_dispatch`, oben) ist umgesetzt und entscheidungsrobust; die Draft-Mechanik (Render unter `/drafts/`, Ausschluss aus allen Aggregat- und Schnittstellenflächen) ist bis zur Redaktionsentscheidung zurückgestellt. Offen zu klären: ob „passwortgeschützt" wörtlich gilt (dann 4.3/4.4 statt 4.1), ob das zurückgespielte PDF die IDE-Prüfung abdeckt, ob unveröffentlichte Beiträge unverlinkt öffentlich erreichbar sein dürfen, und wer die Freischaltung ausführt.
+**Stand:** Die Trigger-Verkabelung und die Draft-Mechanik sind umgesetzt. `uv run python -m src.build --include-drafts` rendert Vorschauseiten mit sichtbarer Kennzeichnung und `noindex`. Die zentrale Seite `/drafts/` führt für jedes Beispiel Review, Factsheet, TEI XML und den PDF-Status zusammen. Für die drei ausdrücklich freigegebenen Self-Audits ist Option 4.1 umgesetzt: Der Pages-Build enthält ihre Vorschauseiten und PDFs. Ihr Draft-Status hält sie aus Issue-Listen, Navigation, öffentlichem Pagefind-Index, Sitemap, Feeds, OAI-PMH, Korpus-Dump und Redirects heraus. Die CI erzeugt zusätzlich ein getrenntes `draft-review-preview`-Artefakt mit eigenem Pagefind-Index; dieser vollständige Preview-Index gehört ausschließlich zum herunterladbaren Artefakt. Für vertrauliche externe Begutachtung bleiben der geschützte Hosting-Kanal und die Freischaltungszuständigkeit offen.
 
 ## Re-deployment flow
 
@@ -246,7 +264,7 @@ This table is the static plan, not a tracker. What is currently live and what is
 | 11 | Pagefind-Suche | Build-time index; client-side runtime mit Context-Highlighting; im Navbar verankert ([[interface]] §4); `data-pagefind-body` auf Review-Wrapper, Facetten-Filter (Issue, Tag, Reviewer) als hidden spans, lazy-mount via IntersectionObserver; CI baut den Index nach `python -m src.build` mit `npx pagefind --site site` | [[specification#R12 Volltextsuche]], [[specification#A4 Volltextsuche]] |
 | 12 | Maschinenschnittstellen | OAI-PMH static snapshot; JSON-LD per page (DOI als kanonischer @id); full corpus JSON dump; sitemap mit `schema.org/ScholarlyArticle` | [[specification#R15 Maschinenschnittstellen]], [[specification#A5 Maschinenschnittstellen]] |
 | 13 | Validierung + Build-Bericht | RelaxNG pre-build check (`src/validate.py`) mit per-file Findings; Corpus-Drift als Warnings, XML-parse-errors als Hard-Errors; optionaler Linkcheck (`--linkcheck`); aggregierter Bericht in `site/api/build-info.json` (Schema-Version, Lizenz, Reviews-Counts, Asset-Summary, Validation, optional Linkcheck). Schematron-Layer deferred bis die Korpus-Drift gegen `ride.rng` behoben ist | [[specification#N3 Validierung als eigene Schicht]], [[specification#N4 Reproduzierbarkeit]], [[specification#N7 Build-Bericht]] |
-| 14 | PDF aus Domänenmodell | WeasyPrint mit eigenem Print-Stylesheet (`@page A4`, Chrome aus, `page-break-after` auf Headings); Print-only DOI-Zeile im Review-Header (A6: DOI auf Seite 1, da Sidebar im Print verschwindet); PDF wird per `--pdf`-Flag neben dem `index.html` eines jeden Reviews abgelegt; CI installiert `libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0` und ruft das Flag auf | [[specification#R3 Rezension herunterladen]], [[specification#A6 PDF-Pfad]] |
+| 14 | PDF aus Domänenmodell | WeasyPrint mit eigenem Print-Stylesheet (`@page A4`, Chrome aus, kontrollierte Seitenumbrüche); lokale Auflösung der Stylesheets und Abbildungen; Print-Identifier im Review-Header; laufende Fußzeile und Seitenzahlen; PDF-Tags aus der semantischen HTML-Struktur. Das PDF wird per `--pdf`-Flag neben dem `index.html` eines jeden Reviews abgelegt. CI installiert `libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0` und ruft das Flag auf. | [[specification#R3 Rezension herunterladen]], [[specification#A6 PDF-Pfad]] |
 | 15 | Deploy + Ops | Single GitHub-Actions workflow; cookieless Matomo tracking (deploy-time-konfigurierbar via `--matomo-url`/`--matomo-site-id`); WCAG 2.2-AA-Konformität; Lizenzhinweise pro Artefakt; Kontakt-Seite; Meta-Refresh-Redirects für Legacy-WordPress-URLs | [[specification#R14 Kontakt]], [[specification#R16 Tracking]], [[specification#R17 Stabile URLs]], [[specification#N5 Barrierefreiheit]], [[specification#N6 Lizenzklarheit pro Artefakt]], [[specification#N10 Single-Workflow-Build]] |
 
 Phases 1–8 form die inhaltliche Basislinie; the site is renderable end-to-end after Phase 8. Phases 9–15 add the surrounding apparatus (editorial, aggregation, search, machine APIs, validation, PDF, deploy).

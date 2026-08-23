@@ -6,6 +6,7 @@ and is never a block on its own. ``<note>`` and ``<code>`` are inline-only.
 ``<eg>`` exists exclusively inside ``<figure>`` and is modelled as
 ``Figure(kind="code_example")`` rather than a separate block kind.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -102,11 +103,9 @@ class Figure:
     ``xml_id`` carries the figure's ``@xml:id`` for bidirectional linking from
     the parallel-apparate Figures sub-block (``knowledge/interface.md`` §6).
 
-    ``alt`` is the accessibility text from a ``<figDesc>`` child. The corpus
-    has zero ``<figDesc>`` elements as of stage-0 inventory; the field is in
-    place so Phase 13 can emit a single aggregated build warning instead of
-    rendering 874 silent fallbacks. Renderers should fall back to ``head``
-    text or ``"Figure N"`` when ``alt`` is None.
+    ``alt`` is the accessibility text from an optional ``<figDesc>`` child.
+    Renderers fall back to ``head`` text or ``"Figure N"`` when ``alt`` is
+    None so historical reviews remain usable.
     """
 
     kind: str

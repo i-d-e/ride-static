@@ -1,0 +1,30 @@
+{#- Shared navigation between the four files generated for one review. -#}
+{%- macro review_artifacts(review, current=None, pdf_available=True, root="") -%}
+<nav class="ride-artifacts" aria-label="Review files">
+  <p class="ride-artifacts__label">Review files</p>
+  <ul class="ride-artifacts__list">
+    <li>
+      {%- if current == "review" -%}
+      <span class="ride-artifacts__current" aria-current="page">Review</span>
+      {%- else -%}
+      <a href="{{ root }}">Review</a>
+      {%- endif -%}
+    </li>
+    <li>
+      {%- if current == "factsheet" -%}
+      <span class="ride-artifacts__current" aria-current="page">Factsheet</span>
+      {%- else -%}
+      <a href="{{ root }}factsheet/">Factsheet</a>
+      {%- endif -%}
+    </li>
+    <li><a href="{{ root }}{{ review.id }}.xml" type="application/tei+xml">TEI XML</a></li>
+    <li>
+      {%- if pdf_available -%}
+      <a href="{{ root }}{{ review.id }}.pdf" type="application/pdf">PDF</a>
+      {%- else -%}
+      <span class="ride-artifacts__unavailable">PDF unavailable</span>
+      {%- endif -%}
+    </li>
+  </ul>
+</nav>
+{%- endmacro -%}

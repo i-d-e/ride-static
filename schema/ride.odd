@@ -167,7 +167,7 @@
           <moduleRef key="core"
             include="abbr add author bibl biblScope cit date del desc editor email emph foreign gap gloss graphic head hi item label lb list listBibl mentioned name note num p pubPlace publisher q quote ref relatedItem resp respStmt series soCalled term title"/>
           <moduleRef key="corpus" include="particDesc"/>
-          <moduleRef key="figures" include="cell figure row table"/>
+          <moduleRef key="figures" include="cell figDesc figure row table"/>
           <moduleRef key="header"
             include="appInfo availability category catDesc catRef change classCode classDecl edition encodingDesc fileDesc idno keywords langUsage language licence listChange notesStmt profileDesc projectDesc publicationStmt rendition revisionDesc seriesStmt sourceDesc tagsDecl taxonomy teiHeader textClass titleStmt"/>
           <moduleRef key="namesdates"
@@ -190,8 +190,11 @@
                 <constraintSpec ident="ride.sch-tei" scheme="schematron">
                   <constraint>
                     <sch:rule context="tei:TEI/@xml:id">
-                      <sch:assert test="matches(., 'ride.\d{1,2}.\d{1,2}$')"> The xml:id is required
-                        and must have the format [ride].[issue-number].[review-number] </sch:assert>
+                      <sch:assert test="if (../tei:teiHeader/tei:revisionDesc/@status = 'draft') then matches(., '^draft\.[a-z0-9]+([.-][a-z0-9]+)*$') else matches(., '^ride\.\d+\.\d+$')">
+                        Draft reviews must use a provisional xml:id beginning with "draft.";
+                        publishable reviews must use the format
+                        [ride].[issue-number].[review-number].
+                      </sch:assert>
                     </sch:rule>
                   </constraint>
                 </constraintSpec>
@@ -225,7 +228,7 @@
               <sequence minOccurs="1" maxOccurs="1">
                 <classRef key="model.publicationStmtPart.agency" minOccurs="1" maxOccurs="unbounded"/>
                 <elementRef key="date" minOccurs="1" maxOccurs="unbounded"/>
-                <elementRef key="idno" minOccurs="1" maxOccurs="unbounded"/>
+                <elementRef key="idno" minOccurs="0" maxOccurs="unbounded"/>
                 <elementRef key="availability" minOccurs="1" maxOccurs="unbounded"/>
               </sequence>
             </content>
@@ -287,7 +290,7 @@
               <attDef ident="notAfter" mode="delete"/>
               <attDef ident="type" mode="delete"/>
               <attDef ident="when" mode="change" usage="req"/>
-              <attDef ident="resp" mode="change" usage="req">
+              <attDef ident="resp" mode="change" usage="opt">
                 <valList mode="change" type="closed">
                   <valItem ident="author">
                     <desc>The subsequent change has been made by the author. </desc>
@@ -310,7 +313,7 @@
                   </valItem>
                 </valList>
               </attDef>-->
-              <attDef ident="xml:id" mode="change" usage="req"/>
+              <attDef ident="xml:id" mode="change" usage="opt"/>
 
             </attList>
 
@@ -351,6 +354,12 @@
           </elementSpec>
 
           <elementSpec ident="affiliation" mode="change">
+            <content>
+              <sequence>
+                <elementRef key="orgName" minOccurs="0"/>
+                <elementRef key="placeName" minOccurs="0" maxOccurs="unbounded"/>
+              </sequence>
+            </content>
             <attList>
               <attDef ident="from" mode="delete"/>
               <attDef ident="n" mode="delete"/>
@@ -593,6 +602,13 @@
                 </sch:rule>
               </constraint>
             </constraintSpec>
+            <content>
+              <sequence>
+                <elementRef key="name"/>
+                <elementRef key="affiliation"/>
+                <elementRef key="email" minOccurs="0"/>
+              </sequence>
+            </content>
             <attList>
               <attDef ident="ref" usage="opt">
                 <desc>Link to norm data, ORCID, GND or VIAF.</desc>
@@ -755,9 +771,10 @@
 
           <dataSpec ident="date-yearMonth">
             <content>
-
-              <dataRef name="gYearMonth"/>
-
+              <alternate>
+                <dataRef name="gYearMonth"/>
+                <dataRef name="date"/>
+              </alternate>
             </content>
           </dataSpec>
 
@@ -798,39 +815,12 @@
 
           <elementSpec ident="div" mode="change">
             <content>
-              <sequence>
-                <alternate minOccurs="0" maxOccurs="unbounded">
-                  <elementRef key="head"/>
-                  <elementRef key="lb"/>
-                  <classRef key="model.noteLike"/>
-                </alternate>
-                <sequence minOccurs="0">
-                  <alternate>
-                    <sequence minOccurs="1" maxOccurs="unbounded">
-                      <classRef key="model.divLike"/>
-                      <elementRef key="lb"/>
-                      <classRef key="model.noteLike"/>
-                    </sequence>
-                    <sequence>
-                      <sequence minOccurs="1" maxOccurs="unbounded">
-                        <elementRef key="p" minOccurs="0" maxOccurs="unbounded"/>
-                        <elementRef key="listBibl" minOccurs="0" maxOccurs="unbounded"/>
-                        <elementRef key="lb" minOccurs="0" maxOccurs="unbounded"/>
-                        <classRef key="model.noteLike" minOccurs="0" maxOccurs="unbounded"/>
-                      </sequence>
-                      <sequence minOccurs="0" maxOccurs="unbounded">
-                        <classRef key="model.divLike"/>
-                        <elementRef key="lb" minOccurs="0" maxOccurs="unbounded"/>
-                        <classRef key="model.noteLike" minOccurs="0" maxOccurs="unbounded"/>
-                      </sequence>
-                    </sequence>
-                  </alternate>
-                  <sequence minOccurs="0" maxOccurs="unbounded">
-                    <elementRef key="lb"/>
-                    <classRef key="model.noteLike"/>
-                  </sequence>
-                </sequence>
-              </sequence>
+              <alternate minOccurs="0" maxOccurs="unbounded">
+                <elementRef key="head"/>
+                <classRef key="model.common"/>
+                <classRef key="model.global"/>
+                <classRef key="model.divLike"/>
+              </alternate>
             </content>
             <constraintSpec ident="jtei.sch-divtypes-front" scheme="schematron" resp="#RvdB #MDH">
               <constraint>
@@ -1034,7 +1024,8 @@
               must contain either <gi>graphic</gi>, <gi>egXML</gi> (for example XML code) or
                 <gi>eg</gi> (for non-XML code), and a mandatory <gi>head</gi> element containing the
               caption for the figure. Inline code examples may be provided through <gi>egXML</gi>
-              and <gi>eg</gi> without the <gi>figure</gi> wrapper. </desc>
+              and <gi>eg</gi> without the <gi>figure</gi> wrapper. An optional
+                <gi>figDesc</gi> supplies concise alternative text for accessibility. </desc>
             <content>
               <!-- [RvdB] sequence wrapper seems necessary to keep ODD2DTD happy -->
               <sequence>
@@ -1043,6 +1034,7 @@
                   <elementRef key="egXML"/>
                   <elementRef key="eg"/>
                 </alternate>
+                <elementRef key="figDesc" minOccurs="0" maxOccurs="1"/>
                 <elementRef key="head" minOccurs="1" maxOccurs="unbounded"/>
               </sequence>
             </content>
@@ -2062,6 +2054,7 @@
                 <elementRef key="ref"/>
                 <textNode/>
                 <elementRef key="num"/>
+                <elementRef key="gloss"/>
               </alternate>
             </content>
 
@@ -2080,8 +2073,27 @@
             </attList>
 
           </elementSpec>
+          <elementSpec ident="revisionDesc" module="header" mode="change">
+            <attList>
+              <attDef ident="status" mode="add" usage="opt">
+                <valList type="closed">
+                  <valItem ident="draft"/>
+                  <valItem ident="published"/>
+                </valList>
+              </attDef>
+            </attList>
+          </elementSpec>
 
-
+          <elementSpec ident="placeName" mode="change">
+            <attList>
+              <attDef ident="ref" usage="opt">
+                <desc>Link to an authority record for the named place.</desc>
+                <datatype>
+                  <dataRef name="anyURI"/>
+                </datatype>
+              </attDef>
+            </attList>
+          </elementSpec>
 
           <elementSpec ident="change" module="header" mode="change">
 

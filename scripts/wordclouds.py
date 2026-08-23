@@ -1,10 +1,8 @@
 """Generate a word cloud PNG for a RIDE review from its TEI source.
 
-Maintenance script, run once per newly published review to produce the
-thumbnail the issue pages show. The site reads the images from
-``static/images/wordclouds/{review_id}.{png|jpg}`` (see
-``src.render.aggregations._wordcloud_url``); a new review needs a
-generated ``{review_id}.png`` committed there.
+The site build calls this module automatically for review bundles. The
+CLI remains available to regenerate a legacy review's committed thumbnail
+under ``static/images/wordclouds/{review_id}.{png|jpg}``.
 
 Ported from the legacy ``i-d-e/ride-scripts`` ``wordclouds/wordclouds.py``
 (Ulrike Henny-Krahmer, GPLv3). The port keeps the legacy render
@@ -30,6 +28,7 @@ Run:
     python scripts/wordclouds.py issues/1/reviews/carolingian_scholarship-tei.xml
     python scripts/wordclouds.py --review makingandknowing
 """
+
 from __future__ import annotations
 
 import argparse
@@ -38,7 +37,10 @@ from pathlib import Path
 
 from lxml import etree
 
-from _tei import TEI_NS, XML_ID_ATTR, normalize
+try:
+    from scripts._tei import TEI_NS, XML_ID_ATTR, normalize
+except ModuleNotFoundError:  # Bare ``python scripts/wordclouds.py`` execution.
+    from _tei import TEI_NS, XML_ID_ATTR, normalize
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = Path(__file__).resolve().parent / "wordcloud-assets"
@@ -57,6 +59,7 @@ _NS = {"tei": TEI_NS}
 
 
 # --- pure extraction helpers (no wordcloud dependency) --------------------
+
 
 def parse_tei(tei_path: Path) -> etree._ElementTree:
     """Parse a TEI review file into an lxml tree."""
@@ -144,6 +147,7 @@ def _load_mask(assets_dir: Path):
 
 # --- render ---------------------------------------------------------------
 
+
 def run(
     tei_path: Path,
     out_dir: Path,
@@ -195,7 +199,9 @@ def run(
     ).generate(text)
 
     out_path = out_dir / f"{review_id}.png"
-    cloud.to_file(str(out_path))
+    temp_path = out_path.with_suffix(".tmp.png")
+    cloud.to_file(str(temp_path))
+    temp_path.replace(out_path)
     return out_path
 
 

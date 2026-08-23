@@ -2,16 +2,15 @@
 
 Runs RelaxNG validation over every TEI review and surfaces per-file
 errors. Invoked via ``python -m src.validate`` or as a build step
-before ``python -m src.build``. Returns a non-zero exit code only
-for hard failures; "expected" corpus quirks (documented in
-:data:`KNOWN_QUIRKS`) become warnings, not errors, so the build keeps
-moving.
+before ``python -m src.build``. New review bundles follow the current
+ODD contract strictly. Findings in historical flat reviews remain
+warnings so pre-existing corpus drift does not block the build.
 
-The Schematron layer (rules embedded in ``ride.odd``) is checked when
-``lxml.isoschematron`` and an extracted Schematron document are
-available; otherwise the build uses RelaxNG-only validation and prints
-a notice. Phase 13 in [[pipeline.md]] references this module.
+The executable pre-build layer currently uses Relax NG. Schematron
+constraints embedded in the ODD are documented separately and remain a
+future extension of this module. Phase 13 in [[pipeline.md]] references it.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,27 +21,16 @@ from typing import Iterable, Optional
 
 from lxml import etree
 
+from src._corpus import is_review_bundle, iter_tei_files
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_TEI_DIR = REPO_ROOT / "issues"
 DEFAULT_RNG = REPO_ROOT / "schema" / "ride.rng"
 
 
-# Documented corpus quirks. The corpus has substantial pre-existing
-# drift against ride.rng (the schema is stricter than what ten years of
-# editorial practice actually wrote), so RelaxNG findings are treated
-# as warnings by default — they describe data shape, not build
-# regressions. XML parse errors stay as hard errors. KNOWN_QUIRKS lists
-# the two anomalies named in knowledge/data.md so the report can hint
-# at them; everything else still surfaces, just at warning severity.
-KNOWN_QUIRKS = (
-    ("num", "value=3 anomaly (varitext-tei.xml) — see knowledge/data.md"),
-    ("back", "no-back review (tustep, etc.) — see knowledge/data.md"),
-)
-
-
 @dataclass(frozen=True)
 class ValidationFinding:
-    """One RelaxNG / Schematron message attached to a TEI file."""
+    """One XML or Relax NG message attached to a TEI file."""
 
     file: str
     line: int
@@ -82,17 +70,29 @@ class ValidationReport:
         }
 
 
-def _classify(_message: str) -> str:
+def _classify(_message: str, *, strict: bool = False) -> str:
     """Map a RelaxNG message to error / warning.
 
-    All RelaxNG findings are warnings — see the KNOWN_QUIRKS docstring
-    above. Real errors come only from XML parse failures, which are
-    classified at parse time in :func:`validate_file`.
+    Historical flat reviews retain the documented corpus-drift warning
+    policy. Review bundles use the current ODD contract, so any Relax NG
+    finding is a hard error.
     """
-    return "warning"
+    return "error" if strict else "warning"
 
 
-def validate_file(path: Path, rng_validator: etree.RelaxNG) -> list[ValidationFinding]:
+def _display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
+def validate_file(
+    path: Path,
+    rng_validator: etree.RelaxNG,
+    *,
+    strict: bool = False,
+) -> list[ValidationFinding]:
     """Validate a single TEI file; return all findings.
 
     Returns an empty list when the file passes. Parsing errors (broken
@@ -105,7 +105,7 @@ def validate_file(path: Path, rng_validator: etree.RelaxNG) -> list[ValidationFi
     except etree.XMLSyntaxError as exc:
         findings.append(
             ValidationFinding(
-                file=path.name,
+                file=_display_path(path),
                 line=getattr(exc, "lineno", 0) or 0,
                 column=getattr(exc, "offset", 0) or 0,
                 severity="error",
@@ -118,10 +118,10 @@ def validate_file(path: Path, rng_validator: etree.RelaxNG) -> list[ValidationFi
     for err in rng_validator.error_log:
         findings.append(
             ValidationFinding(
-                file=path.name,
+                file=_display_path(path),
                 line=err.line,
                 column=err.column,
-                severity=_classify(err.message),
+                severity=_classify(err.message, strict=strict),
                 message=err.message,
             )
         )
@@ -132,20 +132,19 @@ def validate_corpus(
     tei_dir: Path = DEFAULT_TEI_DIR,
     rng_path: Path = DEFAULT_RNG,
 ) -> ValidationReport:
-    """Validate every ``*-tei.xml`` under ``tei_dir`` against ``rng_path``."""
+    """Validate every legacy review and bundle TEI against ``rng_path``."""
     if not rng_path.exists():
         raise FileNotFoundError(
-            f"RelaxNG schema not found: {rng_path}. "
-            "Expected schema/ride.rng in the repo root."
+            f"RelaxNG schema not found: {rng_path}. Expected schema/ride.rng in the repo root."
         )
     rng_doc = etree.parse(str(rng_path))
     rng_validator = etree.RelaxNG(rng_doc)
 
     report = ValidationReport()
-    files = sorted(tei_dir.glob("**/*-tei.xml"))
+    files = list(iter_tei_files(tei_dir))
     for f in files:
         report.files_checked += 1
-        findings = validate_file(f, rng_validator)
+        findings = validate_file(f, rng_validator, strict=is_review_bundle(f))
         if findings:
             report.findings.extend(findings)
             if any(x.severity == "error" for x in findings):

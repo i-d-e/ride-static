@@ -8,13 +8,13 @@ cannot do cleanly themselves.
 The Jinja environment is built once per build and reused for every page;
 templates auto-escape HTML by default.
 """
+
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
 from jinja2 import ChainableUndefined, Environment, FileSystemLoader, select_autoescape
 
@@ -202,11 +202,17 @@ def to_bibtex(review) -> str:
     BibTeX styles that lower-case titles. Year is sliced from
     ``publication_date`` when ISO-shaped; otherwise omitted.
     """
-    authors = " and ".join(
-        ", ".join(part for part in _author_name_pair(a.person) if part)
-        for a in review.authors
-    ) or "Anonymous"
-    year = review.publication_date[:4] if review.publication_date and review.publication_date[:4].isdigit() else ""
+    authors = (
+        " and ".join(
+            ", ".join(part for part in _author_name_pair(a.person) if part) for a in review.authors
+        )
+        or "Anonymous"
+    )
+    year = (
+        review.publication_date[:4]
+        if review.publication_date and review.publication_date[:4].isdigit()
+        else ""
+    )
     title = _bibtex_escape(review.title or "")
     fields = [
         f"  author    = {{{authors}}}",
@@ -455,6 +461,7 @@ def render_review(
     review: Review,
     site: Optional[SiteConfig] = None,
     env: Optional[Environment] = None,
+    pdf_available: bool = True,
 ) -> str:
     """Render one Review to a complete HTML page string."""
     from src.render.jsonld import to_jsonld_string
@@ -469,14 +476,21 @@ def render_review(
         **base_ctx(
             site,
             page_lang=review.language,
-            page_description=inlines_to_plain_text(_first_paragraph_inlines(review))[:200] or None,
-            json_ld=to_jsonld_string(review, base_url=site.base_url),
+            page_description=(
+                abstract_excerpt(review, max_chars=200)
+                or inlines_to_plain_text(_first_paragraph_inlines(review))[:200]
+                or None
+            ),
+            json_ld=(None if review.is_draft else to_jsonld_string(review, base_url=site.base_url)),
         ),
         review=review,
         abstract_section=abstract,
         body_sections=body_sections,
+        pdf_available=pdf_available,
         page_title=review.title,
-        page_url=review_url(review, site.base_url) if site.base_url else None,
+        page_url=(
+            review_url(review, site.base_url) if site.base_url and not review.is_draft else None
+        ),
     )
 
 

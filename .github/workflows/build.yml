@@ -33,7 +33,8 @@ on:
       - "issues/**"
       - "schema/**"
       - "tests/**"
-      - "requirements.txt"
+      - "pyproject.toml"
+      - "uv.lock"
       - ".github/workflows/build.yml"
   workflow_dispatch:
   repository_dispatch:
@@ -66,19 +67,41 @@ jobs:
           repository: i-d-e/ride
           path: ride
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Checkout pinned TEI Stylesheets
+        uses: actions/checkout@v4
         with:
+          repository: TEIC/Stylesheets
+          ref: a375bc8612ec1d0c98bed4f88a818ba68eeb62f6 # v7.60.0
+          path: tei-stylesheets
+
+      - name: Setup uv and Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.5"
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: ride-static/requirements.txt
+          enable-cache: true
+          cache-dependency-glob: ride-static/uv.lock
+
+      - name: Setup Java for ODD compilation
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Install WeasyPrint system libraries
         run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
 
       - name: Install dependencies
         working-directory: ride-static
-        run: pip install -r requirements.txt
+        run: uv sync --locked
+
+      - name: Verify ODD and Relax NG are synchronized
+        working-directory: ride-static
+        run: uv run python scripts/compile_schema.py --stylesheets ../tei-stylesheets --check
+
+      - name: Lint Python
+        working-directory: ride-static
+        run: uv run ruff check .
 
       - name: Cache TEI P5 subset
         uses: actions/cache@v4
@@ -88,34 +111,59 @@ jobs:
 
       - name: Run tests
         working-directory: ride-static
-        run: python -m pytest -q
+        run: uv run python -m pytest -q
 
       - name: Discovery scripts (Tier 1)
         working-directory: ride-static
         run: |
-          python scripts/inventory.py
-          python scripts/odd_extract.py
-          python scripts/structure.py
-          python scripts/sections.py
-          python scripts/ids.py
-          python scripts/refs.py
-          python scripts/taxonomy.py
+          uv run python scripts/inventory.py
+          uv run python scripts/odd_extract.py
+          uv run python scripts/structure.py
+          uv run python scripts/sections.py
+          uv run python scripts/ids.py
+          uv run python scripts/refs.py
+          uv run python scripts/taxonomy.py
 
       - name: Discovery scripts (Tier 2 + 3)
         working-directory: ride-static
         run: |
-          python scripts/p5_fetch.py
-          python scripts/cross_reference.py
+          uv run python scripts/p5_fetch.py
+          uv run python scripts/cross_reference.py
 
       - name: Render knowledge docs (Tier 4)
         working-directory: ride-static
         run: |
-          python scripts/render_data.py
-          python scripts/render_schema.py
+          uv run python scripts/render_data.py
+          uv run python scripts/render_schema.py
 
       - name: Build site
         working-directory: ride-static
-        run: python -m src.build --base-url=/${{ github.event.repository.name }} --pdf
+        run: >-
+          uv run python -m src.build
+          --base-url=/${{ github.event.repository.name }}
+          --include-drafts
+          --pdf
+
+      - name: Build draft preview artifact
+        working-directory: ride-static
+        run: >-
+          uv run python -m src.build
+          --output=draft-site
+          --include-drafts
+          --pdf
+          --pdf-drafts-only
+
+      - name: Build draft Pagefind index
+        working-directory: ride-static
+        run: npx -y pagefind --site draft-site
+
+      - name: Upload draft preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft-review-preview
+          path: ride-static/draft-site
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Build Pagefind index
         working-directory: ride-static

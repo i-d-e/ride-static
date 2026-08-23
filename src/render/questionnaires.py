@@ -29,10 +29,11 @@ Answer bookkeeping mirrors the charts (``knowledge/data.md`` anomaly rule):
   distinction between binary and categorical is surfaced in the table so
   the yes-rate is read correctly.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from html import escape
 from typing import Optional
 
@@ -164,12 +165,8 @@ def aggregate_questions(
                         cell["yes"] += 1
 
     tables: list[QuestionnaireSetTable] = []
-    canonical_order = list(
-        dict.fromkeys(criteria_slug(u) for u in CRITERIA_LABELS)
-    )
-    ordered_slugs = canonical_order + sorted(
-        s for s in tally if s not in canonical_order
-    )
+    canonical_order = list(dict.fromkeys(criteria_slug(u) for u in CRITERIA_LABELS))
+    ordered_slugs = canonical_order + sorted(s for s in tally if s not in canonical_order)
     seen_slugs: set[str] = set()
     for slug in ordered_slugs:
         if slug in seen_slugs or slug not in tally:
@@ -281,15 +278,15 @@ def render_questionnaires_html(reviews: tuple[Review, ...]) -> str:
         parts.append(
             f'<h2 class="ride-questionnaires__heading">{escape(table.label)} '
             f'<span class="ride-questionnaires__count">'
-            f'({table.review_count} review{"s" if table.review_count != 1 else ""})'
+            f"({table.review_count} review{'s' if table.review_count != 1 else ''})"
             f"</span></h2>"
         )
         parts.append(render_questionnaire_table(table))
         if table.anomaly_count > 0:
             parts.append(
                 f'<p class="ride-questionnaires__anomaly">'
-                f'{table.anomaly_count} answer'
-                f'{"s" if table.anomaly_count != 1 else ""} carried '
+                f"{table.anomaly_count} answer"
+                f"{'s' if table.anomaly_count != 1 else ''} carried "
                 f'<code>value="3"</code> and were excluded from the '
                 f"denominators.</p>"
             )

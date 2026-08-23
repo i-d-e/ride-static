@@ -14,12 +14,23 @@
 -#}
 {% extends "base.html" %}
 {%- import "partials/render.html" as r with context -%}
+{%- import "partials/artifacts.html" as af -%}
 
 {% block title %}{{ review.title }} — Factsheet — {{ site.title }}{% endblock %}
 
+{% block head_extra %}
+  {%- if review.is_draft %}<meta name="robots" content="noindex, nofollow">{% endif -%}
+{% endblock %}
+
 {% block content %}
-<article class="ride-page ride-factsheet-page" lang="{{ review.language }}">
+<article class="ride-page ride-page--solo ride-factsheet-page" lang="{{ review.language }}">
   <div class="ride-content">
+
+    {%- if review.is_draft %}
+    <p class="ride-review__draft" role="note">
+      <strong>Draft preview.</strong> This factsheet is excluded from publication outputs.
+    </p>
+    {%- endif %}
 
     <header class="ride-review__header">
       <p class="ride-factsheet-page__kicker">{{ site.strings.factsheet | default('Factsheet') }}</p>
@@ -44,50 +55,69 @@
 
       <dl class="ride-meta ride-factsheet-page__meta">
         {%- if review.publication_date %}
-        <dt>{{ site.strings.published | default('Published') }}</dt>
-        <dd>{{ review.publication_date }}</dd>
+        <div class="ride-meta__item">
+          <dt>{% if review.is_draft %}Draft date{% else %}{{ site.strings.published | default('Published') }}{% endif %}</dt>
+          <dd>{{ review.publication_date }}</dd>
+        </div>
         {%- endif %}
         {%- if review.doi %}
-        <dt>{{ site.strings.doi | default('DOI') }}</dt>
-        <dd><a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a></dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.doi | default('DOI') }}</dt>
+          <dd><a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a></dd>
+        </div>
         {%- endif %}
         {%- if review.licence %}
-        <dt>{{ site.strings.licence | default('Licence') }}</dt>
-        <dd><a href="{{ review.licence }}">{{ review.licence }}</a></dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.licence | default('Licence') }}</dt>
+          <dd><a href="{{ review.licence }}">{{ review.licence }}</a></dd>
+        </div>
         {%- endif %}
         {%- if review.editors %}
-        <dt>{{ site.strings.editors | default('Issue editors') }}</dt>
-        <dd>
-          {%- for e in review.editors %}
-            {{ e.person.full_name }}
-            {%- if e.role %} ({{ e.role }}){% endif -%}
-            {%- if not loop.last %}; {% endif -%}
-          {%- endfor -%}
-        </dd>
+        <div class="ride-meta__item ride-meta__item--wide">
+          <dt>{{ site.strings.editors | default('Issue editors') }}</dt>
+          <dd>
+            {%- for e in review.editors %}
+              {{ e.person.full_name }}
+              {%- if e.role %} ({{ e.role }}){% endif -%}
+              {%- if not loop.last %}; {% endif -%}
+            {%- endfor -%}
+          </dd>
+        </div>
         {%- endif %}
       </dl>
     </header>
 
+    {{ af.review_artifacts(review, current="factsheet", pdf_available=pdf_available, root="../") }}
+
+    <div class="ride-factsheet-page__overview">
     {#- Reviewed resource: title, URI, last accessed. -#}
     {%- if reviewed %}
     <section class="ride-factsheet-page__resource" aria-labelledby="resource-heading">
       <h2 id="resource-heading">{{ site.strings.reviewed_resource | default('Reviewed resource') }}</h2>
       <dl class="ride-meta">
         {%- if reviewed.title %}
-        <dt>{{ site.strings.title | default('Title') }}</dt>
-        <dd>{{ reviewed.title | trim }}</dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.title | default('Title') }}</dt>
+          <dd>{{ reviewed.title | trim }}</dd>
+        </div>
         {%- endif %}
         {%- if reviewed.bibl_targets %}
-        <dt>{{ site.strings.uri | default('URI') }}</dt>
-        <dd><a href="{{ reviewed.bibl_targets[0] }}" rel="noopener noreferrer">{{ reviewed.bibl_targets[0] }}</a></dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.uri | default('URI') }}</dt>
+          <dd><a href="{{ reviewed.bibl_targets[0] }}" rel="noopener noreferrer">{{ reviewed.bibl_targets[0] }}</a></dd>
+        </div>
         {%- endif %}
         {%- if reviewed.publication_date %}
-        <dt>{{ site.strings.published | default('Published') }}</dt>
-        <dd>{{ reviewed.publication_date }}</dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.published | default('Published') }}</dt>
+          <dd>{{ reviewed.publication_date }}</dd>
+        </div>
         {%- endif %}
         {%- if reviewed.last_accessed %}
-        <dt>{{ site.strings.last_accessed | default('Last accessed') }}</dt>
-        <dd>{{ reviewed.last_accessed }}</dd>
+        <div class="ride-meta__item">
+          <dt>{{ site.strings.last_accessed | default('Last accessed') }}</dt>
+          <dd>{{ reviewed.last_accessed }}</dd>
+        </div>
         {%- endif %}
       </dl>
     </section>
@@ -109,6 +139,7 @@
       {%- endfor %}
     </section>
     {%- endif %}
+    </div>
 
     {#- Questionnaire: one block per taxonomy, sections as headings,
         each question with label, full text, K-ref link, and selection. -#}
@@ -150,12 +181,13 @@
             <p class="ride-question__text">{{ question.question_text }}</p>
             {%- endif %}
             <p class="ride-question__answer">
+              <span class="ride-question__answer-label">{{ site.strings.answer | default('Answer') }}</span>
               {%- if question.anomaly %}
-                <span class="ride-question__anomaly">{{ site.strings.not_evaluated | default('Not evaluated') }}</span>
+                <span class="ride-question__answer-value ride-question__anomaly">{{ site.strings.not_evaluated | default('Not evaluated') }}</span>
               {%- elif question.selected %}
-                {%- for opt in question.selected %}{{ opt }}{% if not loop.last %}, {% endif %}{% endfor %}
+                <span class="ride-question__answer-value">{%- for opt in question.selected %}{{ opt }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
               {%- else %}
-                <span class="ride-question__unanswered">{{ site.strings.not_answered | default('—') }}</span>
+                <span class="ride-question__answer-value ride-question__unanswered">{{ site.strings.not_answered | default('Not answered') }}</span>
               {%- endif %}
             </p>
             {#- Native help toggle — <details> is flow content, so it sits as a
@@ -163,7 +195,10 @@
             {%- set help_html = question_help(question) %}
             {%- if help_html %}
             <details class="ride-question__help">
-              <summary class="ride-question__help-badge" aria-label="{{ site.strings.explanation | default('Explanation') }}">?</summary>
+              <summary class="ride-question__help-badge">
+                <span class="ride-question__help-icon" aria-hidden="true">?</span>
+                {{ site.strings.explanation | default('Explanation') }}
+              </summary>
               <div class="ride-question__help-body">{{ help_html | safe }}</div>
             </details>
             {%- endif %}

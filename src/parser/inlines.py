@@ -25,10 +25,10 @@ The single ``<ref type="crosssref">`` typo in the corpus is silently
 normalised to ``crossref`` — a one-occurrence data quirk, named explicitly
 here per the "anomalies are explicit" rule in CLAUDE.md.
 """
+
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from lxml import etree
 
@@ -79,10 +79,18 @@ SOFT_SKIP = frozenset({"lb"})
 # from inside ``<cit>``). Phase 6 introduces a dedicated bibliography
 # parser that decodes their structure; until then we preserve their text
 # so cit/bibl content survives end-to-end through Phase 5.
-PASSTHROUGH_TEXT = frozenset({
-    "del", "seg", "affiliation",
-    "respStmt", "date", "title", "editor", "idno",
-})
+PASSTHROUGH_TEXT = frozenset(
+    {
+        "del",
+        "seg",
+        "affiliation",
+        "respStmt",
+        "date",
+        "title",
+        "editor",
+        "idno",
+    }
+)
 
 # Element wrappers that are walked as if transparent — their own inline
 # children flatten into the surrounding sequence. ``<p>`` inside ``<note>``

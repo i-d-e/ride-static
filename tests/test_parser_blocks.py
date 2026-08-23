@@ -21,6 +21,7 @@ Test-data philosophy per CLAUDE.md hard rule:
   ``<bibl>`` — keep their synthetic fixture with a docstring naming
   the documented exception.
 """
+
 from __future__ import annotations
 
 
@@ -88,6 +89,7 @@ def test_parse_paragraph_carries_n_for_citation_anchor():
     assert out.n == "12"
     # Phase 5 wired the inline walker; @n captures the visible margin number.
     from src.model.inline import Text
+
     assert out.inlines == (Text(text="Body text."),)
 
 
@@ -117,28 +119,19 @@ def test_parse_paragraph_without_xml_id_yields_none():
 
 
 def test_parse_list_default_kind_is_bulleted():
-    lst = _el(
-        '<list xmlns="http://www.tei-c.org/ns/1.0">'
-        "<item>a</item><item>b</item></list>"
-    )
+    lst = _el('<list xmlns="http://www.tei-c.org/ns/1.0"><item>a</item><item>b</item></list>')
     out = parse_list(lst)
     assert out.kind == "bulleted"
     assert len(out.items) == 2
 
 
 def test_parse_list_normalises_numbered_to_ordered():
-    lst = _el(
-        '<list xmlns="http://www.tei-c.org/ns/1.0" rend="numbered">'
-        "<item>x</item></list>"
-    )
+    lst = _el('<list xmlns="http://www.tei-c.org/ns/1.0" rend="numbered"><item>x</item></list>')
     assert parse_list(lst).kind == "ordered"
 
 
 def test_parse_list_normalises_unordered_to_bulleted():
-    lst = _el(
-        '<list xmlns="http://www.tei-c.org/ns/1.0" rend="unordered">'
-        "<item>x</item></list>"
-    )
+    lst = _el('<list xmlns="http://www.tei-c.org/ns/1.0" rend="unordered"><item>x</item></list>')
     assert parse_list(lst).kind == "bulleted"
 
 
@@ -159,8 +152,7 @@ def test_parse_list_labeled_extracts_label_per_item():
 def test_parse_list_labeled_item_without_label_yields_none():
     """Mixed labeled lists are rare but possible; missing label is not an error."""
     lst = _el(
-        '<list xmlns="http://www.tei-c.org/ns/1.0" rend="labeled">'
-        "<item>no label here</item></list>"
+        '<list xmlns="http://www.tei-c.org/ns/1.0" rend="labeled"><item>no label here</item></list>'
     )
     assert parse_list(lst).items[0].label is None
 
@@ -185,10 +177,7 @@ def test_parse_table_with_head_and_header_cell():
 
 
 def test_parse_table_without_head():
-    tbl = _el(
-        '<table xmlns="http://www.tei-c.org/ns/1.0">'
-        "<row><cell>v</cell></row></table>"
-    )
+    tbl = _el('<table xmlns="http://www.tei-c.org/ns/1.0"><row><cell>v</cell></row></table>')
     assert parse_table(tbl).head is None
 
 
@@ -224,9 +213,7 @@ def test_parse_figure_code_example_via_eg():
 
 
 def test_parse_figure_without_graphic_or_eg_falls_back_to_graphic_kind():
-    fig = _el(
-        '<figure xmlns="http://www.tei-c.org/ns/1.0"><head>Empty</head></figure>'
-    )
+    fig = _el('<figure xmlns="http://www.tei-c.org/ns/1.0"><head>Empty</head></figure>')
     out = parse_figure(fig)
     assert out.kind == "graphic"
     assert out.graphic_url is None
@@ -243,8 +230,7 @@ def test_parse_figure_xml_id_for_apparate_backlink():
 
 
 def test_parse_figure_alt_from_figdesc():
-    """`<figDesc>` is empty in the current corpus, but the parser captures it
-    when present so Phase 13's build report can act on missing values."""
+    """``<figDesc>`` supplies the rendered image alternative text."""
     fig = _el(
         '<figure xmlns="http://www.tei-c.org/ns/1.0">'
         "<head>F</head>"
@@ -256,10 +242,9 @@ def test_parse_figure_alt_from_figdesc():
 
 
 def test_parse_figure_alt_none_when_figdesc_absent():
-    """The corpus today: 874 figures, 0 figDesc — the dominant case."""
+    """Historical figures without ``<figDesc>`` retain the fallback path."""
     fig = _el(
-        '<figure xmlns="http://www.tei-c.org/ns/1.0">'
-        '<head>F</head><graphic url="x.png"/></figure>'
+        '<figure xmlns="http://www.tei-c.org/ns/1.0"><head>F</head><graphic url="x.png"/></figure>'
     )
     assert parse_figure(fig).alt is None
 
@@ -281,6 +266,7 @@ def test_parse_cit_with_bibl_and_target():
     # convenience for renderers (it equals bibl.ref_target).
     from src.model.bibliography import BibEntry
     from src.model.inline import Reference, Text
+
     assert out.quote_inlines == (Text(text="Famous line."),)
     assert isinstance(out.bibl, BibEntry)
     assert out.bibl.inlines[0] == Text(text="Smith ")
@@ -291,10 +277,7 @@ def test_parse_cit_with_bibl_and_target():
 
 
 def test_parse_cit_without_bibl():
-    cit = _el(
-        '<cit xmlns="http://www.tei-c.org/ns/1.0">'
-        "<quote>Line.</quote></cit>"
-    )
+    cit = _el('<cit xmlns="http://www.tei-c.org/ns/1.0"><quote>Line.</quote></cit>')
     out = parse_cit(cit)
     assert out.bibl is None
     assert out.bibl_target is None
@@ -309,34 +292,23 @@ def test_dispatch_paragraph():
 
 
 def test_dispatch_list():
-    lst = _el(
-        '<list xmlns="http://www.tei-c.org/ns/1.0"><item>a</item></list>'
-    )
+    lst = _el('<list xmlns="http://www.tei-c.org/ns/1.0"><item>a</item></list>')
     assert isinstance(parse_block(lst), List)
 
 
 def test_dispatch_table_figure_cit():
-    tbl = _el(
-        '<table xmlns="http://www.tei-c.org/ns/1.0">'
-        "<row><cell>v</cell></row></table>"
-    )
+    tbl = _el('<table xmlns="http://www.tei-c.org/ns/1.0"><row><cell>v</cell></row></table>')
     fig = _el(
-        '<figure xmlns="http://www.tei-c.org/ns/1.0">'
-        '<head>F</head><graphic url="x.png"/></figure>'
+        '<figure xmlns="http://www.tei-c.org/ns/1.0"><head>F</head><graphic url="x.png"/></figure>'
     )
-    cit = _el(
-        '<cit xmlns="http://www.tei-c.org/ns/1.0">'
-        "<quote>q</quote></cit>"
-    )
+    cit = _el('<cit xmlns="http://www.tei-c.org/ns/1.0"><quote>q</quote></cit>')
     assert isinstance(parse_block(tbl), Table)
     assert isinstance(parse_block(fig), Figure)
     assert isinstance(parse_block(cit), Citation)
 
 
 def test_dispatch_unknown_raises_with_localname():
-    el = _el(
-        '<unknownThing xmlns="http://www.tei-c.org/ns/1.0">x</unknownThing>'
-    )
+    el = _el('<unknownThing xmlns="http://www.tei-c.org/ns/1.0">x</unknownThing>')
     with pytest.raises(UnknownTeiElement) as exc_info:
         parse_block(el)
     assert exc_info.value.localname == "unknownThing"
@@ -347,8 +319,7 @@ def test_dispatch_unknown_includes_div_hint():
     """When the unknown element sits inside a <div xml:id=...>, the hint
     points to that ancestor so the offending block is locatable in the source."""
     container = _el(
-        '<div xmlns="http://www.tei-c.org/ns/1.0" xml:id="div3">'
-        "<weirdBlock>x</weirdBlock></div>"
+        '<div xmlns="http://www.tei-c.org/ns/1.0" xml:id="div3"><weirdBlock>x</weirdBlock></div>'
     )
     weird = container.find("{%s}weirdBlock" % TEI)
     with pytest.raises(UnknownTeiElement) as exc_info:
@@ -371,7 +342,7 @@ def test_real_corpus_list_inside_item() -> None:
     shape exercised).
     """
     from src.parser.review import parse_review
-    from src.model.block import List as ListBlock, ListItem
+    from src.model.block import List as ListBlock
 
     [anemoskala] = _corpus_iter(file_name="anemoskala-tei.xml")
     review = parse_review(anemoskala)
@@ -408,8 +379,7 @@ def test_real_corpus_list_inside_item() -> None:
 def test_split_paragraph_no_block_children_fast_path():
     """Without block children, parse_paragraph_or_split returns one element."""
     p = _el(
-        '<p xmlns="http://www.tei-c.org/ns/1.0">'
-        "Just plain text with <emph>emphasis</emph>.</p>"
+        '<p xmlns="http://www.tei-c.org/ns/1.0">Just plain text with <emph>emphasis</emph>.</p>'
     )
     out = parse_paragraph_or_split(p)
     assert len(out) == 1
@@ -468,10 +438,7 @@ def test_split_paragraph_ending_with_block_drops_empty_trailing_paragraph():
 
 def test_split_paragraph_with_only_block_yields_block_alone():
     """`<p><figure/></p>` → (Figure,)."""
-    p = _el(
-        '<p xmlns="http://www.tei-c.org/ns/1.0">'
-        '<figure><graphic url="x.png"/></figure></p>'
-    )
+    p = _el('<p xmlns="http://www.tei-c.org/ns/1.0"><figure><graphic url="x.png"/></figure></p>')
     out = parse_paragraph_or_split(p)
     assert len(out) == 1
     assert isinstance(out[0], Figure)
@@ -482,7 +449,7 @@ def test_split_paragraph_with_inline_emph_around_block():
     p = _el(
         '<p xmlns="http://www.tei-c.org/ns/1.0">'
         'see <emph>fig</emph> here<figure><graphic url="x.png"/></figure>'
-        'and <emph>more</emph></p>'
+        "and <emph>more</emph></p>"
     )
     out = parse_paragraph_or_split(p)
     assert len(out) == 3
@@ -507,7 +474,7 @@ def test_parse_block_sequence_skips_div_and_head():
         "<head>Title</head>"
         "<p>One.</p>"
         "<p>Two.</p>"
-        '<div><head>Sub</head><p>Inner.</p></div>'
+        "<div><head>Sub</head><p>Inner.</p></div>"
         "</div>"
     )
     blocks = parse_block_sequence(div)
@@ -539,6 +506,7 @@ def test_smoke_real_corpus_all_reviews_section_blocks_parse() -> None:
     `parse_block_sequence` recursively) must parse without raising. This is
     the corpus-wide validation that wires Phases 1–5 together."""
     from src.parser.sections import parse_sections
+
     files = list(iter_tei_files())
     assert len(files) >= 100
     for f in files:

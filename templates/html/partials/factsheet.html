@@ -8,11 +8,10 @@
   `QuestionnaireAnswer(category_xml_id, value)` where `value` is "0",
   "1", or — in a corpus anomaly — "3".
 
-  v0 rendering: per criteria URL, show count of "1" answers vs total
-  meaningful answers, plus a small bar. The criteria URLs link to the
-  external criteria document so readers can see what the categories
-  mean. Phase 7 will resolve K-refs from inline `<ref>`s into the same
-  external criteria document.
+  Rendering: per criteria URL, show questionnaire completion when the
+  parsed question structure is available. A selected leaf is a response,
+  not a positive score; the legacy flat-answer fallback therefore reports
+  only how many responses were selected and never presents a percentage.
 
   Anomaly handling: value="3" answers are excluded from both numerator
   and denominator and are flagged with a small note. This matches
@@ -22,15 +21,17 @@
 
 {%- macro factsheet(review, strings={}) -%}
   {%- if review.questionnaires and (review.questionnaires | length) > 0 -%}
-  <section class="ride-sidebar__box ride-sidebar__box--factsheet" aria-labelledby="factsheet-heading">
+  <section id="factsheet" class="ride-sidebar__box ride-sidebar__box--factsheet" aria-labelledby="factsheet-heading">
     <h2 id="factsheet-heading">{{ strings.get('factsheet', 'Factsheet') }}</h2>
 
     {%- for q in review.questionnaires -%}
-      {%- set total       = q.answers | length -%}
-      {%- set yes_count   = q.answers | selectattr("value", "equalto", "1") | list | length -%}
-      {%- set anomaly_cnt = q.answers | rejectattr("value", "in", ["0", "1"]) | list | length -%}
-      {%- set valid       = total - anomaly_cnt -%}
-      {%- set pct         = (100 * yes_count / valid) | round | int if valid > 0 else 0 -%}
+      {%- set selected_count = q.answers | selectattr("value", "equalto", "1") | list | length -%}
+      {%- set answer_anomalies = q.answers | rejectattr("value", "in", ["0", "1"]) | list | length -%}
+      {%- set question_count = q.questions | length -%}
+      {%- set answered_count = q.questions | selectattr("selected") | list | length -%}
+      {%- set question_anomalies = q.questions | selectattr("anomaly") | list | length -%}
+      {%- set anomaly_cnt = question_anomalies if question_count > 0 else answer_anomalies -%}
+      {%- set completion_pct = (100 * answered_count / question_count) | round | int if question_count > 0 else 0 -%}
 
       <dl class="ride-factsheet">
         <dt class="ride-factsheet__criteria">
@@ -41,8 +42,12 @@
           {%- endif -%}
         </dt>
         <dd class="ride-factsheet__score">
-          <span class="ride-factsheet__count">{{ yes_count }} / {{ valid }}</span>
-          <progress class="ride-factsheet__bar" max="100" value="{{ pct }}" aria-label="{{ yes_count }} of {{ valid }} categories answered yes">{{ pct }}%</progress>
+          {%- if question_count > 0 -%}
+          <span class="ride-factsheet__count">{{ answered_count }} / {{ question_count }} answered</span>
+          <progress class="ride-factsheet__bar" max="100" value="{{ completion_pct }}" aria-label="{{ answered_count }} of {{ question_count }} questions answered">{{ completion_pct }}%</progress>
+          {%- else -%}
+          <span class="ride-factsheet__count">{{ selected_count }} selected responses</span>
+          {%- endif -%}
           {%- if anomaly_cnt > 0 -%}
             <span class="ride-factsheet__anomaly" title="{{ anomaly_cnt }} answers outside the 0/1 schema">⚠ {{ anomaly_cnt }}</span>
           {%- endif -%}

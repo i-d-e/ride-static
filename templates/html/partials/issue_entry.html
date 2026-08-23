@@ -29,6 +29,7 @@
   <div class="ride-issue-entry__body">
     <h3 class="ride-issue-entry__title">
       <a href="{{ review_url }}">{{ review.title }}</a>
+      {%- if review.is_draft %} <span class="ride-badge">draft</span>{% endif %}
     </h3>
 
     {%- if reviewed.item or review.authors -%}

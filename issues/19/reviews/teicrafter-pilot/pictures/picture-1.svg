@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" role="img" aria-labelledby="title desc">
+  <title id="title">teiCrafter workflow</title>
+  <desc id="desc">Local TEI or deterministic text conversion enters a client-only browser editor. Project rules, facsimiles, authority services, and optional reviewed LLM proposals support editing. The result is saved as TEI XML for downstream edition systems.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #334155; stroke-width: 2; }
+      .core { fill: #fff7d6; stroke: #9a6a00; stroke-width: 3; }
+      .ai { fill: #f3e8ff; stroke: #7e22ce; stroke-width: 2; }
+      .network { fill: #e0f2fe; stroke: #0369a1; stroke-width: 2; }
+      .output { fill: #ecfdf5; stroke: #047857; stroke-width: 2; }
+      .label { font-family: Arial, sans-serif; font-size: 25px; font-weight: 600; fill: #0f172a; }
+      .text { font-family: Arial, sans-serif; font-size: 21px; fill: #334155; }
+      .small { font-family: Arial, sans-serif; font-size: 18px; fill: #475569; }
+      .arrow { fill: none; stroke: #334155; stroke-width: 3; marker-end: url(#arrow); }
+      .optional { stroke-dasharray: 10 8; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="800"/>
+  <text class="label" x="700" y="58" text-anchor="middle">teiCrafter verified editing and integration paths</text>
+  <text class="small" x="700" y="91" text-anchor="middle">The deterministic editor remains usable without an LLM, account, or application backend.</text>
+
+  <rect class="panel" x="55" y="180" rx="18" ry="18" width="275" height="150"/>
+  <text class="label" x="192" y="225" text-anchor="middle">Local inputs</text>
+  <text class="text" x="82" y="270">• Existing TEI XML</text>
+  <text class="text" x="82" y="305">• Text / Markdown + images</text>
+
+  <rect class="core" x="430" y="130" rx="22" ry="22" width="540" height="350"/>
+  <text class="label" x="700" y="180" text-anchor="middle">Client-only browser editor</text>
+  <rect class="panel" x="475" y="215" rx="12" ry="12" width="450" height="82"/>
+  <text class="text" x="700" y="249" text-anchor="middle">Raw TEI string is canonical</text>
+  <text class="small" x="700" y="277" text-anchor="middle">Edits are offset splices; unrelated bytes remain unchanged</text>
+  <rect class="panel" x="475" y="320" rx="12" ry="12" width="210" height="112"/>
+  <text class="text" x="580" y="356" text-anchor="middle">Reading + XML</text>
+  <text class="small" x="580" y="386" text-anchor="middle">correction and markup</text>
+  <text class="small" x="580" y="413" text-anchor="middle">well-formedness check</text>
+  <rect class="panel" x="715" y="320" rx="12" ry="12" width="210" height="112"/>
+  <text class="text" x="820" y="356" text-anchor="middle">Facsimile + Index</text>
+  <text class="small" x="820" y="386" text-anchor="middle">zones and entities</text>
+  <text class="small" x="820" y="413" text-anchor="middle">authority linking</text>
+
+  <rect class="panel" x="430" y="565" rx="18" ry="18" width="330" height="150"/>
+  <text class="label" x="595" y="610" text-anchor="middle">Project manifest</text>
+  <text class="text" x="465" y="652">• document types and markup</text>
+  <text class="text" x="465" y="686">• indices and image resolution</text>
+
+  <rect class="ai" x="1035" y="130" rx="18" ry="18" width="310" height="160"/>
+  <text class="label" x="1190" y="175" text-anchor="middle">Optional LLM path</text>
+  <text class="text" x="1068" y="217">• initial TEI draft</text>
+  <text class="text" x="1068" y="251">• annotation proposals</text>
+  <text class="small" x="1190" y="278" text-anchor="middle">violet and unreviewed until confirmed</text>
+
+  <rect class="network" x="1035" y="340" rx="18" ry="18" width="310" height="140"/>
+  <text class="label" x="1190" y="385" text-anchor="middle">Optional services</text>
+  <text class="text" x="1068" y="427">• Wikidata / GND / GeoNames</text>
+  <text class="text" x="1068" y="461">• remote images or IIIF</text>
+
+  <rect class="output" x="980" y="565" rx="18" ry="18" width="365" height="150"/>
+  <text class="label" x="1162" y="610" text-anchor="middle">TEI output</text>
+  <text class="text" x="1015" y="652">• save in place or download</text>
+  <text class="text" x="1015" y="686">• downstream encoding / publication</text>
+
+  <path class="arrow" d="M 330 255 L 430 255"/>
+  <path class="arrow" d="M 595 565 L 650 480"/>
+  <path class="arrow optional" d="M 1035 210 L 970 235"/>
+  <path class="arrow optional" d="M 1035 410 L 970 390"/>
+  <path class="arrow" d="M 970 430 C 1020 495, 1060 520, 1110 565"/>
+  <text class="small" x="1000" y="528" text-anchor="middle">save / download</text>
+</svg>

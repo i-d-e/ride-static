@@ -6,10 +6,12 @@ behaviour — focus-visible on every interactive element family, target
 size on tag pills, reduced-motion respect. Style edits that drop one
 of these requirements break the test.
 """
+
 from __future__ import annotations
 
 
 from tests._shared import REPO_ROOT
+
 RIDE_CSS = REPO_ROOT / "static" / "css" / "ride.css"
 EXPLORE_TMPL = REPO_ROOT / "templates" / "html" / "explore.html"
 
@@ -79,12 +81,13 @@ def test_tag_pills_meet_target_size_minimum():
 def test_print_stylesheet_hides_chrome_and_shows_doi():
     """Phase 14 print stylesheet drives the WeasyPrint output.
 
-    Three load-bearing rules:
+    Four load-bearing rules:
       - chrome (nav, sidebar, footer) is suppressed so the PDF is
         body-only;
       - .ride-review__doi-print flips from display:none to display:block
         in print so the DOI lands on page 1 (requirements A6);
       - @page sets paper size + margins for a predictable PDF.
+      - screen-only grids become blocks so long references paginate at full width.
     """
     css = _css()
     print_block_start = css.find("@media print")
@@ -98,6 +101,8 @@ def test_print_stylesheet_hides_chrome_and_shows_doi():
     # display:block on the DOI line is the load-bearing flip.
     assert ".ride-review__doi-print" in block
     assert "display: block" in block
+    assert ".ride-page { display: block; }" in block
+    assert ".ride-apparate { display: block; }" in block
 
 
 def test_print_running_footers_declare_page_number_and_citeline():
@@ -112,7 +117,7 @@ def test_print_running_footers_declare_page_number_and_citeline():
     (no crash).
     """
     css = _css()
-    block = css[css.find("@media print"):]
+    block = css[css.find("@media print") :]
     assert "@bottom-right" in block
     assert "counter(page)" in block
     assert "@bottom-left" in block
@@ -120,13 +125,29 @@ def test_print_running_footers_declare_page_number_and_citeline():
     # The string-set source must exist on the DOI print paragraph.
     doi_rule_start = block.find(".ride-review__doi-print {")
     assert doi_rule_start != -1
-    doi_rule = block[doi_rule_start:block.find("}", doi_rule_start)]
+    doi_rule = block[doi_rule_start : block.find("}", doi_rule_start)]
     assert "string-set: citeline" in doi_rule
     # The source element the string-set targets exists in the template.
-    review_tmpl = (REPO_ROOT / "templates" / "html" / "review.html").read_text(
-        encoding="utf-8"
-    )
+    review_tmpl = (REPO_ROOT / "templates" / "html" / "review.html").read_text(encoding="utf-8")
     assert 'class="ride-review__doi-print"' in review_tmpl
+
+
+def test_review_artifacts_and_factsheet_have_component_styles():
+    css = _css()
+    for selector in (
+        ".ride-artifacts",
+        ".ride-factsheet-page__overview",
+        ".ride-questionnaire__section",
+        ".ride-question__answer-label",
+        ".ride-question__help-icon",
+    ):
+        assert selector in css, f"missing component style for {selector}"
+
+
+def test_print_does_not_duplicate_external_urls_and_hides_back_links():
+    block = _css()[_css().find("@media print") :]
+    assert 'a[href^="http"]::after' not in block
+    assert ".ride-note__back" in block
 
 
 def test_reduced_motion_preference_is_honoured():

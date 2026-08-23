@@ -1,0 +1,39 @@
+{#- Review-preview workspace. The build writes this page only with
+    --include-drafts; draft status still excludes these reviews from every
+    formal publication output. -#}
+{% extends "base.html" %}
+{%- import "partials/issue_entry.html" as ie -%}
+{%- import "partials/artifacts.html" as af -%}
+
+{% block head_extra %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="ride-page ride-page--solo">
+  <div class="ride-content">
+    <header class="ride-issue__header">
+      <h1 class="ride-issue__title">Review workflow examples</h1>
+      <p class="ride-issue__description">
+        These AI-assisted self-audits are public workflow examples. Their draft status keeps them outside issue pages, feeds, search, sitemaps, and public data exports.
+      </p>
+      <p class="ride-issue__count">
+        {{ reviews | length }} draft review{% if reviews | length != 1 %}s{% endif %} available.
+      </p>
+    </header>
+
+    <section class="ride-issue__contributions" aria-label="Draft reviews">
+      {%- for entry in entries -%}
+      <div class="ride-draft-entry">
+        {{ ie.issue_entry(entry.review, site, entry.abstract_excerpt, entry.wordcloud_url) }}
+        {{ af.review_artifacts(
+          entry.review,
+          pdf_available=pdf_available,
+          root=site.base_url ~ '/issues/' ~ entry.review.issue ~ '/' ~ entry.review.id ~ '/'
+        ) }}
+      </div>
+      {%- else -%}
+        <p>No draft reviews are available.</p>
+      {%- endfor -%}
+    </section>
+  </div>
+</div>
+{% endblock %}

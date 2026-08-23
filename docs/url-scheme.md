@@ -102,7 +102,7 @@ stubs from the old flat paths.
 /data/explorer.json                     flat per-review data table backing /data/explore/
 /data/ride-corpus.bib                   corpus-wide BibTeX, one entry per review (Zotero mass import)
 /data/ride-corpus.csl.json              corpus-wide CSL-JSON array, one object per review
-/oai/                                   OAI-PMH static snapshot, see verb routing below
+/oai/                                   static OAI-PMH response snapshots
 /feed/atom.xml                          Atom 1.0 feed (RFC 4287), newest reviews
 /feed/rss.xml                           RSS 2.0 feed, same entries and identifiers as Atom
 /feed/rdf.xml                           RSS 1.0 (RDF) feed, same entries (WP parity)
@@ -112,14 +112,17 @@ stubs from the old flat paths.
 
 Each per-review page also embeds JSON-LD with `schema.org/ScholarlyArticle` markup; no separate URL.
 
-OAI-PMH verbs are dispatched via static query-string responses; the snapshot is regenerated at every build. The verb endpoints are:
+The build regenerates fixed XML snapshots for the OAI-PMH response types and each published review. GitHub Pages does not dispatch OAI-PMH query strings. The available files are:
 
 ```
-/oai/?verb=Identify
-/oai/?verb=ListIdentifiers
-/oai/?verb=ListRecords
-/oai/?verb=GetRecord&identifier={oai_id}
+/oai/identify.xml
+/oai/list-identifiers.xml
+/oai/list-metadata-formats.xml
+/oai/list-records.xml
+/oai/records/{review_id}.xml
 ```
+
+A protocol endpoint for requests such as `?verb=Identify` requires a separate request-routing service and is not part of the GitHub Pages deployment.
 
 ## Reserved version segment (A1)
 

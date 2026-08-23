@@ -4,7 +4,7 @@ project:
   name: ride-static
 status: active
 created: 2026-07-10
-updated: 2026-07-10
+updated: 2026-08-23
 language: en
 related:
   - "[[pipeline]]"
@@ -79,8 +79,8 @@ Three independent research passes tried to refute the load-bearing claims. Verdi
 External research on who actually consumes the live endpoint, snapshot evidence:
 
 - **The endpoint itself.** `Identify` answers (repositoryName "ride. A review journal for digital editions and resources", earliestDatestamp 2014-06-01, no `friends`/`provenance` naming harvesters). `ListMetadataFormats` offers `oai_dc`, `oai_marcxml` and `oai_doajxml` (schema doaj.org), so the endpoint was visibly built as a DOAJ feed. `ListRecords` delivers the full corpus as Dublin Core with DOIs and CC-BY rights.
-- **No harvester demonstrable.** OpenAIRE indexes RIDE reviews with `collectedFrom: Datacite` throughout; the metadata reaches aggregators via the DataCite DOIs (prefix 10.18716, client name Universitäts- und Stadtbibliothek Köln, client symbol `zbmed.unikoeln`, provider University of Cologne — verified against the DataCite API 2026-07-10), the OAI endpoint plays no role there. Crossref does not know the ISSN (RIDE DOIs are DataCite). The OpenArchives data-provider register has no entry, and registration was discontinued 2025-07-18.
-- **DOAJ resolved (2026-07-10).** DOAJ does not harvest publisher OAI endpoints at all — its documented ingest routes are manual entry, XML file upload in the publisher dashboard, and the REST API; DOAJ's own OAI-PMH is output-only. The `oai_doajxml` format on the RIDE endpoint is therefore a convenience export for producing the upload file, and nobody demonstrably harvests the endpoint; the static snapshot suffices. Remaining editorial question: keep the manual dashboard upload or automate an API push (see [[workflow]]).
+- **External use remains unknown.** OpenAIRE records inspected on 2026-07-10 identify DataCite as their source for RIDE reviews. Crossref did not return the RIDE ISSN, and the OpenArchives data-provider register had no RIDE entry. These checks did not establish whether another service uses the RIDE OAI endpoint; access logs or confirmation from the editorial infrastructure are required for that conclusion.
+- **DOAJ route resolved (2026-07-10).** DOAJ's documented ingest routes are manual entry, XML file upload in the publisher dashboard, and the REST API; DOAJ's own OAI-PMH is output-only. The `oai_doajxml` format can produce an upload file, but the current RIDE handover procedure is not documented in the repositories. Remaining editorial questions: confirm the existing procedure, then decide whether to retain it or automate an API push (see [[workflow]]).
 
 ## Open (editorial decisions)
 

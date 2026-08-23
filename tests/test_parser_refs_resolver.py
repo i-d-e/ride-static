@@ -17,10 +17,9 @@ not in body content — the body parser does not traverse those.
 ``classify_target`` pins the contract for the day a body-level K-ref
 is added.
 """
+
 from __future__ import annotations
 
-
-import pytest
 
 from src.model.block import Citation, Figure, List as ListBlock, Paragraph, Table
 from src.model.inline import Emphasis, Highlight, Note, Reference

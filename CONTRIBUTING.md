@@ -4,14 +4,15 @@ Goal of this document: any new contributor reaches a productive state within hal
 
 ## Setup
 
-Requirements: Python 3.11, git.
+Requirements: Python 3.11, [uv](https://docs.astral.sh/uv/), git.
 
 ```sh
 git clone <this-repo>
 cd ride-static
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python -m pytest tests/
+uv sync --locked
+uv run ruff check .
+uv run python -m pytest tests/
+uvx pre-commit install
 ```
 
 The TEI corpus ships in this repo under `issues/{N}/reviews/`, no separate clone is needed. Per-issue **picture assets** still live in `i-d-e/ride`; clone it as a sibling (`git clone <ride-corpus-repo> ../ride`) only if you need figures to render in the local build — the pipeline degrades cleanly without it.
@@ -27,7 +28,7 @@ See `CLAUDE.md` for the layout reference. In short:
 - `config/element-mapping.yaml` — declarative binding of domain classes to templates and CSS classes (introduced in Phase 8; see `docs/extending.md` for the schema).
 - `pages/` — editorial pages as TEI, validated against `schema/ride-pages.rng`. This is the build default for the non-review pages.
 - `content/` — editorial Markdown fallback (home widgets plus the `--no-tei-editorials` legacy path); per-issue YAML configs (introduced in Phase 9).
-- `tests/` — pytest, run from repo root with `python -m pytest tests/`.
+- `tests/` — pytest, run from repo root with `uv run python -m pytest tests/`.
 - `knowledge/` — Obsidian-style vault, `.md` only, internal links use `[[wikilink]]`.
 - `inventory/` — generated JSON artifacts, gitignored, regeneratable from `scripts/`.
 
@@ -72,20 +73,31 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 
 - **A new TEI element or variant** — see `docs/extending.md`. Most variants are YAML-only via `config/element-mapping.yaml`; structural additions need a dataclass and parser.
 - **A new editorial page** — add a TEI file under `pages/` that validates against `schema/ride-pages.rng`; its location decides the URL section. See `docs/extending.md` (Editorial pages) and `docs/url-scheme.md`. The Markdown under `content/` is only the `--no-tei-editorials` fallback.
-- **A new test** — name it `tests/test_<thing>.py` and run `python -m pytest tests/test_<thing>.py -v`.
+- **A new test** — name it `tests/test_<thing>.py` and run `uv run python -m pytest tests/test_<thing>.py -v`.
+
+## Review schema
+
+`schema/ride.odd` is the editable contract. Do not edit `schema/ride.rng` by hand. The compiler requires Java and TEI Stylesheets 7.60.0:
+
+```sh
+git clone --branch v7.60.0 --depth 1 https://github.com/TEIC/Stylesheets.git ../tei-stylesheets
+uv run python scripts/compile_schema.py --stylesheets ../tei-stylesheets
+uv run python scripts/compile_schema.py --stylesheets ../tei-stylesheets --check
+```
+
+New review bundles are validated strictly against this schema. Drafts use `<revisionDesc status="draft">` and a unique provisional `xml:id` in the form `draft.{lowercase-slug}`. Content-bearing graphics should carry a concise `<figDesc>` after `<graphic>` so HTML and PDF receive meaningful alternative text. Historical flat reviews retain a warning-only compatibility path for pre-existing schema drift. Missing or unsafe `pictures/` references fail a bundle build with the review ID and source path.
 
 ## Wordclouds
 
-Issue pages show a per-review word cloud thumbnail from `static/images/wordclouds/{review_id}.png`. When a new review is published, generate and commit its image:
+The build generates wordclouds for review bundles into `site/static/images/wordclouds/{review_id}.png`. Bundle wordclouds are derived output and are not committed. Legacy flat reviews continue to use committed thumbnails under `static/images/wordclouds/`; regenerate one when its text changes:
 
 ```sh
-pip install wordcloud                    # optional dependency, not in requirements.txt
-python scripts/wordclouds.py --review <slug>
+uv run python scripts/wordclouds.py --review <slug>
 # or by path:
-python scripts/wordclouds.py issues/<N>/reviews/<slug>-tei.xml
+uv run python scripts/wordclouds.py issues/<N>/reviews/<slug>-tei.xml
 ```
 
-The script extracts `//tei:body//text()`, applies a language-specific stopword list (`scripts/wordcloud-assets/stopwords_{de,en,fr}.txt`, ported from `i-d-e/ride-scripts`; other languages fall back to the library's built-in list), renders through a silhouette mask (`scripts/wordcloud-assets/cloud_mask.png`) with a fixed `random_state`, and writes `static/images/wordclouds/{review_id}.png`. The fixed seed makes the output reproducible, so re-running for the same review yields a byte-identical image. Commit the generated PNG; the render is a one-shot maintenance step, not part of the build.
+The generator extracts `//tei:body//text()`, applies a language-specific stopword list (`scripts/wordcloud-assets/stopwords_{de,en,fr}.txt`, ported from `i-d-e/ride-scripts`; other languages fall back to the library's built-in list), renders through a silhouette mask (`scripts/wordcloud-assets/cloud_mask.png`) with a fixed `random_state`, and writes `{review_id}.png`. The fixed seed makes repeated output byte-identical.
 
 ## Running a session with Claude Code
 

@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-05-09
-updated: 2026-07-10
+updated: 2026-08-22
 version: 0.2
 language: en
 related:
@@ -21,6 +21,7 @@ related:
   - "[[workflow]]"
   - "[[data]]"
   - "[[schema]]"
+  - "[[teicrafter-pilot]]"
 ---
 
 # knowledge/
@@ -35,13 +36,14 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 |---|---|---|
 | [[data]] | Material — empirical reality of the TEI corpus | regenerated when corpus changes (script-driven) |
 | [[schema]] | Material — `ride.odd` customisations and schema-vs-corpus diff | regenerated when ODD changes (script-driven) |
-| [[specification]] | Substance — 19 R-clauses, 10 N-clauses, 6 A-decisions, 5 roles | incremental, when scope shifts |
+| [[specification]] | Substance — 19 R-clauses, 10 N-clauses, 7 A-decisions, 5 roles | incremental, when scope shifts |
 | [[architecture]] | Construction — domain model, parser anomalies, render pipeline | when architectural commitments change |
 | [[pipeline]] | Construction — discovery DAG, phase plan, GitHub-Actions workflow | when phases land or CI changes |
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [[exploration]] | Form/Construction — proposal: interactive explore view and narrative story view, with implementation plan | when the two data views are scoped or built |
 | [[redirects-feeds]] | Construction — rationale and evidence for legacy-URL redirects and the syndication feeds | when redirect or feed decisions change |
 | [[workflow]] | Construction — target publication workflow, legacy-stack replacement inventory, parity gaps | when editorial decisions land or gaps close |
+| [[teicrafter-pilot]] | Evaluation — verified teiCrafter self-audit and end-to-end review-ingestion report | when the pilot workflow or its open boundaries change |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.

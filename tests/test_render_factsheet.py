@@ -14,6 +14,7 @@ Two layers, per the CLAUDE.md hard rule:
 
 Tests assert the contract, not exact HTML, so the template can evolve.
 """
+
 from __future__ import annotations
 
 from src.model.questionnaire import (
@@ -108,9 +109,7 @@ def test_group_personnel_handles_none_and_empty():
 def test_reviewed_resource_returns_first_or_none():
     review = _review_with_factsheet()
     assert reviewed_resource(review) is not None
-    bare = Review(
-        id="x", issue="1", title="t", publication_date="", language="en", licence=""
-    )
+    bare = Review(id="x", issue="1", title="t", publication_date="", language="en", licence="")
     assert reviewed_resource(bare) is None
 
 
@@ -139,6 +138,24 @@ def test_render_factsheet_contains_block_headings():
     assert "Reviewed resource" in html
     assert "People" in html
     assert "Questionnaire" in html
+    assert 'aria-label="Review files"' in html
+    assert 'aria-current="page">Factsheet' in html
+    assert 'href="../ride.21.4.xml"' in html
+    assert 'href="../ride.21.4.pdf"' in html
+
+
+def test_render_draft_factsheet_uses_solo_layout_and_draft_metadata():
+    site = SiteConfig(base_url="https://ride.example")
+    html = render_factsheet(
+        _review_with_factsheet(publication_status="draft"),
+        site,
+    )
+
+    assert 'class="ride-page ride-page--solo ride-factsheet-page"' in html
+    assert 'class="ride-review__draft" role="note"' in html
+    assert "Draft date" in html
+    assert 'rel="canonical"' not in html
+    assert 'property="og:url"' not in html
 
 
 def test_render_factsheet_shows_question_and_selection():
@@ -183,7 +200,8 @@ def test_render_factsheet_marks_anomaly_and_unanswered():
     q = Questionnaire(criteria_url="", answers=(), questions=(anomaly_q, none_q))
     html = render_factsheet(_review_with_factsheet(questionnaires=(q,)))
     assert "Not evaluated" in html
-    assert "—" in html  # unanswered marker
+    assert "Not answered" in html
+    assert html.count('class="ride-question__answer-label"') == 2
 
 
 def test_render_factsheet_without_reviewed_resource_does_not_crash():
@@ -201,8 +219,7 @@ def test_render_factsheet_canonical_url_is_review_url_plus_factsheet():
     site = SiteConfig(title="RIDE", base_url="https://ride.i-d-e.de", default_language="en")
     html = render_factsheet(_review_with_factsheet(), site)
     assert (
-        '<link rel="canonical" href="https://ride.i-d-e.de/issues/21/ride.21.4/factsheet/">'
-        in html
+        '<link rel="canonical" href="https://ride.i-d-e.de/issues/21/ride.21.4/factsheet/">' in html
     )
 
 
@@ -267,9 +284,10 @@ def test_render_factsheet_attaches_help_details():
     html = render_factsheet(review, help_texts=help_texts)
     assert 'class="ride-question__help"' in html
     assert "archiving help body" in html
-    assert 'aria-label="Explanation"' in html
+    assert "Explanation" in html
+    assert 'class="ride-question__help-icon" aria-hidden="true"' in html
     # details must not be nested inside the label paragraph.
-    assert "<p class=\"ride-question__label\">" in html
+    assert '<p class="ride-question__label">' in html
 
 
 def test_render_factsheet_no_help_when_absent():
@@ -288,9 +306,7 @@ def test_render_factsheet_labels_compound_blocks():
     res2 = RelatedItem(type="reviewed_resource", bibl_text="", xml_id="rev2", title="LERA")
     q1 = Questionnaire(criteria_url="", answers=(), questions=(), resource_key="rev1")
     q2 = Questionnaire(criteria_url="", answers=(), questions=(), resource_key="rev2")
-    review = _review_with_factsheet(
-        related_items=(res1, res2), questionnaires=(q1, q2)
-    )
+    review = _review_with_factsheet(related_items=(res1, res2), questionnaires=(q1, q2))
     html = render_factsheet(review)
     assert 'class="ride-questionnaire__resource"' in html
     assert "Juxta" in html

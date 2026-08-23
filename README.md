@@ -2,7 +2,7 @@
 
 Static-site generator for [ride.i-d-e.de](https://ride.i-d-e.de) — *RIDE. A review journal for digital editions and resources*, published by the Institut für Dokumentologie und Editorik (IDE).
 
-The pipeline reads the TEI XML review corpus under `issues/{N}/reviews/`, the editorial pages as TEI under `pages/` (with a Markdown fallback under `content/`), and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree with per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, a sitemap, three syndication feeds (Atom, RSS 2.0, RSS 1.0/RDF), and a redirect layer that keeps the old WordPress URLs and feed paths working. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
+The pipeline reads the TEI XML review corpus under `issues/{N}/reviews/`, including both legacy flat files and self-contained review bundles, the editorial pages as TEI under `pages/` (with a Markdown fallback under `content/`), and one `metadata.yaml` per issue. A single GitHub Actions workflow produces a complete `site/` tree with per-review HTML and PDF, aggregation pages, a Pagefind index, OAI-PMH and JSON-LD interfaces, a sitemap, three syndication feeds (Atom, RSS 2.0, RSS 1.0/RDF), and a redirect layer that keeps the old WordPress URLs and feed paths working. The output is fully static; no runtime server, no database, no per-request work beyond serving files and the client-side search.
 
 It replaces the previous eXist-based dynamic site. Written in Python with Jinja templates. Every script and parser module ships with pytest coverage; integration tests drive off the in-repo TEI files (Real-Corpus-Drive).
 
@@ -10,13 +10,14 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
 
 ```
                 ┌────────────────────────────────────┐
-   inputs       │  issues/{N}/reviews/*-tei.xml      │   (canonical content)
+   inputs       │  issues/{N}/reviews/*-tei.xml      │   (legacy review layout)
+                │  issues/{N}/reviews/{slug}/        │   (review.xml + pictures/ bundle)
                 │  issues/{N}/metadata.yaml          │   (editorial metadata per issue)
                 │  schema/{ride.odd, ride.rng}       │   (validation contract)
                 │  pages/*.xml  (ride-pages.rng)     │   (editorial pages as TEI)
                 │  content/*.md, content/home/*.md   │   (Markdown fallback, home widgets)
                 │  config/{element-mapping,nav}.yaml │   (presentation + navigation)
-                │  ../ride/issues/.../pictures/      │   (figure assets — still external)
+                │  ../ride/issues/.../pictures/      │   (legacy figure fallback)
                 └─────────────────┬──────────────────┘
                                   │
                 ┌─────────────────▼──────────────────┐
@@ -36,7 +37,7 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
                 ┌─────────────────▼──────────────────┐
    outputs      │  site/                             │   uploaded to GitHub Pages
                 │   ├─ issues/{N}/{id}/{index.html,  │     by .github/workflows/build.yml
-                │   │            review.pdf, *.xml}  │
+                │   │       factsheet/, *.pdf, *.xml}│
                 │   ├─ tags/, reviewers/, resources/ │
                 │   ├─ api/{corpus,build-info}.json  │
                 │   ├─ oai/, sitemap.xml             │
@@ -47,20 +48,73 @@ It replaces the previous eXist-based dynamic site. Written in Python with Jinja 
 
 ## Editorial workflow
 
-Reviews are prepared in the private companion repository `i-d-e/ride-editors`. Its convention: one folder per issue (`issue-{name}/`), inside it one folder per review (`{slug}/`) holding the TEI file `{slug}-tei.xml`, the figure images in `pictures/`, and the article image `{slug}-wordcloud.png`, next to working material (submissions, versions, peer review). Publishing a review means carrying these three pieces over, as described below.
+New reviews may enter the repository as self-contained review folders. Each folder contains the TEI source as `review.xml` and its associated pictures. The code calls this folder a review bundle. The legacy flat-file and sibling-picture layout remains supported for the existing corpus.
 
-### Publish a review (from ride-editors)
+### Add a self-contained review folder
 
-1. Finish the TEI in `ride-editors`. Figure references keep the canonical URL form `https://ride.i-d-e.de/wp-content/uploads/issue_{N}/{slug}/pictures/{file}`; the build rewrites them to the static site at build time. The `<fileDesc>` carries the issue number:
-   ```xml
-   <seriesStmt>
-     <biblScope unit="issue" n="22"/>   <!-- ← matches issues/22/ -->
-   </seriesStmt>
+1. Add one folder under the target issue:
+
+   ```text
+   issues/19/reviews/teicrafter/
+   ├── review.xml
+   └── pictures/
+       └── picture-1.svg
    ```
-2. Copy the TEI file into this repository at `issues/{N}/reviews/{slug}-tei.xml`. The directory number and `biblScope @n` must match — the build stops with a clear error if they disagree.
-3. Copy the images into the picture repository `i-d-e/ride` at `issues/issue{NN}/{slug}/pictures/` (two-digit issue number on disk, e.g. `issue05`, `issue22`). The pictures are the only part that still lives outside this repository, because of their size.
-4. Copy the wordcloud into this repository as `static/images/wordclouds/{slug}.png` (or `.jpg`) — same file as in `ride-editors`, renamed to the bare slug. A missing wordcloud is not an error; the issue page simply shows no thumbnail for that entry.
-5. Optionally check locally: `python -m pytest tests/test_validate.py` and `python -m src.build`. Then commit and push — CI rebuilds and deploys the whole site. An issue grows review by review (rolling release); every push republishes everything, so nothing can go stale.
+
+2. Use relative figure URLs in the TEI, for example `<graphic url="pictures/picture-1.svg"/>`. Add a concise `<figDesc>` after each content-bearing graphic. The build copies each file to the review's stable `figures/` output path and uses `figDesc` as its alternative text.
+3. Keep a working review in draft state with `<revisionDesc status="draft">`. A draft may omit its DOI and must use a unique provisional `xml:id` in the form `draft.{lowercase-slug}`. Render it locally with `uv run python -m src.build --include-drafts`. The resulting page and factsheet carry a draft notice and `noindex`; the review remains absent from issue pages, feeds, sitemap, OAI-PMH, corpus data, bibliography exports, navigation, redirects, and the Pagefind index. After explicit approval and a commit, GitHub Pages exposes the same marked preview at its stable review URL.
+4. Before publication, assign the registered review DOI, align `TEI/@xml:id` with that DOI, and remove the draft status or set it to `published`. The directory number and `<biblScope unit="issue" @n>` must agree.
+5. Run `uv run python -m pytest tests/test_validate.py` and `uv run python -m src.build --include-drafts` for the complete local preview. On Linux with WeasyPrint system libraries, add `--pdf --pdf-drafts-only` to generate only the draft PDFs. The build discovers the TEI, validates new review folders strictly, copies the pictures, generates the deterministic wordcloud, and writes the review page, factsheet, XML download, and derived outputs. Commit and push only after explicit approval. The Pages build renders committed drafts as marked previews while every formal publication output continues to use published reviews exclusively.
+
+A committed draft is public in both the Git repository and the GitHub Pages preview. Use the private companion repository for confidential review material; the draft flag controls formal publication outputs and does not provide access control.
+
+### Try the complete review workflow
+
+The repository includes three self-contained draft review folders under `issues/19/reviews/`. They provide public, explicitly marked workflow examples without changing a published review. The `teicrafter-pilot` folder is the primary walkthrough; the two other self-audits exercise the same path with different source material:
+
+- [teiCrafter self-audit](https://i-d-e.github.io/ride-static/issues/19/draft.teicrafter-pilot/)
+- [SZD OCR/HTR self-audit](https://i-d-e.github.io/ride-static/issues/19/draft.szd-htr-self-audit/)
+- [ZBZ-OCR-TEI self-audit](https://i-d-e.github.io/ride-static/issues/19/draft.zbz-ocr-tei-self-audit/)
+
+1. Prepare the locked environment and run the review validation.
+
+   ```sh
+   uv sync --locked
+   uv run python -m pytest tests/test_validate.py
+   ```
+
+2. Build a preview that includes drafts, add the Pagefind search index, and serve the generated directory from its root. The Pagefind command requires Node.js.
+
+   ```sh
+   uv run python -m src.build --output review-preview --include-drafts
+   npx -y pagefind --site review-preview
+   uv run python -m http.server 8000 -d review-preview
+   ```
+
+3. Open `http://localhost:8000/drafts/`. Each draft entry exposes the same output set as its review page through one navigation row. The row contains Review, Factsheet, TEI XML and the PDF status.
+
+4. Compare the generated output with the published issue 19 reference.
+
+   [Review](https://i-d-e.github.io/ride-static/issues/19/ride.19.1/) |
+   [Factsheet](https://i-d-e.github.io/ride-static/issues/19/ride.19.1/factsheet/) |
+   [TEI XML](https://i-d-e.github.io/ride-static/issues/19/ride.19.1/ride.19.1.xml) |
+   [PDF](https://i-d-e.github.io/ride-static/issues/19/ride.19.1/ride.19.1.pdf)
+
+5. On Linux, generate the draft PDFs with the native WeasyPrint libraries installed.
+
+   ```sh
+   uv run python -m src.build \
+     --output review-preview \
+     --include-drafts \
+     --pdf \
+     --pdf-drafts-only
+   ```
+
+The GitHub Actions run publishes committed, approved examples as `noindex` GitHub Pages previews and also uploads the complete `draft-review-preview` artifact. After downloading and extracting that artifact, serve its extracted root with `python -m http.server`; opening nested HTML files directly from the filesystem does not provide the site-root URL semantics used by the generated pages. The artifact is retained for seven days and remains useful for a bounded review round.
+
+### Legacy review layout
+
+Existing reviews remain at `issues/{N}/reviews/{slug}-tei.xml`. Their figure URLs resolve through the sibling `i-d-e/ride` repository, and their wordclouds remain committed under `static/images/wordclouds/{review_id}.png`. The CLI `uv run python scripts/wordclouds.py --review <slug>` continues to regenerate those legacy thumbnails. Relax NG drift and missing sibling pictures remain warnings for this historical layout; the same findings are hard build failures in new bundles.
 
 ### Add a new issue
 
@@ -89,14 +143,14 @@ Reviews are prepared in the private companion repository `i-d-e/ride-editors`. I
 
 ### Preview before publication
 
-How unpublished reviews are shown to authors and the IDE for final checking is an open editorial decision; the options (password-protected hosting vs. publicly built but unlisted pages) and a concrete proposal are written up in the staging section of `knowledge/pipeline.md`. Until that is decided, a preview is generated locally. Copy the draft TEI into `issues/{N}/reviews/` in a local working copy (without committing), then
+The workflow distinguishes public examples from confidential editorial drafts. Explicitly approved examples committed to this public repository appear on GitHub Pages with a draft notice and `noindex`; they remain excluded from all formal publication outputs. Confidential reviews stay in the private companion repository until a password-protected staging service has been selected. For local review, run
 
 ```sh
-python -m src.build --pdf
-python -m http.server -d site
+uv run python -m src.build --include-drafts
+uv run python -m http.server -d site
 ```
 
-shows the complete site, draft included, at `http://localhost:8000/`.
+and open `http://localhost:8000/drafts/` or `http://localhost:8000/issues/{N}/{draft-id}/`. Add `--pdf` only on a system with the native WeasyPrint dependencies installed; the deployment CI installs them, while a default Windows Python environment usually does not.
 
 ### Edit an editorial page (Editorial, Imprint, Criteria, …)
 
@@ -120,17 +174,18 @@ For new TEI elements or new domain shapes, see `docs/extending.md` (six files to
 ### Locally
 
 ```sh
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-python -m pytest tests/                             # full suite, run from repo root
-python -m src.build                                 # full build → site/
-python -m http.server -d site                       # local preview at http://localhost:8000
+uv sync --locked
+uv run ruff check .
+uv run python -m pytest tests/                       # full suite, run from repo root
+uv run python -m src.build                           # full build → site/
+uv run python -m http.server -d site                 # local preview at http://localhost:8000
 ```
 
 `--pdf`, `--linkcheck`, `--base-url` and the remaining build flags are documented in full in `knowledge/pipeline.md`.
 
-`python -m src.build` runs three stages in order: **validate** (`src/validate.py`, RelaxNG against `schema/ride.rng`), **parse** (`src/parser/`, TEI into immutable `Review` dataclasses; classifies references, copies figures from `../ride/issues/.../pictures/` if the sibling repo is present), **render** (`src/render/`, HTML + optional PDF + aggregations + OAI-PMH + JSON-LD + sitemap + corpus dump + redirects).
+`uv run python -m src.build` runs three stages in order: **validate** (`src/validate.py`, Relax NG against `schema/ride.rng`), **parse** (`src/parser/`, TEI into immutable `Review` dataclasses; classifies references, copies figures from `../ride/issues/.../pictures/` if the sibling repo is present), **render** (`src/render/`, HTML + optional PDF + aggregations + OAI-PMH + JSON-LD + sitemap + corpus dump + redirects). Parse, strict bundle validation, bundle-asset, render, and requested PDF failures produce a non-zero exit code after `build-info.json` has recorded the diagnostics.
+
+`schema/ride.odd` is the editable review schema source. `schema/ride.rng` is deterministic generated output. The pinned TEI Stylesheets and the compilation commands are documented in `CONTRIBUTING.md`; CI rejects any ODD/RNG drift.
 
 Each run records `site/api/build-info.json` with commit hash, corpus version, validation findings, asset report, and licence — the build is reproducible.
 
@@ -142,7 +197,7 @@ Stage-0/1 introspection lives in `scripts/`. Each script exposes `run(...)` for 
 
 Single workflow at `.github/workflows/build.yml`. Triggers on push to `main` (TEI / content / code paths), on manual `workflow_dispatch`, and on a notification from a companion repository (GitHub `repository_dispatch`): a push to `i-d-e/ride` (picture updates) or `i-d-e/ride-editors` (work in progress) can rebuild this site, because those pushes do not reach this repository on their own. The notification needs a small one-time setup per companion repository — one workflow file plus one access token; copy-ready templates and instructions are in `docs/upstream-workflows/`.
 
-The workflow checks out this repo plus `i-d-e/ride` for picture assets, installs Python + WeasyPrint system libs, runs pytest and the discovery scripts, runs `python -m src.build --pdf`, builds the Pagefind index, and deploys `site/` to GitHub Pages.
+The workflow checks out this repo plus `i-d-e/ride` for picture assets and the pinned TEI Stylesheets for schema verification. It installs the locked uv environment and WeasyPrint system libraries, checks ODD/RNG synchronization, runs Ruff, pytest and the discovery scripts, builds the public site with PDFs and approved draft previews, and creates a separate downloadable draft-preview artifact before deploying `site/` to GitHub Pages. Draft previews remain outside issue listings, feeds, sitemap, OAI-PMH, corpus data, redirects, navigation, and Pagefind search.
 
 The second checkout is the only remaining external dependency; it can drop once the ~437 MB of picture assets migrate into this repo (Git-LFS likely needed).
 
@@ -164,7 +219,9 @@ Per-directory READMEs describe their own folder:
 
 ## Status
 
-Live: per-review HTML and PDF, aggregation pages (tags, reviewers, resources), client-side search (Pagefind), OAI-PMH and JSON-LD interfaces, sitemap, three syndication feeds (Atom, RSS 2.0, RDF) with legacy-path redirects, RelaxNG validation, contact + licence + Matomo + WCAG polish. Open: WCAG 2.2-AA audit on the live site, Matomo CI secrets, custom-domain decision, pre-publication preview decision (staging section of `knowledge/pipeline.md`). Current state and next entry point are in `knowledge/journal.md`.
+The generator builds and deploys the current RIDE corpus. The latest verified state, outstanding work, and next working entry point are recorded in the [project journal](knowledge/journal.md).
+
+The [knowledge index](knowledge/INDEX.md) provides access to the architecture, specification, interface design, and data documentation. Build, publication, draft preview, and staging behaviour are documented in the [pipeline](knowledge/pipeline.md).
 
 ## Licence
 

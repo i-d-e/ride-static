@@ -33,6 +33,7 @@ contribution_order:           # optional — overrides default sort
 Anything not listed here is rejected with a build-time warning so
 typos do not silently disappear.
 """
+
 from __future__ import annotations
 
 import re
@@ -50,8 +51,14 @@ ISSUES_DIR = REPO_ROOT / "issues"
 
 _VALID_STATUS = {"regular", "rolling"}
 _KNOWN_FIELDS = {
-    "issue", "title", "doi", "status", "publication_date",
-    "description", "editors", "contribution_order",
+    "issue",
+    "title",
+    "doi",
+    "status",
+    "publication_date",
+    "description",
+    "editors",
+    "contribution_order",
 }
 _KNOWN_EDITOR_FIELDS = {"name", "affiliation", "orcid", "email", "role"}
 
@@ -104,9 +111,7 @@ def parse_issue_config(path: Path) -> IssueConfig:
 
     status = str(raw.get("status", "regular"))
     if status not in _VALID_STATUS:
-        raise ValueError(
-            f"{path.name}: status must be 'regular' or 'rolling', got {status!r}"
-        )
+        raise ValueError(f"{path.name}: status must be 'regular' or 'rolling', got {status!r}")
 
     editors = tuple(_parse_editor(e, path.name) for e in raw.get("editors") or [])
 
@@ -158,9 +163,7 @@ def discover_issue_configs(content_dir: Path = ISSUES_DIR) -> dict[str, IssueCon
         return {}
     return {
         cfg.issue: cfg
-        for cfg in (
-            parse_issue_config(p) for p in sorted(content_dir.glob("*/metadata.yaml"))
-        )
+        for cfg in (parse_issue_config(p) for p in sorted(content_dir.glob("*/metadata.yaml")))
     }
 
 
@@ -190,9 +193,7 @@ def validate_issue_configs(
     for issue_no, cfg in configs.items():
         tei_ids = by_issue.get(issue_no, set())
         if not tei_ids:
-            errors.append(
-                f"issue YAML {issue_no!r} has no matching reviews in the corpus"
-            )
+            errors.append(f"issue YAML {issue_no!r} has no matching reviews in the corpus")
             continue
         if cfg.contribution_order is None:
             continue
@@ -230,6 +231,7 @@ def validate_review_locations(
     """
     if corpus_root is None:
         from src._corpus import CORPUS_ROOT
+
         corpus_root = CORPUS_ROOT
     corpus_root = corpus_root.resolve()
 
@@ -239,12 +241,15 @@ def validate_review_locations(
             rel = path.resolve().relative_to(corpus_root)
         except ValueError:
             continue  # not in the canonical corpus tree (test fixture, etc.)
-        # rel == "{N}/reviews/{slug}-tei.xml" — three parts, middle is "reviews"
+        # Legacy: {N}/reviews/{slug}-tei.xml. Bundle: {N}/reviews/{slug}/review.xml.
         parts = rel.parts
-        if len(parts) != 3 or parts[1] != "reviews":
+        valid_legacy = len(parts) == 3 and parts[1] == "reviews"
+        valid_bundle = len(parts) == 4 and parts[1] == "reviews" and parts[3] == "review.xml"
+        if not (valid_legacy or valid_bundle):
             errors.append(
                 f"{path.name}: unexpected path {rel} — "
-                f"expected issues/{{N}}/reviews/{{slug}}-tei.xml"
+                "expected issues/{N}/reviews/{slug}-tei.xml or "
+                "issues/{N}/reviews/{slug}/review.xml"
             )
             continue
         folder_issue = parts[0]
@@ -261,6 +266,7 @@ def validate_review_locations(
 # xml:id is ``ride.{issue}.{n}``. The DOI is the canonical, registered
 # identifier, so it is the authority the xml:id must agree with.
 _REVIEW_DOI_RE = re.compile(r"^10\.18716/ride\.a\.(\d+)\.(\d+)$")
+_DRAFT_ID_RE = re.compile(r"^draft\.[a-z0-9]+(?:[.-][a-z0-9]+)*$")
 
 
 def expected_id_from_doi(doi: Optional[str]) -> Optional[str]:
@@ -288,6 +294,14 @@ def validate_review_ids(parsed: list[tuple[Path, Review]]) -> list[str]:
     """
     errors: list[str] = []
     for path, review in parsed:
+        if review.is_draft:
+            if not _DRAFT_ID_RE.fullmatch(review.id):
+                errors.append(
+                    f"{path.name}: draft xml:id {review.id!r} must begin with "
+                    "'draft.' and contain only lowercase letters, digits, dots, "
+                    "or hyphens"
+                )
+            continue
         expected = expected_id_from_doi(review.doi)
         if expected is None:
             errors.append(
@@ -308,14 +322,12 @@ def find_duplicate_review_dois(
     """Return DOIs claimed by more than one review.
 
     A DOI is registered to one resource; two reviews sharing one means one
-    of them is mis-registered, which only the editors can resolve against
-    the DOI registry. Unlike :func:`validate_review_ids` this is *not* a
-    build error — it is reported as a warning so the build still ships while
-    the duplication is escalated editorially.
+    of them is mis-registered. The build treats any returned finding as a
+    hard consistency error because both records would claim one identifier.
     """
     by_doi: dict[str, list[str]] = defaultdict(list)
     for path, review in parsed:
-        if review.doi:
+        if not review.is_draft and review.doi:
             by_doi[review.doi].append(path.name)
     return [
         f"DOI {doi} is shared by {sorted(names)}"

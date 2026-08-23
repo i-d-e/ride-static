@@ -1,6 +1,6 @@
 ---
 status: befund
-updated: 2026-07-17
+updated: 2026-08-23
 ---
 
 # Publikationsworkflow — Zielbild und Ablösung des Alt-Stacks
@@ -19,13 +19,13 @@ Die Transformationen `limesurvey2tei-se`/`-te` in ride-tech erzeugen aus den Lim
 
 ### Schritt 1 — Testumgebung (Begutachtung vor Freischaltung)
 
-Artikelansicht, Factsheet und PDF erzeugt der Build nativ bei jedem Push; die beiden tei2wp-Transformationen und die vierstufige lokale PDF-Kette (Regex-Vorreinigung, Java-Prozessor, HTML-Fixup, WeasyPrint) entfallen komplett. Die Trigger-Verkabelung für `ride` (Bilder) und `ride-editors` (Drafts) ist umgesetzt (`repository_dispatch`, Sender-Vorlagen in `docs/upstream-workflows/`). Offen ist die Staging-Entscheidung ([[pipeline#Staging — Begutachtungsumgebung (Entscheidung offen)]]), an ihr hängt die zurückgestellte Draft-Render-Mechanik.
+Artikelansicht, Factsheet und PDF erzeugt der Build nativ. Ein Review-Bundle unter `issues/{N}/reviews/{slug}/` enthält `review.xml` und optional `pictures/`. `<revisionDesc status="draft">` kennzeichnet eine Arbeitsfassung, die ohne DOI mit `--include-drafts` gerendert wird. Nach ausdrücklicher Freigabe erscheinen die drei Self-Audit-Beispiele als gekennzeichnete `noindex`-Vorschauen auf GitHub Pages; die CI stellt denselben Stand einschließlich Draft-PDF zusätzlich als getrenntes Workflow-Artefakt bereit. Issue-Listen, Navigation, Suche, Feeds, Sitemap, OAI-PMH, Korpusdaten und Redirects verwenden weiterhin ausschließlich veröffentlichte Reviews. Vertrauliche Entwürfe bleiben im privaten `ride-editors`-Repository, bis eine zugriffsgeschützte Staging-Umgebung festgelegt ist ([[pipeline#Staging — Begutachtungsumgebung (Entscheidung offen)]]).
 
 ### Schritt 2 — Freischaltung
 
-TEI-Datei wandert von `ride-editors` in `issues/{N}/reviews/` dieses Repos (Mechanik offen, naheliegend als Pull Request). Issue-Einrichtung ist `issues/{N}/metadata.yaml`. Übersichtslisten, Charts, Feeds, Sitemap, Suchindex und Korpus-Dump erzeugt der Build automatisch; die eXist-Abfragen hinter den alten Charts-, Reviewer- und Ressourcen-Seiten sind bereits statisch ersetzt.
+Das vollständige Review-Bundle wandert von `ride-editors` nach `issues/{N}/reviews/{slug}/` dieses Repos. Die konkrete Freischaltungsmechanik bleibt offen; ein Pull Request ist der naheliegende Weg. Vor der Freigabe werden DOI und daraus abgeleitete `xml:id` eingetragen und der Draft-Status entfernt oder auf `published` gesetzt. Issue-Metadaten liegen in `issues/{N}/metadata.yaml`. Übersichtslisten, Charts, Feeds, Sitemap, Suchindex und Korpus-Dump erzeugt der Build automatisch.
 
-- **Wordcloud-Generierung.** Portiert als `scripts/wordclouds.py` (fixierter Seed, byte-reproduzierbar; Stopwörter und Maske gebündelt). Läuft als Maintenance-Schritt bei Freischaltung eines neuen Beitrags, das PNG wird nach `static/images/wordclouds/` committet; dokumentiert in CONTRIBUTING.
+- **Wordcloud-Generierung.** `scripts/wordclouds.py` arbeitet mit festem Seed sowie gebündelten Stopwörtern und einer Maske. Für Review-Bundles ruft der Build den Generator automatisch auf und schreibt das PNG in den Site-Output. Der Legacy-Bestand verwendet weiterhin committierte Dateien unter `static/images/wordclouds/`.
 - **DOI-Metadaten.** `tei2doi` (ride-tech) erzeugt DataCite-Kernel-4-XML, manuell pro Beitrag (Issue-DOI beim jeweils ersten Beitrag eines Issues). Das XML wird an die USB Köln übergeben, die den DOI über ihren DataCite-Client registriert (Client-Symbol `zbmed.unikoeln`, Provider University of Cologne, Präfix 10.18716; verifiziert gegen die DataCite-API). Kein API-Aufruf aus dem RIDE-Workflow, kein eXist beteiligt. Bekannte Schwächen der Transformation, die eine Portierung beheben sollte: naive Namens-Trennung am ersten Leerzeichen, hartkodiertes ROR-Schema für Affiliations, manuell gesetzte Issue-Sprache.
 
 ### Schritt 3 — Postpublishing
@@ -41,7 +41,7 @@ TEI-Datei wandert von `ride-editors` in `issues/{N}/reviews/` dieses Repos (Mech
 | tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren, laufende Fußzeilen via `@page`-Margin-Boxes) |
 | Charts-, Reviewer-, Ressourcen-Abfragen | eXist-Mirrors in ride-tech | `/data/charts/`, `/reviewers/`, `/data/reviewed-resources/` | ersetzt |
 | OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | stillgelegt mit Snapshot-Export (entschieden 2026-07-17, siehe [[oai-pmh-statisch]]); die Abschaltung des alten eXist-Endpoints folgt nach der DOAJ-Klärung |
-| wordclouds.py | ride-scripts | `scripts/wordclouds.py`, deterministisch (fixierter Seed), Ergebnis wird committet | ersetzt als Maintenance-Skript |
+| wordclouds.py | ride-scripts | `scripts/wordclouds.py`, deterministisch; automatische Erzeugung für Bundles, Maintenance-CLI für Legacy-Reviews | ersetzt und in den Bundle-Build integriert |
 | tei2doi (DataCite XML) | ride-tech | nicht portiert | Entscheidung offen: in den Build oder manuell bei USB Köln |
 | tei2doaj (DOAJ XML) | ride-scripts | nicht portiert | Entscheidung offen: Dashboard-Upload oder API-Push |
 | limesurvey2tei | ride-tech | bleibt als redaktioneller Vorschritt | kein Ersatz nötig |
@@ -61,9 +61,9 @@ Bewusst nicht reproduziert: die generierten Überschriften-Anker `#hN` der Alt-A
 
 ## Offene Redaktionsentscheidungen
 
-1. Staging: gilt „passwortgeschützt" wörtlich (Optionen in [[pipeline]])?
+1. Staging: Welcher geschützte Dienst soll die bereits implementierte lokale Draft-Vorschau für externe Beteiligte bereitstellen?
 2. DOI: DataCite-XML künftig im Build erzeugen oder Übergabe an die USB Köln manuell belassen? Wer führt sie aus?
 3. DOAJ: Dashboard-Upload des erzeugten XML oder API-Push aus der Pipeline (dann API-Key als Secret)?
-4. OAI-Endpoint: stilllegen (kein Harvester nachweisbar) oder dünner zustandsloser Proxy über den statischen Snapshot-Dateien, in jedem Fall ohne eXist?
+4. OAI-Endpoint: Die externe Nutzung des bisherigen Endpunkts ist ungeklärt. Soll er nach bestätigter Nutzungsklärung stillgelegt oder durch einen dünnen zustandslosen Proxy über den statischen Snapshot-Dateien ersetzt werden?
 5. Freischaltungs-Mechanik: PR-basierter Move von ride-editors, wer führt aus?
-6. Bilder: dauerhaft im Sibling-Repo `ride` oder Umzug hierher (Pipeline kann beides)?
+6. Legacy-Bilder: Sollen die bestehenden Bilder aus dem Sibling-Repo `ride` schrittweise in Review-Bundles migriert werden?

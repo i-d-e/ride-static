@@ -18,8 +18,17 @@
 {%- import "partials/apparate.html" as a with context -%}
 {%- import "partials/render.html" as r with context -%}
 {%- import "partials/factsheet.html" as fs -%}
+{%- import "partials/artifacts.html" as af -%}
 
 {% block title %}{{ review.title }} — {{ site.title }}{% endblock %}
+
+{% block head_extra %}
+  {%- if review.is_draft %}<meta name="robots" content="noindex, nofollow">{% endif -%}
+{% endblock %}
+
+{% block schema %}
+  {%- if not review.is_draft %}{{ super() }}{% endif -%}
+{% endblock %}
 
 {% block content %}
 {#- Pagefind metadata: data-pagefind-body marks the indexable region;
@@ -29,8 +38,10 @@
     attributes on <article>, because HTML allows only one of any given
     attribute per element. -#}
 <article class="ride-page" lang="{{ review.language }}"
-  data-pagefind-body
-  data-pagefind-meta="title:{{ review.title }}, issue:{{ review.issue }}{%- if review.publication_date %}, date:{{ review.publication_date }}{% endif %}">
+  {%- if review.is_draft %} data-pagefind-ignore="all"
+  {%- else %} data-pagefind-body
+  data-pagefind-meta="title:{{ review.title }}, issue:{{ review.issue }}{%- if review.publication_date %}, date:{{ review.publication_date }}{% endif %}"
+  {%- endif %}>
   {#- Filter-only spans, kept out of the visible flow. -#}
   <span hidden data-pagefind-filter="issue:Issue {{ review.issue }}"></span>
   {%- for kw in review.keywords %}
@@ -40,6 +51,12 @@
   <span hidden data-pagefind-filter="reviewer:{{ a.person.full_name }}"></span>
   {%- endfor %}
   <div class="ride-content">
+
+    {%- if review.is_draft %}
+    <p class="ride-review__draft" role="note">
+      <strong>Draft preview.</strong> This review is rendered for local workflow testing and is excluded from publication outputs. <a href="{{ site.base_url }}/drafts/">All draft reviews</a>.
+    </p>
+    {%- endif %}
 
     <header class="ride-review__header">
       <h1 class="ride-review__title">{{ review.title }}</h1>
@@ -75,13 +92,17 @@
       {%- endif %}
     </header>
 
-    {#- Print-only DOI line per requirements A6 — must appear on the
-        first page of the PDF rendering. Hidden on screen because the
-        Meta sidebar already exposes the DOI to web readers; in the
-        PDF the sidebar is suppressed by ``@media print``. -#}
-    {%- if review.doi %}
+    {{ af.review_artifacts(review, current="review", pdf_available=pdf_available) }}
+
+    {#- Print-only identity line. It supplies both the first-page identifier
+        and the running footer when the web sidebar is removed. -#}
+    {%- if review.doi or review.is_draft %}
     <p class="ride-review__doi-print">
+      {%- if review.doi -%}
       DOI: <a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a>
+      {%- else -%}
+      Draft review: {{ review.id }}
+      {%- endif -%}
     </p>
     {%- endif %}
 
@@ -127,11 +148,11 @@
       <h2 id="meta-heading">{{ site.strings.meta | default('Meta') }}</h2>
       <dl class="ride-meta">
         {%- if review.publication_date -%}
-          <dt>{{ site.strings.published | default('Published') }}</dt>
+          <dt>{% if review.is_draft %}Draft date{% else %}{{ site.strings.published | default('Published') }}{% endif %}</dt>
           <dd>{{ review.publication_date }}</dd>
         {%- endif -%}
         {%- if review.issue -%}
-          <dt>{{ site.strings.issue | default('Issue') }}</dt>
+          <dt>{% if review.is_draft %}Target issue{% else %}{{ site.strings.issue | default('Issue') }}{% endif %}</dt>
           <dd><a href="{{ site.base_url }}/issues/{{ review.issue }}/">{{ review.issue }}</a></dd>
         {%- endif -%}
         {%- if review.doi -%}
@@ -139,12 +160,6 @@
           <dd><a href="https://doi.org/{{ review.doi }}">{{ review.doi }}</a></dd>
         {%- endif -%}
       </dl>
-
-      <ul class="ride-downloads">
-        <li><a href="#factsheet">{{ site.strings.factsheet_link | default('Factsheet of this project') }}</a></li>
-        <li><a href="{{ review.id }}.xml" type="application/tei+xml">{{ site.strings.download_tei | default('XML of this review, including formal evaluation data') }}</a></li>
-        <li><a href="{{ review.id }}.pdf" type="application/pdf">{{ site.strings.download_pdf | default('PDF of this review article') }}</a></li>
-      </ul>
 
       {%- if review.licence -%}
       <p class="ride-meta__licence">
@@ -154,6 +169,12 @@
     </section>
 
     <section class="ride-sidebar__box ride-sidebar__box--cite" aria-labelledby="cite-heading">
+      {%- if review.is_draft %}
+      <h2 id="cite-heading">Draft reference</h2>
+      <p class="ride-cite__suggestion">
+        This self-audit is an unpublished workflow artifact. Use the XML or PDF preview for review and do not cite it as a RIDE publication.
+      </p>
+      {%- else %}
       <h2 id="cite-heading">{{ site.strings.cite | default('Citation Suggestion') }}</h2>
       {#- R2 format: Surname, Forename (Year). "Title." RIDE {Issue},
           ed. by {Editors}. DOI: {DOI}. Accessed: {Date}. -#}
@@ -191,6 +212,7 @@
           escapes "</" sequences; tojson does the same for the CSL-JSON. -#}
       <script class="ride-cite-data" data-format="bibtex" type="application/x-bibtex">{{ review | to_bibtex | safe }}</script>
       <script class="ride-cite-data" data-format="csl-json" type="application/json">{{ review | to_csl_dict | tojson(indent=2) }}</script>
+      {%- endif %}
     </section>
 
     {%- if review.keywords %}

@@ -7,6 +7,7 @@ Domänenobjekte aus ``src.model`` und die Cross-Korpus-Aggregate aus
 - :func:`render_index`             — Startseite (aktuelles Issue + Browse)
 - :func:`render_issues_overview`   — Issue-Übersicht (alle Issues)
 - :func:`render_issue`             — Issue-Ansicht (ein Issue mit Beiträgen)
+- :func:`render_drafts`            — lokale Draft-Übersicht für Self-Audits
 - :func:`render_tags_overview`     — Tag-Übersicht (alphabetisch)
 - :func:`render_tag`               — eine Tag-Seite
 - :func:`render_reviewers_overview` — Reviewer-Liste
@@ -16,16 +17,17 @@ Domänenobjekte aus ``src.model`` und die Cross-Korpus-Aggregate aus
 Jede Funktion nimmt die geparste Korpus-Sequenz und gibt einen HTML-String
 zurück. Schreiben in das Build-Verzeichnis macht ``src.build``.
 """
+
 from __future__ import annotations
 
 from collections import defaultdict
+from pathlib import Path
 from typing import Iterable, Optional
 
 from jinja2 import Environment
 
 from src.model.review import Review
 from src.parser.datasets import (
-    ReviewedResourceAggregate,
     ReviewerAggregate,
     TagAggregate,
     aggregate_reviewed_resources,
@@ -39,7 +41,6 @@ from src.render.html import (
     abstract_excerpt,
     base_ctx,
     issue_numeric_prefix,
-    make_env,
     slugify,
 )
 from src.render.issues_config import IssueConfig, order_reviews
@@ -47,7 +48,11 @@ from src.render.issues_config import IssueConfig, order_reviews
 WORDCLOUD_DIR = REPO_ROOT / "static" / "images" / "wordclouds"
 
 
-def _wordcloud_url(review: Review, base_url: str) -> Optional[str]:
+def _wordcloud_url(
+    review: Review,
+    base_url: str,
+    wordcloud_dir: Path = WORDCLOUD_DIR,
+) -> Optional[str]:
     """Return the wordcloud thumbnail URL for a review, or None if absent.
 
     Wordclouds are bundled under ``static/images/wordclouds/{review_id}.{ext}``
@@ -58,7 +63,7 @@ def _wordcloud_url(review: Review, base_url: str) -> Optional[str]:
     if not review.id:
         return None
     for ext in ("png", "jpg"):
-        candidate = WORDCLOUD_DIR / f"{review.id}.{ext}"
+        candidate = wordcloud_dir / f"{review.id}.{ext}"
         if candidate.exists():
             prefix = base_url.rstrip("/") if base_url else ""
             return f"{prefix}/static/images/wordclouds/{review.id}.{ext}"
@@ -156,18 +161,19 @@ def render_issue(
     site: SiteConfig,
     env: Environment,
     config: Optional[IssueConfig] = None,
+    wordcloud_dir: Path = WORDCLOUD_DIR,
 ) -> str:
     issue_reviews = [r for r in reviews if r.issue == issue_no]
     issue_reviews = order_reviews(issue_no, issue_reviews, config)
     latest = max((r.publication_date or "" for r in issue_reviews), default="")
-    title = (config.title if config and config.title else f"Issue {issue_no}")
+    title = config.title if config and config.title else f"Issue {issue_no}"
     # Pre-compute per-review excerpts and wordcloud URLs so the template
     # stays declarative; same pattern as the citation/JSON-LD pipelines.
     entries = [
         {
             "review": r,
             "abstract_excerpt": abstract_excerpt(r),
-            "wordcloud_url": _wordcloud_url(r, site.base_url),
+            "wordcloud_url": _wordcloud_url(r, site.base_url, wordcloud_dir),
         }
         for r in issue_reviews
     ]
@@ -180,6 +186,42 @@ def render_issue(
         entries=entries,
         latest_date=latest,
         config=config,
+    )
+
+
+def render_drafts(
+    reviews: tuple[Review, ...],
+    site: SiteConfig,
+    env: Environment,
+    wordcloud_dir: Path = WORDCLOUD_DIR,
+    pdf_available: bool = False,
+) -> str:
+    """Render the local-only index of drafts and their generated wordclouds."""
+    drafts = sorted(
+        (review for review in reviews if review.is_draft),
+        key=lambda review: (review.issue, review.title.casefold()),
+    )
+    entries = [
+        {
+            "review": review,
+            "abstract_excerpt": abstract_excerpt(review),
+            "wordcloud_url": _wordcloud_url(review, site.base_url, wordcloud_dir),
+        }
+        for review in drafts
+    ]
+    return env.get_template("drafts.html").render(
+        **base_ctx(
+            site,
+            page_description=(
+                "Local review workspace for unpublished RIDE self-audits and "
+                "their generated preview artifacts."
+            ),
+        ),
+        page_title="Draft review workspace",
+        page_url=None,
+        reviews=drafts,
+        entries=entries,
+        pdf_available=pdf_available,
     )
 
 
@@ -230,7 +272,9 @@ def render_tags_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Env
     )
 
 
-def render_tag(tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
+def render_tag(
+    tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig, env: Environment
+) -> str:
     by_id = {r.id: r for r in reviews}
     matched = [by_id[rid] for rid in tag.review_ids if rid in by_id]
     return env.get_template("tag.html").render(
@@ -245,7 +289,9 @@ def render_tag(tag: TagAggregate, reviews: tuple[Review, ...], site: SiteConfig,
 # ── reviewers ──────────────────────────────────────────────────────────
 
 
-def render_reviewers_overview(reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
+def render_reviewers_overview(
+    reviews: tuple[Review, ...], site: SiteConfig, env: Environment
+) -> str:
     reviewers = aggregate_reviewers(reviews)
     return env.get_template("reviewers.html").render(
         **base_ctx(site),
@@ -255,7 +301,9 @@ def render_reviewers_overview(reviews: tuple[Review, ...], site: SiteConfig, env
     )
 
 
-def render_reviewer(reviewer: ReviewerAggregate, reviews: tuple[Review, ...], site: SiteConfig, env: Environment) -> str:
+def render_reviewer(
+    reviewer: ReviewerAggregate, reviews: tuple[Review, ...], site: SiteConfig, env: Environment
+) -> str:
     by_id = {r.id: r for r in reviews}
     matched = [by_id[rid] for rid in reviewer.review_ids if rid in by_id]
     return env.get_template("reviewer.html").render(

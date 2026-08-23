@@ -64,7 +64,7 @@ Renderers consume domain objects only; they never re-read TEI.
 | `rdf.py` | RSS 1.0 (RDF) syndication feed, WordPress parity |
 | `sitemap.py` | `sitemap.xml` |
 | `redirects.py` | `<meta refresh>` stub pages at legacy WordPress URLs |
-| `pdf.py` | per-review PDF via WeasyPrint |
+| `pdf.py` | per-review PDF via WeasyPrint, including local resolution of root-relative build assets |
 | `navigation.py` | global navigation loaded from `config/navigation.yaml` |
 | `issues_config.py` | per-issue `metadata.yaml` loader (DOI, editors, status, …) |
 
@@ -72,8 +72,8 @@ Renderers consume domain objects only; they never re-read TEI.
 
 | File | Responsibility |
 |---|---|
-| `build.py` | build CLI (`python -m src.build`): validate → parse → render → `site/` |
-| `validate.py` | RelaxNG validation against `schema/ride.rng`, run as a pre-build step |
+| `build.py` | build CLI (`uv run python -m src.build`): validate → parse → render → `site/` |
+| `validate.py` | Relax NG validation against `schema/ride.rng`; strict for bundles, warning-compatible for historical flat reviews |
 | `linkcheck.py` | HEAD-probes external bibliography URLs with a Wayback-Machine fallback |
 | `_corpus.py` | corpus path helpers (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, …) |
 
@@ -91,13 +91,15 @@ recompute these inline in other renderers or templates:
 Run from the repo root:
 
 ```sh
-python -m src.build                    # full build → site/
-python -m src.build --pdf              # also per-review PDFs (WeasyPrint)
-python -m src.build --linkcheck        # probe external bibliography URLs (slow)
-python -m src.build --no-validate      # skip the RelaxNG pre-check
-python -m src.build --reviews=N        # limit to the first N reviews (iteration)
-python -m src.build --base-url=/ride-static   # path prefix for a Pages project page
-python -m src.build --no-tei-editorials       # fall back to content/*.md editorials
+uv run python -m src.build                         # full build → site/
+uv run python -m src.build --output=draft-site --include-drafts
+uv run python -m src.build --include-drafts --pdf --pdf-drafts-only
+uv run python -m src.build --pdf                   # also per-review PDFs (WeasyPrint)
+uv run python -m src.build --linkcheck             # probe external bibliography URLs (slow)
+uv run python -m src.build --no-validate           # skip the Relax NG pre-check
+uv run python -m src.build --reviews=N             # limit to the first N reviews (iteration)
+uv run python -m src.build --base-url=/ride-static # path prefix for a Pages project page
+uv run python -m src.build --no-tei-editorials     # fall back to content/*.md editorials
 ```
 
 Matomo tracking is wired via `--matomo-url` and `--matomo-site-id`. Each build

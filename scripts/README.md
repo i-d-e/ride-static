@@ -24,6 +24,7 @@ in `_tei.py`; do not redefine them per script.
 | `cross_reference.py` | `inventory/cross-reference.json` | joins empirical inventory × P5 spec × ODD; diffs corpus usage against both |
 | `render_data.py` | `knowledge/data.md` | corpus structure-and-knowledge reference (Stage 1 render) |
 | `render_schema.py` | `knowledge/schema.md` | RIDE schema reference including ODD-vs-corpus value diffs (Stage 1 render) |
+| `compile_schema.py` | `schema/ride.rng` | deterministic ODD-to-Relax-NG compilation with pinned TEI Stylesheets; `--check` verifies drift without writing |
 | `_tei.py` | — | shared helpers for the above; not runnable on its own |
 
 ## Workflow
@@ -50,9 +51,13 @@ scripts before the renderers.
 From the repo root:
 
 ```sh
-python scripts/<name>.py        # writes its output
-python scripts/inventory.py     # e.g. elements.json + attributes.json
+uv run python scripts/<name>.py        # writes its output
+uv run python scripts/inventory.py     # e.g. elements.json + attributes.json
 ```
+
+`compile_schema.py` is separate from the inventory DAG. Run it after editing
+`schema/ride.odd`; it requires Java and TEI Stylesheets 7.60.0. The exact
+checkout and commands are documented in `CONTRIBUTING.md`.
 
 `inventory/` is gitignored (visible, no leading dot) and regeneratable at any
 time from these scripts. The generated `knowledge/data.md` and

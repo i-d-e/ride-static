@@ -5,6 +5,7 @@ Stage 2.B scope: header metadata plus the full section tree under
 ``Review.figures`` and ``Review.notes`` for the parallel apparate
 sub-blocks. Bibliography and Questionnaire arrive in Phase 6.
 """
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -70,6 +71,9 @@ def parse_review(path: Path) -> Review:
         language=attr(find(profile_desc, "t:langUsage/t:language"), "ident") or "",
         licence=attr(find(file_desc, "t:publicationStmt/t:availability/t:licence"), "target") or "",
         doi=parse_doi(file_desc),
+        publication_status=(
+            attr(find(root, "t:teiHeader/t:revisionDesc"), "status") or "published"
+        ),
         keywords=tuple(parse_keywords(profile_desc)),
         authors=tuple(parse_authors(file_desc)),
         editors=tuple(parse_editors(file_desc)),
@@ -82,7 +86,7 @@ def parse_review(path: Path) -> Review:
         amendments=amendments,
         bibliography=bibliography,
         questionnaires=questionnaires,
-        source_file=path.name,
+        source_file=(f"{path.parent.name}/review.xml" if path.name == "review.xml" else path.name),
     )
     # Phase-7 post-pass: classify every Reference.target into one of
     # local / criteria / external / orphan against the review's xml:id index.

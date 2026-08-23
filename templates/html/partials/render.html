@@ -223,7 +223,7 @@
         {%- endif -%}
       </p>
       <p class="ride-review__provenance">
-        {%- if review.publication_date %}{{ strings.published | default('Published') }}: {{ review.publication_date }}{% endif -%}
+        {%- if review.publication_date %}{% if review.is_draft %}Drafted{% else %}{{ strings.published | default('Published') }}{% endif %}: {{ review.publication_date }}{% endif -%}
         {%- if build_info %} · build {{ build_info.commit_short }} ({{ build_info.date }}){% endif -%}
       </p>
 {%- endmacro %}

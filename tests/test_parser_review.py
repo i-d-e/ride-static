@@ -7,10 +7,8 @@ fixture small enough to write would also be small enough to mask
 real-corpus surprises. A corpus-wide smoke confirms all 107 reviews
 parse without raising.
 """
+
 from __future__ import annotations
-
-
-import pytest
 
 from src.model.review import Review
 from src.parser.review import parse_review
@@ -71,6 +69,7 @@ def test_parse_review_aggregates_figures_inside_table_cells():
     """The cell-figure pattern (22 corpus occurrences) must reach the
     aggregate. Bayeux has at least one figure inside a table cell."""
     from src.model.block import Figure, Table
+
     review = parse_review(_BAYEUX)
 
     figures_in_cells = []
@@ -112,6 +111,15 @@ def test_parse_review_no_back_review_has_empty_back_and_bibliography():
     review = parse_review(_TUSTEP)
     assert review.back == ()
     assert review.bibliography == ()
+
+
+def test_parse_review_reads_bundle_draft_status():
+    """The real teiCrafter bundle carries its workflow state in revisionDesc."""
+    review = parse_review(find_tei("teicrafter-pilot"))
+
+    assert review.publication_status == "draft"
+    assert review.is_draft
+    assert review.doi is None
 
 
 # -- Corpus-wide smoke ----------------------------------------------------

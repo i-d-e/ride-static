@@ -11,9 +11,11 @@ corpus is absent. Session-scoped so the (~4 s) build runs only once.
 Validation and PDF are off: RelaxNG validation is covered by
 ``test_validate.py`` and WeasyPrint may be unavailable on the host.
 """
+
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -22,17 +24,33 @@ BASE_URL = "https://ride.i-d-e.de"
 
 @pytest.fixture(scope="session")
 def built_site(tmp_path_factory, corpus_reviews):
-    """Build the whole site once into a temp tree; yield its root."""
+    """Build the public site once into a temp tree; yield its root."""
     from src.build import build
 
     out_root = tmp_path_factory.mktemp("site")
+    published = tuple(r for r in corpus_reviews if not r.is_draft)
     written = build(
         out_root=out_root,
         base_url=BASE_URL,
         validate=False,
         pdf=False,
     )
-    assert written == len(corpus_reviews)
+    assert written == len(published)
+    return out_root
+
+
+@pytest.fixture(scope="session")
+def draft_built_site(tmp_path_factory):
+    """Build local draft previews while retaining public-output filtering."""
+    from src.build import build
+
+    out_root = tmp_path_factory.mktemp("site-with-drafts")
+    build(
+        out_root=out_root,
+        validate=False,
+        pdf=False,
+        include_drafts=True,
+    )
     return out_root
 
 
@@ -69,11 +87,13 @@ def test_a_concrete_review_page_exists(built_site, corpus_reviews):
     assert review.title in page.read_text(encoding="utf-8")
 
 
-def test_every_corpus_review_has_a_page(built_site, corpus_reviews):
+def test_every_published_corpus_review_has_a_page(built_site, corpus_reviews):
     missing = [
         r.id
         for r in corpus_reviews
-        if r.id and r.issue
+        if not r.is_draft
+        and r.id
+        and r.issue
         and not (built_site / "issues" / r.issue / r.id / "index.html").is_file()
     ]
     assert not missing, f"reviews without a page: {missing}"
@@ -81,14 +101,64 @@ def test_every_corpus_review_has_a_page(built_site, corpus_reviews):
 
 def test_build_info_reports_the_rendered_count(built_site, corpus_reviews):
     info = json.loads((built_site / "api" / "build-info.json").read_text(encoding="utf-8"))
-    assert info["reviews"]["rendered"] == len(corpus_reviews)
+    assert info["reviews"]["rendered"] == sum(not r.is_draft for r in corpus_reviews)
+    assert info["reviews"]["drafts_discovered"] == sum(r.is_draft for r in corpus_reviews)
     assert info["site"]["base_url"] == BASE_URL
 
 
 def test_explorer_json_row_count_equals_review_count(built_site, corpus_reviews):
     payload = json.loads((built_site / "data" / "explorer.json").read_text(encoding="utf-8"))
-    assert payload["review_count"] == len(corpus_reviews)
-    assert len(payload["reviews"]) == len(corpus_reviews)
+    published_count = sum(not r.is_draft for r in corpus_reviews)
+    assert payload["review_count"] == published_count
+    assert len(payload["reviews"]) == published_count
+
+
+def test_public_build_excludes_every_draft_from_pages_and_machine_outputs(
+    built_site,
+    corpus_reviews,
+):
+    """Production outputs contain no route, asset, or metadata for any draft."""
+    drafts = [review for review in corpus_reviews if review.is_draft]
+    assert drafts
+
+    for review in drafts:
+        assert not (built_site / "issues" / review.issue / review.id).exists()
+        assert not (built_site / "static" / "images" / "wordclouds" / f"{review.id}.png").exists()
+
+    text_suffixes = {".bib", ".html", ".json", ".rdf", ".txt", ".xml"}
+    for path in built_site.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in text_suffixes:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for review in drafts:
+            assert review.id not in text, f"draft leaked into {path}"
+
+
+def test_local_draft_build_renders_every_complete_bundle_preview(
+    draft_built_site,
+    corpus_reviews,
+):
+    """Every draft bundle produces review, factsheet, figures, XML, and wordcloud."""
+    drafts = [review for review in corpus_reviews if review.is_draft]
+    assert drafts
+    draft_index = (draft_built_site / "drafts" / "index.html").read_text(encoding="utf-8")
+    assert "Review workflow examples" in draft_index
+
+    for review in drafts:
+        root = draft_built_site / "issues" / review.issue / review.id
+        assert (root / "index.html").is_file()
+        assert (root / "factsheet" / "index.html").is_file()
+        assert (root / f"{review.id}.xml").is_file()
+        for figure in review.figures:
+            if figure.graphic_url:
+                assert (root / "figures" / Path(figure.graphic_url).name).is_file()
+        wordcloud = draft_built_site / "static" / "images" / "wordclouds" / f"{review.id}.png"
+        assert wordcloud.is_file()
+        html = (root / "index.html").read_text(encoding="utf-8")
+        assert "Draft preview" in html
+        assert 'name="robots" content="noindex, nofollow"' in html
+        assert 'type="application/pdf"' not in html
+        assert f"{review.id}.png" in draft_index
 
 
 def test_sitemap_and_feeds_reference_the_base_url(built_site):
@@ -113,4 +183,4 @@ def test_dynamic_wp_page_redirect_stub_exists(built_site):
     build (unit coverage in test_render_redirects.py; this pins wiring)."""
     stub = built_site / "data" / "by-tag" / "index.html"
     assert stub.is_file()
-    assert f'{BASE_URL}/tags/' in stub.read_text(encoding="utf-8")
+    assert f"{BASE_URL}/tags/" in stub.read_text(encoding="utf-8")

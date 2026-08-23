@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-07-10
+updated: 2026-08-22
 version: 0.1
 topics:
   - "[[Static Site Generation]]"
@@ -49,7 +49,7 @@ as its inputs land.
 | Role | What they do | Where they enter the system |
 |---|---|---|
 | **Editorial team (IDE)** | Curate review submissions, edit metadata, write editorial pages (about, imprint, criteria), set per-issue YAML. | `content/*.md`, `issues/{N}/metadata.yaml`, the TEI submission process upstream. |
-| **Reviewers** | Author reviews in TEI per `ride.odd`. | `issues/{N}/reviews/*-tei.xml` (canonical source), the [[schema|RIDE schema]] as constraint. |
+| **Reviewers** | Author reviews in TEI per `ride.odd`. | `issues/{N}/reviews/{slug}/review.xml` with optional `pictures/`, the [[schema|RIDE schema]] as constraint. |
 | **Readers** | Read reviews, follow citations, search across the corpus, cite reviews in their own work. | The deployed site — review pages, aggregation pages (tags, reviewers, resources), the search box, the `Cite` button per review. |
 | **Indexers / harvesters** | Pull metadata into discovery layers (DOI, Google Scholar, ScholarLed, library catalogues). | `/api/corpus.json`, `/oai/`, `/sitemap.xml`, JSON-LD per review page, stable URLs per [[url-scheme|docs/url-scheme.md]]. |
 | **Maintainers (this project)** | Add new TEI elements, change visual design, fix anomalies, ship new phases. | `src/parser/`, `src/render/`, `templates/`, `config/element-mapping.yaml`, `knowledge/` for design-intent decisions. |
@@ -70,12 +70,13 @@ Two axes of stakeholder load shape the architecture:
 ## Inputs and outputs
 
 **Inputs**
-- `issues/{N}/reviews/*-tei.xml` — review files (canonical source, grouped per issue).
+- `issues/{N}/reviews/*-tei.xml` — legacy review files.
+- `issues/{N}/reviews/{slug}/review.xml` with optional `pictures/` — self-contained review bundles.
 - `issues/{N}/metadata.yaml` — editorial issue metadata (DOI, editors, contribution order).
 - `schema/ride.odd` + `schema/ride.rng` — RIDE schema customisation and compiled RelaxNG.
 - `pages/<slug>.xml` — editorial pages in TEI, validated against `schema/ride-pages.rng` (read-only source for the `Page` model).
 - `inventory/*.json` — corpus knowledge (regenerated from the above).
-- `../ride/issues/issue{NN}/{slug}/pictures/` — per-issue picture assets, still in the sibling repo until they migrate too.
+- `../ride/issues/issue{NN}/{slug}/pictures/` — picture fallback for the legacy review layout.
 
 **Outputs**
 - `site/` — HTML pages, CSS, fonts, JS, images.
@@ -103,7 +104,7 @@ flowchart TB
         SCRIPTS["scripts/ — inventory, structure, sections, taxonomy, render_*"] --> INV["inventory/*.json · knowledge/data.md · schema.md"]
     end
     subgraph S["1 · Quellen (read-only)"]
-        TEI["issues/{N}/reviews/*-tei.xml + metadata.yaml"]
+        TEI["legacy review files + review bundles + metadata.yaml"]
         SCHEMA["schema/ride.odd · ride.rng · ride-pages.rng"]
         PAGES["pages/*.xml (TEI-Editorials) · content/*.md (Fallback)"]
     end
@@ -137,7 +138,8 @@ All sequence-typed fields use `tuple[...]` for immutability and hashability, per
 
 - **`Review`** — one per file
   - `id`, `issue`, `title`, `language`, `publication_date`, `licence`
-  - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Pflichtfeld pro [[specification#R2 Rezension zitieren]] — fehlende DOI ist Build-Bruch in Phase 13. Render-Konsumenten: Sidebar-Meta-Box, Citation Suggestion, JSON-LD `@id`/`identifier`, OAI-PMH `dc:identifier`.
+  - `doi: Optional[str]` — value of `<publicationStmt>/<idno type="DOI">`. Veröffentlichte Reviews benötigen den DOI gemäß [[specification#R2 Rezension zitieren]]. Drafts dürfen ihn auslassen.
+  - `publication_status: str` — `draft` oder `published`, gelesen aus `revisionDesc/@status`; ein fehlendes Attribut entspricht dem Legacy-Zustand `published`.
   - `editors: tuple[Editor, ...]`, `authors: tuple[Author, ...]`
   - `keywords: tuple[str, ...]`
   - `questionnaires: tuple[Questionnaire, ...]` — the `<num>`-based classification payload (see [[data]], `<num>` rule). Almost every review carries a single taxonomy; one carries two and one carries three (exact distribution in [[data]]). `Questionnaire` additionally carries `questions: tuple[QuestionnaireQuestion, ...]` — the per-question rows feeding the Factsheet-Vollseite (R18); each `QuestionnaireQuestion` carries `section_label`, `question_label`, `question_text`, `criteria_ref`, `selected`, `anomaly`, and `criteria_ref_label`.
@@ -210,7 +212,7 @@ Beside the per-review render path, three **content loaders** feed the rest of th
 
 These sources mean "edit source, push, deploy" works without touching templates or Python — the editorial workflow promise from [[specification#A3 Redaktionelle Texte]]. The promise is code-free content editing, not one fixed format: home widgets and issue YAML stay Markdown/YAML, the editorial pages are TEI under `pages/` with Markdown as the fallback.
 
-The build itself runs in **two passes**: first a parse pass collects every `Review` plus its `AssetReport` without writing HTML, then the navigation YAML is resolved against the now-known issue list, then the render pass writes review pages, editorial pages, aggregations, sitemap, OAI-PMH and the corpus dump. The split is necessary because the Issues dropdown can only be populated once all reviews are parsed, and every page that links into it needs the populated tuple.
+The build itself runs in **two passes**. The parse pass collects every review and its workflow status. The render pass produces formal public outputs from published reviews; `--include-drafts` adds individually addressable, marked preview pages for drafts. Navigation, aggregations, Pagefind, sitemap, feeds, OAI-PMH, redirects, and machine interfaces receive the published subset in both modes. The GitHub Pages workflow uses this separation to expose approved self-audit examples without treating them as published reviews. Review bundles resolve figures from their own `pictures/` directory and generate their wordcloud in the site output.
 
 ```
 templates/html/
@@ -339,7 +341,7 @@ Where the two layers parse the same TEI structure (taxonomy + num, reference cla
 
 ## Repository layout
 
-The authoritative directory layout lives in `CLAUDE.md` §Layout and is not duplicated here. The architecture-relevant entry points: `src/parser/` (TEI → domain), `src/model/` (frozen dataclasses), `src/render/` plus `src/build.py` (render pass and build CLI), `templates/html/` (Jinja), `config/element-mapping.yaml` (spec-only, see §Element-Mapping), `pages/*.xml` (editorial TEI), `issues/{N}/reviews/*-tei.xml` (the review corpus), and the generated `inventory/` plus the committed `knowledge/` vault.
+The authoritative directory layout lives in `CLAUDE.md` §Layout and is not duplicated here. The architecture-relevant entry points include `src/parser/`, `src/model/`, `src/render/`, `src/build.py`, `templates/html/`, `config/element-mapping.yaml`, `pages/*.xml`, both review layouts under `issues/{N}/reviews/`, the generated `inventory/` and the committed `knowledge/` vault.
 
 ## Stages
 

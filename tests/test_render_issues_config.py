@@ -1,4 +1,5 @@
 """Tests for src.render.issues_config — Phase 11 R11 Issue-YAML."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,7 +38,7 @@ def test_parse_issue_config_full(tmp_path: Path):
     p = tmp_path / "13.yaml"
     p.write_text(
         "issue: 13\n"
-        "title: \"Issue 13\"\n"
+        'title: "Issue 13"\n'
         "doi: 10.18716/ride.13\n"
         "status: rolling\n"
         "publication_date: 2024-06-01\n"
@@ -99,9 +100,7 @@ def test_discover_issue_configs_loads_all(tmp_path: Path):
     (tmp_path / "1").mkdir()
     (tmp_path / "2").mkdir()
     (tmp_path / "1" / "metadata.yaml").write_text("issue: 1\n", encoding="utf-8")
-    (tmp_path / "2" / "metadata.yaml").write_text(
-        "issue: 2\nstatus: rolling\n", encoding="utf-8"
-    )
+    (tmp_path / "2" / "metadata.yaml").write_text("issue: 2\nstatus: rolling\n", encoding="utf-8")
     configs = discover_issue_configs(tmp_path)
     assert set(configs.keys()) == {"1", "2"}
     assert configs["2"].is_rolling
@@ -111,9 +110,7 @@ def test_discover_issue_configs_loads_all(tmp_path: Path):
 
 
 def _review(rid: str, issue: str) -> Review:
-    return Review(
-        id=rid, issue=issue, title="t", publication_date="", language="en", licence=""
-    )
+    return Review(id=rid, issue=issue, title="t", publication_date="", language="en", licence="")
 
 
 def test_validate_issue_configs_clean_when_no_order():
@@ -260,10 +257,20 @@ def test_expected_id_from_doi_returns_none_for_non_review_doi():
 # ── validate_review_ids ─────────────────────────────────────────────
 
 
-def _rev(rid: str, doi: str | None) -> Review:
+def _rev(
+    rid: str,
+    doi: str | None,
+    publication_status: str = "published",
+) -> Review:
     return Review(
-        id=rid, issue="", title="t", publication_date="", language="en",
-        licence="", doi=doi,
+        id=rid,
+        issue="",
+        title="t",
+        publication_date="",
+        language="en",
+        licence="",
+        doi=doi,
+        publication_status=publication_status,
     )
 
 
@@ -293,6 +300,31 @@ def test_validate_review_ids_flags_missing_or_non_review_doi():
     assert "cannot derive" in errors[0]
 
 
+def test_validate_review_ids_accepts_draft_without_doi():
+    """Draft identity is provisional, so DOI authority starts at publication."""
+    parsed = [
+        (
+            Path("review.xml"),
+            _rev("draft.teicrafter-pilot", None, publication_status="draft"),
+        )
+    ]
+
+    assert validate_review_ids(parsed) == []
+
+
+def test_validate_review_ids_rejects_malformed_draft_id():
+    parsed = [
+        (
+            Path("review.xml"),
+            _rev("teicrafter pilot", None, publication_status="draft"),
+        )
+    ]
+
+    errors = validate_review_ids(parsed)
+    assert len(errors) == 1
+    assert "must begin with 'draft.'" in errors[0]
+
+
 # ── find_duplicate_review_dois ──────────────────────────────────────
 
 
@@ -309,7 +341,7 @@ def test_find_duplicate_review_dois_detects_shared_doi():
     assert "papyrieditor-tei.xml" in dups[0]
 
 
-# ── real-corpus integration: the id↔DOI fix and the known anomaly ───
+# ── real-corpus integration: identifier consistency ─────────────────
 
 
 def test_real_corpus_every_xml_id_matches_its_doi(corpus_parsed):
@@ -320,14 +352,7 @@ def test_real_corpus_every_xml_id_matches_its_doi(corpus_parsed):
     assert errors == [], "\n".join(errors)
 
 
-def test_real_corpus_only_known_duplicate_doi_remains(corpus_parsed):
-    """Documented editorial anomaly (CLAUDE.md: anomalies are explicit):
-    crowdsourcing.wien and papyrieditor share DOI 10.18716/ride.a.21.2.
-    Until the editors re-register one, this is the *only* duplicate DOI.
-    When they fix it this test fails, signalling that the build's soft
-    warning can be promoted to a hard check."""
+def test_real_corpus_has_no_duplicate_review_doi(corpus_parsed):
+    """Every published review claims one unique registered DOI."""
     dups = find_duplicate_review_dois(list(corpus_parsed))
-    assert len(dups) == 1
-    assert "10.18716/ride.a.21.2" in dups[0]
-    assert "crowdsourcingwien-tei.xml" in dups[0]
-    assert "papyrieditor-tei.xml" in dups[0]
+    assert dups == []

@@ -30,6 +30,74 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-08-23 — Öffentliche Pages-Vorschau der drei Self-Audits freigegeben
+
+**Ziel:** Die drei fachlich gekennzeichneten Self-Audits als direkt erreichbare RIDE-Workflowbeispiele auf GitHub Pages bereitstellen.
+**Erledigt:** Der Pages-Build rendert freigegebene, committete Drafts mit Review, Factsheet, TEI und PDF. Draft-Kennzeichnung, `noindex` und die Trennung von Issue-Listen, Suche, Feeds, Sitemap, OAI-PMH, Korpusdaten und Redirects bleiben erhalten. README, Pipeline, Workflow und URL-Vertrag beschreiben die öffentliche Beispielvorschau sowie die tatsächliche statische OAI-Ausgabe.
+**Entscheidungen:** Die drei Self-Audits dürfen öffentlich als Workflowbeispiele erscheinen. Vertrauliche künftige Reviews bleiben im privaten Redaktionskontext und benötigen weiterhin einen geschützten Vorschaukanal.
+**Offen:** Remote-CI, GitHub-Pages-Deployment und die vier Artefaktlinks je Review müssen nach dem Push geprüft werden. Die tatsächliche externe Nutzung des bisherigen OAI-Endpunkts bleibt ungeklärt.
+**Nächster Einstieg:** Arbeitsstand committen und pushen, den Pages-Lauf abwarten und Review, Factsheet, TEI sowie PDF aller drei Beispiele über ihre öffentlichen URLs öffnen.
+
+## 2026-08-23 — Vollständigen Draft-Prüfpfad überarbeitet und verifiziert
+
+**Ziel:** Die drei Self-Audits als nachvollziehbaren redaktionellen Übungsfall vom Review-Bundle bis zu Reviewseite, Factsheet, TEI und PDF ausarbeiten und den Ablauf im Repository dokumentieren.
+
+**Erledigt:** Reviewseite und Factsheet besitzen nun eine gemeinsame Artefaktnavigation. Das Factsheet ordnet Metadaten, Beteiligte und Fragebogenantworten als prüfbare Gruppen; unbeantwortete Fragen werden ausdrücklich ausgewiesen. Der PDF-Drucksatz wurde für Titel, Abstract, Text, Abbildungen, Referenzen und Seitenfuß überarbeitet und für die drei Drafts visuell geprüft. Die README führt den vollständigen lokalen Übungsablauf und den Vergleich mit einem veröffentlichten Review auf. Der portable CI-Draft-Build einschließlich eigenem Pagefind-Index, die DOI-Korrektur für `crowdsourcingwien` und die harte Prüfung doppelter DOI-Ausgabepfade sind umgesetzt. Die vollständige Suite besteht mit 732 Tests.
+
+**Entscheidungen:** Review, Factsheet, TEI und PDF bilden in jeder Draft-Ansicht eine zusammengehörige Artefaktgruppe. Factsheets bleiben eigenständige HTML-Ansichten; die verlinkte TEI ist die vollständige Quelldatei und die PDF die vollständige Leseausgabe. Doppelte DOI werden als Build-Fehler behandelt, weil beide Reviews denselben Ausgabepfad beanspruchen würden.
+
+**Offen:** Die fachliche Nutzerabnahme sowie Commit und Push stehen aus. Der vollständige historische Korpus baut, meldet aber weiterhin fehlende Bilddateien bei einzelnen Legacy-Reviews; die drei neuen Bundles sind davon nicht betroffen. Ein zugriffsgeschützter, dauerhafter Vorschaukanal ist weiterhin nicht eingerichtet.
+
+**Nächster Einstieg:** Die drei Drafts über `/drafts/` fachlich abnehmen und erst danach die freigegebenen Änderungen committen oder veröffentlichen.
+
+## 2026-08-22 — Drei Self-Audits und gemeinsamer Frontend-Workflow verifiziert
+
+**Ziel:** teiCrafter, SZD-HTR und ZBZ-OCR-TEI als vollständige Draft-Reviews optimieren und denselben Bundle-, Build-, Factsheet- und PDF-Pfad prüfen.
+
+**Erledigt:** Drei englische Self-Audits mit vollständigem Werkzeugfragebogen, eigener SVG-Abbildung, Wortwolke und PDF erstellt. Draft-ID-Vertrag, `figDesc`-Zugänglichkeit, dynamische Draft-Tests und mobile Umbrüche für Hashes und URLs ergänzt. Der Abschlussbericht in [[teicrafter-pilot]] dokumentiert Workflow, Befunde und Lösungswege. Der Build validierte 114 Dateien ohne Fehler; drei Drafts und drei PDFs wurden erzeugt. 727 Tests bestanden, zwei wurden übersprungen.
+
+**Entscheidungen:** Self-Audits bleiben als nicht unabhängige Drafts gekennzeichnet und weisen agentische KI-Unterstützung sowie menschliche Verantwortung aus. Neue Draft-IDs folgen `draft.{lowercase-slug}`; inhaltlich relevante Grafiken führen einen kurzen `<figDesc>`.
+
+**Offen:** Geschütztes Staging, ausführbare Schematron-Prüfung, Legacy-Bilder und -Schemahinweise, der historische DOI-Konflikt sowie die Fragebogen-zu-TEI-Strecke bleiben ungelöst. Die Review-Texte und ein möglicher Issue-Kommentar wurden noch nicht veröffentlicht.
+
+**Nächster Einstieg:** Die drei lokalen Reviewseiten redaktionell lesen und danach über Commit, Push und den vorbereiteten Kommentar zu Issue #2 entscheiden.
+
+## 2026-08-22 — Milestone 1: Review-Bundle bis PDF und CI verifiziert
+
+**Ziel:** Den einfachen Ordner-zu-Build-Workflow technisch schließen und am teiCrafter-Pilot über Produktions-, Draft- und PDF-Pfad prüfen.
+
+**Erledigt:** ODD und Relax NG reproduzierbar konsolidiert, lokale Schemaquelle im Build korrigiert, neue Bundles strikt validiert und Bundle-Assets als harte Fehler behandelt. Build-Fehler liefern einen nicht erfolgreichen Exit nach dem Diagnosebericht. Der gesperrte uv-Stack, Ruff, CI-Schema-Gate, getrenntes Draft-Artefakt und Draft-PDF-Pfad sind eingerichtet. Der vollständige Pilot-PDF wurde gerendert und visuell geprüft; dabei gefundene Asset- und Print-CSS-Fehler sind behoben.
+
+**Entscheidungen:** `schema/ride.odd` ist die bearbeitbare Quelle, `schema/ride.rng` deterministisches Generat. Der historische Flat-File-Korpus behält Warnungen für bestehende Drift und fehlende externe Bilder; neue Bundles folgen dem aktuellen Vertrag strikt. Die CI publiziert ausschließlich freigegebene Reviews und hält Draft-Vorschauen in einem separaten Artefakt.
+
+**Offen:** Ein zugriffsgeschützter Vorschaukanal für externe Beteiligte, die Freischaltungszuständigkeit, die Legacy-Bildmigration und die vorgelagerten LimeSurvey-Schritte bleiben außerhalb des geschlossenen technischen Bundle-Pfads.
+
+**Nächster Einstieg:** Den fachlichen Self-Audit und die daraus abgeleiteten teiCrafter-Verbesserungen priorisieren; anschließend den Pilot-Bundle als Review-Arbeitsstand committen und den CI-Artefaktlauf im Remote-Repository prüfen.
+
+## 2026-08-22 — Review-Bundle und lokaler Draft-Workflow umgesetzt
+
+**Ziel:** Den teiCrafter-Pilot als vollständiges Review-Bundle ablegen und den Ablauf vom Ordner bis zur lokalen Vorschau automatisieren.
+
+**Erledigt:** Bundle-Erkennung, lokale Bildauflösung, automatische Wortwolke und Draft-Status im TEI-Domänenmodell implementiert. Der normale Build schließt Drafts aus allen Publikationsausgaben aus; `--include-drafts` erzeugt Reviewseite und Factsheet mit Kennzeichnung. Der teiCrafter-Pilot liegt nun als `review.xml` mit `pictures/` vor. Die vollständige Suite bestand mit 704 Tests und 2 umgebungsbedingten Überspringungen.
+
+**Entscheidungen:** `revisionDesc/@status` ist die einzige Workflowquelle für `draft` und `published`. Neue Bundles führen ihre Bilder im Review-Ordner und erzeugen ihre Wortwolke im Site-Output. Das Flat-File-Format, externe Legacy-Bilder und committierte Legacy-Wortwolken bleiben kompatibel.
+
+**Offen:** Ein geschützter gemeinsamer Staging-Dienst, der lokale Windows-PDF-Stack, der Relax-NG-Korpusdrift und die mögliche Migration der Legacy-Bilder bleiben ungelöst. Ein Draft in einem öffentlichen Git-Repository ist über die Quelldatei zugänglich.
+
+**Nächster Einstieg:** Die lokale teiCrafter-Draft-Vorschau fachlich prüfen und anschließend die Commit-Grenze für Pilot, Workflow-Code und Dokumentation festlegen.
+
+## 2026-08-22 — teiCrafter-Self-Audit durch den vollständigen Review-Workflow geführt
+
+**Ziel:** Einen englischen teiCrafter-Pilot nach den RIDE-Werkzeugkriterien anlegen und Review-TEI, Fragebogen, Abbildung, Wortwolke, Build und lokale Vorschau gemeinsam prüfen.
+
+**Erledigt:** Self-Audit mit vollständiger Werkzeugtaxonomie, rechtefreier Workflowgrafik und reproduzierbarer Wortwolke ergänzt. HTML-Build mit Reviewseite und Faktenblatt verifiziert; vollständige Testsuite 698 bestanden, 2 übersprungen. Wachstumsfeindliche Korpuszählung in `test_validate.py` sowie falsche Wortwolken- und PDF-Vorschauangaben in der README korrigiert. Der kompakte Befund und die aktuelle Anleitung stehen in [[teicrafter-pilot]].
+
+**Entscheidungen:** Der Pilot liegt im rollenden Werkzeug-Issue 19 und bleibt durch Titel, Kommentare, Platzhalter-ID und Platzhalter-DOI eindeutig als nicht publizierbarer Self-Audit markiert. Geschützte Hersch-Daten werden nicht übernommen; die Abbildung dokumentiert stattdessen den verifizierten Systemweg.
+
+**Offen:** Ein Review verteilt sich weiterhin auf TEI, externes Bilder-Repository und Wortwolke. Draft-Vorschau ohne DOI, automatische Wortwolke, lokaler PDF-Stack, Staging/Freischaltung und die Aufgabe des getrennten Bilder-Repositories bleiben offen; sie sind in [[teicrafter-pilot#Offene Punkte]] abgegrenzt.
+
+**Nächster Einstieg:** Die redaktionelle Entscheidung zu einem gebündelten Review-Ordner und einem expliziten Draft-Status herbeiführen; anschließend den gewählten Bundle- und Vorschaupfad implementieren.
+
 ## 2026-07-17 — Drei Operator-Entscheide umgesetzt (Editorial-Boundary, Data-Views, OAI)
 
 **Ziel:** Die drei entschiedenen Punkte aus dem Operator-Entscheid vom 17.07. umsetzen, Editorial-Boundary bereinigen, die questionnaires-View generator-nativ bauen, OAI stilllegen mit Snapshot-Export.
@@ -39,7 +107,7 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 **Entscheidungen:**
 - Editorial-Boundary Option 3 statt Option 1, weil die Prosa bereits in TEI vorliegt und Option 3 die stille Doppelpflege ohne Aenderung des Editiermodells entfernt; der Twin-Move haelt die TEI-Single-Source-Disziplin und erhaelt zugleich die Live-URL.
 - Data-Views Option 2 (generator-native Markdown, keine Profil-Erweiterung), weil die generierte View ohnehin ein Build-Artefakt ausserhalb von TEI bleibt und ein TEI-Rahmen nur Uniformitaet gegen eine Profil-Erweiterung ohne Faehigkeitsgewinn kaufen wuerde.
-- OAI Option 1 (Endpoint stilllegen, statischen Snapshot als dokumentierten Export behalten), weil kein Harvester den Live-Endpoint nachweislich konsumiert und die Metadaten ueber DataCite fliessen.
+- OAI Option 1 (Endpoint stilllegen, statischen Snapshot als dokumentierten Export behalten) wurde als redaktionelle Entscheidung festgehalten. Ob externe Harvester den früheren Live-Endpoint verwendet haben, wurde in dieser Session nicht verifiziert.
 
 **Offen:** Die Aussenschritte zu OAI bleiben beim Operator, der Issue-Kommentar, die tatsaechliche Abschaltung des alten eXist-Endpoints unter `ride.i-d-e.de/apis/oai`, und der DOAJ-Weg (Dashboard-Upload vs. API-Push). Die uebrigen Redaktionsentscheidungen in [[workflow]] (Staging, DOI im Build, Freischaltungs-Mechanik, Bilder-Repo) unveraendert offen.
 

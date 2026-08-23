@@ -17,9 +17,9 @@ sorted alphabetically (tags) or by surname (reviewers) or by title
 The complementary per-review walkers (``collect_figures``,
 ``collect_notes``) live in :mod:`src.parser.aggregate`.
 """
+
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass
 
 from src.model.review import Author, Person, Review
@@ -109,9 +109,7 @@ def aggregate_reviewers(reviews: tuple[Review, ...]) -> tuple[ReviewerAggregate,
         )
         for _, info in sorted(
             by_key.items(),
-            key=lambda kv: (
-                (kv[1]["person"].surname or kv[1]["person"].full_name).lower()
-            ),
+            key=lambda kv: (kv[1]["person"].surname or kv[1]["person"].full_name).lower(),
         )
     )
 
@@ -187,9 +185,7 @@ def aggregate_reviewed_resources(
             entry = by_key.setdefault(
                 key,
                 {
-                    "title": (ri.title or "").strip()
-                    or ri.bibl_text.strip()
-                    or "(untitled)",
+                    "title": (ri.title or "").strip() or ri.bibl_text.strip() or "(untitled)",
                     "targets": ri.bibl_targets,
                     "personnel": ri.personnel,
                     "publication_date": ri.publication_date or "",

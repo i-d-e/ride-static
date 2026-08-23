@@ -16,6 +16,7 @@ Anomalies handled here, per the table in ``knowledge/architecture.md``:
 The body-wrap anomaly (seven reviews start ``<body>`` directly with ``<p>``
 or ``<cit>``) is handled in Commit 2.2 as a separate branch in this module.
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -25,7 +26,7 @@ from lxml import etree
 from src.model.inline import Inline
 from src.model.section import Section
 from src.parser.blocks import parse_block_sequence
-from src.parser.common import NS, TEI_NS, attr
+from src.parser.common import NS, attr
 from src.parser.inlines import parse_inlines
 
 _KNOWN_DIV_TYPES = frozenset({"abstract", "bibliography", "appendix"})
@@ -53,9 +54,7 @@ def parse_sections(host: Optional[etree._Element]) -> tuple[Section, ...]:
     if _is_body_wrap_case(host):
         return (_synthesise_wrap_section(host),)
     divs = host.findall("t:div", NS)
-    return tuple(
-        _parse_div(div, level=1, position=(i + 1,)) for i, div in enumerate(divs)
-    )
+    return tuple(_parse_div(div, level=1, position=(i + 1,)) for i, div in enumerate(divs))
 
 
 def _is_body_wrap_case(host: etree._Element) -> bool:

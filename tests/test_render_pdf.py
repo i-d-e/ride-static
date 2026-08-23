@@ -13,13 +13,72 @@ Two layers:
   the same chain ``src.build`` uses, then run WeasyPrint over it.
   Asserts the DOI lands on page 1 (requirements A6).
 """
+
 from __future__ import annotations
 
+import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
 
 from tests._shared import iter_tei_files, needs_corpus
+
+
+def test_render_review_pdf_enables_accessibility_tags(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The renderer requests a tagged PDF without loading native libraries."""
+    captured: dict[str, object] = {}
+
+    class FakeHTML:
+        def __init__(self, **kwargs) -> None:
+            captured["html"] = kwargs
+
+        def write_pdf(self, **kwargs) -> None:
+            captured["pdf"] = kwargs
+
+    class FakeURLFetcher:
+        def fetch(self, url: str) -> dict[str, str]:
+            return {"url": url}
+
+    fake_module = SimpleNamespace(
+        HTML=FakeHTML,
+        URLFetcher=FakeURLFetcher,
+    )
+    monkeypatch.setitem(sys.modules, "weasyprint", fake_module)
+
+    from src.render.pdf import render_review_pdf
+
+    html_path = tmp_path / "page.html"
+    html_path.write_text("<html lang='en'><body>Review</body></html>", encoding="utf-8")
+    render_review_pdf(html_path, tmp_path / "page.pdf")
+
+    assert captured["pdf"]["pdf_tags"] is True
+
+
+def test_root_relative_build_assets_resolve_from_output_root(tmp_path: Path) -> None:
+    from src.render.pdf import _local_build_asset
+
+    html_path = tmp_path / "issues" / "19" / "draft.example" / "index.html"
+    css_path = tmp_path / "static" / "css" / "ride.css"
+    figure_path = html_path.parent / "figures" / "picture-1.svg"
+    css_path.parent.mkdir(parents=True)
+    figure_path.parent.mkdir(parents=True)
+    css_path.write_text("@media print {}", encoding="utf-8")
+    figure_path.write_text("<svg xmlns='http://www.w3.org/2000/svg'/>", encoding="utf-8")
+
+    assert _local_build_asset("file:///static/css/ride.css", html_path) == css_path
+    assert _local_build_asset("file:///ride-static/static/css/ride.css", html_path) == css_path
+    assert (
+        _local_build_asset(
+            "file:///ride-static/issues/19/draft.example/figures/picture-1.svg",
+            html_path,
+        )
+        == figure_path
+    )
+    assert _local_build_asset("https://example.org/external.css", html_path) is None
 
 
 # WeasyPrint import is wrapped — both ImportError (package missing) and

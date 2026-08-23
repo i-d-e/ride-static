@@ -3,6 +3,7 @@ inventory/
 
 # Build output (regenerate via python -m src.build).
 site/
+.venv/
 
 # Python
 __pycache__/

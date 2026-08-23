@@ -14,6 +14,7 @@ Test data philosophy:
   unparseable URLs today, so this is the only way to keep the
   branch under test.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -22,7 +23,7 @@ import pytest
 
 from src.model.block import Figure
 from src.parser.assets import (
-    AssetReport,
+    _bundle_asset_path,
     _parse_url,
     rewrite_figure_assets,
 )
@@ -32,6 +33,14 @@ from tests._shared import iter_tei_files
 
 
 _RIDE_ROOT = Path(__file__).resolve().parent.parent.parent / "ride"
+
+
+def test_bundle_asset_path_rejects_parent_traversal(tmp_path: Path) -> None:
+    source = tmp_path / "reviews" / "example" / "review.xml"
+
+    assert _bundle_asset_path("pictures/../secret.xml", source) is None
+    assert _bundle_asset_path("../secret.xml", source) is None
+
 
 # Real-corpus fixture choices:
 # - 1641-tei.xml: 9 figures, all 9 sources present on disk → happy path.
@@ -145,7 +154,10 @@ def test_double_slash_url_real_review_still_parses(tmp_path) -> None:
 
     site_root = tmp_path / "site"
     new_review, report = rewrite_figure_assets(
-        review, _RIDE_ROOT, site_root, copy=False,
+        review,
+        _RIDE_ROOT,
+        site_root,
+        copy=False,
     )
 
     # All buckets sum to a non-crash outcome for every figure.
@@ -204,6 +216,57 @@ def test_dry_run_mode_does_not_touch_filesystem(tmp_path) -> None:
 
 
 @pytestmark_corpus
+def test_bundle_picture_is_copied_from_review_folder(tmp_path) -> None:
+    """The teiCrafter pilot resolves its real relative picture inside the bundle."""
+    source = find_tei("teicrafter-pilot")
+    review = parse_review(source)
+
+    rewritten, report = rewrite_figure_assets(
+        review,
+        _RIDE_ROOT,
+        tmp_path / "site",
+        source_path=source,
+    )
+
+    expected = Path("issues/19/draft.teicrafter-pilot/figures/picture-1.svg")
+    assert report.copied == (expected,)
+    assert report.bundle is True
+    assert report.missing == ()
+    assert report.unparseable == ()
+    assert rewritten.figures[0].graphic_url == "/" + expected.as_posix()
+    assert (tmp_path / "site" / expected).is_file()
+
+
+@pytestmark_corpus
+def test_bundle_rejects_legacy_or_external_figure_urls(tmp_path) -> None:
+    """A bundle is self-contained and may reference only its pictures folder."""
+    import dataclasses
+
+    source = find_tei("teicrafter-pilot")
+    review = parse_review(source)
+    external = dataclasses.replace(
+        review.figures[0],
+        graphic_url=(
+            "https://ride.i-d-e.de/wp-content/uploads/issue_19/"
+            "teicrafter-pilot/pictures/picture-1.svg"
+        ),
+    )
+    review = dataclasses.replace(review, figures=(external,))
+
+    _, report = rewrite_figure_assets(
+        review,
+        _RIDE_ROOT,
+        tmp_path / "site",
+        source_path=source,
+    )
+
+    assert report.bundle is True
+    assert report.copied == ()
+    assert report.missing == ()
+    assert report.unparseable == (external.graphic_url,)
+
+
+@pytestmark_corpus
 def test_unparseable_url_branch_documented(tmp_path) -> None:
     """The corpus has zero unparseable URLs today; this test documents the
     branch by injecting one synthetic Figure into a real-parsed review.
@@ -215,9 +278,7 @@ def test_unparseable_url_branch_documented(tmp_path) -> None:
 
     review = parse_review(_HAPPY_PATH)
     # Replace the first figure's URL with a non-RIDE one.
-    bogus = dataclasses.replace(
-        review.figures[0], graphic_url="https://other.example.org/foo.png"
-    )
+    bogus = dataclasses.replace(review.figures[0], graphic_url="https://other.example.org/foo.png")
     bogus_review = dataclasses.replace(review, figures=(bogus,) + review.figures[1:])
 
     site_root = tmp_path / "site"
@@ -241,7 +302,10 @@ def test_smoke_real_corpus_asset_report_consistent(tmp_path) -> None:
     for f in files:
         review = parse_review(f)
         new_review, report = rewrite_figure_assets(
-            review, _RIDE_ROOT, site_root, copy=False,
+            review,
+            _RIDE_ROOT,
+            site_root,
+            copy=False,
         )
         total_with_url += sum(1 for fig in review.figures if fig.graphic_url)
         bucket_total += len(report.copied) + len(report.missing) + len(report.unparseable)

@@ -8,7 +8,7 @@ TEI XML → Python/Jinja → HTML/PDF, deployed via GitHub Actions.
 
 ## Hard rules
 
-- **TDD with real-corpus drive.** Every script and parser module ships with pytest coverage. **Integration tests use the real corpus** (`issues/{N}/reviews/*-tei.xml`) — parse a real review and assert the resulting domain shape, rather than constructing `Review`/`Section`/`Block` instances directly from synthetic dataclass values. Synthetic-from-dataclass construction is technical debt: it locks tests to the model contract while bypassing the parser, hiding parser regressions. **Pure-function unit tests** (regex, classifier, formatter) may use synthetic inputs because the function signature is the only data form richer than that — document this in the test docstring. **Edge cases that genuinely do not exist in the corpus** (truly unparseable URLs, future-proofing branches) keep a synthetic fixture but the docstring names the case as an explicit exception. Real-corpus tests skip cleanly when the corpus is absent so the unit suite runs on a partial checkout.
+- **TDD with real-corpus drive.** Every script and parser module ships with pytest coverage. **Integration tests use the real corpus** under `issues/{N}/reviews/` — parse a real review and assert the resulting domain shape, rather than constructing `Review`/`Section`/`Block` instances directly from synthetic dataclass values. Synthetic-from-dataclass construction is technical debt: it locks tests to the model contract while bypassing the parser, hiding parser regressions. **Pure-function unit tests** (regex, classifier, formatter) may use synthetic inputs because the function signature is the only data form richer than that — document this in the test docstring. **Edge cases that genuinely do not exist in the corpus** (truly unparseable URLs, future-proofing branches) keep a synthetic fixture but the docstring names the case as an explicit exception. Real-corpus tests skip cleanly when the corpus is absent so the unit suite runs on a partial checkout.
 - **`knowledge/` is a clean Obsidian-style vault — Markdown plus referenced image attachments.** Generated JSON belongs in `inventory/`. Cross-references inside the vault use `[[wikilink]]` notation. Hand-written filenames are lowercase. Image attachments (e.g. `image-<name>.png`) live next to the Markdown that references them, the conventional Obsidian-vault layout. Diagrams that can be expressed as text use Mermaid fenced blocks rather than binary images, so they stay diffable and render in Obsidian and on GitHub. Hand-written docs do not hardcode **measured** quantities (corpus counts, occurrence totals, line counts) — those live in the generated `data.md`/`schema.md` or in `inventory/`, and hand-written docs link to them. Only **deliberate** numbers (design tokens, thresholds, requirement IDs) appear as literals, because they change only by decision.
 - **`inventory/` is gitignored** (visible, no leading dot). Always regeneratable from scripts.
 - **Anomalies are explicit.** Known data quirks (no `<back>`, `<num value="3">`, `<list rend="numbered">`, etc. — see `knowledge/data.md`) become named branches in the parser. Unknown ones must raise.
@@ -36,7 +36,8 @@ ride-static/
   content/                editorial Markdown: home widgets, Markdown fallback (about, data charts/questionnaires), factsheet-help/ criteria definitions
   issues/{N}/             TEI corpus, grouped per issue
     metadata.yaml         editorially curated issue metadata (DOI, editors, …)
-    reviews/*-tei.xml     the TEI review files for this issue
+    reviews/*-tei.xml     legacy TEI review files
+    reviews/{slug}/       review bundle with review.xml and pictures/
   schema/                 ride.odd + ride.rng (reviews) + ride-pages.rng (editorial pages)
   inventory/              Generated JSON artifacts — gitignored
     _cache/               Cached upstream downloads (e.g. p5subset.xml)
@@ -77,13 +78,13 @@ Generated docs (`data.md`, `schema.md`) must not be edited by hand — changes g
 
 The TEI corpus and schema live **inside this repo**:
 
-- `issues/{N}/reviews/*-tei.xml` — the review corpus, grouped by issue number (`biblScope @n`); corpus size is a measured quantity, see `knowledge/data.md`
+- `issues/{N}/reviews/*-tei.xml` and `issues/{N}/reviews/{slug}/review.xml` — the two supported review layouts, grouped by issue number (`biblScope @n`); corpus size is a measured quantity, see `knowledge/data.md`
 - `issues/{N}/metadata.yaml` — per-issue editorial metadata (DOI, editors, contribution order, …)
 - `schema/ride.odd` — RIDE-specific TEI ODD
 - `schema/ride.rng` — compiled RelaxNG used by `src/validate.py`
 - `pages/*.xml` — editorial pages as TEI (the non-review RIDE pages), profile `schema/ride-pages.rng`
 
-Path lookups go through `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, …). Per-issue **pictures** still live in the sibling repo `i-d-e/ride` under `../ride/issues/issue{NN}/{slug}/pictures/`; the asset pipeline reads them via `REPO_ROOT.parent / "ride"` and degrades cleanly when the sibling is absent. When pictures move into this repo too, that fallback drops.
+Path lookups go through `src/_corpus.py` (`iter_tei_files`, `find_tei`, `CORPUS_ROOT`, `SCHEMA_ODD`, …). Review bundles resolve relative `pictures/` URLs from their own folder. Legacy per-issue pictures still live in the sibling repo `i-d-e/ride` under `../ride/issues/issue{NN}/{slug}/pictures/`; the asset pipeline reads them via `REPO_ROOT.parent / "ride"` and degrades cleanly when the sibling is absent.
 
 ## Stage 0/1 outputs
 
@@ -102,9 +103,9 @@ Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` th
 | `taxonomy.py` | `taxonomy.json` | RIDE criteria taxonomies grouped by `@xml:base`, plus per-review category answers (`@value` 0/1) |
 | `render_data.py` | `knowledge/data.md` | structure-and-knowledge reference for code that walks the corpus |
 | `render_schema.py` | `knowledge/schema.md` | RIDE-specific schema reference, including ODD-vs-corpus diffs |
-| `wordclouds.py` | `static/images/wordclouds/{id}.png` | deterministic wordcloud thumbnail for a new review (maintenance script, fixed seed) |
+| `wordclouds.py` | bundle output under `site/static/images/wordclouds/{id}.png`; legacy CLI output under `static/images/wordclouds/{id}.png` | deterministic wordcloud thumbnail with fixed seed |
 
-Run any: `python scripts/<name>.py`. Run tests: `python -m pytest tests/`.
+Run any: `uv run python scripts/<name>.py`. Run tests: `uv run python -m pytest tests/`. Install or synchronize dependencies with `uv sync --locked`; `pyproject.toml` and `uv.lock` are the dependency contract.
 
 ## Conventions
 

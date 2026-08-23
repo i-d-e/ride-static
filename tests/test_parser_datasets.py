@@ -1,7 +1,6 @@
 """Tests for the cross-corpus aggregation datasets."""
-from __future__ import annotations
 
-from pathlib import Path
+from __future__ import annotations
 
 
 from src.model.review import Affiliation, Author, Person, RelatedItem, Review
@@ -79,12 +78,20 @@ def test_aggregate_tags_sorted_alphabetically():
 
 def test_aggregate_reviewers_dedupes_by_orcid():
     """Same person via two different name spellings, same ORCID — one entry."""
-    p1 = Person(full_name="Anna Smith", forename="Anna", surname="Smith",
-                identifier_url="https://orcid.org/0000-0000-0000-0001",
-                identifier_authority="orcid")
-    p2 = Person(full_name="A. Smith", forename="A.", surname="Smith",
-                identifier_url="https://orcid.org/0000-0000-0000-0001",
-                identifier_authority="orcid")
+    p1 = Person(
+        full_name="Anna Smith",
+        forename="Anna",
+        surname="Smith",
+        identifier_url="https://orcid.org/0000-0000-0000-0001",
+        identifier_authority="orcid",
+    )
+    p2 = Person(
+        full_name="A. Smith",
+        forename="A.",
+        surname="Smith",
+        identifier_url="https://orcid.org/0000-0000-0000-0001",
+        identifier_authority="orcid",
+    )
     reviews = (
         _r("a", authors=(Author(person=p1),)),
         _r("b", authors=(Author(person=p2),)),
@@ -117,9 +124,12 @@ def test_aggregate_reviewers_sorted_by_surname():
 
 
 def test_aggregate_reviewers_captures_first_affiliation():
-    p = Person(full_name="X Y", surname="Y",
-               identifier_url="https://orcid.org/0000-0000-0000-0001",
-               identifier_authority="orcid")
+    p = Person(
+        full_name="X Y",
+        surname="Y",
+        identifier_url="https://orcid.org/0000-0000-0000-0001",
+        identifier_authority="orcid",
+    )
     reviews = (
         _r("a", authors=(Author(person=p, affiliation=Affiliation(org_name="Univ A")),)),
         _r("b", authors=(Author(person=p, affiliation=Affiliation(org_name="Univ B")),)),
@@ -132,10 +142,16 @@ def test_aggregate_reviewers_captures_first_affiliation():
 
 
 def test_aggregate_reviewed_resources_dedupes_by_target():
-    ri1 = RelatedItem(type="reviewed_resource", bibl_text="Edition X (v1)",
-                     bibl_targets=("https://example.org/x",))
-    ri2 = RelatedItem(type="reviewed_resource", bibl_text="Edition X (v2)",
-                     bibl_targets=("https://example.org/x",))
+    ri1 = RelatedItem(
+        type="reviewed_resource",
+        bibl_text="Edition X (v1)",
+        bibl_targets=("https://example.org/x",),
+    )
+    ri2 = RelatedItem(
+        type="reviewed_resource",
+        bibl_text="Edition X (v2)",
+        bibl_targets=("https://example.org/x",),
+    )
     reviews = (_r("a", related_items=(ri1,)), _r("b", related_items=(ri2,)))
     out = aggregate_reviewed_resources(reviews)
     assert len(out) == 1
@@ -236,7 +252,9 @@ def test_smoke_real_corpus_aggregates() -> None:
 
     assert isinstance(tags, tuple) and all(isinstance(t, TagAggregate) for t in tags)
     assert isinstance(reviewers, tuple) and all(isinstance(r, ReviewerAggregate) for r in reviewers)
-    assert isinstance(resources, tuple) and all(isinstance(r, ReviewedResourceAggregate) for r in resources)
+    assert isinstance(resources, tuple) and all(
+        isinstance(r, ReviewedResourceAggregate) for r in resources
+    )
 
     # Bounds for sanity
     assert 50 <= len(tags) <= 1000, f"unexpected tag count: {len(tags)}"

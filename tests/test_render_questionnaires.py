@@ -13,6 +13,7 @@ Test-data philosophy per CLAUDE.md hard rule, mirroring
   marker-substitution pipeline against the four criteria URLs and the
   ``value="3"`` anomaly review that only live in the corpus.
 """
+
 from __future__ import annotations
 
 from src.model.questionnaire import Questionnaire, QuestionnaireQuestion
@@ -171,7 +172,9 @@ def test_aggregate_folds_compound_resource_prefix():
 
 def test_aggregate_merges_text_collections_url_variants():
     url_a = "http://www.i-d-e.de/criteria-text-collections-version-1-0"
-    url_b = "https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/"
+    url_b = (
+        "https://www.i-d-e.de/publikationen/weitereschriften/criteria-text-collections-version-1-0/"
+    )
     reviews = (
         _review("r1", url_a, [_q("q1", "aims", "Q", ["Yes"])]),
         _review("r2", url_b, [_q("q1", "aims", "Q", ["No"])]),
@@ -235,7 +238,7 @@ def test_render_table_escapes_html_in_labels():
 def test_render_html_includes_anomaly_note_when_present():
     url = "http://www.i-d-e.de/publikationen/weitereschriften/criteria-version-1-1"
     reviews = (_review("r1", url, [_q("q1", "s", "Q", [], anomaly=True)]),)
-    html = render_questionnaires_html(reviews)
+    render_questionnaires_html(reviews)
     # A review whose only question is an anomaly has no answered rows, so
     # the table is dropped and the block is empty; anomaly note appears only
     # alongside real rows. Add a real answer to surface both.

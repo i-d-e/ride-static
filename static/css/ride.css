@@ -28,6 +28,7 @@
      acrobatics; the content column stays around 80 reading-characters. */
   --ride-page-max:       1150px;
   --ride-content-width:   720px;
+  --ride-factsheet-width: 980px;
   --ride-sidebar-width:   280px;
   --ride-gutter:           60px;
   --ride-page-padding:     20px;
@@ -525,12 +526,12 @@ main.ride-shell {
 
 .ride-emph                      { font-style: italic; }
 .ride-highlight                 { /* contextual rend variants land here */ }
-.ride-code                      { font-family: var(--ride-font-mono); background: var(--ride-bg-muted); padding: 1px 4px; border-radius: 2px; }
+.ride-code                      { font-family: var(--ride-font-mono); background: var(--ride-bg-muted); padding: 1px 4px; border-radius: 2px; overflow-wrap: anywhere; }
 
 /* Reference buckets — Phase 7 resolver classifies every <ref> into one of
    four kinds; the modifier classes are mirrored in
    config/element-mapping.yaml `inlines.Reference.by_bucket`. */
-.ride-ref                       { /* base — inherits link colour from a {} */ }
+.ride-ref                       { overflow-wrap: anywhere; }
 .ride-ref--local                { /* same-page anchor — default link styling is the right affordance */ }
 .ride-ref--criteria             { border-bottom: 1px dotted currentColor; text-decoration: none; }
 .ride-ref--external             { /* external link styling — class hook, no glyph indicator */ }
@@ -585,24 +586,238 @@ main.ride-shell {
 .ride-toc li                    { margin-bottom: var(--ride-space-2); }
 
 .ride-factsheet                 { margin: 0; }
+.ride-factsheet a,
+.ride-factsheet-page a          { overflow-wrap: anywhere; }
 .ride-factsheet__criteria       { font-weight: var(--ride-weight-medium); margin-top: var(--ride-space-3); }
 .ride-factsheet__score          { display: flex; align-items: center; gap: var(--ride-space-2); margin: 0 0 var(--ride-space-2); }
 .ride-factsheet__bar            { flex: 1; height: 6px; }
 .ride-factsheet__anomaly        { color: var(--ride-fg-secondary); font-size: var(--ride-text-tiny); }
 
-/* Compound-review block heading — names the reviewed resource of a taxonomy. */
-.ride-questionnaire__resource   { margin-top: var(--ride-space-8); }
+/* Review output navigation. The same four-file contract is visible on the
+   review, the factsheet and the local draft workspace. */
+.ride-artifacts {
+  display: flex;
+  align-items: center;
+  gap: var(--ride-space-4);
+  margin: 0 0 var(--ride-space-8);
+  padding: var(--ride-space-3) var(--ride-space-4);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  background: var(--ride-bg-muted);
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-small);
+}
+.ride-artifacts__label {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--ride-fg-secondary);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-artifacts__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ride-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ride-artifacts__list a,
+.ride-artifacts__current,
+.ride-artifacts__unavailable {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: var(--ride-space-1) var(--ride-space-3);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius-pill);
+  background: var(--ride-bg);
+  line-height: var(--ride-leading-ui);
+  text-decoration: none;
+}
+.ride-artifacts__list a:hover {
+  border-color: var(--ride-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ride-artifacts__current {
+  border-color: var(--ride-fg-primary);
+  background: var(--ride-fg-primary);
+  color: var(--ride-bg);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-artifacts__unavailable {
+  color: var(--ride-fg-tertiary);
+}
 
-/* Native criteria help toggle. The summary is a small "?" badge; the body is
-   muted explanatory prose from content/factsheet-help/. JS-free (<details>). */
-.ride-question__help            { margin: var(--ride-space-1) 0 var(--ride-space-3); }
+/* Full Factsheet page. Metadata and people form a compact overview, while
+   each questionnaire answer remains an individually addressable text block. */
+.ride-factsheet-page {
+  grid-template-columns: minmax(0, var(--ride-factsheet-width));
+}
+.ride-factsheet-page .ride-content {
+  width: 100%;
+  max-width: var(--ride-factsheet-width);
+}
+.ride-factsheet-page__kicker {
+  margin: 0 0 var(--ride-space-2);
+  color: var(--ride-fg-secondary);
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-small);
+  font-weight: var(--ride-weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ride-factsheet-page__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ride-space-3) var(--ride-space-6);
+  margin-top: var(--ride-space-6);
+}
+.ride-factsheet-page__meta .ride-meta__item--wide {
+  grid-column: 1 / -1;
+}
+.ride-factsheet-page .ride-meta__item {
+  min-width: 0;
+  padding: var(--ride-space-3) 0;
+  border-top: 1px solid var(--ride-rule);
+}
+.ride-factsheet-page .ride-meta__item dt {
+  margin: 0 0 var(--ride-space-1);
+  color: var(--ride-fg-secondary);
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-small);
+}
+.ride-factsheet-page .ride-meta__item dd {
+  margin: 0;
+}
+.ride-factsheet-page__overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--ride-space-6);
+  margin: var(--ride-space-8) 0 var(--ride-space-12);
+}
+.ride-factsheet-page__resource,
+.ride-factsheet-page__people {
+  padding: var(--ride-space-6);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius);
+  background: var(--ride-bg);
+  box-shadow: var(--ride-shadow-soft);
+}
+.ride-factsheet-page__resource h2,
+.ride-factsheet-page__people h2 {
+  margin: 0 0 var(--ride-space-4);
+  font-size: var(--ride-text-h3);
+}
+.ride-people__group + .ride-people__group {
+  margin-top: var(--ride-space-4);
+}
+.ride-people__role {
+  margin: 0 0 var(--ride-space-2);
+  color: var(--ride-fg-secondary);
+  font-size: var(--ride-text-small);
+}
+.ride-people__list {
+  margin: 0;
+  padding-left: var(--ride-space-6);
+}
+.ride-factsheet-page__questionnaire > h2 {
+  margin-top: 0;
+  padding-bottom: var(--ride-space-3);
+  border-bottom: 2px solid var(--ride-fg-primary);
+}
+.ride-questionnaire + .ride-questionnaire {
+  margin-top: var(--ride-space-12);
+}
+.ride-questionnaire__resource {
+  margin-top: var(--ride-space-8);
+}
+.ride-questionnaire__criteria {
+  margin: 0 0 var(--ride-space-6);
+  font-size: var(--ride-text-small);
+}
+.ride-questionnaire__section {
+  margin: var(--ride-space-12) 0 var(--ride-space-4);
+  padding-bottom: var(--ride-space-2);
+  border-bottom: 1px solid var(--ride-rule);
+}
+.ride-question {
+  margin-bottom: var(--ride-space-4);
+  padding: var(--ride-space-4) var(--ride-space-6);
+  border: 1px solid var(--ride-rule);
+  border-left: 4px solid var(--ride-accent);
+  border-radius: var(--ride-radius);
+  background: var(--ride-bg);
+}
+.ride-question__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ride-space-2);
+  margin: 0 0 var(--ride-space-2);
+  font-family: var(--ride-font-sans);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-question__criteria-ref {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 var(--ride-space-2);
+  border: 1px solid var(--ride-rule);
+  border-radius: var(--ride-radius-pill);
+  font-size: var(--ride-text-tiny);
+  font-weight: var(--ride-weight-regular);
+  text-decoration: none;
+}
+.ride-question__text {
+  margin: 0 0 var(--ride-space-4);
+}
+.ride-question__answer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ride-space-2);
+  margin: 0;
+  font-family: var(--ride-font-sans);
+  font-size: var(--ride-text-small);
+}
+.ride-question__answer-label {
+  color: var(--ride-fg-secondary);
+  font-weight: var(--ride-weight-medium);
+}
+.ride-question__answer-value {
+  padding: var(--ride-space-1) var(--ride-space-3);
+  border-radius: var(--ride-radius-pill);
+  background: var(--ride-bg-muted);
+  color: var(--ride-fg-primary);
+}
+.ride-question__anomaly,
+.ride-question__unanswered {
+  color: var(--ride-fg-secondary);
+  font-style: italic;
+}
+
+/* Native criteria help toggle. The body is sourced from the editable
+   criterion explanations under content/factsheet-help/. */
+.ride-question__help            { margin: var(--ride-space-3) 0 0; }
 .ride-question__help-badge      {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 22px; min-height: 22px; padding: 0 var(--ride-space-2);
-  border: 1px solid var(--ride-rule); border-radius: 50%;
+  display: inline-flex; align-items: center; gap: var(--ride-space-2);
+  min-height: 32px; padding: var(--ride-space-1) var(--ride-space-3);
+  border: 1px solid var(--ride-rule); border-radius: var(--ride-radius-pill);
   background: var(--ride-bg-muted); color: var(--ride-fg-secondary);
   font-size: var(--ride-text-small); line-height: 1; cursor: pointer;
   list-style: none; user-select: none;
+}
+.ride-question__help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: var(--ride-text-tiny);
+  font-weight: var(--ride-weight-medium);
 }
 .ride-question__help-badge::-webkit-details-marker { display: none; }
 .ride-question__help-badge:hover { background: var(--ride-rule); }
@@ -621,6 +836,10 @@ main.ride-shell {
 
 .ride-downloads                 { list-style: none; padding-left: 0; margin: var(--ride-space-3) 0 0; }
 .ride-downloads li              { margin-bottom: var(--ride-space-2); }
+
+.ride-draft-entry .ride-artifacts {
+  margin: var(--ride-space-4) 0 0 184px;
+}
 
 .ride-cite__suggestion          { margin: 0 0 var(--ride-space-3); }
 .ride-cite__suggestion-note     { font-style: italic; color: var(--ride-fg-secondary); font-size: var(--ride-text-small); margin: var(--ride-space-2) 0 var(--ride-space-3); }
@@ -904,6 +1123,9 @@ main.ride-shell {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.ride-issue-entry a {
+  overflow-wrap: anywhere;
+}
 .ride-issue-entry__cite {
   margin: 0 0 var(--ride-space-3);
   font-size: var(--ride-text-small);
@@ -953,6 +1175,7 @@ main.ride-shell {
    separate blocks, matching the visual model where both flow
    together as the article's opening byline. */
 .ride-review__header            { margin-bottom: var(--ride-space-8); padding-bottom: var(--ride-space-6); border-bottom: 1px solid var(--ride-rule); }
+.ride-review__draft             { margin: 0 0 var(--ride-space-6); padding: var(--ride-space-4); background: var(--ride-bg-muted); border: 2px solid var(--ride-accent); border-radius: var(--ride-radius); font-family: var(--ride-font-sans); }
 .ride-review__title             { margin-top: 0; font-size: var(--ride-text-h1); }
 .ride-review__byline            { margin: var(--ride-space-4) 0 0; font-size: var(--ride-text-small); color: var(--ride-fg-secondary); line-height: var(--ride-leading-prose); }
 .ride-review__byline cite       { font-style: italic; }
@@ -1095,11 +1318,24 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
   .ride-page              { grid-template-columns: minmax(0, 1fr); }
   .ride-sidebar           { grid-column: 1; margin-top: var(--ride-space-12); }
   .ride-apparate          { grid-template-columns: minmax(0, 1fr); }
+  .ride-artifacts         { align-items: flex-start; flex-direction: column; }
+  .ride-factsheet-page__meta { grid-template-columns: minmax(0, 1fr); }
+  .ride-factsheet-page__meta .ride-meta__item--wide { grid-column: auto; }
+  .ride-question          { padding: var(--ride-space-4); }
+  .ride-draft-entry .ride-artifacts { margin-left: 0; }
 }
 
-/* ≥ 720px and < 1080px — two-column with full sidebar, default rules apply. */
+/* ≥ 720px and < 1200px — keep the two-column review layout fluid. */
+@media (min-width: 720px) and (max-width: 1199px) {
+  .ride-page {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, var(--ride-sidebar-width));
+    column-gap: var(--ride-space-8);
+  }
+  .ride-page--solo,
+  .ride-page--wide { grid-template-columns: minmax(0, 1fr); }
+}
 
-/* ≥ 1080px — centred grid with symmetric outer space; default rules apply. */
+/* ≥ 1200px — centred grid with symmetric outer space; default rules apply. */
 
 /* ─── 7. Accessibility helpers ───────────────────────────────────────── */
 
@@ -1151,32 +1387,66 @@ table.xp-table td.xp-td-title a { display: inline-block; max-width: 360px; overf
        rather than crashing. counter(page) is always available. */
     @bottom-left {
       content: string(citeline);
-      font-size: 8pt; color: #666;
+      font-size: 8pt; color: var(--ride-fg-tertiary);
     }
     @bottom-right {
       content: "Page " counter(page);
-      font-size: 8pt; color: #666;
+      font-size: 8pt; color: var(--ride-fg-tertiary);
     }
   }
-  body { font-size: 11pt; }
+  body {
+    font-size: 10.5pt;
+    line-height: 1.48;
+    background: var(--ride-bg);
+  }
   .ride-wip, .ride-header, .ride-nav, .ride-footer,
   .ride-sidebar, .ride-skip,
+  .ride-artifacts, .ride-note__back,
   .ride-cite__btns, .ride-cite-data,
   /* Interactive help toggles carry no static print value — a closed
      <details> would print only a bare "?" badge. */
   .ride-question__help { display: none; }
-  .ride-page { grid-template-columns: minmax(0, 1fr); }
+  .ride-page { display: block; }
   .ride-content, .ride-shell { max-width: 100%; padding: 0; margin: 0; }
+  .ride-review__header {
+    margin-bottom: var(--ride-space-6);
+    padding-bottom: var(--ride-space-4);
+  }
+  .ride-review__title {
+    font-size: 22pt;
+    line-height: 1.18;
+  }
+  .ride-review__byline {
+    font-size: 9.5pt;
+  }
+  .ride-review__abstract {
+    margin: var(--ride-space-6) 0;
+    padding: var(--ride-space-3) var(--ride-space-4);
+    border-left: 3px solid var(--ride-rule);
+    background: transparent;
+  }
+  .ride-review__body p,
+  .ride-apparate__list li {
+    orphans: 3;
+    widows: 3;
+  }
+  .ride-apparate { display: block; }
+  .ride-apparate__panel + .ride-apparate__panel { margin-top: var(--ride-space-8); }
+  .ride-apparate__list {
+    font-size: 9pt;
+    overflow-wrap: anywhere;
+  }
   .ride-review__doi-print {
     display: block; margin: 0 0 var(--ride-space-4) 0;
-    font-size: 10pt; color: #444;
+    font-size: 9.5pt; color: var(--ride-fg-secondary);
     /* Feed the bottom-left running footer. WeasyPrint captures the
        element's text content (e.g. "DOI: 10.xxxx/...") as the named
        string; must not be display:none for string-set to fire. */
     string-set: citeline content();
   }
   a { color: inherit; text-decoration: none; }
-  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.9em; color: #555; }
-  h1, h2, h3 { page-break-after: avoid; }
-  figure, table { page-break-inside: avoid; }
+  h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+  figure, table { break-inside: avoid; page-break-inside: avoid; }
+  .ride-figure--image img { max-height: 205mm; object-fit: contain; }
+  .ride-review__footer { break-inside: avoid; }
 }

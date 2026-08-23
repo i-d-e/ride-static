@@ -6,6 +6,7 @@ Jinja environment, same path factories. The page sits at
 reviewed resource, its contributors, and the questionnaire one question
 at a time — the full view the sidebar box only summarises.
 """
+
 from __future__ import annotations
 
 import re
@@ -175,6 +176,7 @@ def render_factsheet(
     site: Optional[SiteConfig] = None,
     env: Optional[Environment] = None,
     help_texts: Optional[dict[str, str]] = None,
+    pdf_available: bool = True,
 ) -> str:
     """Render one Review's Factsheet full page to a complete HTML string.
 
@@ -198,10 +200,11 @@ def render_factsheet(
         humanize_label=humanize_label,
         question_help=make_question_help(help_texts),
         questionnaire_heading=make_questionnaire_heading(review),
+        pdf_available=pdf_available,
         page_title=f"{review.title} — Factsheet" if review.title else "Factsheet",
         page_url=(
             review_url(review, site.base_url) + "factsheet/"
-            if site.base_url
+            if site.base_url and not review.is_draft
             else None
         ),
     )

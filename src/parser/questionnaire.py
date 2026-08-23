@@ -10,6 +10,7 @@ The script under ``scripts/taxonomy.py`` aggregates the same data
 corpus-wide for the Data page; this module produces the per-review
 view consumed by the Factsheet renderer.
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -22,7 +23,7 @@ from src.model.questionnaire import (
     QuestionnaireQuestion,
     TaxonomySection,
 )
-from src.parser.common import NS, TEI_NS, attr, itertext
+from src.parser.common import NS, TEI_NS, attr
 
 
 def parse_questionnaires(
@@ -56,9 +57,7 @@ def parse_questionnaire_questions(
     if root is None:
         return ()
     taxonomies = root.findall(".//t:teiHeader//t:taxonomy", NS)
-    return tuple(
-        (attr(t, "xml:base") or "", _parse_questions(t)) for t in taxonomies
-    )
+    return tuple((attr(t, "xml:base") or "", _parse_questions(t)) for t in taxonomies)
 
 
 def _parse_taxonomy(tax: etree._Element) -> Questionnaire:
@@ -89,9 +88,7 @@ def _parse_taxonomy(tax: etree._Element) -> Questionnaire:
         if value is None:
             continue
         answers.append(
-            QuestionnaireAnswer(
-                category_xml_id=xid, value=value, gloss=_find_gloss_text(cat)
-            )
+            QuestionnaireAnswer(category_xml_id=xid, value=value, gloss=_find_gloss_text(cat))
         )
     return Questionnaire(
         criteria_url=criteria_url,
@@ -277,8 +274,7 @@ def _is_question(cat: etree._Element) -> bool:
     """A category is a question when it has option-leaf children or carries
     its own answer ``<num>`` alongside descriptive text."""
     has_option_children = any(
-        _find_num_in_any_catdesc(sub) is not None
-        for sub in cat.findall("t:category", NS)
+        _find_num_in_any_catdesc(sub) is not None for sub in cat.findall("t:category", NS)
     )
     has_own_num = _find_num_in_any_catdesc(cat) is not None
     return has_option_children or has_own_num
@@ -290,9 +286,7 @@ def _build_question(q_cat: etree._Element, section_label: str) -> QuestionnaireQ
     anomaly = False
 
     option_cats = [
-        sub
-        for sub in q_cat.findall("t:category", NS)
-        if _find_num_in_any_catdesc(sub) is not None
+        sub for sub in q_cat.findall("t:category", NS) if _find_num_in_any_catdesc(sub) is not None
     ]
     if option_cats:
         # Nested option leaves (Yes/No or categorical). One label each.
@@ -342,11 +336,7 @@ def _question_texts(q_cat: etree._Element) -> tuple[str, str, Optional[str], Opt
     longest plain description. Either may be absent; the xml:id is the
     last-resort label.
     """
-    descs = [
-        cd
-        for cd in q_cat.findall("t:catDesc", NS)
-        if cd.find("t:num", NS) is None
-    ]
+    descs = [cd for cd in q_cat.findall("t:catDesc", NS) if cd.find("t:num", NS) is None]
     criteria_ref: Optional[str] = None
     criteria_ref_label: Optional[str] = None
     texts: list[str] = []

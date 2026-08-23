@@ -9,6 +9,7 @@ a Review.
 All types are immutable so a parsed Review can be passed around and
 cached without surprises. Use ``dataclasses.replace`` to derive variants.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -142,6 +143,13 @@ class Review:
     that ship a review without a DOI.
     """
 
+    publication_status: str = "published"
+    """Workflow state from ``revisionDesc/@status``.
+
+    ``draft`` enables a local preview without a DOI. An absent status
+    preserves the historic corpus behaviour and resolves to ``published``.
+    """
+
     keywords: tuple[str, ...] = field(default_factory=tuple)
     authors: tuple[Author, ...] = field(default_factory=tuple)
     editors: tuple[Editor, ...] = field(default_factory=tuple)
@@ -193,3 +201,14 @@ class Review:
 
     source_file: Optional[str] = None
     """Basename of the source TEI file, for diagnostics."""
+
+    def __post_init__(self) -> None:
+        if self.publication_status not in {"draft", "published"}:
+            raise ValueError(
+                "publication_status must be 'draft' or 'published', got "
+                f"{self.publication_status!r}"
+            )
+
+    @property
+    def is_draft(self) -> bool:
+        return self.publication_status == "draft"

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Evidence and publication boundaries in ZBZ-OCR-TEI</title>
+  <desc id="desc">A schematic shows restricted source material entering an OCR, layout, and TEI pipeline, followed by verification gates. A vertical boundary separates internal processing from the public viewer mirror and facsimile repository. Two warning boxes require personal-data clearance and documented image rights.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#374151"/>
+    </marker>
+    <style>
+      .label { font-family: Arial, Helvetica, sans-serif; fill: #18212b; }
+      .small { font-size: 17px; }
+      .body { font-size: 21px; font-weight: 600; }
+      .section { font-size: 18px; font-weight: 700; letter-spacing: 1.2px; }
+      .box { stroke-width: 2; rx: 14; }
+      .arrow { stroke: #374151; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1200" height="520" fill="#fbfaf7"/>
+  <text class="label section" x="48" y="45">RESTRICTED PROJECT WORKSPACE</text>
+  <text class="label section" x="828" y="45">PUBLIC DELIVERY</text>
+
+  <rect class="box" x="45" y="86" width="230" height="140" fill="#e8eef5" stroke="#52718f"/>
+  <text class="label body" x="160" y="125" text-anchor="middle">Source material</text>
+  <text class="label small" x="160" y="160" text-anchor="middle">PDF delivery</text>
+  <text class="label small" x="160" y="188" text-anchor="middle">Masterfile metadata</text>
+  <text class="label small" x="160" y="216" text-anchor="middle">institutional rules</text>
+
+  <path class="arrow" d="M275 156 H330"/>
+
+  <rect class="box" x="335" y="76" width="255" height="160" fill="#f0e5d8" stroke="#a66a3e"/>
+  <text class="label body" x="462" y="114" text-anchor="middle">Processing pipeline</text>
+  <text class="label small" x="462" y="150" text-anchor="middle">OCR and layout</text>
+  <text class="label small" x="462" y="178" text-anchor="middle">TEI assembly</text>
+  <text class="label small" x="462" y="206" text-anchor="middle">entity preview</text>
+
+  <path class="arrow" d="M590 156 H645"/>
+
+  <rect class="box" x="650" y="76" width="250" height="160" fill="#dcefe5" stroke="#3d7d61"/>
+  <text class="label body" x="775" y="114" text-anchor="middle">Verification gates</text>
+  <text class="label small" x="775" y="150" text-anchor="middle">schema and rules</text>
+  <text class="label small" x="775" y="178" text-anchor="middle">tests and corpus audit</text>
+  <text class="label small" x="775" y="206" text-anchor="middle">CER on 25 references</text>
+
+  <line x1="928" y1="64" x2="928" y2="475" stroke="#9b3d3d" stroke-width="4" stroke-dasharray="12 10"/>
+  <text class="label small" x="916" y="455" text-anchor="end" fill="#7a2e2e">publication boundary</text>
+
+  <path class="arrow" d="M900 156 H970"/>
+
+  <rect class="box" x="975" y="76" width="180" height="160" fill="#f7e3e1" stroke="#a8443f"/>
+  <text class="label body" x="1065" y="114" text-anchor="middle">Public delivery</text>
+  <text class="label small" x="1065" y="150" text-anchor="middle">viewer mirror</text>
+  <text class="label small" x="1065" y="178" text-anchor="middle">TEI and OCR data</text>
+  <text class="label small" x="1065" y="206" text-anchor="middle">facsimile server</text>
+
+  <rect class="box" x="90" y="310" width="470" height="130" fill="#fff4d6" stroke="#b7791f"/>
+  <text class="label body" x="325" y="350" text-anchor="middle">Verified properties</text>
+  <text class="label small" x="325" y="386" text-anchor="middle">2,440 tests passed · 285/285 TEI structurally valid</text>
+  <text class="label small" x="325" y="416" text-anchor="middle">CER is limited to a biased 25-document reference sample</text>
+
+  <rect class="box" x="650" y="300" width="505" height="150" fill="#fbe3e1" stroke="#a8443f"/>
+  <text class="label body" x="902" y="340" text-anchor="middle">Publication blockers</text>
+  <text class="label small" x="902" y="378" text-anchor="middle">remove or clear personal data in the viewer mirror</text>
+  <text class="label small" x="902" y="408" text-anchor="middle">document display rights for the facsimile repository</text>
+  <text class="label small" x="902" y="438" text-anchor="middle">release only after both gates pass</text>
+</svg>

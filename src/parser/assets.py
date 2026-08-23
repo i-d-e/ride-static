@@ -20,7 +20,8 @@ The on-disk source is in the sibling corpus repo:
 
 A figure whose source file is missing on disk leaves the original
 ``graphic_url`` untouched and is reported via :class:`AssetReport`.
-The build CLI logs the report; nothing here raises.
+This module does not raise; the build treats bundle findings as hard
+failures and historical sibling-repository findings as warnings.
 
 Module placement note. The Workplan offered ``src/build/assets.py``
 as a sibling to the Frontend's ``src/build.py`` — but a directory
@@ -28,14 +29,16 @@ as a sibling to the Frontend's ``src/build.py`` — but a directory
 Python's import system. ``src/parser/assets.py`` keeps the module
 inside the Backend's owned tree without colliding.
 """
+
 from __future__ import annotations
 
 import dataclasses
 import re
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional
 
+from src._corpus import is_review_bundle
 from src.model.block import (
     Block,
     Citation,
@@ -45,7 +48,6 @@ from src.model.block import (
     Paragraph,
     Table,
     TableCell,
-    TableRow,
 )
 from src.model.review import Review
 from src.model.section import Section
@@ -56,9 +58,7 @@ from src.parser.aggregate import collect_figures, collect_notes
 # match is anchored to the ``wp-content/uploads/issue_N/slug/pictures/file``
 # segment, so leading scheme/host (and the lone ``//wp-content`` typo in
 # godwin-tei) all parse the same way.
-_URL_PATTERN = re.compile(
-    r"wp-content/uploads/issue_(\d+)/([^/]+)/pictures/([^/]+)"
-)
+_URL_PATTERN = re.compile(r"wp-content/uploads/issue_(\d+)/([^/]+)/pictures/([^/]+)")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -66,11 +66,13 @@ class AssetReport:
     """Outcome of rewriting one review's figure assets.
 
     Frontend-/CLI-consumed: the build prints the report and aggregates
-    counts across all reviews. Phase 13 will surface the per-review
-    missing list as a build warning.
+    counts across all reviews. Bundle findings fail after the report is
+    written; historical findings remain visible warnings.
     """
 
     review_id: str
+    bundle: bool
+    """Whether the source uses the self-contained review-bundle contract."""
     copied: tuple[Path, ...]
     """Destination paths of files that were copied (relative to ``site_root``)."""
     missing: tuple[str, ...]
@@ -85,6 +87,7 @@ def rewrite_figure_assets(
     site_root: Path,
     *,
     copy: bool = True,
+    source_path: Optional[Path] = None,
 ) -> tuple[Review, AssetReport]:
     """Copy figure images for ``review`` into ``site_root`` and return a
     new ``Review`` with rewritten URLs plus an :class:`AssetReport`.
@@ -108,19 +111,26 @@ def rewrite_figure_assets(
     missing: list[str] = []
     unparseable: list[str] = []
     rewritten_urls: dict[str, str] = {}
+    bundle = source_path is not None and is_review_bundle(source_path)
 
     for fig in review.figures:
         src_url = fig.graphic_url
         if not src_url:
             continue
-        parsed = _parse_url(src_url)
-        if parsed is None:
-            unparseable.append(src_url)
-            continue
-        issue_n, slug, filename = parsed
-        src_path = (
-            ride_root / "issues" / f"issue{int(issue_n):02d}" / slug / "pictures" / filename
-        )
+        src_path = _bundle_asset_path(src_url, source_path) if bundle else None
+        filename = PurePosixPath(src_url).name
+        if src_path is None:
+            if bundle:
+                unparseable.append(src_url)
+                continue
+            parsed = _parse_url(src_url)
+            if parsed is None:
+                unparseable.append(src_url)
+                continue
+            issue_n, slug, filename = parsed
+            src_path = (
+                ride_root / "issues" / f"issue{int(issue_n):02d}" / slug / "pictures" / filename
+            )
         if not src_path.is_file():
             missing.append(src_url)
             continue
@@ -139,11 +149,30 @@ def rewrite_figure_assets(
     new_review = _rewrite_urls(review, rewritten_urls)
     report = AssetReport(
         review_id=review.id,
+        bundle=bundle,
         copied=tuple(copied),
         missing=tuple(missing),
         unparseable=tuple(unparseable),
     )
     return new_review, report
+
+
+def _bundle_asset_path(url: str, source_path: Optional[Path]) -> Optional[Path]:
+    """Resolve a safe ``pictures/...`` URL beside a bundle ``review.xml``."""
+    if source_path is None or source_path.name != "review.xml":
+        return None
+    relative = PurePosixPath(url)
+    if relative.is_absolute() or not relative.parts or relative.parts[0] != "pictures":
+        return None
+    if ".." in relative.parts:
+        return None
+    bundle_root = source_path.parent.resolve()
+    candidate = source_path.parent.joinpath(*relative.parts).resolve()
+    try:
+        candidate.relative_to(bundle_root)
+    except ValueError:
+        return None
+    return candidate
 
 
 def _parse_url(url: str) -> Optional[tuple[str, str, str]]:

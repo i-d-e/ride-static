@@ -32,14 +32,14 @@
   <title>{% block title %}{{ page_title }} — {{ site.title }}{% endblock %}</title>
 
   {%- if page_description %}
-  <meta name="description" content="{{ page_description }}">
+  <meta name="description" content="{{ page_description | e }}">
   {%- endif %}
 
   {#- Open-Graph: per specification.md R13 (Sharing) so social previews look sensible. -#}
   <meta property="og:type" content="{{ og.type if og and og.type else 'article' }}">
   <meta property="og:title" content="{{ page_title }}">
   {%- if page_description %}
-  <meta property="og:description" content="{{ page_description }}">
+  <meta property="og:description" content="{{ page_description | e }}">
   {%- endif %}
   {%- if page_url %}
   <meta property="og:url" content="{{ page_url }}">
