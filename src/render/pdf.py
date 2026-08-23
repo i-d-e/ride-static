@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+import warnings
 
 
 def _build_root(html_path: Path) -> Path:
@@ -62,7 +63,19 @@ def render_review_pdf(html_path: Path, pdf_path: Path) -> None:
             return url_fetcher.fetch(local_path.resolve().as_uri())
         return url_fetcher.fetch(url)
 
-    HTML(filename=str(html_path), url_fetcher=fetch_url).write_pdf(
-        target=str(pdf_path),
-        pdf_tags=True,
-    )
+    html = HTML(filename=str(html_path), url_fetcher=fetch_url)
+    try:
+        html.write_pdf(target=str(pdf_path), pdf_tags=True)
+    except ValueError as exc:
+        if str(exc) != "Table wrapper without a table":
+            raise
+        pdf_path.unlink(missing_ok=True)
+        warnings.warn(
+            f"Tagged PDF failed for {html_path.parent.name}; retrying without PDF tags",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        HTML(filename=str(html_path), url_fetcher=fetch_url).write_pdf(
+            target=str(pdf_path),
+            pdf_tags=False,
+        )

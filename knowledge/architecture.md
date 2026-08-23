@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-08-22
+updated: 2026-08-23
 version: 0.1
 topics:
   - "[[Static Site Generation]]"
@@ -198,7 +198,7 @@ Anything not yet listed but unknown should raise — silent coercion is forbidde
 Two output formats share the domain model:
 
 - **`render/html.py`** — Jinja templates in `templates/html/`. Visual and interaction design is fixed in [[interface]]; templates implement that spec mechanically.
-- **`render/pdf.py`** — PDF per review via WeasyPrint, per [[specification#A6 PDF-Pfad]]. The PDF pass reuses the already-rendered `index.html` and relies on the `@media print` block in `static/css/ride.css` to strip chrome (nav, sidebar, WIP-Banner) and surface a print-only DOI line on page 1. **No second template tree, no second render pass.** The lazy WeasyPrint import in `render_review_pdf` lets the build skip cleanly on hosts without Pango/Cairo (typical Windows dev) — only CI (with the GTK apt packages) actually emits PDFs.
+- **`render/pdf.py`** — PDF per review via WeasyPrint, per [[specification#A6 PDF-Pfad]]. The PDF pass reuses the already-rendered `index.html` and relies on the `@media print` block in `static/css/ride.css` to strip chrome (nav, sidebar, WIP-Banner) and surface a print-only DOI line on page 1. **No second template tree, no second render pass.** The lazy WeasyPrint import in `render_review_pdf` lets the build skip cleanly on hosts without Pango/Cairo (typical Windows dev) — only CI (with the GTK apt packages) actually emits PDFs. Tagged PDF is the default. WeasyPrint 69 raises `Table wrapper without a table` while tagging four historical reviews; for this identified engine failure the renderer retries that review without tags and emits a warning. Other PDF failures remain hard build failures.
 
 The print-only DOI line is its own small design pattern worth naming. The Meta sidebar exposes the DOI to web readers but is hidden in print, so without intervention the PDF would have no DOI on page 1. The fix is a `<p class="ride-review__doi-print">` directly under the review header that defaults to `display: none` and flips to `display: block` inside `@media print`. Two cooperating tests pin the contract without needing WeasyPrint at all (HTML-rendertest pinns the `<p>`, CSS-contract-test pinns the `display: block`); the integration test only confirms the WeasyPrint chain runs.
 

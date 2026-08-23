@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-07-10
+updated: 2026-08-23
 version: 0.1
 topics:
   - "[[Scholar-Centered Design]]"
@@ -223,7 +223,7 @@ Die Konfiguration:
 - **Identifier auf Seite 1 (R3 / A6).** Eine print-only `<p class="ride-review__doi-print">` direkt unter dem Review-Header trägt bei publizierten Reviews die DOI. Drafts verwenden ihre vorläufige Review-ID. Der `display: none`-Default hält die Zeile im Web aus dem Lese-Layout heraus; im Print wird sie eingeblendet und speist die laufende Fußzeile.
 - **Page-break-Steuerung.** Headings vermeiden Page-Break-After (`page-break-after: avoid`), Figures und Tabellen vermeiden Page-Break-Inside. Das verhindert, dass Captions oder Tabellenzellen über Seitenwechsel zerrissen werden.
 - **Links.** Das PDF erhält klickbare Linkannotationen. Bereits ausgeschriebene URLs bleiben sichtbar und werden umgebrochen. Der Print-Stylesheet hängt keine zweite URL an den Linktext an.
-- **Dokumentstruktur.** WeasyPrint erzeugt PDF-Tags aus den semantischen HTML-Elementen. Überschriften, Listen, Tabellen und Abbildungen bleiben damit im Strukturbaum des PDF erhalten.
+- **Dokumentstruktur.** WeasyPrint erzeugt PDF-Tags aus den semantischen HTML-Elementen. Überschriften, Listen, Tabellen und Abbildungen bleiben damit im Strukturbaum des PDF erhalten. Bei vier historischen Reviews scheitert WeasyPrint 69 nachweislich an der Tabellenauszeichnung. Für genau diesen Fehler erzeugt der Build eine vollständige PDF ohne Struktur-Tags und meldet den Fallback; alle anderen Reviews behalten die Tags.
 
 Pagefind-CSS, Logos und das Konsole-Banner sind im PDF nicht sichtbar — entweder durch `display: none` im `@media print` oder weil WeasyPrint kein JavaScript ausführt.
 

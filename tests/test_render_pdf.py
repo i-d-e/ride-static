@@ -58,6 +58,75 @@ def test_render_review_pdf_enables_accessibility_tags(
     assert captured["pdf"]["pdf_tags"] is True
 
 
+def test_render_review_pdf_retries_known_tagged_table_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A WeasyPrint tagging bug must not suppress an otherwise valid PDF."""
+    calls: list[bool] = []
+
+    class FakeHTML:
+        def __init__(self, **kwargs) -> None:
+            pass
+
+        def write_pdf(self, **kwargs) -> None:
+            calls.append(kwargs["pdf_tags"])
+            if kwargs["pdf_tags"]:
+                raise ValueError("Table wrapper without a table")
+
+    class FakeURLFetcher:
+        def fetch(self, url: str) -> dict[str, str]:
+            return {"url": url}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "weasyprint",
+        SimpleNamespace(HTML=FakeHTML, URLFetcher=FakeURLFetcher),
+    )
+
+    from src.render.pdf import render_review_pdf
+
+    html_path = tmp_path / "page.html"
+    html_path.write_text("<html><body><table></table></body></html>", encoding="utf-8")
+
+    with pytest.warns(RuntimeWarning, match="retrying without PDF tags"):
+        render_review_pdf(html_path, tmp_path / "page.pdf")
+
+    assert calls == [True, False]
+
+
+def test_render_review_pdf_does_not_mask_unrelated_value_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Only the identified WeasyPrint table-tagging failure has a fallback."""
+
+    class FakeHTML:
+        def __init__(self, **kwargs) -> None:
+            pass
+
+        def write_pdf(self, **kwargs) -> None:
+            raise ValueError("unrelated failure")
+
+    class FakeURLFetcher:
+        def fetch(self, url: str) -> dict[str, str]:
+            return {"url": url}
+
+    monkeypatch.setitem(
+        sys.modules,
+        "weasyprint",
+        SimpleNamespace(HTML=FakeHTML, URLFetcher=FakeURLFetcher),
+    )
+
+    from src.render.pdf import render_review_pdf
+
+    html_path = tmp_path / "page.html"
+    html_path.write_text("<html><body>Review</body></html>", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="unrelated failure"):
+        render_review_pdf(html_path, tmp_path / "page.pdf")
+
+
 def test_root_relative_build_assets_resolve_from_output_root(tmp_path: Path) -> None:
     from src.render.pdf import _local_build_asset
 
