@@ -440,6 +440,11 @@ main.ride-shell {
   border: 1px solid var(--ride-rule);
 }
 
+#ride-search .pagefind-ui__result-inner {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
 #ride-search .pagefind-ui__search-input {
   font-size: var(--ride-text-base);
 }
