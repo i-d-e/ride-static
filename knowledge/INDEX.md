@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-05-09
-updated: 2026-08-22
+updated: 2026-10-17
 version: 0.2
 language: en
 related:
@@ -44,6 +44,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[redirects-feeds]] | Construction — rationale and evidence for legacy-URL redirects and the syndication feeds | when redirect or feed decisions change |
 | [[workflow]] | Construction — target publication workflow, legacy-stack replacement inventory, parity gaps | when editorial decisions land or gaps close |
 | [[teicrafter-pilot]] | Evaluation — verified teiCrafter self-audit and end-to-end review-ingestion report | when the pilot workflow or its open boundaries change |
+| [Publication process review](../snapshots/process-review-report-2026-10-17.md) | Dated evidence and decision basis for publication and editorial operation | snapshot, 17 October 2026 |
 | [Journal](journal.md) | Genesis — session-by-session record (`Ziel/Erledigt/Entscheidungen/Offen/Nächster Einstieg`) | one entry per working session |
 
 The two generated documents (`data`, `schema`) carry `generated:`, `source:`, and `inputs:` frontmatter and must not be edited by hand — changes go into `scripts/render_data.py` and `scripts/render_schema.py`. The hand-written documents are the only place where wikilinks are added directly.

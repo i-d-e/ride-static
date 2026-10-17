@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-10-17 — Review the publication process and public preview
+
+**Ziel:** Assess the existing publication system and editorial process as a decision basis, without implementing further product changes.
+**Erledigt:** Recorded the source-bound analysis in [the dated process review](../snapshots/process-review-report-2026-10-17.md). Fresh tests and validated production and preview builds passed within the stated runtime limits. Public browser checks reproduced broken search and a deployment-prefix link failure. The report separates these defects from missing confidential preview, human release responsibility and external metadata handover.
+**Entscheidungen:** Preserve the static architecture and the completed build-filter correction. Propose bounded functional repairs and an editorial operating agreement. Keep legacy OAI continuity evidence-dependent because later public corrections qualify the older retirement recommendation.
+**Offen:** Operator acceptance and authorization of recommendations, protected hosting and release roles, actual DataCite/DOAJ/OAI procedures. Native PDF generation and the complete locked CI environment were not rerun locally.
+**Nächster Einstieg:** Take the operator's selected decision object from the report and define its concrete acceptance case before implementation.
+
 ## 2026-10-17 — Include editorial TEI pages in build triggers
 
 **Ziel:** Make changes to the regular editorial TEI sources under `pages/` trigger the existing build workflow.
