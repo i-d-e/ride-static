@@ -62,10 +62,10 @@ Two axes of stakeholder load shape the architecture:
   ([[interface#11]]) are concessions to reader workflows that the
   domain model carries (`Paragraph.xml_id`, `Figure.xml_id`,
   `Reference.bucket`).
-* **Editorial-light.** Editorial change should not require Python.
-  `config/element-mapping.yaml` puts the dominant 90 % of presentation
-  edits behind a YAML change — an editorial-team-friendly contact
-  surface. New parsing semantics still need a maintainer.
+* Editorial content is edited in the TEI pages and review sources.
+  Presentation variants edit the dispatcher template and CSS together
+  with the tested YAML reference. New parsing semantics require
+  corresponding model and parser changes.
 
 ## Inputs and outputs
 

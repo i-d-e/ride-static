@@ -82,7 +82,7 @@ The parallel sub-blocks at the end of a review — References, Figures, Notes �
 
 ### Element-Mapping
 
-The YAML file `config/element-mapping.yaml` that binds domain classes to Jinja templates and CSS classes. The most frequent extension of the site — a new visual variant for a known element — is a YAML change, not a Python change. Only structurally new semantics require a new dataclass plus parser function. Defined in [[architecture#Element-Mapping]].
+The presentation reference in `config/element-mapping.yaml` records domain classes, template paths and CSS classes. The runtime dispatcher in `templates/html/partials/render.html` implements the binding. Presentation changes edit the dispatcher and CSS and update the tested YAML reference. New structural semantics also require model and parser changes. Defined in [[architecture#Element-Mapping (declarative)]].
 
 ### K-Ref
 

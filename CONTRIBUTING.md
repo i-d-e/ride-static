@@ -71,7 +71,7 @@ If a documented decision conflicts with the code, fix the code. If the code is r
 
 ## Adding things
 
-- **A new TEI element or variant** — see `docs/extending.md`. Most variants are YAML-only via `config/element-mapping.yaml`; structural additions need a dataclass and parser.
+- **A new TEI element or variant** — see `docs/extending.md`. Presentation variants edit the dispatcher template and CSS together with the tested `config/element-mapping.yaml` reference. The build does not load that mapping. Structural additions also need a dataclass and parser.
 - **A new editorial page** — add a TEI file under `pages/` that validates against `schema/ride-pages.rng`; its location decides the URL section. See `docs/extending.md` (Editorial pages) and `docs/url-scheme.md`. The Markdown under `content/` is only the `--no-tei-editorials` fallback.
 - **A new test** — name it `tests/test_<thing>.py` and run `uv run python -m pytest tests/test_<thing>.py -v`.
 

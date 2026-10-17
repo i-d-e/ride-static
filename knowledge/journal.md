@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-10-17 — Correct the remaining extension documentation
+
+**Ziel:** Close the confirmed YAML-only documentation contradiction within the bounded coordination assignment.
+**Erledigt:** Checked the renderer, dispatcher macros and mapping tests. Corrected CONTRIBUTING, the Element-Mapping glossary and the matching stakeholder paragraph in architecture, plus the directly related module descriptions. Presentation changes now consistently name the template/CSS implementation and the tested YAML reference. The earlier technical-maintenance closure had missed these current statements and was too broad.
+**Entscheidungen:** Preserve runtime code, templates, YAML data and the research corpus. Keep the dated maintenance entry below as provenance, qualified by this correction. ACTIVE-WORK and Erledigt-Log remain with coordination for this round.
+**Offen:** The maintenance remains local and unpublished. Earlier native-PDF, repository-formatting and editorial/institutional boundaries are unchanged. This documentation correction supplies no new claim of full product acceptance.
+**Nächster Einstieg:** Wait for a new explicit assignment. No automatic backlog continuation.
+
 ## 2026-10-17 — Close independent maintenance and wait for editorial input
 
 **Ziel:** Recheck the actual open findings, close independently actionable technical work and leave a maintained waiting state.

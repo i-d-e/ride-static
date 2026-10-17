@@ -5,8 +5,9 @@ dataclass exported by src.model must have a mapping entry, and every
 mapping entry must reference a real dataclass. Drift in either direction
 fails the test.
 
-Phase 8 will additionally check that every `template:` path exists under
-templates/html/; for now the templates do not yet exist (greenfield).
+This module checks model coverage and declared variants. Runtime dispatch
+lives in templates/html/partials/render.html. The mapping is a presentation
+reference and is not loaded by the build.
 """
 from __future__ import annotations
 
