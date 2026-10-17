@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-10-17 — Include editorial TEI pages in build triggers
+
+**Ziel:** Make changes to the regular editorial TEI sources under `pages/` trigger the existing build workflow.
+**Erledigt:** Added the missing source-directory filter. Regression tests reproduce the omission before the fix and cover every actual editorial page plus documentation-only exclusions afterward. Existing page schema, parser and rendering checks, Ruff and the offline manifest/lock check pass. The trigger contract is documented in [[pipeline#Re-deployment flow]].
+**Entscheidungen:** Retain the single workflow and its existing publication boundaries. The test checks the current positive literal and directory filters, without introducing a general GitHub pattern engine or changing dependencies.
+**Offen:** Tests used the existing host Python packages rather than a newly synchronized locked environment. Hosted trigger execution, native PDF generation and deployment were not exercised. Existing formatting debt remains outside this bounded change.
+**Nächster Einstieg:** Independently review the local workflow and regression-test diff before any separately authorized push or deployment.
+
 ## 2026-08-23 — Öffentliche Pages-Vorschau der drei Self-Audits freigegeben
 
 **Ziel:** Die drei fachlich gekennzeichneten Self-Audits als direkt erreichbare RIDE-Workflowbeispiele auf GitHub Pages bereitstellen.

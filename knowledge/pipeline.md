@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-08-22
+updated: 2026-10-17
 version: 0.2
 topics:
   - "[[Static Site Generation]]"
@@ -202,6 +202,8 @@ Der redaktionelle Zielworkflow verlangt vor der Freischaltung eine passwortgesch
 **Stand:** Die Trigger-Verkabelung und die Draft-Mechanik sind umgesetzt. `uv run python -m src.build --include-drafts` rendert Vorschauseiten mit sichtbarer Kennzeichnung und `noindex`. Die zentrale Seite `/drafts/` führt für jedes Beispiel Review, Factsheet, TEI XML und den PDF-Status zusammen. Für die drei ausdrücklich freigegebenen Self-Audits ist Option 4.1 umgesetzt: Der Pages-Build enthält ihre Vorschauseiten und PDFs. Ihr Draft-Status hält sie aus Issue-Listen, Navigation, öffentlichem Pagefind-Index, Sitemap, Feeds, OAI-PMH, Korpus-Dump und Redirects heraus. Die CI erzeugt zusätzlich ein getrenntes `draft-review-preview`-Artefakt mit eigenem Pagefind-Index; dieser vollständige Preview-Index gehört ausschließlich zum herunterladbaren Artefakt. Für vertrauliche externe Begutachtung bleiben der geschützte Hosting-Kanal und die Freischaltungszuständigkeit offen.
 
 ## Re-deployment flow
+
+Push filters include the editorial TEI sources under `pages/**`, including nested pages. Documentation-only edits under `knowledge/` and `docs/`, or to the root README, remain outside the build filters. `tests/test_workflow.py` checks both cases against real repository paths.
 
 ```
 git push main

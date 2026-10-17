@@ -30,6 +30,7 @@ on:
       - "static/**"
       - "config/**"
       - "content/**"
+      - "pages/**"
       - "issues/**"
       - "schema/**"
       - "tests/**"
