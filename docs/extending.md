@@ -6,15 +6,15 @@ How to add a new TEI element, attribute, or render variant. Anchored to `specifi
 
 | You want to … | Path |
 |---|---|
-| Render an existing element with a different template or CSS class | YAML only |
-| Add a new variant of an existing kind (e.g. a fourth list type) | YAML only |
-| Add a new bucket-aware variant for `Reference` (e.g. distinguish DOIs) | YAML only — extend `inlines.Reference.by_bucket` plus the resolver classifier |
+| Render an existing element with a different template or CSS class | Template/CSS plus mapping reference |
+| Add a new variant of an existing kind (e.g. a fourth list type) | Template/CSS plus mapping reference |
+| Add a new bucket-aware variant for `Reference` (e.g. distinguish DOIs) | Resolver classifier plus dispatcher/CSS and mapping reference |
 | Add a new TEI element with structurally new semantics | Python + YAML |
 | Change how text-node whitespace is treated | Python (parser) |
 | Add a new aggregation page or feed | Python (renderer) + template |
 | Edit or add an editorial page (Editorial, Team, Imprint, …) | TEI — `pages/*.xml`, see [Editorial pages](#editorial-pages-pagesxml) |
 
-Most extensions are the first two — pure YAML. The remainder require Python work.
+Presentation changes use the first path. New parsing semantics use the second path.
 
 ## Path 1 — presentation-only change
 
@@ -68,7 +68,7 @@ Required when the new element has different semantics, not just different appear
 
    Extend the `Block` union type accordingly.
 
-2. **Parser.** Add `_parse_diplomatic(el) -> Diplomatic` in `src/parser/blocks.py` and dispatch to it from `parse_block()`. Synthetic test in `tests/test_parser_blocks.py`.
+2. **Parser.** Add `_parse_diplomatic(el) -> Diplomatic` in `src/parser/blocks.py` and dispatch to it from `parse_block()`. Add a parser test driven by the actual corpus occurrence; document a synthetic fixture only for an element not yet present in the corpus.
 
 3. **Dispatch and template.** Add the `Diplomatic` branch to the dispatcher partial `templates/html/partials/render.html` (this is what the build actually renders), creating `templates/html/blocks/diplomatic.html` if the branch warrants its own file. Use the same conventions as the existing block templates.
 
@@ -115,7 +115,7 @@ The TEI page renderer and the Markdown editorial renderer share one shell (`src.
 
 ## Rules and traps
 
-**Unknown elements must raise.** The default strategy in `config/element-mapping.yaml` is `unknown_element_strategy: warn-and-render-text`, which is safe for production but masks bugs during development. Set it to `raise` locally to catch unhandled elements early.
+Unknown review block elements raise `UnknownTeiElement` in `src/parser/blocks.py::parse_block`. The mapping file's `unknown_element_strategy` is descriptive and has no runtime effect. Extend the parser explicitly when accepting a new block kind.
 
 **The mapping file is a documented contract, pinned by pytest, not by the build.** `src.build` never loads `config/element-mapping.yaml`; the render dispatches directly in `templates/html/partials/render.html`. What keeps the file honest is CI: `tests/test_element_mapping.py` and `tests/test_tei_coverage.py` fail if a modelled Block/Inline kind or a `Reference` bucket is missing an entry. So a half-finished mapping breaks the test suite rather than the build, and editing the YAML alone changes no rendered output.
 
@@ -133,7 +133,7 @@ This updates `knowledge/data.md` so the new element shows up in the corpus refer
 
 ## Pipeline phases that change
 
-Most YAML-only extensions do not affect any pipeline phase boundary. Python extensions affect the parser phase (Phase 1 dataclasses, Phase 3 block parser, Phase 4 inline parser) — see `knowledge/pipeline.md` Phasenplan for the phase breakdown. New aggregation pages are Phase 10 work.
+Presentation-only changes retain the existing pipeline boundaries. Python extensions affect the parser phase (Phase 1 dataclasses, Phase 3 block parser, Phase 4 inline parser) — see `knowledge/pipeline.md` Phasenplan for the phase breakdown. New aggregation pages are Phase 10 work.
 
 ## Reference buckets and the resolver post-pass
 

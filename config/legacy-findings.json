@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "recorded": "2026-10-17",
+  "meaning": "Observed inherited validation drift, not editorial approval. Resolved findings may disappear. New or multiplied findings require investigation.",
+  "findings": [
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Did not expect element body there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Did not expect element div there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Did not expect element front there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/10/reviews/twain-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/11/reviews/collationtools-tei.xml",
+      "message": "Invalid attribute m for element taxonomy",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/14/reviews/decameron-tei.xml",
+      "message": "Expecting element figure, got ref",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/digital-mappa-tei.xml",
+      "message": "Did not expect element front there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/digital-mappa-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/digital-mappa-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/digital-mappa-tei.xml",
+      "message": "Invalid attribute rend for element p",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/transkribus-tei.xml",
+      "message": "Did not expect element front there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/transkribus-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/transkribus-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/15/reviews/transkribus-tei.xml",
+      "message": "Invalid attribute style for element p",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Element p has extra content: figure",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/catullus-tei.xml",
+      "message": "Expecting element figure, got ref",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/furnace-fugue-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/furnace-fugue-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/furnace-fugue-tei.xml",
+      "message": "Element p has extra content: emph",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/furnace-fugue-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/18/reviews/furnace-fugue-tei.xml",
+      "message": "Invalid attribute style for element hi",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/tei-publisher-tei.xml",
+      "message": "Did not expect element emph there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/tei-publisher-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/tei-publisher-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/tei-publisher-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/bayeux-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/bayeux-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/bayeux-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/bayeux-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/cupola-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/cupola-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/cupola-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/cupola-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/cupola-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/20/reviews/jean-paul-tei.xml",
+      "message": "Expecting element figure, got ref",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/22/reviews/arendt-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 2
+    },
+    {
+      "file": "issues/22/reviews/arendt-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/22/reviews/arendt-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/22/reviews/arendt-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/22/reviews/arendt-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/8/reviews/wikisource-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/8/reviews/wikisource-tei.xml",
+      "message": "Did not expect element ref there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/8/reviews/wikisource-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/8/reviews/wikisource-tei.xml",
+      "message": "Element p has extra content: figure",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/8/reviews/wikisource-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    }
+  ]
+}

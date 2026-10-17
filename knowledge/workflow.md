@@ -1,6 +1,6 @@
 ---
 status: befund
-updated: 2026-08-23
+updated: 2026-10-17
 ---
 
 # Publikationsworkflow — Zielbild und Ablösung des Alt-Stacks
@@ -40,7 +40,7 @@ Das vollständige Review-Bundle wandert von `ride-editors` nach `issues/{N}/revi
 | tei2wp Artikel + Factsheet | ride-tech | Parser + Templates dieses Repos | ersetzt; die früheren Paritätslücken sind geschlossen (unten) |
 | tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren, laufende Fußzeilen via `@page`-Margin-Boxes) |
 | Charts-, Reviewer-, Ressourcen-Abfragen | eXist-Mirrors in ride-tech | `/data/charts/`, `/reviewers/`, `/data/reviewed-resources/` | ersetzt |
-| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | stillgelegt mit Snapshot-Export (entschieden 2026-07-17, siehe [[oai-pmh-statisch]]); die Abschaltung des alten eXist-Endpoints folgt nach der DOAJ-Klärung |
+| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | static snapshots implemented; legacy endpoint use is unknown, and retirement requires the institutional clarification in issue #6 |
 | wordclouds.py | ride-scripts | `scripts/wordclouds.py`, deterministisch; automatische Erzeugung für Bundles, Maintenance-CLI für Legacy-Reviews | ersetzt und in den Bundle-Build integriert |
 | tei2doi (DataCite XML) | ride-tech | nicht portiert | Entscheidung offen: in den Build oder manuell bei USB Köln |
 | tei2doaj (DOAJ XML) | ride-scripts | nicht portiert | Entscheidung offen: Dashboard-Upload oder API-Push |
@@ -67,3 +67,10 @@ Bewusst nicht reproduziert: die generierten Überschriften-Anker `#hN` der Alt-A
 4. OAI-Endpoint: Die externe Nutzung des bisherigen Endpunkts ist ungeklärt. Soll er nach bestätigter Nutzungsklärung stillgelegt oder durch einen dünnen zustandslosen Proxy über den statischen Snapshot-Dateien ersetzt werden?
 5. Freischaltungs-Mechanik: PR-basierter Move von ride-editors, wer führt aus?
 6. Legacy-Bilder: Sollen die bestehenden Bilder aus dem Sibling-Repo `ride` schrittweise in Review-Bundles migriert werden?
+
+
+## Verified technical maintenance, 17 October 2026
+
+Search, internal deployment URLs and sitemap were repaired and checked on the public preview. The subsequent technical maintenance fixes the legacy image paths, preserves the remaining original figure and runs a bounded Schematron profile from the existing ODD. [[pipeline#Technical maintenance and waiting state]] defines the executed profile, diagnostic baseline and provenance fields.
+
+The public examples remain self-audits. Confidential hosting, access ownership, human release authority and the DataCite/DOAJ/OAI handover remain with the responsible editors and institutions. The earlier retirement recommendation does not establish that the OAI endpoint is unused. These dependencies stay open in issues #2, #5 and #6; editorial proofreading remains part of #3.

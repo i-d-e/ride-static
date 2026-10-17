@@ -149,6 +149,10 @@ jobs:
           --include-drafts
           --pdf
 
+      - name: Check legacy diagnostics and resolved images
+        working-directory: ride-static
+        run: uv run python scripts/check_legacy.py
+
       - name: Build draft preview artifact
         working-directory: ride-static
         run: >-

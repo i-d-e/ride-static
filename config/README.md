@@ -20,6 +20,5 @@ Status: **spec-only / presentation reference.** This file is *not* loaded by
 `src.build`. The templates in `templates/html/partials/render.html` dispatch
 directly on dataclass class names and emit hard-coded BEM classes; the YAML is a
 living contract kept in sync with that convention, pinned by
-`tests/test_element_mapping.py` and `tests/test_tei_coverage.py`. A future phase
-may activate it as a CI check. See `docs/extending.md` and
+`tests/test_element_mapping.py` and `tests/test_tei_coverage.py`. These contract checks already run in CI. See `docs/extending.md` and
 `knowledge/architecture.md` for the full rationale.

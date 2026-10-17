@@ -4,7 +4,7 @@ project:
   name: ride-static
 status: verified
 created: 2026-08-22
-updated: 2026-08-23
+updated: 2026-10-17
 language: de
 related:
   - "[[workflow]]"
@@ -58,17 +58,13 @@ Der abschließende Build verarbeitete 114 TEI-Dateien ohne Validierungsfehler, e
 - `<figDesc>` wird durch Schema, Parser, HTML und Tests bis zum Bildalternativtext durchgereicht.
 - Der Frontend-Test entdeckt neue Drafts dynamisch; weitere Bundles benötigen keine testspezifische Registrierung.
 
-## Offene Punkte und Lösungswege
+## Current technical and editorial boundaries
 
-| Befund | Auswirkung | Vorgesehener Lösungsweg |
-|---|---|---|
-| Es gibt keine gemeinsam erreichbare, zugriffsgeschützte Staging-Seite. | Die ausdrücklich freigegebenen Self-Audits sind als öffentliche `noindex`-Beispiele auf GitHub Pages prüfbar; vertrauliche Drafts bleiben auf lokale Builds, das private Repository oder CI-Artefakte beschränkt. | Geschütztes Hosting für vertrauliche Drafts festlegen. |
-| Der Build führt Relax-NG-Validierung aus, aber keine ausführbare Schematron-Prüfung. | Einige redaktionelle Regeln im ODD, darunter Metadatenanforderungen, werden nicht automatisch erzwungen. | Schematron kompilieren und als eigenes, getestetes Qualitätsgate in Build und CI integrieren. |
-| PDF-Erzeugung benötigt native WeasyPrint-Bibliotheken, die in der aktuellen Windows-Umgebung fehlen. | Der Standardbefehl unter Windows erzeugt kein PDF. | PDF weiterhin reproduzierbar unter Linux, WSL und CI erzeugen; Windows-Anleitung entsprechend eindeutig halten. |
-| Der historische Bestand meldet 62 Schemahinweise und ohne das Schwester-Repository 63 fehlende Bilder. | Ein lokaler Komplettbuild ist ohne Zusatz-Checkout bei alten Reviews visuell unvollständig. | Legacy-Bestand schrittweise in Bundles migrieren oder das Bilder-Repository im vollständigen Build mit auschecken. |
-| Zwei historische Reviews teilen den DOI `10.18716/ride.a.21.2`. | Bei passender Ausgabekonfiguration kann eine Seite überschrieben werden. | DOI-Zuordnung redaktionell prüfen und korrigieren. |
-| Der reine Python-Vorschau-Build erzeugt keinen Pagefind-Suchindex. | Die lokale Navigation funktioniert; das Suchfeld bleibt bis zum getrennten Pagefind-Schritt ohne Funktion und protokolliert eine Warnung. | Für vollständige lokale Suche anschließend Pagefind ausführen oder das Suchfeld in Draft-Artefakten gezielt deaktivieren. Die Produktions-CI führt den Pagefind-Schritt bereits aus. |
-| Der RIDE-Fragebogen wird weiterhin außerhalb des Repository-Schritts ausgefüllt und in TEI überführt. | Das Hinzufügen eines Ordners automatisiert die Publikation, aber nicht die Review-Erstellung. | Eine dokumentierte Export- oder Konvertierungsstrecke vom Fragebogen zur Bundle-TEI ergänzen. |
+The historical DOI collision was corrected before this maintenance. The deployed preview now includes working Pagefind search, internal links and complete sitemap addresses. The technical maintenance on 17 October 2026 resolves legacy image sources and executes the selected existing Schematron rules described in [[pipeline#Technical maintenance and waiting state]]. The remaining inherited schema findings are recorded as a regression baseline.
+
+Confidential staging, human release authority and scholarly acceptance remain open. The complete ODD Schematron set is outside the executed profile, including the author-email assertion that conflicts with the optional-email content model. The questionnaire-to-TEI preparation remains the upstream editorial step documented in [[workflow]]. Native PDF generation is supported in Linux CI; Windows needs the same native libraries for local PDF output.
+
+The verification figures above document the original August pilot. Current maintenance evidence is recorded in [[journal]].
 
 ## Inhaltliche Befunde der Reviews
 

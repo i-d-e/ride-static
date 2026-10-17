@@ -25,9 +25,9 @@ See `CLAUDE.md` for the layout reference. In short:
 - `src/parser/` and `src/model/` — Stage 2 TEI-to-domain parsing, immutable dataclasses.
 - `src/render/` — Stage 3 onwards, HTML and PDF.
 - `templates/html/` — Jinja templates, dumb (consume domain objects, never XML).
-- `config/element-mapping.yaml` — declarative binding of domain classes to templates and CSS classes (introduced in Phase 8; see `docs/extending.md` for the schema).
+- `config/element-mapping.yaml` — tested presentation reference for the dispatcher templates and CSS classes; the build does not load this file.
 - `pages/` — editorial pages as TEI, validated against `schema/ride-pages.rng`. This is the build default for the non-review pages.
-- `content/` — editorial Markdown fallback (home widgets plus the `--no-tei-editorials` legacy path); per-issue YAML configs (introduced in Phase 9).
+- `content/` — editorial Markdown fallback and home widgets. Issue configurations live at `issues/{N}/metadata.yaml`.
 - `tests/` — pytest, run from repo root with `uv run python -m pytest tests/`.
 - `knowledge/` — Obsidian-style vault, `.md` only, internal links use `[[wikilink]]`.
 - `inventory/` — generated JSON artifacts, gitignored, regeneratable from `scripts/`.

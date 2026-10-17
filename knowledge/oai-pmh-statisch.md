@@ -2,9 +2,9 @@
 title: OAI-PMH as static files
 project:
   name: ride-static
-status: decided
+status: active
 created: 2026-07-14
-updated: 2026-07-17
+updated: 2026-10-17
 language: en
 related:
   - "[[redirects-feeds]]"
@@ -14,7 +14,7 @@ related:
 
 # OAI-PMH as static files
 
-Concept study, not an implementation, for the open OAI-PMH question in [[workflow#Offene Redaktionsentscheidungen]] and [[redirects-feeds#Open (editorial decisions)]]. Question: can RIDE's OAI-PMH endpoint be answered by files generated in the build and served from GitHub Pages, in a form that BASE, OpenAIRE and comparable harvesters actually harvest. The RIDE-specific evidence that no harvester currently consumes the live endpoint and that metadata reaches aggregators over DataCite lives in [[redirects-feeds#OAI harvester research (2026-07-10)]]; this document adds the protocol analysis and a feasibility verdict, and does not repeat those findings.
+Concept study, not an implementation, for the open OAI-PMH question in [[workflow#Offene Redaktionsentscheidungen]] and [[redirects-feeds#Open (editorial decisions)]]. Question: can RIDE's OAI-PMH endpoint be answered by files generated in the build and served from GitHub Pages, in a form that BASE, OpenAIRE and comparable harvesters actually harvest. External use of the endpoint is unknown. The evidence limits and institutional questions are recorded in [[redirects-feeds#OAI harvester research (2026-07-10)]] and [issue #6](https://github.com/i-d-e/ride-static/issues/6). The technical analysis below distinguishes static exports from a queryable service.
 
 ## The protocol constraint
 
@@ -58,7 +58,7 @@ Producing the OAI payload as static files in the build is straightforward and al
 
 ## Recommendation options
 
-1. **Retire the OAI endpoint, keep the static snapshot as a documented export.** Justified by the RIDE-specific finding that no harvester demonstrably consumes it and metadata flows over DataCite ([[redirects-feeds#OAI harvester research (2026-07-10)]]). The `/oai/` snapshot files stay as a convenience export (the `oai_doajxml` format is already used to produce the DOAJ upload file per [[workflow#Schritt 3 — Postpublishing]]); no gateway, no proxy, no live protocol endpoint advertised.
+1. **Retire the OAI endpoint, keep the static snapshot as a documented export.** This option requires confirmation that retirement preserves the actual institutional delivery and consumer requirements. Public searches did not establish non-use. The `/oai/` snapshot files stay as a convenience export (the `oai_doajxml` format is already used to produce the DOAJ upload file per [[workflow#Schritt 3 — Postpublishing]]); no gateway, no proxy, no live protocol endpoint advertised.
 2. **Static file plus thin proxy (Route A infrastructure).** Keep the snapshot files and put a stateless edge worker (e.g. a serverless function or CDN worker) in front that maps `?verb=…`, `from`/`until` and pagination onto the files. Protocol-conformant and queryable, but adds one hosted component; contradicts "in jedem Fall ohne eXist" only in spirit, since it is a new server, however thin.
 3. **OAI Static Repository plus gateway (Route B).** Publish the single spec-conformant XML file and register it with a Static Repository Gateway. Lowest build effort, but blocked on locating or self-hosting a live gateway and on the `text/xml` MIME requirement GitHub Pages cannot meet. Recommended only if a maintained public gateway is found or the editors accept self-hosting one, which reintroduces the server this is meant to remove.
 4. **Standards-based static harvesting over ResourceSync.** Sidestep OAI-PMH: expose the corpus for harvesting via ResourceSync built on the existing sitemap (already noted as an option in [[redirects-feeds#Open (editorial decisions)]]). Fully static and requires no gateway, but ResourceSync is not OAI-PMH and reaches a different, smaller set of consumers; it does not substitute for OAI where a harvester specifically expects OAI.
@@ -67,9 +67,9 @@ The `from`/`until` and `resumptionToken` machinery cannot be reproduced by stati
 
 ## Decision (2026-07-17)
 
-Option 1 is decided: retire the OAI-PMH endpoint and keep the static snapshot as a documented, archivable export. The rationale is the RIDE-specific finding that no harvester demonstrably consumes the live endpoint and that metadata reaches aggregators over DataCite, so a live protocol endpoint carries cost without a demonstrable consumer. The snapshot already emitted by the build (`src/render/oai_pmh.py`, `write_oai_pmh`) is the archivable form of the decision. It writes one Dublin Core document holding every record (`/oai/list-records.xml`) plus the header listing (`/oai/list-identifiers.xml`), the repository description (`/oai/identify.xml`), the format declaration (`/oai/list-metadata-formats.xml`), and one `<GetRecord>` file per review under `/oai/records/`. The record set is regenerated from the corpus on every build, so the deployed `/oai/` tree is the current snapshot; no gateway, no proxy, and no live queryable endpoint is advertised.
+The July record selected option 1 on the premise that no consumer had been found. The later correction in issue #6 establishes that actual use is unknown. That record therefore supplies no current authorization to shut down the endpoint. Confirm the consumers and institutional metadata handover before deciding whether retirement, continuity or a replacement is appropriate. The snapshot already emitted by the build (`src/render/oai_pmh.py`, `write_oai_pmh`) is the archivable form of the decision. It writes one Dublin Core document holding every record (`/oai/list-records.xml`) plus the header listing (`/oai/list-identifiers.xml`), the repository description (`/oai/identify.xml`), the format declaration (`/oai/list-metadata-formats.xml`), and one `<GetRecord>` file per review under `/oai/records/`. The record set is regenerated from the corpus on every build, so the deployed `/oai/` tree is the current snapshot; no gateway, no proxy, and no live queryable endpoint is advertised.
 
-The steps that reach outside the repository stay with the operator: the comment on the corresponding issue, the actual shutdown of the former eXist-served endpoint at `ride.i-d-e.de/apis/oai`, and the DOAJ path (the `oai_doajxml` format on the old endpoint was a convenience export for the manual dashboard upload, not a harvested feed, per [[redirects-feeds#OAI harvester research (2026-07-10)]]).
+The existing endpoint remains outside this technical maintenance. The editors and responsible institutions must confirm its use, the DataCite and DOAJ procedures and the corresponding owners. Issue #6 carries that open decision.
 
 ## Sources
 

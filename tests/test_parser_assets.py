@@ -45,7 +45,7 @@ def test_bundle_asset_path_rejects_parent_traversal(tmp_path: Path) -> None:
 # Real-corpus fixture choices:
 # - 1641-tei.xml: 9 figures, all 9 sources present on disk → happy path.
 # - anemoskala-tei.xml: 11 figures, all 11 sources missing on disk
-#   (extension-less URLs from issue 8) → missing-file branch.
+#   (absent picture checkout) → missing-file branch.
 # - bayeux-tei.xml: figure-in-cell pattern → cell-walk coverage.
 # - godwin-tei.xml: //wp-content double-slash typo → URL parser robustness.
 # Resolved tolerantly so a partial checkout skips instead of erroring
@@ -127,14 +127,14 @@ def test_happy_path_real_review_copies_figures_and_rewrites_urls(tmp_path) -> No
 
 @pytestmark_corpus
 def test_missing_files_real_review_reports_no_crash(tmp_path) -> None:
-    """anemoskala-tei.xml's 11 figure URLs reference files that are not on
-    disk. The pipeline must report them as missing and leave the URLs
+    """A real review with an intentionally absent picture checkout reports
+    every unresolved image and leaves the URLs
     untouched, not crash."""
     review = parse_review(_MISSING_FILES)
     assert len(review.figures) >= 1
 
     site_root = tmp_path / "site"
-    new_review, report = rewrite_figure_assets(review, _RIDE_ROOT, site_root)
+    new_review, report = rewrite_figure_assets(review, tmp_path / "absent-ride", site_root)
 
     assert len(report.missing) >= 1
     # Every missing URL was kept verbatim — the build is still inspectable.

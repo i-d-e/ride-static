@@ -42,6 +42,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[interface]] | Form — design stance, seven page types, parallel apparate, WCAG | when design decisions are revised |
 | [[exploration]] | Form/Construction — proposal: interactive explore view and narrative story view, with implementation plan | when the two data views are scoped or built |
 | [[redirects-feeds]] | Construction — rationale and evidence for legacy-URL redirects and the syndication feeds | when redirect or feed decisions change |
+| [[oai-pmh-statisch]] | Construction — static exports, protocol limits and conditional endpoint decision | when institutional consumer requirements are confirmed |
 | [[workflow]] | Construction — target publication workflow, legacy-stack replacement inventory, parity gaps | when editorial decisions land or gaps close |
 | [[teicrafter-pilot]] | Evaluation — verified teiCrafter self-audit and end-to-end review-ingestion report | when the pilot workflow or its open boundaries change |
 | [Publication process review](../snapshots/process-review-report-2026-10-17.md) | Dated evidence and decision basis for publication and editorial operation | snapshot, 17 October 2026 |
@@ -55,7 +56,7 @@ The two generated documents (`data`, `schema`) carry `generated:`, `source:`, an
 
 **Understanding a corpus anomaly in code.** [[data]] (find the anomaly in *Document patterns* or *Reference resolution*) → [[architecture]] *Domain model* (which parser branch handles it) → the parser file under `src/parser/` itself. The empirical observation drives the named code path.
 
-**Adding or changing a TEI element rendering.** [[architecture]] *Element-Mapping* → [docs/extending.md](../docs/extending.md) (the mechanical recipe) → [[interface]] (visual rules the new variant must respect) → tests under `tests/test_render_*.py`. Most extensions are YAML-only; only structurally new semantics need a dataclass plus parser function.
+**Adding or changing a TEI element rendering.** [[architecture]] *Element-Mapping* → [docs/extending.md](../docs/extending.md) (the mechanical recipe) → [[interface]] (visual rules the new variant must respect) → tests under `tests/test_render_*.py`. Presentation changes edit the dispatcher template and CSS and update the tested mapping reference. Structurally new semantics also need a dataclass and parser function.
 
 **Reproducing the build pipeline.** [[pipeline]] *Local development* → run the discovery scripts in dependency order (full list in `CLAUDE.md`) → `python -m src.build` → inspect `site/` plus `site/api/build-info.json`. The pipeline is read-only against TEI; nothing writes back.
 

@@ -87,7 +87,7 @@ The repository includes three self-contained draft review folders under `issues/
 
    ```sh
    uv run python -m src.build --output review-preview --include-drafts
-   npx -y pagefind --site review-preview
+   npx -y pagefind@1.5.2 --site review-preview --force-language mul
    uv run python -m http.server 8000 -d review-preview
    ```
 
@@ -165,7 +165,7 @@ The URL mirrors the file location (URL scheme v2). A file directly under `pages/
 
 ### Adjust TEI-to-HTML rendering
 
-For most changes, edit `config/element-mapping.yaml` — it binds TEI elements to template paths and CSS classes without touching Python. Schema and contract are in `docs/extending.md`.
+Presentation changes edit `templates/html/partials/render.html` and the relevant CSS. Update `config/element-mapping.yaml` alongside them as the tested presentation reference. The build does not load that mapping. See `docs/extending.md` for the actual extension paths.
 
 For new TEI elements or new domain shapes, see `docs/extending.md` (six files to touch: parser, dataclass, mapping, template, CSS, test).
 
@@ -183,11 +183,11 @@ uv run python -m http.server -d site                 # local preview at http://l
 
 `--pdf`, `--linkcheck`, `--base-url` and the remaining build flags are documented in full in `knowledge/pipeline.md`.
 
-`uv run python -m src.build` runs three stages in order: **validate** (`src/validate.py`, Relax NG against `schema/ride.rng`), **parse** (`src/parser/`, TEI into immutable `Review` dataclasses; classifies references, copies figures from `../ride/issues/.../pictures/` if the sibling repo is present), **render** (`src/render/`, HTML + optional PDF + aggregations + OAI-PMH + JSON-LD + sitemap + corpus dump + redirects). Parse, strict bundle validation, bundle-asset, render, and requested PDF failures produce a non-zero exit code after `build-info.json` has recorded the diagnostics.
+`uv run python -m src.build` parses the TEI and renders the selected outputs. It then runs Relax NG and the selected existing ODD Schematron rules, writes the diagnostic report and rejects hard failures. Missing schemas abort validation. Strict bundle findings, unresolved bundle assets, parse/render errors and requested PDF failures prevent a successful build. Historical validation warnings retain their explicit compatibility policy. A complete CI build also runs `uv run python scripts/check_legacy.py` to detect additional warnings and unresolved picture sources.
 
 `schema/ride.odd` is the editable review schema source. `schema/ride.rng` is deterministic generated output. The pinned TEI Stylesheets and the compilation commands are documented in `CONTRIBUTING.md`; CI rejects any ODD/RNG drift.
 
-Each run records `site/api/build-info.json` with commit hash, corpus version, validation findings, asset report, and licence — the build is reproducible.
+Each run records `site/api/build-info.json` with source commit, actual build time, picture-checkout revision and dirty state, validation findings, asset report and licence.
 
 ### Discovery scripts
 

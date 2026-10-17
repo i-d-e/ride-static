@@ -13,7 +13,7 @@ JSON dump, the sitemap, the redirect stubs, and the build report at
 The build runs in two passes: parse all reviews first (so the navigation
 YAML can resolve its data-driven Issues dropdown against the full
 corpus), then render every page. RelaxNG validation runs by default
-before the build report is written; ``--no-validate`` skips it.
+with the selected ODD Schematron profile before the report is written; ``--no-validate`` skips it.
 
 Usage:
 
@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
 from urllib.parse import urlsplit
@@ -198,6 +199,30 @@ def _build_info() -> BuildInfo:
         return BuildInfo(commit=commit, commit_short=commit[:7], date=date)
     except Exception:
         return BuildInfo()
+
+
+def _picture_source() -> dict:
+    """Record the actual external checkout without exposing a machine path."""
+    import subprocess
+
+    try:
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=RIDE_ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+        dirty = bool(
+            subprocess.check_output(
+                ["git", "status", "--porcelain"],
+                cwd=RIDE_ROOT,
+                text=True,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+        )
+        return {"commit": commit, "dirty": dirty}
+    except (OSError, subprocess.CalledProcessError):
+        return {"commit": None, "dirty": None}
 
 
 def _build_date(site: SiteConfig) -> Optional[str]:
@@ -670,10 +695,7 @@ def _run_validation_layer(
     """
     validation_report = None
     if validate:
-        try:
-            validation_report = validate_corpus(corpus_dir, REPO_ROOT / "schema" / "ride.rng")
-        except FileNotFoundError as exc:
-            print(f"validation skipped: {exc}", file=sys.stderr)
+        validation_report = validate_corpus(corpus_dir, REPO_ROOT / "schema" / "ride.rng")
 
     link_report = None
     if linkcheck:
@@ -1036,6 +1058,8 @@ def _write_build_info(
             "commit": site.build_info.commit if site.build_info else None,
             "commit_short": site.build_info.commit_short if site.build_info else None,
             "date": _build_date(site),
+            "built_at": datetime.now(timezone.utc).isoformat(),
+            "picture_source": _picture_source(),
         },
         "reviews": {
             "rendered": len(reviews) + drafts_rendered,

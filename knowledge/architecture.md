@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-08-23
+updated: 2026-10-17
 version: 0.1
 topics:
   - "[[Static Site Generation]]"
@@ -266,9 +266,9 @@ Three syndication feeds are built. Atom (RFC 4287) and RSS 2.0 serve the plain h
 
 ## Element-Mapping (declarative)
 
-The bridge between the domain model and the rendered output **is intended to be** configured in `config/element-mapping.yaml`, not in Python. This makes the most common extension — wiring a new TEI element or variant to a template and CSS class — a YAML-only change. Implementing genuinely new behaviour still requires a Python dataclass and parser function, but ninety percent of presentation changes would not.
+The runtime dispatcher in `templates/html/partials/render.html` binds domain classes to markup and CSS. `config/element-mapping.yaml` records that presentation contract. The build does not load it. Presentation changes update the dispatcher and CSS together with this reference. New semantics additionally require model and parser changes.
 
-**Current status: spec-only.** The YAML file exists and pins the BEM convention as a living contract, but `src.build` does not load it; templates in `templates/html/partials/render.html` dispatch directly on dataclass class names and emit hard-coded BEM classes. Keep both in sync by hand. A future phase may activate the YAML as a CI check (verify every block/inline class has an entry, every template path exists, every CSS class is referenced) — until then, treat the file as documentation.
+`tests/test_element_mapping.py` and `tests/test_tei_coverage.py` check the mapping against the model. They already run in CI. The mapping's extension-policy keys do not control parser behaviour.
 
 The mapping is a single YAML file with three top-level keys: `blocks`, `inlines`, `extensibility`. Each block or inline entry names the Jinja template, the CSS class, and optional variants for sub-kinds (e.g. list `bulleted` versus `ordered` versus `labeled`).
 
@@ -309,9 +309,9 @@ extensibility:
   warn_unknown_attributes: true
 ```
 
-**What this covers and what it does not.** The mapping resolves the binding `domain class → template + CSS`. It does not encode parsing rules, anomaly handling, or business logic. Adding a new block kind that has new structural semantics still requires a dataclass in `src/model/` and a parser function in `src/parser/`. Adding a new visual variant of an existing kind, or rewiring a template path, is YAML-only.
+**What this covers and what it does not.** The mapping resolves the binding `domain class → template + CSS`. It does not encode parsing rules, anomaly handling, or business logic. Adding a new block kind that has new structural semantics still requires a dataclass in `src/model/` and a parser function in `src/parser/`. Adding a visual variant or changing its template path edits the dispatcher and CSS, followed by the mapping reference.
 
-This separation is the formal answer to [[specification#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — map onto two action paths: the YAML for presentation, Python for semantics. The mechanics of each path live in `docs/extending.md`.
+This separation is the formal answer to [[specification#N2 Erweiterbarkeit auf vier Ebenen]]. The four extension levels in N2 — new TEI elements, new attribute values, changed text-node behaviour, downstream build effects — use the template/CSS path for presentation and the model/parser path for semantics, with the YAML reference kept in step. The mechanics of each path live in `docs/extending.md`.
 
 ## Build vs. runtime
 

@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-08-22
+updated: 2026-10-17
 version: 0.2
 topics:
   - "[[Requirements Engineering]]"
@@ -265,7 +265,7 @@ Akzeptanzkriterien
 
 **N1 Read-only-Pipeline.** Die Pipeline schreibt niemals in TEI-Dateien zurück. Erweiterungen am TEI sind ausschließlich redaktionell, die Pipeline reagiert lesend und mit dokumentierten Erweiterungspunkten.
 
-**N2 Erweiterbarkeit auf vier Ebenen.** Neue TEI-Elemente, neue Attributwerte, geänderte Textknoten-Behandlung und nachgelagerte Build-Auswirkungen sind in `docs/extending.md` pro Pipeline-Phase dokumentiert. Das Element-zu-Template-Mapping wird deklarativ als `config/element-mapping.yaml` geführt — Spezifikation in [[architecture#Element-Mapping (declarative)]]. Damit ist die häufigste Erweiterung (neuer Variant, anderes Template, andere CSS-Klasse) eine reine YAML-Änderung; nur strukturell neue Semantik erfordert Python.
+**N2 Erweiterbarkeit auf vier Ebenen.** Neue TEI-Elemente, neue Attributwerte, geänderte Textknoten-Behandlung und nachgelagerte Build-Auswirkungen sind in `docs/extending.md` pro Pipeline-Phase dokumentiert. Das Element-zu-Template-Mapping wird deklarativ als `config/element-mapping.yaml` geführt — Spezifikation in [[architecture#Element-Mapping (declarative)]]. Presentation changes edit the dispatcher template and CSS together with the mapping reference. The build does not load the mapping. Structurally new semantics also require model and parser changes.
 
 **N3 Validierung als eigene Schicht.** Eine Pre-Build-Validierung gegen RelaxNG und Schematron erzeugt einen menschenlesbaren Bericht pro Datei. Sie ist unabhängig vom Build aufrufbar.
 

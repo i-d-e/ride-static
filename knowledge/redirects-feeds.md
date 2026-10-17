@@ -4,7 +4,7 @@ project:
   name: ride-static
 status: active
 created: 2026-07-10
-updated: 2026-08-23
+updated: 2026-10-17
 language: en
 related:
   - "[[pipeline]]"
@@ -84,4 +84,4 @@ External research on who actually consumes the live endpoint, snapshot evidence:
 
 ## Open (editorial decisions)
 
-- **OAI-PMH.** The static snapshot under `/oai/` cannot answer `?verb=…` queries (GitHub Pages ignores query strings). A protocol-compliant endpoint needs a thin proxy (e.g. an edge worker mapping verbs to snapshot files); ResourceSync over the existing sitemap covers standards-based static harvesting. The former DOAJ question is resolved above (no OAI ingest exists on DOAJ's side); what remains with the editors is retire-vs-thin-proxy for the endpoint itself, and dashboard-upload vs. API push for DOAJ (see [[workflow]]).
+- OAI-PMH snapshots are implemented. Their files cannot answer query-based protocol requests. Actual use of the old endpoint remains unknown, so continuity, replacement or retirement awaits the institutional clarification in [issue #6](https://github.com/i-d-e/ride-static/issues/6). The current RIDE delivery procedure for DataCite and DOAJ also needs confirmation. The July retirement record in [[oai-pmh-statisch]] is qualified by that later correction.

@@ -58,6 +58,15 @@ from src.parser.aggregate import collect_figures, collect_notes
 # match is anchored to the ``wp-content/uploads/issue_N/slug/pictures/file``
 # segment, so leading scheme/host (and the lone ``//wp-content`` typo in
 # godwin-tei) all parse the same way.
+# These historical URL slugs differ from the versioned picture directories.
+# Keep the correction here so TEI sources retain their published wording.
+_LEGACY_SLUGS = {
+    "codex_siniaticus": "codex_sinaiticus",
+    "walter-benjamin-digital": "benjamin-digital",
+    "oxygen": "oxygen-framework",
+    "patrick-confessio": "confessio",
+}
+
 _URL_PATTERN = re.compile(r"wp-content/uploads/issue_(\d+)/([^/]+)/pictures/([^/]+)")
 
 
@@ -128,9 +137,16 @@ def rewrite_figure_assets(
                 unparseable.append(src_url)
                 continue
             issue_n, slug, filename = parsed
-            src_path = (
-                ride_root / "issues" / f"issue{int(issue_n):02d}" / slug / "pictures" / filename
+            src_path = _legacy_asset_path(ride_root, issue_n, slug, filename)
+            filename = src_path.name
+        if not bundle and not src_path.is_file():
+            # The original larepubblica figure is preserved with its provenance
+            # under static/images/legacy; no network retrieval occurs in builds.
+            recovered = (
+                Path(__file__).resolve().parents[2] / "static/images/legacy" / review.id / filename
             )
+            if recovered.is_file():
+                src_path = recovered
         if not src_path.is_file():
             missing.append(src_url)
             continue
@@ -155,6 +171,23 @@ def rewrite_figure_assets(
         unparseable=tuple(unparseable),
     )
     return new_review, report
+
+
+def _legacy_asset_path(ride_root: Path, issue: str, slug: str, filename: str) -> Path:
+    """Resolve documented legacy aliases without guessing across directories."""
+    issue_root = ride_root / "issues" / f"issue{int(issue):02d}"
+    original = issue_root / slug / "pictures" / filename
+    if original.is_file():
+        return original
+    corrected = issue_root / _LEGACY_SLUGS.get(slug, slug) / "pictures" / filename
+    if corrected.is_file():
+        return corrected
+    # Anemoskala's TEI omits .png, while every versioned image has it.
+    if issue == "8" and slug == "anemoskala" and not corrected.suffix:
+        png = corrected.with_suffix(".png")
+        if png.is_file():
+            return png
+    return original
 
 
 def _bundle_asset_path(url: str, source_path: Optional[Path]) -> Optional[Path]:

@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-10-17 — Close independent maintenance and wait for editorial input
+
+**Ziel:** Recheck the actual open findings, close independently actionable technical work and leave a maintained waiting state.
+**Erledigt:** Corrected historical picture-directory aliases and extensionless Anemoskala references without changing TEI. Preserved the missing original larepubblica figure with its origin and checksum. A full validated build against fresh picture revision 6e592d06972ae30bf8b4e5af064f15a8409123bc resolves every review image. Existing ODD context and identifier-type rules now execute through ISO Schematron. The diagnostic baseline and CI comparison detect additional inherited warnings and unresolved pictures. Build reports record actual build time and external-picture provenance. Corrected rendering instructions, stale pilot findings and the unsupported OAI-retirement premise. Closed issue #4 after live checks of its implemented pages and XML outputs; #6 already carries its unresolved OAI dependency.
+**Entscheidungen:** Keep the existing script-pipeline regime, dependencies and research corpus. Execute the bounded existing Schematron profile rather than imposing the conflicting author-email assertion. The warning baseline records observations and grants no editorial acceptance. Leave the older local picture checkout untouched; verification used an isolated fresh checkout. This maintenance is committed locally; the previous public preview remains the deployed release.
+**Offen:** Editorial acceptance, confidential preview and release ownership, institutional DataCite/DOAJ/OAI handover and the remaining ODD assertions need their documented decisions. The complete locked Python suite passed with only the native-PDF tests skipped for unavailable Windows system libraries. Ruff and formatting of all changed Python files pass; the existing whole-repository formatting differences remain outside this repair. No fresh hosted CI or PDF visual acceptance was performed for this maintenance.
+**Nächster Einstieg:** Wait for an explicit follow-up, such as publishing this maintenance or implementing confirmed editorial requirements. No monitoring or automatic wake-up.
+
 ## 2026-10-17 — Deploy the verified preview and check it live
 
 **Ziel:** Publish the reviewed repair on the operator's explicit instruction and verify search, internal links and sitemap on the public preview.
