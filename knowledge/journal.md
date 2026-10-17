@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-10-17 — Deploy the verified preview and check it live
+
+**Ziel:** Publish the reviewed repair on the operator's explicit instruction and verify search, internal links and sitemap on the public preview.
+**Erledigt:** Published the existing repair commits unchanged and deployed the preview through [the successful Actions run](https://github.com/i-d-e/ride-static/actions/runs/39053301994). Hosted schema, lint, Python, search-bootstrap, PDF, index and deployment steps passed. Public build-info identifies the repair revision. Live browser checks found the German review from the English homepage and the English review from the German page, opened both targets and followed the corrected Editorial link. The HTTP audit confirmed complete sitemap addresses, editorial coverage, working selected destinations and the common published-review search index.
+**Entscheidungen:** Normal Git HTTPS was unreachable. The authenticated GitHub Git-data API transferred the same trees and commits with hash equality checks before a non-force fast-forward. The existing public example scope and canonical-site notice stay intact.
+**Offen:** Existing legacy schema and image findings and historical tagged-PDF fallbacks remain. Protected editorial access, human release roles and institutional metadata handover retain their separate scope. The current preview publication required no further authorization after the direct instruction.
+**Nächster Einstieg:** Use the live preview for the next expressly commissioned editorial or independent content review.
+
 ## 2026-10-17 — Repair search and deployment URLs
 
 **Ziel:** Implement the bounded search, internal-link and sitemap repairs authorized after the process review.
