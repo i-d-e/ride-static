@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from html import escape
 from pathlib import Path
 from typing import Iterable, Optional
+from urllib.parse import urlsplit
 
 from jinja2 import ChainableUndefined, Environment, FileSystemLoader, select_autoescape
+from lxml import html as lxml_html
 
 from src.model.block import Paragraph
 from src.model.inline import (
@@ -144,17 +147,38 @@ def media_path_factory(base_url: str):
     figures keep their legacy WordPress link rather than 404.
     """
     prefix = base_url.rstrip("/")
+    deployed_path = urlsplit(prefix).path.rstrip("/")
 
     def media_path(url: Optional[str]) -> str:
         if not url:
             return ""
-        if url.startswith(("http://", "https://", "data:")):
+        if not url.startswith("/") or url.startswith("//") or not prefix:
             return url
-        if url.startswith("/") and prefix:
-            return f"{prefix}{url}"
-        return url
+        if deployed_path and (url == deployed_path or url.startswith(deployed_path + "/")):
+            return f"{prefix}{url[len(deployed_path) :]}"
+        return f"{prefix}{url}"
 
     return media_path
+
+
+def prefix_body_links(body_html: str, base_url: str) -> str:
+    """Resolve root-relative body links without changing TEI or Markdown sources.
+
+    Both editorial formats and homepage widgets share this render boundary.
+    Existing prefixes, external origins, fragments and relative links survive.
+    The input is already rendered HTML, with the same trust policy as its caller.
+    """
+    if not base_url or not body_html.strip():
+        return body_html
+    fragment = lxml_html.fragment_fromstring(body_html, create_parent="div")
+    resolve = media_path_factory(base_url)
+    for anchor in fragment.iter("a"):
+        target = anchor.get("href")
+        if target is not None:
+            anchor.set("href", resolve(target))
+    return escape(fragment.text or "", quote=False) + "".join(
+        lxml_html.tostring(child, encoding="unicode", method="html") for child in fragment
+    )
 
 
 # ── Citation export ──────────────────────────────────────────────────
@@ -424,6 +448,7 @@ def base_ctx(
         "site": site,
         "static_path": static_path_factory(site.base_url),
         "media_path": media_path_factory(site.base_url),
+        "body_links": lambda body: prefix_body_links(body, site.base_url),
         "page_lang": page_lang or site.default_language,
         "page_description": page_description,
         "json_ld": json_ld,
@@ -452,7 +477,7 @@ def render_editorial_shell(
         **base_ctx(site, page_lang=lang),
         page_title=title,
         page_url=f"{site.base_url}/{slug}/" if site.base_url else None,
-        page_html=body_html,
+        page_html=prefix_body_links(body_html, site.base_url),
         last_updated=last_updated,
     )
 

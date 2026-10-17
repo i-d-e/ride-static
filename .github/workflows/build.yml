@@ -114,6 +114,10 @@ jobs:
         working-directory: ride-static
         run: uv run python -m pytest -q
 
+      - name: Test search bootstrap
+        working-directory: ride-static
+        run: node --test tests/pagefind.test.cjs
+
       - name: Discovery scripts (Tier 1)
         working-directory: ride-static
         run: |
@@ -141,7 +145,7 @@ jobs:
         working-directory: ride-static
         run: >-
           uv run python -m src.build
-          --base-url=/${{ github.event.repository.name }}
+          --base-url=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           --include-drafts
           --pdf
 
@@ -156,7 +160,7 @@ jobs:
 
       - name: Build draft Pagefind index
         working-directory: ride-static
-        run: npx -y pagefind --site draft-site
+        run: npx -y pagefind@1.5.2 --site draft-site --force-language mul
 
       - name: Upload draft preview artifact
         uses: actions/upload-artifact@v4
@@ -168,7 +172,7 @@ jobs:
 
       - name: Build Pagefind index
         working-directory: ride-static
-        run: npx -y pagefind --site site
+        run: npx -y pagefind@1.5.2 --site site --force-language mul
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

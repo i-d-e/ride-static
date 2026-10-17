@@ -407,27 +407,6 @@ main.ride-shell {
   max-width: 320px;
   width: 100%;
 }
-.ride-nav__search-form {
-  display: flex;
-  gap: var(--ride-space-2);
-}
-.ride-nav__search-form input {
-  flex: 1 1 auto;
-  padding: var(--ride-space-2) var(--ride-space-3);
-  border: 1px solid var(--ride-rule);
-  border-radius: var(--ride-radius);
-  font: inherit;
-}
-.ride-nav__search-form button {
-  padding: var(--ride-space-2) var(--ride-space-3);
-  background: var(--ride-bg);
-  color: var(--ride-fg-primary);
-  border: 1px solid var(--ride-rule);
-  border-radius: var(--ride-radius);
-  font: inherit;
-  cursor: pointer;
-}
-
 /* Pagefind UI — Tokens an unsere Palette anpassen (Pagefind exposiert
    per CSS-Custom-Property einen kompletten Theme-Hook). */
 #ride-search {
@@ -443,8 +422,32 @@ main.ride-shell {
   --pagefind-ui-image-box-ratio: 1 / 1;
   --pagefind-ui-font: var(--ride-font-sans);
   width: 100%;
+  position: relative;
 }
-#ride-search.ride-search--unavailable { display: none; }
+
+/* Results need a reading surface independent of the dark navigation. */
+#ride-search .pagefind-ui__drawer {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 50;
+  inline-size: min(48rem, calc(100vw - 2 * var(--ride-page-padding)));
+  max-block-size: 70vh;
+  overflow: auto;
+  padding: var(--ride-space-4);
+  background: var(--ride-bg);
+  color: var(--ride-fg-primary);
+  border: 1px solid var(--ride-rule);
+}
+
+#ride-search .pagefind-ui__search-input {
+  font-size: var(--ride-text-base);
+}
+
+#ride-search :focus-visible {
+  outline: 2px solid var(--ride-accent);
+  outline-offset: 2px;
+}
 
 @media (max-width: 719px) {
   .ride-nav__shell { flex-direction: column; align-items: stretch; }

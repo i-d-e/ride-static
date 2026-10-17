@@ -34,7 +34,7 @@
     <article class="ride-panel ride-panel--lede" id="widget-{{ lede_widget.slug }}">
       <h2 class="ride-panel__title">{{ lede_widget.title }}</h2>
       <div class="ride-panel__body ride-prose">
-        {{ lede_widget.body_html | safe }}
+        {{ body_links(lede_widget.body_html) | safe }}
       </div>
     </article>
     {%- endif -%}
@@ -54,7 +54,7 @@
       <article class="ride-panel ride-panel--action" id="widget-{{ w.slug }}">
         <h2 class="ride-panel__title">{{ w.title }}</h2>
         <div class="ride-panel__body ride-prose">
-          {{ w.body_html | safe }}
+          {{ body_links(w.body_html) | safe }}
         </div>
       </article>
       {%- endfor -%}

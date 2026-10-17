@@ -2,7 +2,7 @@
 
 The deployed site has six page-type families that crawlers should know
 about: review pages, issue pages (overview + per-issue), tag pages,
-reviewer pages, the resources table, and editorial Markdown pages.
+reviewer pages, the resources table, and editorial TEI or Markdown pages.
 Every URL goes into ``site/sitemap.xml`` per the protocol at
 https://www.sitemaps.org/protocol.html so search engines can prioritise
 crawling and surface lastmod hints.
@@ -25,8 +25,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Iterable, Optional, Sequence
+from urllib.parse import urlsplit
 from xml.sax.saxutils import escape
 
+from src.model.page import Page
 from src.model.review import Review
 from src.parser.datasets import ReviewerAggregate, TagAggregate
 from src.render.aggregations import reviewer_slug
@@ -80,7 +82,7 @@ def collect_entries(
     issues: Sequence[str] = (),
     tag_aggregates: Sequence[TagAggregate] = (),
     reviewer_aggregates: Sequence[ReviewerAggregate] = (),
-    editorials: Sequence[EditorialPage] = (),
+    editorials: Sequence[EditorialPage | Page] = (),
     build_date: Optional[str] = None,
 ) -> list[SitemapEntry]:
     """Walk the build's outputs and return one :class:`SitemapEntry` per page.
@@ -90,8 +92,15 @@ def collect_entries(
     a per-entity date (aggregations, home). Per-review ``lastmod`` comes
     from ``Review.publication_date`` when it is a parsable W3C date.
     """
-    if not base_url:
-        raise ValueError("sitemap requires an absolute base_url; got empty string")
+    address = urlsplit(base_url)
+    if (
+        address.scheme not in {"http", "https"}
+        or not address.netloc
+        or address.query
+        or address.fragment
+    ):
+        raise ValueError(f"sitemap requires an absolute HTTP(S) base_url; got {base_url!r}")
+    base_url = base_url.rstrip("/")
 
     entries: list[SitemapEntry] = []
 
@@ -104,9 +113,7 @@ def collect_entries(
 
     # Per-issue pages.
     for issue_no in issues:
-        entries.append(
-            SitemapEntry(loc=f"{base_url}/issues/{issue_no}/", lastmod=build_date)
-        )
+        entries.append(SitemapEntry(loc=f"{base_url}/issues/{issue_no}/", lastmod=build_date))
 
     # Per-review pages.
     for review in reviews:
@@ -137,12 +144,14 @@ def collect_entries(
             )
         )
 
-    # Editorial Markdown pages — last_updated wins over build_date when set.
+    # Editorial TEI and Markdown pages share their rendered URL scheme.
     for page in editorials:
         entries.append(
             SitemapEntry(
                 loc=f"{base_url}/{page.slug}/",
-                lastmod=page.last_updated or build_date,
+                lastmod=(page.last_updated or build_date)
+                if isinstance(page, EditorialPage)
+                else build_date,
             )
         )
 

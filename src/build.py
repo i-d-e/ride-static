@@ -31,10 +31,12 @@ import shutil
 import sys
 from pathlib import Path
 from typing import Iterable, Optional
+from urllib.parse import urlsplit
 
 import yaml
 
 from src._corpus import is_review_bundle, iter_tei_files
+from src.model.page import Page
 from src.model.review import Review
 from src.parser.assets import AssetReport, rewrite_figure_assets
 from src.parser.datasets import (
@@ -59,7 +61,12 @@ from src.render.aggregations import (
 from src.render.bibexport import write_bibliography_exports
 from src.render.corpus_dump import LICENCE_NAME, LICENCE_URL, to_corpus_dump_string
 from src.render.explorer import to_explorer_dump_string
-from src.render.editorial import discover_editorials, discover_home_widgets, render_editorial
+from src.render.editorial import (
+    EditorialPage,
+    discover_editorials,
+    discover_home_widgets,
+    render_editorial,
+)
 from src.render.factsheet import render_factsheet
 from src.render.html import REPO_ROOT, BuildInfo, SiteConfig, make_env, render_review, slugify
 from src.render.issues_config import (
@@ -295,6 +302,14 @@ def _site_with_navigation(site: SiteConfig, reviews: tuple[Review, ...]) -> Site
     )
 
 
+def _editorial_sources(tei_editorials: bool) -> list[EditorialPage | Page]:
+    """Use the same source precedence for rendering and sitemap coverage."""
+    pages = {page.slug: page for page in discover_editorials()}
+    if tei_editorials:
+        pages.update({page.slug: page for page in discover_pages()})
+    return list(pages.values())
+
+
 def _render_editorials(
     env,
     site: SiteConfig,
@@ -354,19 +369,11 @@ def _render_editorials(
             questionnaires_html=_questionnaires_for(page.slug),
         )
 
-    if tei_editorials:
-        covered: set[str] = set()
-        for page in discover_pages():
-            _write(page.slug, render_page(page, site=site, env=env))
-            covered.add(page.slug)
-        for page in discover_editorials():
-            if page.slug in covered:
-                continue  # TEI page wins at this slug
-            _write(page.slug, _render_md(page))
-        return written
-
-    for page in discover_editorials():
-        _write(page.slug, _render_md(page))
+    for page in _editorial_sources(tei_editorials):
+        rendered = (
+            render_page(page, site=site, env=env) if isinstance(page, Page) else _render_md(page)
+        )
+        _write(page.slug, rendered)
     return written
 
 
@@ -877,7 +884,7 @@ def build(
         aggregations += 1
 
     # Machine-readable artefacts and legacy-URL redirects.
-    sitemap_written = _write_sitemap(published, site, out_root)
+    sitemap_written = _write_sitemap(published, site, out_root, tei_editorials=tei_editorials)
     feed_written = _write_atom_feed(published, site, out_root)
     rss_written = _write_rss_feed(published, site, out_root)
     rdf_written = _write_rdf_feed(published, site, out_root)
@@ -1098,20 +1105,26 @@ def _write_corpus_dump(reviews: tuple[Review, ...], site: SiteConfig, out_root: 
     (api_dir / "corpus.json").write_text(payload, encoding="utf-8")
 
 
-def _write_sitemap(reviews: tuple[Review, ...], site: SiteConfig, out_root: Path) -> bool:
+def _write_sitemap(
+    reviews: tuple[Review, ...], site: SiteConfig, out_root: Path, *, tei_editorials: bool = True
+) -> bool:
     """Build and write ``site/sitemap.xml`` if a base_url is configured.
 
-    Sitemaps require absolute URLs, so dev builds without a deploy prefix
-    skip silently. CI passes ``--base-url`` and gets a real sitemap.
+    Sitemaps require an absolute HTTP(S) deployment address. Portable
+    previews with an empty or path-only prefix omit the sitemap. CI uses
+    its complete Pages preview URL. Source precedence matches rendering.
     Returns whether a file was written.
     """
     if not site.base_url:
+        return False
+    if not urlsplit(site.base_url).scheme:
+        print("Skipping sitemap: --base-url needs an absolute HTTP(S) address", file=sys.stderr)
         return False
 
     issues = sorted({r.issue for r in reviews if r.issue})
     tag_aggregates = aggregate_tags(reviews)
     reviewer_aggregates = aggregate_reviewers(reviews)
-    editorials = discover_editorials()
+    editorials = _editorial_sources(tei_editorials)
     build_date = _build_date(site)
 
     entries = collect_entries(

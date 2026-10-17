@@ -117,9 +117,8 @@
       click target; submenu items live inside the same <details>.
       nav.js adds exclusive-open on top (opening one closes the others).
       The search container on the right mounts the Pagefind UI in
-      static/js/pagefind.js. Without JS or before Pagefind has loaded,
-      the inline form falls back to a GET to /search/ which today
-      returns the home page — usable but unstyled. -#}
+      static/js/pagefind.js. Without JavaScript, a direct link opens
+      the review index. -#}
   {% if site.navigation %}
   <nav class="ride-nav" aria-label="{{ site.strings.main_navigation | default('Main') }}">
     <div class="ride-shell ride-nav__shell">
@@ -146,11 +145,7 @@
       <div class="ride-nav__search" role="search">
         <div id="ride-search" data-pagefind-ui data-pagefind-bundle-path="{{ site.base_url }}/pagefind/"></div>
         <noscript>
-          <form action="{{ site.base_url }}/" method="get" class="ride-nav__search-form">
-            <label class="ride-sr-only" for="ride-search-input">Search</label>
-            <input id="ride-search-input" type="search" name="q" placeholder="Search…">
-            <button type="submit">Go</button>
-          </form>
+          <a class="ride-nav__link" href="{{ site.base_url }}/issues/">Browse reviews</a>
         </noscript>
       </div>
     </div>
