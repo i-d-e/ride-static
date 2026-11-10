@@ -103,6 +103,7 @@ Each script in `scripts/` exposes `run(...)` for testing plus a thin `main()` th
 | `taxonomy.py` | `taxonomy.json` | RIDE criteria taxonomies grouped by `@xml:base`, plus per-review category answers (`@value` 0/1) |
 | `render_data.py` | `knowledge/data.md` | structure-and-knowledge reference for code that walks the corpus |
 | `render_schema.py` | `knowledge/schema.md` | RIDE-specific schema reference, including ODD-vs-corpus diffs |
+| `parity.py` (with `parity_fetch.py`) | `inventory/parity/report.json`, `summary.md`; with `--write-legacy-urls` the committed `config/legacy-urls.json` | parity check against the live ride.i-d-e.de, cached under `inventory/_cache/parity/` (see `knowledge/parity.md`) |
 | `wordclouds.py` | bundle output under `site/static/images/wordclouds/{id}.png`; legacy CLI output under `static/images/wordclouds/{id}.png` | deterministic wordcloud thumbnail with fixed seed |
 
 Run any: `uv run python scripts/<name>.py`. Run tests: `uv run python -m pytest tests/`. Install or synchronize dependencies with `uv sync --locked`; `pyproject.toml` and `uv.lock` are the dependency contract.
