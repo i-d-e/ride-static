@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="GetRecord" identifier="ride.16.0" metadataPrefix="oai_doajxml">https://i-d-e.github.io/ride-static/oai/</request>
+  <GetRecord>
+    <record>
+    <header>
+      <identifier>ride.16.0</identifier>
+      <datestamp>2023-03-01</datestamp>
+    </header>
+      <metadata>
+        <d:record xmlns:d="https://doaj.org/static/doaj/doajArticles">
+          <d:language>eng</d:language>
+          <d:publisher>Institut für Dokumentologie und Editorik e.V.</d:publisher>
+          <d:journalTitle>RIDE – A review journal for digital editions and resources</d:journalTitle>
+          <d:eissn>2363-4952</d:eissn>
+          <d:publicationDate>2023-03-01</d:publicationDate>
+          <d:volume>16</d:volume>
+          <d:doi>10.18716/ride.a.16.0</d:doi>
+          <d:documentType>article</d:documentType>
+          <d:title language="eng">EDITORIAL: FAIR Enough? Evaluating Digital Scholarly Editions and the Application of the FAIR Data Principles</d:title>
+          <d:authors>
+            <d:author>
+              <d:name>Tessa Gengnagel</d:name>
+              <d:affiliationId>1</d:affiliationId>
+              <d:orcid_id>https://orcid.org/0000-0001-8820-5112</d:orcid_id>
+            </d:author>
+            <d:author>
+              <d:name>Frederike Neuber</d:name>
+              <d:affiliationId>2</d:affiliationId>
+              <d:orcid_id>https://orcid.org/0000-0001-8279-9298</d:orcid_id>
+            </d:author>
+            <d:author>
+              <d:name>Daniela Schulz</d:name>
+              <d:affiliationId>3</d:affiliationId>
+              <d:orcid_id>https://orcid.org/0000-0003-3167-5089</d:orcid_id>
+            </d:author>
+          </d:authors>
+          <d:affiliationsList>
+            <d:affiliationName affiliationId="1">University of Cologne</d:affiliationName>
+            <d:affiliationName affiliationId="2">Berlin-Brandenburg Academy of Sciences and Humanities</d:affiliationName>
+            <d:affiliationName affiliationId="3">Herzog August Library</d:affiliationName>
+          </d:affiliationsList>
+          <d:fullTextUrl format="html">https://i-d-e.github.io/ride-static/issues/16/ride.16.0/</d:fullTextUrl>
+          <d:keywords language="eng">
+            <d:keyword>editorial</d:keyword>
+            <d:keyword>digital scholarly editions</d:keyword>
+            <d:keyword>fair</d:keyword>
+            <d:keyword>Text+</d:keyword>
+          </d:keywords>
+        </d:record>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>

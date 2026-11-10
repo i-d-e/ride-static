@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:11:18.825+01:00</responseDate>
+    <request identifier="ride.16.0" metadataPrefix="oai_dc" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.16.0</identifier>
+                <datestamp>2023-03-01</datestamp>
+            </header>
+            <metadata>
+                <dc xmlns="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>EDITORIAL: FAIR Enough? Evaluating Digital Scholarly Editions and the Application of the FAIR Data Principles</dc:title>
+                    <dc:creator>Gengnagel, Tessa</dc:creator>
+                    <dc:creator>Neuber, Frederike</dc:creator>
+                    <dc:creator>Schulz, Daniela</dc:creator>
+                    <dc:publisher>Institut für Dokumentologie und Editorik e.V.</dc:publisher>
+                    <dc:date>2023</dc:date>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:URL">http://ride.i-d-e.de/issues/issue-16/editorial</dc:identifier>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:DOI">10.18716/ride.a.16.0</dc:identifier>
+                    <dc:rights>http://creativecommons.org/licenses/by/4.0/</dc:rights>
+                    <dc:isPartOf>RIDE - A review journal for digital editions and resources</dc:isPartOf>
+                    <dc:isPartOf>http://ride.i-d-e.de/issues/issue-16</dc:isPartOf>
+                    <dc:contributor>Gengnagel, Tessa</dc:contributor>
+                    <dc:contributor>Neuber, Frederike</dc:contributor>
+                    <dc:contributor>Schulz, Daniela</dc:contributor>
+                    <dc:contributor>Henny-Krahmer, Ulrike</dc:contributor>
+                    <dc:contributor>Neuber, Frederike</dc:contributor>
+                    <dc:contributor>Scholger, Martina</dc:contributor>
+                    <dc:references/>
+                    <dc:language>eng</dc:language>
+                    <dc:subject>editorial</dc:subject>
+                    <dc:subject>digital scholarly editions</dc:subject>
+                    <dc:subject>fair</dc:subject>
+                    <dc:subject>Text+</dc:subject>
+                    <dc:description/>
+                    <dc:type>Text</dc:type>
+                    <dc:type>Image</dc:type>
+                    <dc:format>html</dc:format>
+                </dc>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:15:40.12+01:00</responseDate>
+    <request identifier="ride.4.4" metadataPrefix="oai_doajxml" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.4.4</identifier>
+                <datestamp>2016-06-01</datestamp>
+            </header>
+            <metadata>
+                <record xmlns="https://doaj.org/static/doaj/doajArticles">
+                    <language>ger</language>
+                    <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+                    <journalTitle>RIDE – A review journal for digital editions and resources</journalTitle>
+                    <eissn>2363-4952</eissn>
+                    <publicationDate>2016-06-01</publicationDate>
+                    <volume>4</volume>
+                    <doi>10.18716/ride.a.4.4</doi>
+                    <documentType>article</documentType>
+                    <title language="ger">Paul Klee – Bildnerische Form- und Gestaltungslehre</title>
+                    <authors>
+                        <author>
+                            <name>Martina Scholger</name>
+                            <affiliationId>1</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0003-1438-3236</orcid_id>
+                        </author>
+                    </authors>
+                    <affiliationsList>
+                        <affiliationName affiliationId="1">Centre for Information Modelling - Austrian Centre for Digital
+                     Humanities, University of Graz</affiliationName>
+                    </affiliationsList>
+                    <abstract language="ger">This paper reviews the digital edition of Paul Klee’s Bildnerische Form- und Gestaltungslehre, the collection of his important teaching notes during his time at the Bauhaus as facsimile and transcript. A major challenge of this project is the dynamic nature of the material: the teaching material was restructured, revised and subsequently reused several times. While the transcriptions are unfortunately only available as images, which severely limits the possibilities for re-use of the research data, the edition nevertheless provides a vital source for art-historical research on an artist who influenced a generation of successors.</abstract>
+                    <fullTextUrl format="html">http://ride.i-d-e.de/issues/issue-4/klee</fullTextUrl>
+                    <keywords language="eng">
+                        <keyword>20th century</keyword>
+                        <keyword>art history</keyword>
+                        <keyword>bauhaus</keyword>
+                        <keyword>facsimile</keyword>
+                        <keyword>klee</keyword>
+                        <keyword>teaching notes</keyword>
+                        <keyword>transcription</keyword>
+                    </keywords>
+                </record>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

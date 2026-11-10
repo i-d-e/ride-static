@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:15:42.532+01:00</responseDate>
+    <request identifier="ride.16.0" metadataPrefix="oai_doajxml" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.16.0</identifier>
+                <datestamp>2023-03-01</datestamp>
+            </header>
+            <metadata>
+                <record xmlns="https://doaj.org/static/doaj/doajArticles">
+                    <language>eng</language>
+                    <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+                    <journalTitle>RIDE – A review journal for digital editions and resources</journalTitle>
+                    <eissn>2363-4952</eissn>
+                    <publicationDate>2023-03-01</publicationDate>
+                    <volume>16</volume>
+                    <doi>10.18716/ride.a.16.0</doi>
+                    <documentType>article</documentType>
+                    <title language="eng">EDITORIAL: FAIR Enough? Evaluating Digital Scholarly Editions and the Application of the FAIR Data Principles</title>
+                    <authors>
+                        <author>
+                            <name>Tessa Gengnagel</name>
+                            <affiliationId>1</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0001-8820-5112</orcid_id>
+                        </author>
+                        <author>
+                            <name>Frederike Neuber</name>
+                            <affiliationId>2</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0001-8279-9298</orcid_id>
+                        </author>
+                        <author>
+                            <name>Daniela Schulz</name>
+                            <affiliationId>3</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0003-3167-5089</orcid_id>
+                        </author>
+                    </authors>
+                    <affiliationsList>
+                        <affiliationName affiliationId="1">University of Cologne</affiliationName>
+                        <affiliationName affiliationId="2">Berlin-Brandenburg Academy of Sciences and Humanities</affiliationName>
+                        <affiliationName affiliationId="3">Herzog August Bibliothek Wolfenbüttel</affiliationName>
+                    </affiliationsList>
+                    <abstract language="eng"/>
+                    <fullTextUrl format="html">http://ride.i-d-e.de/issues/issue-16/editorial</fullTextUrl>
+                    <keywords language="eng">
+                        <keyword>editorial</keyword>
+                        <keyword>digital scholarly editions</keyword>
+                        <keyword>fair</keyword>
+                        <keyword>Text+</keyword>
+                    </keywords>
+                </record>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

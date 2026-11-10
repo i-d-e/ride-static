@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="GetRecord" identifier="ride.4.2" metadataPrefix="oai_doajxml">https://i-d-e.github.io/ride-static/oai/</request>
+  <GetRecord>
+    <record>
+    <header>
+      <identifier>ride.4.2</identifier>
+      <datestamp>2016-06-01</datestamp>
+    </header>
+      <metadata>
+        <d:record xmlns:d="https://doaj.org/static/doaj/doajArticles">
+          <d:language>eng</d:language>
+          <d:publisher>Institut für Dokumentologie und Editorik e.V.</d:publisher>
+          <d:journalTitle>RIDE – A review journal for digital editions and resources</d:journalTitle>
+          <d:eissn>2363-4952</d:eissn>
+          <d:publicationDate>2016-06-01</d:publicationDate>
+          <d:volume>4</d:volume>
+          <d:doi>10.18716/ride.a.4.2</d:doi>
+          <d:documentType>article</d:documentType>
+          <d:title language="eng">Digital Thoreau</d:title>
+          <d:authors>
+            <d:author>
+              <d:name>Aodhán Kelly</d:name>
+              <d:affiliationId>1</d:affiliationId>
+              <d:orcid_id>https://orcid.org/0000-0002-1387-751X</d:orcid_id>
+            </d:author>
+          </d:authors>
+          <d:affiliationsList>
+            <d:affiliationName affiliationId="1">University of Antwerp</d:affiliationName>
+          </d:affiliationsList>
+          <d:abstract language="eng">Digital Thoreau is a web resource comprising three digital projects related to the work of Henry David Thoreau created at SUNY Geneseo. The first of these is a fluid text edition of Thoreau’s most famous work Walden. This allows multiple versions of the text to be represented simultaneously in a dynamic environment, which can be a valuable resource to Thoreau scholars, particularly for those interested in researching the genetic aspect of the text. In the second project a very innovative and engaging social reading platform has been created in order to facilitate community and student driven annotation of both Walden and his 1849 essay Resistance to Civil Government. The third project is a student created digital archive of the papers of Thoreau scholar Walter Harding, which is primarily a pedagogical exercise in digital humanities for the students of SUNY Geneseo. Digital Thoreau as a whole is a multi-faceted web resource that offers interesting new opportunities for scholarly research as well as for teaching and public engagement with Thoreau’s influential works.</d:abstract>
+          <d:fullTextUrl format="html">https://i-d-e.github.io/ride-static/issues/4/ride.4.2/</d:fullTextUrl>
+          <d:keywords language="eng">
+            <d:keyword>19th century</d:keyword>
+            <d:keyword>annotation</d:keyword>
+            <d:keyword>archive</d:keyword>
+            <d:keyword>collation</d:keyword>
+            <d:keyword>fluid text</d:keyword>
+            <d:keyword>genetic edition</d:keyword>
+            <d:keyword>modern</d:keyword>
+            <d:keyword>pedagogy</d:keyword>
+            <d:keyword>reading edition</d:keyword>
+            <d:keyword>social edition</d:keyword>
+            <d:keyword>tei</d:keyword>
+            <d:keyword>variant</d:keyword>
+          </d:keywords>
+        </d:record>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>

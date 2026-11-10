@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:15:24.312+01:00</responseDate>
+    <request identifier="ride.6.2" metadataPrefix="oai_dc" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.6.2</identifier>
+                <datestamp>2017-09-01</datestamp>
+            </header>
+            <metadata>
+                <dc xmlns="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Litteraturbanken</dc:title>
+                    <dc:creator>Dahlström, Mats</dc:creator>
+                    <dc:creator>Dillen, Wout</dc:creator>
+                    <dc:publisher>Institut für Dokumentologie und Editorik e.V.</dc:publisher>
+                    <dc:date>2017</dc:date>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:URL">https://ride.i-d-e.de/issues/issue-6/litteraturbanken-the-swedish-literature-bank/</dc:identifier>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:DOI">10.18716/ride.a.6.2</dc:identifier>
+                    <dc:rights>http://creativecommons.org/licenses/by/4.0/</dc:rights>
+                    <dc:isPartOf>RIDE - A review journal for digital editions and resources</dc:isPartOf>
+                    <dc:isPartOf>http://ride.i-d-e.de/issues/issue-6</dc:isPartOf>
+                    <dc:contributor>Henny-Krahmer, Ulrike</dc:contributor>
+                    <dc:contributor>Neuber, Frederike</dc:contributor>
+                    <dc:contributor>Steinkrüger, Philipp</dc:contributor>
+                    <dc:contributor>Assmann, Bernhard</dc:contributor>
+                    <dc:contributor>Henny-Krahmer, Ulrike</dc:contributor>
+                    <dc:contributor>Neuber, Frederike</dc:contributor>
+                    <dc:references>http://litteraturbanken.se</dc:references>
+                    <dc:language>eng</dc:language>
+                    <dc:subject>archive</dc:subject>
+                    <dc:subject>digitization</dc:subject>
+                    <dc:subject>facsimile</dc:subject>
+                    <dc:subject>interface</dc:subject>
+                    <dc:subject>library</dc:subject>
+                    <dc:subject>manuscripts</dc:subject>
+                    <dc:subject>tei</dc:subject>
+                    <dc:subject>text collection</dc:subject>
+                    <dc:subject>transcription</dc:subject>
+                    <dc:description>Litteraturbanken (The Swedish Literature Bank) is a freely available digital collection of Swedish literary works, ranging from medieval to contemporary literature. It is the result of a cooperation between literary and linguistic scholars, research libraries, and editorial societies and academies. The collection consists not only of digital facsimiles, but of ocr'ed, proof-checked and TEI-encoded transcriptions as well, including EPUB and HTML versions of texts, and in addition scholarly presentations and didactic introductions to works and authors in the collection. It is also being used as a publishing platform for ongoing Swedish scholarly editing projects. Litteraturbanken currently comprises more than 2.000 works, mounting up to more than 100 million of machine-readable words. Litteraturbanken's main weak spot is transparency; it does not openly provide satisfactory ways to ensure the editors accountability for the edited texts and images. As a whole, however, Litteraturbanken is an impressive endeavour and paves the way for fruitful cooperation and massive data exchange with e.g. computational linguistics and bibliographic databases.</dc:description>
+                    <dc:type>Text</dc:type>
+                    <dc:type>Image</dc:type>
+                    <dc:format>html</dc:format>
+                </dc>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

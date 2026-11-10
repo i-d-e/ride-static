@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:15:38.94+01:00</responseDate>
+    <request identifier="ride.4.4" metadataPrefix="oai_marcxml" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.4.4</identifier>
+                <datestamp>2016-06-01</datestamp>
+            </header>
+            <metadata xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <collection xmlns="http://www.loc.gov/MARC21/slim" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+                    <record>
+                        <leader>00000naa a22000007u 4500</leader>
+                        <controlfield tag="005">20150601100359.0</controlfield>
+                        <controlfield tag="007">cr||||||||||||</controlfield>
+                        <controlfield tag="008">261110s2016||||gw |||||oo||| 00||||ger||</controlfield>
+                        <datafield ind1="7" ind2=" " tag="024">
+                            <subfield code="a">10.18716/ride.a.4.4</subfield>
+                            <subfield code="2">doi</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="041">
+                            <subfield code="a">ger</subfield>
+                        </datafield>
+                        <datafield tag="093" ind1=" " ind2=" ">
+                            <subfield code="b">b</subfield>
+                        </datafield>
+                        <datafield ind1="1" ind2=" " tag="100">
+                            <subfield code="a">Scholger, Martina</subfield>
+                            <subfield code="4">aut</subfield>
+                            <subfield code="0">(orcid)0000-0003-1438-3236</subfield>
+                            <subfield code="u">Centre for Information Modelling - Austrian Centre for Digital
+                     Humanities, University of Graz, Graz, Austria</subfield>
+                        </datafield>
+                        <datafield ind1="0" ind2="0" tag="245">
+                            <subfield code="a">Paul Klee – Bildnerische Form- und Gestaltungslehre</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="264">
+                            <subfield code="c">2016</subfield>
+                        </datafield>
+                        <datafield tag="506" ind1="0" ind2=" ">
+                            <subfield code="a">open-access</subfield>
+                        </datafield>
+                        <datafield ind1="3" ind2=" " tag="520">
+                            <subfield code="a">This paper reviews the digital edition of Paul Klee’s Bildnerische Form- und Gestaltungslehre, the collection of his important teaching notes during his time at the Bauhaus as facsimile and transcript. A major challenge of this project is the dynamic nature of the material: the teaching material was restructured, revised and subsequently reused several times. While the transcriptions are unfortunately only available as images, which severely limits the possibilities for re-use of the research data, the edition nevertheless provides a vital source for art-historical research on an artist who influenced a generation of successors.</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="540">
+                            <subfield code="a">Creative Commons - Namensnennung 4.0 International</subfield>
+                            <subfield code="f">cc-by-4.0</subfield>
+                            <subfield code="u">http://creativecommons.org/licenses/by/4.0/</subfield>
+                            <subfield code="2">cc</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">20th century</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">art history</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">bauhaus</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">facsimile</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">klee</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">teaching notes</subfield>
+                        </datafield>
+                        <datafield ind1=" " ind2=" " tag="653">
+                            <subfield code="a">transcription</subfield>
+                        </datafield>
+                        <datafield ind1="1" ind2="2" tag="710">
+                            <subfield code="a">Institut für Dokumentologie und Editorik e.V.</subfield>
+                            <subfield code="g">Köln</subfield>
+                            <subfield code="0">(DE-588)6521152-2</subfield>
+                            <subfield code="4">edt</subfield>
+                        </datafield>
+                        <datafield ind1="1" ind2=" " tag="773">
+                            <subfield code="g">volume:4</subfield>
+                            <subfield code="g">month:06</subfield>
+                            <subfield code="g">year:2016</subfield>
+                            <subfield code="7">nnas</subfield>
+                        </datafield>
+                        <datafield ind1="1" ind2="8" tag="773">
+                            <subfield code="x">2363-4952</subfield>
+                        </datafield>
+                        <datafield ind1="4" ind2=" " tag="856">
+                            <subfield code="u">http://ride.i-d-e.de/issues/issue-4/klee</subfield>
+                            <subfield code="q">pdf</subfield>
+                        </datafield>
+                        <datafield ind1="4" ind2="0" tag="856">
+                            <subfield code="u">https://github.com/i-d-e/ride/raw/master/issues/issue04/klee/klee.pdf</subfield>
+                            <subfield code="q">pdf</subfield>
+                            <subfield code="x">Transfer-URL</subfield>
+                        </datafield>
+                    </record>
+                </collection>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

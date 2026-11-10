@@ -40,7 +40,7 @@ Das vollständige Review-Bundle wandert von `ride-editors` nach `issues/{N}/revi
 | tei2wp Artikel + Factsheet | ride-tech | Parser + Templates dieses Repos | ersetzt; die früheren Paritätslücken sind geschlossen (unten) |
 | tei2pdf (vierstufige Kette) | ride-scripts | WeasyPrint-Rendering im Build | ersetzt (nummerierte Absätze, Endnoten, DOI auf Seite 1, Figuren, laufende Fußzeilen via `@page`-Margin-Boxes) |
 | Charts-, Reviewer-, Ressourcen-Abfragen | eXist-Mirrors in ride-tech | `/data/charts/`, `/reviewers/`, `/data/reviewed-resources/` | ersetzt |
-| OAI-PMH `/apis/oai` | eXist-App ride-oai | statische OAI-Dumps im Build (nur `oai_dc`; live gibt es auch `oai_marcxml`, `oai_doajxml`) | static snapshots implemented; legacy endpoint use is unknown, and retirement requires the institutional clarification in issue #6 |
+| OAI-PMH `/apis/oai` | eXist-App ride-oai | statischer OAI-Abzug in allen drei Formaten und der Identifier-Form des Endpoints, dazu der Request-Router `docs/oai-router/` ([[oai-pmh-statisch#Implementation of the snapshot and the router (2026-11-10)]]) | files and router implemented; deploying the router or retiring the endpoint requires the institutional clarification in issue #6 |
 | wordclouds.py | ride-scripts | `scripts/wordclouds.py`, deterministisch; automatische Erzeugung für Bundles, Maintenance-CLI für Legacy-Reviews | ersetzt und in den Bundle-Build integriert |
 | tei2doi (DataCite XML) | ride-tech | nicht portiert | Entscheidung offen: in den Build oder manuell bei USB Köln |
 | tei2doaj (DOAJ XML) | ride-scripts | nicht portiert | Entscheidung offen: Dashboard-Upload oder API-Push |
@@ -70,7 +70,7 @@ Bewusst nicht reproduziert: die generierten Überschriften-Anker `#hN` der Alt-A
 7. WordPress-Tags: Die Paritätsprüfung listet je Review die WordPress-Tags, die kein TEI-Keyword trägt. Sollen sie im Zuge der Konsolidierung nach A2 in die TEI übernommen werden, ganz oder ausgewählt?
 8. Seiten außerhalb des Menüs: Einzelne Calls for Reviews, archivierte Editorials, FAIR-Kriterien, Landingpages einzelner Issues und `/copyright/` haben keine statische Entsprechung. Welche davon sollen als TEI-Seite übernommen werden, welche entfallen?
 9. Antwortlabels der Fragebögen: Für Text Collections und Tools tragen die TEI-Dateien nur Kategorie-Identifier, die Live-Factsheets zeigen Labels aus den erweiterten Fragebogendateien in ride-tech. Sollen diese Labels als Tabelle in dieses Repository übernommen werden, und welche Fassung gilt als Quelle?
-10. OAI-Identifier: Der Snapshot schreibt `oai:ride.i-d-e.de:ride.1.1`, der laufende Endpunkt `ride.1.1`; er listet zudem die Issue-Editorials (`ride.{N}.0`) und die Formate MARCXML und DOAJ. Welche Form und welcher Umfang gelten, entscheidet sich mit Issue #6.
+10. OAI-Betrieb: Snapshot und Router entsprechen dem laufenden Endpunkt in Identifier-Form, Formaten und Datensätzen. Soll der Router unter `ride.i-d-e.de/apis/oai` betrieben werden, wer richtet den Proxy vor der Domain ein und betreut ihn (Issue #6)?
 11. Editorials: Die fünf Issue-Editorials erscheinen wie Reviews mit „By“ statt „Reviewed by“ und ohne Factsheet ([[parity#Contributions taken over from i-d-e/ride (2026-11-10)]]). Soll es eine eigene Seitenart oder Kennzeichnung auf der Issue-Seite geben, und soll die Quelle der Ausgabe 21 im Repository `i-d-e/ride` korrigiert werden (nicht wohlgeformt seit 2026-06-21)?
 
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="Identify">https://i-d-e.github.io/ride-static/oai/</request>
+  <Identify>
+    <repositoryName>ride. A review journal for digital editions and resources</repositoryName>
+    <baseURL>https://i-d-e.github.io/ride-static/oai/</baseURL>
+    <protocolVersion>2.0</protocolVersion>
+    <adminEmail>ride-editor@i-d-e.de</adminEmail>
+    <earliestDatestamp>2014-06-01</earliestDatestamp>
+    <deletedRecord>no</deletedRecord>
+    <granularity>YYYY-MM-DD</granularity>
+  </Identify>
+</OAI-PMH>

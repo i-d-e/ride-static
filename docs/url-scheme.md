@@ -116,13 +116,19 @@ The build regenerates fixed XML snapshots for the OAI-PMH response types and eac
 
 ```
 /oai/identify.xml
-/oai/list-identifiers.xml
 /oai/list-metadata-formats.xml
+/oai/list-sets.xml
+/oai/{prefix}/list-identifiers.xml       prefix: oai_dc, oai_marcxml, oai_doajxml
+/oai/{prefix}/list-records.xml
+/oai/{prefix}/records/{review_id}.xml
+/oai/list-identifiers.xml                oai_dc, earlier paths kept
 /oai/list-records.xml
 /oai/records/{review_id}.xml
+/oai/static-repository.xml               OAI Static Repository file
+/oai/routes.json                         request -> file mapping for the router
 ```
 
-A protocol endpoint for requests such as `?verb=Identify` requires a separate request-routing service and is not part of the GitHub Pages deployment.
+A protocol endpoint for requests such as `?verb=Identify` requires the request router in `docs/oai-router/` on a host that runs code; it is not part of the GitHub Pages deployment.
 
 ## Reserved version segment (A1)
 

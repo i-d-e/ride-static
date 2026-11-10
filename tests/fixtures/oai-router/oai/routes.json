@@ -1,0 +1,24 @@
+{
+  "Identify": "identify.xml",
+  "ListMetadataFormats": "list-metadata-formats.xml",
+  "ListSets": "list-sets.xml",
+  "ListIdentifiers": {
+    "oai_marcxml": "oai_marcxml/list-identifiers.xml",
+    "oai_dc": "oai_dc/list-identifiers.xml",
+    "oai_doajxml": "oai_doajxml/list-identifiers.xml"
+  },
+  "ListRecords": {
+    "oai_marcxml": "oai_marcxml/list-records.xml",
+    "oai_dc": "oai_dc/list-records.xml",
+    "oai_doajxml": "oai_doajxml/list-records.xml"
+  },
+  "GetRecord": {
+    "oai_marcxml": "oai_marcxml/records/{identifier}.xml",
+    "oai_dc": "oai_dc/records/{identifier}.xml",
+    "oai_doajxml": "oai_doajxml/records/{identifier}.xml"
+  },
+  "identifiers": {
+    "ride.4.2": "2016-06-01",
+    "ride.16.0": "2023-03-01"
+  }
+}

@@ -1,350 +1,169 @@
-"""Tests for ``src.render.oai_pmh`` — Phase 12 R15 / A5.
+"""Tests for the OAI-PMH snapshot (``src.render.oai_pmh``, ``oai_formats``).
 
-Two layers (matching JSON-LD and sitemap modules):
-
-* Pure-formatter tests — synthetic Reviews into the ``build_*``
-  functions, then parse the resulting XML and pin the OAI-PMH /
-  Dublin Core structure.
-* Real-corpus integration — walk a few real reviews through the full
-  ``write_oai_pmh`` driver and verify the snapshot files parse.
-
-Because OAI-PMH XML uses three namespaces (OAI-PMH, oai_dc, dc), tests
-use full namespaced ElementTree queries to avoid false positives from
-substring matching.
+Contract tests compare the snapshot with responses recorded from the live
+endpoint ride.i-d-e.de/apis/oai on 2026-11-10 (``tests/fixtures/oai/``):
+the GetRecord answers for ride.4.2 (one author, English), ride.6.2 (two
+authors, text collection), ride.4.4 (German) and ride.16.0 (an issue
+editorial) in all three formats, plus Identify, ListMetadataFormats and
+ListSets. The static records are built from the real TEI of the same
+reviews, so parser and mapping are tested together (CLAUDE.md real-corpus
+rule). The field contract itself lives in ``scripts/oai_contract.py`` and
+names the fields left out on purpose. Datestamp widening is a pure
+function and takes synthetic dates.
 """
+
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
+import json
+import sys
+from pathlib import Path
 
 import pytest
+from lxml import etree
 
-from src.model.review import (
-    Author,
-    Editor,
-    Person,
-    RelatedItem,
-    Review,
-)
+from src._corpus import iter_tei_files
+from src.parser.review import parse_review
+from src.render.oai_formats import datestamp
 from src.render.oai_pmh import (
-    EARLIEST_DATESTAMP,
-    REPOSITORY_NAME,
-    _header_xml,
+    PREFIXES,
     build_get_record,
     build_identify,
-    build_list_identifiers,
+    build_list,
     build_list_metadata_formats,
-    build_list_records,
-    oai_identifier,
+    build_list_sets,
+    build_static_repository,
     write_oai_pmh,
 )
+from src.model.review import Review
+from tests._shared import needs_corpus
 
-from tests._shared import iter_tei_files, needs_corpus
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import oai_contract  # noqa: E402
 
-NS = {
-    "oai": "http://www.openarchives.org/OAI/2.0/",
-    "dc": "http://purl.org/dc/elements/1.1/",
-    "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
-}
+FIXTURES = Path(__file__).parent / "fixtures" / "oai"
+BASE = "https://i-d-e.github.io/ride-static"
+OAI = {"o": "http://www.openarchives.org/OAI/2.0/"}
+RECORDED = ("ride.4.2", "ride.6.2", "ride.4.4", "ride.16.0")
 
 
-def _r(**overrides) -> Review:
-    base = dict(
-        id="ride.13.7",
-        issue="13",
-        title="A Test Review",
-        publication_date="2024-06-01",
-        language="en",
-        licence="http://creativecommons.org/licenses/by/4.0/",
-    )
-    base.update(overrides)
-    return Review(**base)
+@pytest.fixture(scope="module")
+def corpus() -> dict[str, Review]:
+    wanted = set(RECORDED)
+    out = {}
+    for path in iter_tei_files():
+        review = parse_review(path)
+        if review.id in wanted:
+            out[review.id] = review
+    if len(out) != len(wanted):
+        pytest.skip("recorded reviews not in corpus")
+    return out
 
 
-# ── Identifier scheme ────────────────────────────────────────────────
+def _live(name: str) -> etree._Element:
+    return etree.parse(str(FIXTURES / name)).getroot()
 
 
-def test_oai_identifier_uses_repo_host_and_review_id():
-    review = _r(id="ride.13.7")
-    assert oai_identifier(review) == "oai:ride.i-d-e.de:ride.13.7"
-
-
-# ── Identify ─────────────────────────────────────────────────────────
-
-
-def test_identify_emits_required_repository_fields():
-    xml = build_identify("https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    identify = root.find("oai:Identify", NS)
-    assert identify is not None
-    assert identify.find("oai:repositoryName", NS).text == REPOSITORY_NAME
-    assert identify.find("oai:baseURL", NS).text == "https://x.de/oai/"
-    assert identify.find("oai:protocolVersion", NS).text == "2.0"
-    assert identify.find("oai:granularity", NS).text == "YYYY-MM-DD"
-    assert identify.find("oai:deletedRecord", NS).text == "no"
-    assert identify.find("oai:earliestDatestamp", NS).text == EARLIEST_DATESTAMP
-
-
-def test_identify_response_envelope_carries_request_verb():
-    xml = build_identify("https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    request = root.find("oai:request", NS)
-    assert request.attrib["verb"] == "Identify"
-
-
-# ── ListMetadataFormats ─────────────────────────────────────────────
-
-
-def test_list_metadata_formats_advertises_oai_dc_only():
-    xml = build_list_metadata_formats("https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    formats = root.findall("oai:ListMetadataFormats/oai:metadataFormat", NS)
-    assert len(formats) == 1
-    [fmt] = formats
-    assert fmt.find("oai:metadataPrefix", NS).text == "oai_dc"
-
-
-# ── ListIdentifiers ─────────────────────────────────────────────────
-
-
-def test_list_identifiers_emits_one_header_per_review():
-    reviews = [_r(id="ride.13.1"), _r(id="ride.13.2")]
-    xml = build_list_identifiers(reviews, "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    headers = root.findall("oai:ListIdentifiers/oai:header", NS)
-    assert len(headers) == 2
-    ids = [h.find("oai:identifier", NS).text for h in headers]
-    assert ids == ["oai:ride.i-d-e.de:ride.13.1", "oai:ride.i-d-e.de:ride.13.2"]
-
-
-# ── ListRecords / GetRecord ─────────────────────────────────────────
-
-
-def test_list_records_emits_dublin_core_record_per_review():
-    review = _r(
-        id="ride.13.7",
-        title="A Test Review",
-        keywords=("digital editions", "TEI"),
-        authors=(Author(person=Person(full_name="Jane Doe")),),
-        editors=(Editor(person=Person(full_name="E. Editor")),),
-    )
-    xml = build_list_records([review], "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    records = root.findall("oai:ListRecords/oai:record", NS)
-    assert len(records) == 1
-    [record] = records
-
-    # Header
-    assert (
-        record.find("oai:header/oai:identifier", NS).text
-        == "oai:ride.i-d-e.de:ride.13.7"
-    )
-    assert record.find("oai:header/oai:datestamp", NS).text == "2024-06-01"
-
-    # Dublin Core core fields
-    dc = record.find("oai:metadata/oai_dc:dc", NS)
-    assert dc.find("dc:title", NS).text == "A Test Review"
-    assert [c.text for c in dc.findall("dc:creator", NS)] == ["Jane Doe"]
-    assert [c.text for c in dc.findall("dc:contributor", NS)] == ["E. Editor"]
-    assert dc.find("dc:date", NS).text == "2024-06-01"
-    assert dc.find("dc:language", NS).text == "en"
-    assert dc.find("dc:rights", NS).text.startswith("http://")
-    assert dc.find("dc:identifier", NS).text == "https://x.de/issues/13/ride.13.7/"
-    assert sorted(s.text for s in dc.findall("dc:subject", NS)) == [
-        "TEI",
-        "digital editions",
-    ]
-    assert dc.find("dc:type", NS).text == "article"
-    assert dc.find("dc:source", NS).text == "RIDE Issue 13"
-
-
-def test_dc_identifier_emits_doi_first_then_page_url():
-    """When a DOI is set, two <dc:identifier> elements are emitted: the
-    DOI as ``https://doi.org/{doi}`` first (persistent), the page URL
-    second (mutable). Order matters for DC harvesters that take the
-    first identifier as canonical."""
-    review = _r(doi="10.18716/ride.a.5.4")
-    xml = build_get_record(review, "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    dc = root.find("oai:GetRecord/oai:record/oai:metadata/oai_dc:dc", NS)
-    identifiers = [el.text for el in dc.findall("dc:identifier", NS)]
-    assert identifiers == [
-        "https://doi.org/10.18716/ride.a.5.4",
-        "https://x.de/issues/13/ride.13.7/",
-    ]
-
-
-def test_dc_identifier_without_doi_emits_only_page_url():
-    """Reviews without a DOI fall back to a single page-URL identifier —
-    heutiges Verhalten bleibt rückwärtskompatibel."""
-    xml = build_get_record(_r(), "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    dc = root.find("oai:GetRecord/oai:record/oai:metadata/oai_dc:dc", NS)
-    identifiers = [el.text for el in dc.findall("dc:identifier", NS)]
-    assert identifiers == ["https://x.de/issues/13/ride.13.7/"]
-
-
-def test_reviewed_resource_targets_become_dc_relation():
-    review = _r(
-        related_items=(
-            RelatedItem(
-                type="reviewed_resource",
-                bibl_text="Some Edition",
-                bibl_targets=("https://example.org/edition", "https://doi.org/10.x/y"),
-            ),
-            RelatedItem(
-                type="reviewing_criteria",
-                bibl_text="Criteria",
-                bibl_targets=("https://example.org/criteria",),
-            ),
-        ),
-    )
-    xml = build_list_records([review], "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    relations = [
-        r.text
-        for r in root.findall("oai:ListRecords/oai:record/oai:metadata/oai_dc:dc/dc:relation", NS)
-    ]
-    # Both reviewed_resource targets land; criteria is filtered out.
-    assert relations == ["https://example.org/edition", "https://doi.org/10.x/y"]
-
-
-def test_get_record_wraps_a_single_record():
-    xml = build_get_record(_r(), "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)
-    records = root.findall("oai:GetRecord/oai:record", NS)
-    assert len(records) == 1
-
-
-def test_special_characters_in_title_are_escaped():
-    review = _r(title='Edition <of> "Beowulf" & Co.')
-    xml = build_get_record(review, "https://x.de", build_date="2024-08-01")
-    root = ET.fromstring(xml)  # raises if the escape leaked
-    assert (
-        root.find("oai:GetRecord/oai:record/oai:metadata/oai_dc:dc/dc:title", NS).text
-        == 'Edition <of> "Beowulf" & Co.'
-    )
-
-
-# ── Datestamp normalisation ─────────────────────────────────────────
-#
-# The datestamp is now built from feed._date_parts (single source for the
-# corpus date-widening rule). These tests drive the value through the OAI
-# header fragment to pin the YYYY-MM-DD contract at the OAI boundary.
-
-
-def _datestamp(publication_date: str) -> str:
-    header = ET.fromstring(_header_xml(_r(publication_date=publication_date)))
-    return header.find("datestamp").text
-
-
-def test_datestamp_year_only_widens_to_first_of_january():
-    assert _datestamp("2017") == "2017-01-01"
-
-
-def test_datestamp_year_month_widens_to_first_of_month():
-    assert _datestamp("2017-02") == "2017-02-01"
-
-
-def test_datestamp_year_month_day_passes_through():
-    assert _datestamp("2017-02-15") == "2017-02-15"
-
-
-def test_datestamp_freeform_falls_back_to_earliest():
-    assert _datestamp("forthcoming") == EARLIEST_DATESTAMP
-
-
-def test_datestamp_iso_with_time_strips_time():
-    assert _datestamp("2017-02-15T12:00:00Z") == "2017-02-15"
-
-
-# ── write_oai_pmh driver ────────────────────────────────────────────
-
-
-def test_write_requires_absolute_base_url(tmp_path):
-    with pytest.raises(ValueError):
-        write_oai_pmh([], base_url="", out_root=tmp_path)
-
-
-def test_write_produces_all_verbs(tmp_path):
-    reviews = [_r(id="ride.13.1"), _r(id="ride.13.2")]
-    written = write_oai_pmh(
-        reviews, base_url="https://x.de", out_root=tmp_path, build_date="2024-08-01"
-    )
-    # 4 verb files + one record per review
-    assert written == 4 + 2
-
-    oai_dir = tmp_path / "oai"
-    for name in (
-        "identify.xml",
-        "list-metadata-formats.xml",
-        "list-identifiers.xml",
-        "list-records.xml",
-    ):
-        assert (oai_dir / name).exists(), f"{name} missing"
-    assert (oai_dir / "records" / "ride.13.1.xml").exists()
-    assert (oai_dir / "records" / "ride.13.2.xml").exists()
-
-    # Every file is well-formed XML.
-    for path in oai_dir.rglob("*.xml"):
-        ET.parse(path)
-
-
-def test_write_skips_review_with_empty_id(tmp_path):
-    review = Review(
-        id="",
-        issue="13",
-        title="Anonymous fragment",
-        publication_date="2024-06-01",
-        language="en",
-        licence="http://creativecommons.org/licenses/by/4.0/",
-    )
-    written = write_oai_pmh(
-        [review], base_url="https://x.de", out_root=tmp_path, build_date="2024-08-01"
-    )
-    # 4 verb files + 0 per-record files
-    assert written == 4
-    records_dir = tmp_path / "oai" / "records"
-    assert list(records_dir.iterdir()) == []
-
-
-# ── Real-corpus integration ─────────────────────────────────────────
+def _static(xml: str) -> etree._Element:
+    return etree.fromstring(xml.encode("utf-8"))
 
 
 @needs_corpus
-def test_real_corpus_oai_snapshot_is_well_formed(tmp_path):
-    """Walk the first 10 reviews through the full driver and verify XML.
+@pytest.mark.parametrize("prefix", PREFIXES)
+@pytest.mark.parametrize("rid", RECORDED)
+def test_record_matches_recorded_live_response(corpus, rid: str, prefix: str) -> None:
+    live = oai_contract.records_by_id(_live(f"getrecord-{prefix}-{rid}.xml"))[rid]
+    static_xml = build_get_record(corpus[rid], prefix, f"{BASE}/oai/", BASE, "2026-11-10")
+    static = oai_contract.records_by_id(_static(static_xml))[rid]
+    assert oai_contract.differing_fields(live, static, prefix) == {}
 
-    The snapshot must be parseable by an OAI-PMH harvester; ElementTree
-    parsing is the cheapest proxy for that. Per-review ``<dc:title>``
-    must round-trip the actual title.
-    """
-    from src.parser.review import parse_review
 
+def test_formats_match_live_list_metadata_formats() -> None:
+    live = _live("list-metadata-formats.xml")
+    static = _static(build_list_metadata_formats(f"{BASE}/oai/"))
+
+    def formats(root):
+        return {
+            f.findtext("o:metadataPrefix", namespaces=OAI): (
+                f.findtext("o:schema", namespaces=OAI),
+                f.findtext("o:metadataNamespace", namespaces=OAI),
+            )
+            for f in root.iterfind(".//o:metadataFormat", OAI)
+        }
+
+    assert formats(static) == formats(live)
+
+
+def test_identify_and_list_sets_match_live() -> None:
+    live, static = _live("identify.xml"), _static(build_identify(f"{BASE}/oai/"))
+    for tag in ("repositoryName", "protocolVersion", "adminEmail", "earliestDatestamp",
+                "deletedRecord", "granularity"):  # fmt: skip
+        path = f".//o:Identify/o:{tag}"
+        assert static.findtext(path, namespaces=OAI) == live.findtext(path, namespaces=OAI), tag
+    live_err = _live("list-sets.xml").find(".//o:error", OAI)
+    static_err = _static(build_list_sets(f"{BASE}/oai/")).find(".//o:error", OAI)
+    assert static_err.get("code") == live_err.get("code") == "noSetHierarchy"
+
+
+@needs_corpus
+def test_lists_and_static_repository_are_well_formed(corpus) -> None:
+    reviews = list(corpus.values())
+    for prefix in PREFIXES:
+        for verb in ("ListIdentifiers", "ListRecords"):
+            root = _static(build_list(verb, reviews, prefix, f"{BASE}/oai/", BASE))
+            assert len(oai_contract.records_by_id(root)) in (0, len(reviews))
+            assert root.find(f".//o:request[@metadataPrefix='{prefix}']", OAI) is not None
+    repo = _static(build_static_repository(reviews, f"{BASE}/oai/", BASE))
+    sr = "{http://www.openarchives.org/OAI/2.0/static-repository}"
+    assert [b.get("metadataPrefix") for b in repo.iter(f"{sr}ListRecords")] == list(PREFIXES)
+
+
+@needs_corpus
+def test_write_lays_out_every_route(corpus, tmp_path: Path) -> None:
+    reviews = list(corpus.values())
+    write_oai_pmh(reviews, BASE, tmp_path, "2026-11-10T12:00:00")
+    oai = tmp_path / "oai"
+    table = json.loads((oai / "routes.json").read_text(encoding="utf-8"))
+    for prefix in PREFIXES:
+        assert (oai / table["ListRecords"][prefix]).is_file()
+        for rid in RECORDED:
+            assert (oai / table["GetRecord"][prefix].format(identifier=rid)).is_file()
+    assert (oai / "records" / "ride.4.2.xml").is_file()  # earlier oai_dc path
+    assert table["identifiers"]["ride.16.0"] == "2023-03-01"
+
+
+def test_write_requires_absolute_base_url(tmp_path: Path) -> None:
+    with pytest.raises(ValueError):
+        write_oai_pmh([], "", tmp_path)
+
+
+@pytest.mark.parametrize(
+    "date, stamp",
+    [("2016", "2016-01-01"), ("2016-06", "2016-06-01"), ("2016-06-22", "2016-06-22")],
+)
+def test_datestamp_widens_to_day_granularity(date: str, stamp: str) -> None:
+    """Pure function: synthetic dates."""
+    review = Review(id="x", issue="1", title="t", publication_date=date, language="en", licence="")
+    assert datestamp(review) == stamp
+
+
+@needs_corpus
+def test_router_fixture_is_current_build_output(tmp_path: Path) -> None:
+    """tests/oai-router.test.mjs runs on a snapshot written by write_oai_pmh;
+    regenerate it and compare, so the router is tested against real output."""
     reviews = [
-        parse_review(p) for p in list(iter_tei_files())[:10]
+        parse_review(p)
+        for p in iter_tei_files()
+        if (p.parent.parent.name, p.name)
+        in {("4", "digitalthoreau-tei.xml"), ("16", "editorial-tei.xml")}
     ]
-    written = write_oai_pmh(
-        reviews,
-        base_url="https://ride.i-d-e.de",
-        out_root=tmp_path,
-        build_date="2024-08-01",
+    write_oai_pmh(reviews, BASE, tmp_path, "2026-11-10T12:00:00Z")
+    fixture = Path(__file__).parent / "fixtures" / "oai-router" / "oai"
+    fresh = tmp_path / "oai"
+    names = sorted(p.relative_to(fresh).as_posix() for p in fresh.rglob("*") if p.is_file())
+    assert names == sorted(
+        p.relative_to(fixture).as_posix() for p in fixture.rglob("*") if p.is_file()
     )
-    assert written == 4 + len(reviews)
-
-    # Spot-check one record file for the round-tripped title.
-    record_path = tmp_path / "oai" / "records" / f"{reviews[0].id}.xml"
-    root = ET.parse(record_path).getroot()
-    title = root.find(
-        "oai:GetRecord/oai:record/oai:metadata/oai_dc:dc/dc:title", NS
-    ).text
-    assert title == reviews[0].title
-
-    # Welle 1.B/C: DOI surfaces as the first dc:identifier when present.
-    identifiers = [
-        el.text
-        for el in root.findall(
-            "oai:GetRecord/oai:record/oai:metadata/oai_dc:dc/dc:identifier", NS
-        )
-    ]
-    if reviews[0].doi:
-        assert identifiers[0] == f"https://doi.org/{reviews[0].doi}"
+    for name in names:
+        assert (fresh / name).read_text(encoding="utf-8") == (fixture / name).read_text(
+            encoding="utf-8"
+        ), name

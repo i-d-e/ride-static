@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="GetRecord" identifier="ride.4.2" metadataPrefix="oai_marcxml">https://i-d-e.github.io/ride-static/oai/</request>
+  <GetRecord>
+    <record>
+    <header>
+      <identifier>ride.4.2</identifier>
+      <datestamp>2016-06-01</datestamp>
+    </header>
+      <metadata>
+        <marc:collection xmlns:marc="http://www.loc.gov/MARC21/slim" xsi:schemaLocation="http://www.loc.gov/MARC21/slim http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
+          <marc:record>
+            <marc:leader>00000naa a22000007u 4500</marc:leader>
+            <marc:controlfield tag="005">20261110120000.0</marc:controlfield>
+            <marc:controlfield tag="007">cr||||||||||||</marc:controlfield>
+            <marc:controlfield tag="008">261110s2016||||gw |||||oo||| 00||||eng||</marc:controlfield>
+            <marc:datafield tag="024" ind1="7" ind2=" ">
+              <marc:subfield code="a">10.18716/ride.a.4.2</marc:subfield>
+              <marc:subfield code="2">doi</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="041" ind1=" " ind2=" ">
+              <marc:subfield code="a">eng</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="093" ind1=" " ind2=" ">
+              <marc:subfield code="b">b</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="100" ind1="1" ind2=" ">
+              <marc:subfield code="a">Kelly, Aodhán</marc:subfield>
+              <marc:subfield code="4">aut</marc:subfield>
+              <marc:subfield code="0">(orcid)0000-0002-1387-751X</marc:subfield>
+              <marc:subfield code="u">University of Antwerp, Antwerp, Belgium</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="245" ind1="0" ind2="0">
+              <marc:subfield code="a">Digital Thoreau</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="264" ind1=" " ind2=" ">
+              <marc:subfield code="c">2016</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="506" ind1="0" ind2=" ">
+              <marc:subfield code="a">open-access</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="520" ind1="3" ind2=" ">
+              <marc:subfield code="a">Digital Thoreau is a web resource comprising three digital projects related to the work of Henry David Thoreau created at SUNY Geneseo. The first of these is a fluid text edition of Thoreau’s most famous work Walden. This allows multiple versions of the text to be represented simultaneously in a dynamic environment, which can be a valuable resource to Thoreau scholars, particularly for those interested in researching the genetic aspect of the text. In the second project a very innovative and engaging social reading platform has been created in order to facilitate community and student driven annotation of both Walden and his 1849 essay Resistance to Civil Government. The third project is a student created digital archive of the papers of Thoreau scholar Walter Harding, which is primarily a pedagogical exercise in digital humanities for the students of SUNY Geneseo. Digital Thoreau as a whole is a multi-faceted web resource that offers interesting new opportunities for scholarly research as well as for teaching and public engagement with Thoreau’s influential works.</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="540" ind1=" " ind2=" ">
+              <marc:subfield code="a">Creative Commons - Namensnennung 4.0 International</marc:subfield>
+              <marc:subfield code="f">cc-by-4.0</marc:subfield>
+              <marc:subfield code="u">http://creativecommons.org/licenses/by/4.0/</marc:subfield>
+              <marc:subfield code="2">cc</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">19th century</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">annotation</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">archive</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">collation</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">fluid text</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">genetic edition</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">modern</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">pedagogy</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">reading edition</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">social edition</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">tei</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="653" ind1=" " ind2=" ">
+              <marc:subfield code="a">variant</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="710" ind1="1" ind2="2">
+              <marc:subfield code="a">Institut für Dokumentologie und Editorik e.V.</marc:subfield>
+              <marc:subfield code="g">Köln</marc:subfield>
+              <marc:subfield code="0">(DE-588)6521152-2</marc:subfield>
+              <marc:subfield code="4">edt</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="773" ind1="1" ind2=" ">
+              <marc:subfield code="g">volume:4</marc:subfield>
+              <marc:subfield code="g">month:06</marc:subfield>
+              <marc:subfield code="g">year:2016</marc:subfield>
+              <marc:subfield code="7">nnas</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="773" ind1="1" ind2="8">
+              <marc:subfield code="x">2363-4952</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="856" ind1="4" ind2=" ">
+              <marc:subfield code="u">https://i-d-e.github.io/ride-static/issues/4/ride.4.2/</marc:subfield>
+              <marc:subfield code="q">html</marc:subfield>
+            </marc:datafield>
+            <marc:datafield tag="856" ind1="4" ind2="0">
+              <marc:subfield code="u">https://i-d-e.github.io/ride-static/issues/4/ride.4.2/ride.4.2.pdf</marc:subfield>
+              <marc:subfield code="q">pdf</marc:subfield>
+              <marc:subfield code="x">Transfer-URL</marc:subfield>
+            </marc:datafield>
+          </marc:record>
+        </marc:collection>
+      </metadata>
+    </record>
+  </GetRecord>
+</OAI-PMH>

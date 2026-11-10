@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="ListSets">https://i-d-e.github.io/ride-static/oai/</request>
+  <error code="noSetHierarchy">No set structure available</error>
+</OAI-PMH>

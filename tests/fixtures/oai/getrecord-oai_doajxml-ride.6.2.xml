@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:15:26.745+01:00</responseDate>
+    <request identifier="ride.6.2" metadataPrefix="oai_doajxml" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.6.2</identifier>
+                <datestamp>2017-09-01</datestamp>
+            </header>
+            <metadata>
+                <record xmlns="https://doaj.org/static/doaj/doajArticles">
+                    <language>eng</language>
+                    <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+                    <journalTitle>RIDE – A review journal for digital editions and resources</journalTitle>
+                    <eissn>2363-4952</eissn>
+                    <publicationDate>2017-09-01</publicationDate>
+                    <volume>6</volume>
+                    <doi>10.18716/ride.a.6.2</doi>
+                    <documentType>article</documentType>
+                    <title language="eng">Litteraturbanken</title>
+                    <authors>
+                        <author>
+                            <name>Mats Dahlström</name>
+                            <affiliationId>1</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0003-4584-7144</orcid_id>
+                        </author>
+                        <author>
+                            <name>Wout Dillen</name>
+                            <affiliationId>2</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0002-7862-2403</orcid_id>
+                        </author>
+                    </authors>
+                    <affiliationsList>
+                        <affiliationName affiliationId="1">University of Borås</affiliationName>
+                        <affiliationName affiliationId="2">University of Antwerp</affiliationName>
+                    </affiliationsList>
+                    <abstract language="eng">Litteraturbanken (The Swedish Literature Bank) is a freely available digital collection of Swedish literary works, ranging from medieval to contemporary literature. It is the result of a cooperation between literary and linguistic scholars, research libraries, and editorial societies and academies. The collection consists not only of digital facsimiles, but of ocr'ed, proof-checked and TEI-encoded transcriptions as well, including EPUB and HTML versions of texts, and in addition scholarly presentations and didactic introductions to works and authors in the collection. It is also being used as a publishing platform for ongoing Swedish scholarly editing projects. Litteraturbanken currently comprises more than 2.000 works, mounting up to more than 100 million of machine-readable words. Litteraturbanken's main weak spot is transparency; it does not openly provide satisfactory ways to ensure the editors accountability for the edited texts and images. As a whole, however, Litteraturbanken is an impressive endeavour and paves the way for fruitful cooperation and massive data exchange with e.g. computational linguistics and bibliographic databases.</abstract>
+                    <fullTextUrl format="html">https://ride.i-d-e.de/issues/issue-6/litteraturbanken-the-swedish-literature-bank/</fullTextUrl>
+                    <keywords language="eng">
+                        <keyword>archive</keyword>
+                        <keyword>digitization</keyword>
+                        <keyword>facsimile</keyword>
+                        <keyword>interface</keyword>
+                        <keyword>library</keyword>
+                        <keyword>manuscripts</keyword>
+                        <keyword>tei</keyword>
+                        <keyword>text collection</keyword>
+                        <keyword>transcription</keyword>
+                    </keywords>
+                </record>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

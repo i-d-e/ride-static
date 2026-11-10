@@ -56,7 +56,7 @@ Each function falls into one of four classes. The parity report measures the cla
 
 ### Present
 
-Review pages with numbered paragraphs, notes, figures, bibliography, list of figures, citation suggestion, TEI and PDF download and licence; factsheet pages; issue pages and overview; tag pages; data pages including charts, reviewed resources and reviewer list (built from TEI at build time, no eXist host); editorial pages under `/about/` and `/reviewers/`; the three feeds as `.xml` endpoints and as copies at the WordPress feed paths; XML sitemap; OAI-PMH `oai_dc` snapshot files; canonical link and feed autodiscovery in every page head.
+Review pages with numbered paragraphs, notes, figures, bibliography, list of figures, citation suggestion, TEI and PDF download and licence; factsheet pages; issue pages and overview; tag pages; data pages including charts, reviewed resources and reviewer list (built from TEI at build time, no eXist host); editorial pages under `/about/` and `/reviewers/`; the three feeds as `.xml` endpoints and as copies at the WordPress feed paths; XML sitemap; the OAI-PMH snapshot in all three live formats and the live identifier form; canonical link and feed autodiscovery in every page head.
 
 ### Solved differently
 
@@ -69,7 +69,6 @@ Review pages with numbered paragraphs, notes, figures, bibliography, list of fig
 
 ### Not yet present
 
-- OAI-PMH `oai_marcxml` and `oai_doajxml` records, the editorial records `ride.{N}.0`, and the bare identifier form of the live endpoint (`ride.1.1`, the static snapshot writes `oai:ride.i-d-e.de:ride.1.1`).
 - Answer labels of the select questions in the text-collection and tools questionnaires. The TEI carries only category identifiers such as `tokens_gt10mio`. The live factsheets show labels from the extended questionnaire files in ride-tech, and the static factsheet falls back to the identifier.
 - Editorial pages outside the menu (individual calls for reviews, archived editorials, FAIR criteria, issue landing pages, copyright). Whether they move is part of the TEI conversion scope in issue #3.
 - Highwire `citation_*` tags for reference managers. The live site has none either, so this is an addition rather than a parity gap.
@@ -77,7 +76,7 @@ Review pages with numbered paragraphs, notes, figures, bibliography, list of fig
 ### Deliberately not reproduced, or not reproducible statically
 
 - Comment feed, WordPress REST API, oEmbed and XML-RPC: WordPress machinery without journal content. `/api/corpus.json` is the static data interface.
-- Query-string addresses (`/?s=`, `/?p=`, `/apis/oai?verb=…`). GitHub Pages ignores the query string, so no file can answer them ([[oai-pmh-statisch#The protocol constraint]]). A queryable OAI endpoint needs a request-handling component, which remains the institutional decision of issue #6.
+- OAI-PMH requests with query string (`/apis/oai?verb=…`). GitHub Pages ignores the query string, so no file can answer them ([[oai-pmh-statisch#The protocol constraint]]). The build writes every answer as a file and the repository carries the router that maps requests onto them; running it needs a host outside GitHub Pages, which remains the institutional decision of issue #6.
 - Per-tag feeds and the HTML sitemap. No consumer is known; the XML sitemap and the main feeds cover the use.
 - Tags that exist only in WordPress. TEI is the only tag source ([[specification#A2 Datenquellen]]), and the one-off consolidation of WordPress tags into TEI is an editorial task. The parity report lists the WordPress tags missing per review, which is the worklist for that task.
 

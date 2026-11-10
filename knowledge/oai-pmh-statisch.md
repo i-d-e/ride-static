@@ -4,7 +4,7 @@ project:
   name: ride-static
 status: active
 created: 2026-07-14
-updated: 2026-10-17
+updated: 2026-11-10
 language: en
 related:
   - "[[redirects-feeds]]"
@@ -70,6 +70,14 @@ The `from`/`until` and `resumptionToken` machinery cannot be reproduced by stati
 The July record selected option 1 on the premise that no consumer had been found. The later correction in issue #6 establishes that actual use is unknown. That record therefore supplies no current authorization to shut down the endpoint. Confirm the consumers and institutional metadata handover before deciding whether retirement, continuity or a replacement is appropriate. The snapshot already emitted by the build (`src/render/oai_pmh.py`, `write_oai_pmh`) is the archivable form of the decision. It writes one Dublin Core document holding every record (`/oai/list-records.xml`) plus the header listing (`/oai/list-identifiers.xml`), the repository description (`/oai/identify.xml`), the format declaration (`/oai/list-metadata-formats.xml`), and one `<GetRecord>` file per review under `/oai/records/`. The record set is regenerated from the corpus on every build, so the deployed `/oai/` tree is the current snapshot; no gateway, no proxy, and no live queryable endpoint is advertised.
 
 The existing endpoint remains outside this technical maintenance. The editors and responsible institutions must confirm its use, the DataCite and DOAJ procedures and the corresponding owners. Issue #6 carries that open decision.
+
+## Implementation of the snapshot and the router (2026-11-10)
+
+The snapshot now covers the whole live endpoint as files: `oai_dc`, `oai_marcxml` and `oai_doajxml`, the live identifier form (`ride.4.2`), the issue editorials as records, `Identify`, `ListMetadataFormats` and the `ListSets` error. The field mapping of each format reproduces the recorded live responses (`src/render/oai_formats.py`, contract in `scripts/oai_contract.py`, recorded responses in `tests/fixtures/oai/`); the departures are named in the module. `oai/routes.json` records which file answers which request, and `oai/static-repository.xml` holds the same records as one Static Repository file (Route B).
+
+For Route A the repository now carries the router itself (`docs/oai-router/`): a stateless script that validates the request, maps it onto the files of `routes.json`, filters `from`/`until` by datestamp and answers protocol errors with the codes the live endpoint uses. It needs no state and issues no `resumptionToken`, because the lists are complete. Its tests run in CI against a real two-record snapshot. Deployment is the one step outside this repository: a host that runs the script per request and, to keep the announced base URL `ride.i-d-e.de/apis/oai`, a proxy in front of the domain that sends that path to the router. The README of the router lists the steps. Whether to deploy it, or to retire the endpoint, remains the decision of issue #6; the build no longer decides it by lacking data.
+
+During recording the live endpoint answered `GetRecord` for ride.1.1 with an HTTP 500 server error (`XPTY0004`), while the same record appears in `ListRecords`.
 
 ## Sources
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T20:08:47.669+01:00</responseDate>
+    <request identifier="ride.4.2" metadataPrefix="oai_dc" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.4.2</identifier>
+                <datestamp>2016-06-01</datestamp>
+            </header>
+            <metadata>
+                <dc xmlns="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+                    <dc:title>Digital Thoreau</dc:title>
+                    <dc:creator>Kelly, Aodhán</dc:creator>
+                    <dc:publisher>Institut für Dokumentologie und Editorik e.V.</dc:publisher>
+                    <dc:date>2016</dc:date>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:URL">http://ride.i-d-e.de/issues/issue-4/digitalthoreau</dc:identifier>
+                    <dc:identifier xmlns:tel="http://krait.kb.nl/coop/tel/handbook/telterms.html" xsi:type="tel:DOI">10.18716/ride.a.4.2</dc:identifier>
+                    <dc:rights>http://creativecommons.org/licenses/by/4.0/</dc:rights>
+                    <dc:isPartOf>RIDE - A review journal for digital editions and resources</dc:isPartOf>
+                    <dc:isPartOf>http://ride.i-d-e.de/issues/issue-4</dc:isPartOf>
+                    <dc:contributor>Fischer, Franz</dc:contributor>
+                    <dc:contributor>Henny, Ulrike</dc:contributor>
+                    <dc:contributor>Steinkrüger, Philipp</dc:contributor>
+                    <dc:contributor>Gengnagel, Tessa</dc:contributor>
+                    <dc:contributor>Steinkrüger, Philipp</dc:contributor>
+                    <dc:contributor>Assmann, Bernhard</dc:contributor>
+                    <dc:contributor>Henny, Ulrike</dc:contributor>
+                    <dc:references>http://www.digitalthoreau.org/</dc:references>
+                    <dc:language>eng</dc:language>
+                    <dc:subject>19th century</dc:subject>
+                    <dc:subject>annotation</dc:subject>
+                    <dc:subject>archive</dc:subject>
+                    <dc:subject>collation</dc:subject>
+                    <dc:subject>fluid text</dc:subject>
+                    <dc:subject>genetic edition</dc:subject>
+                    <dc:subject>modern</dc:subject>
+                    <dc:subject>pedagogy</dc:subject>
+                    <dc:subject>reading edition</dc:subject>
+                    <dc:subject>social edition</dc:subject>
+                    <dc:subject>tei</dc:subject>
+                    <dc:subject>variant</dc:subject>
+                    <dc:description>Digital Thoreau is a web resource comprising three digital projects related to the work of Henry David Thoreau created at SUNY Geneseo. The first of these is a fluid text edition of Thoreau’s most famous work Walden. This allows multiple versions of the text to be represented simultaneously in a dynamic environment, which can be a valuable resource to Thoreau scholars, particularly for those interested in researching the genetic aspect of the text. In the second project a very innovative and engaging social reading platform has been created in order to facilitate community and student driven annotation of both Walden and his 1849 essay Resistance to Civil Government. The third project is a student created digital archive of the papers of Thoreau scholar Walter Harding, which is primarily a pedagogical exercise in digital humanities for the students of SUNY Geneseo. Digital Thoreau as a whole is a multi-faceted web resource that offers interesting new opportunities for scholarly research as well as for teaching and public engagement with Thoreau’s influential works.</dc:description>
+                    <dc:type>Text</dc:type>
+                    <dc:type>Image</dc:type>
+                    <dc:format>html</dc:format>
+                </dc>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

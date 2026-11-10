@@ -1,140 +1,228 @@
-"""OAI-PMH static snapshot — Phase 12 R15 / A5.
+"""OAI-PMH snapshot in all three formats of the live endpoint (R15 / A5).
 
-OAI-PMH is normally a dynamic protocol: a harvester issues HTTP requests
-with ``?verb=…`` query parameters. GitHub Pages cannot dispatch on query
-parameters, so we ship a *static snapshot*: one pre-rendered XML file
-per verb at deterministic paths under ``site/oai/``. Harvesters that
-support file-based ingestion (or a thin proxy that maps query verbs to
-paths) consume the snapshot directly; the snapshot reflects the corpus
-state at build time, no runtime needed.
+OAI-PMH is a query protocol (``?verb=…&metadataPrefix=…``). GitHub Pages
+ignores the query string, so the build pre-renders every response a
+harvester can ask for and writes it at a fixed path. A small request router
+in front of the static files (``deploy/oai-router/``) can then answer the
+protocol at a real base URL by mapping parameters to these files; without
+it the files serve as a documented export. See ``knowledge/oai-pmh-statisch.md``.
 
-Layout under ``site/oai/``:
+Layout under ``site/oai/`` (``routes.json`` records the same mapping):
 
-* ``identify.xml`` — repository metadata
-* ``list-metadata-formats.xml`` — supported metadata prefixes (oai_dc only)
-* ``list-identifiers.xml`` — header-only listing of every record
-* ``list-records.xml`` — full Dublin Core records for every review
-* ``records/{review_id}.xml`` — one ``<GetRecord>`` per review
+* ``identify.xml``, ``list-metadata-formats.xml``, ``list-sets.xml``
+* ``{prefix}/list-identifiers.xml``, ``{prefix}/list-records.xml`` and
+  ``{prefix}/records/{id}.xml`` for ``oai_dc``, ``oai_marcxml``, ``oai_doajxml``
+* ``list-identifiers.xml``, ``list-records.xml``, ``records/{id}.xml``: the
+  ``oai_dc`` responses at their earlier paths, kept so existing links work
+* ``static-repository.xml``: the same records as one OAI Static Repository
+  file, the form a Static Repository Gateway reads
 
-The module exposes two layers:
-
-* ``build_*`` — pure functions that take Reviews and produce XML strings.
-* ``write_oai_pmh`` — driver that wraps ``build_*`` and writes the files.
-
-The Dublin Core mapping follows the standard ``oai_dc`` schema; each
-``<dc:identifier>`` carries the deployed page URL so a harvester can
-trace a record back to its rendered form.
+Identifiers follow the live endpoint (``ride.4.2``), so a harvester that has
+already collected RIDE keeps its record identities. The lists are complete
+responses without ``resumptionToken``: the corpus is small, and a token is
+the repository's option for splitting long lists, which the router can add
+later if a harvester needs it. Issue editorials (``ride.{N}.0``) are records
+as on the live endpoint.
 """
+
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Optional, Sequence
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape, quoteattr
 
 from src.model.review import Review
-from src.render.feed import _date_parts
-from src.render.html import abstract_first_paragraph_text, doi_url, review_url
+from src.render.html import review_url
+from src.render.oai_formats import FORMATS, datestamp, metadata
 
-
-REPOSITORY_NAME = "RIDE — Reviews in Digital Editions"
-ADMIN_EMAIL = "ride@i-d-e.de"
+REPOSITORY_NAME = "ride. A review journal for digital editions and resources"
+ADMIN_EMAIL = "ride-editor@i-d-e.de"
 GRANULARITY = "YYYY-MM-DD"
 DELETED_RECORD = "no"
 PROTOCOL_VERSION = "2.0"
 EARLIEST_DATESTAMP = "2014-06-01"  # first RIDE issue
+PREFIXES = tuple(FORMATS)
+NL = "\n"
 
 
-def oai_identifier(review: Review, host: str = "ride.i-d-e.de") -> str:
-    """OAI identifier for a review — ``oai:{host}:{review.id}``."""
-    return f"oai:{host}:{review.id}"
+def oai_identifier(review: Review) -> str:
+    """OAI identifier as the live endpoint issues it: the TEI ``xml:id``."""
+    return review.id
 
 
-def build_identify(base_url: str, build_date: Optional[str] = None) -> str:
-    """``<Identify>`` response.
+def _request(base: str, verb: str, **args: str) -> str:
+    attrs = "".join(f" {k}={quoteattr(v)}" for k, v in args.items() if v)
+    return f'  <request verb="{verb}"{attrs}>{escape(base)}</request>'
 
-    ``base_url`` becomes the ``baseURL`` field; harvesters use it to
-    construct hypothetical query URLs even if they consume the static
-    files directly.
-    """
-    response_date = build_date or ""
-    return _wrap_response(
-        verb="Identify",
-        base_url=base_url,
-        response_date=response_date,
-        body=(
-            "  <Identify>\n"
-            f"    <repositoryName>{escape(REPOSITORY_NAME)}</repositoryName>\n"
-            f"    <baseURL>{escape(base_url)}/oai/</baseURL>\n"
-            f"    <protocolVersion>{PROTOCOL_VERSION}</protocolVersion>\n"
-            f"    <adminEmail>{escape(ADMIN_EMAIL)}</adminEmail>\n"
-            f"    <earliestDatestamp>{EARLIEST_DATESTAMP}</earliestDatestamp>\n"
-            f"    <deletedRecord>{DELETED_RECORD}</deletedRecord>\n"
-            f"    <granularity>{GRANULARITY}</granularity>\n"
-            "  </Identify>"
-        ),
+
+def _wrap(base: str, response_date: str, request: str, body: str) -> str:
+    return NL.join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"',
+            '         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+            '         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/'
+            ' http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">',
+            f"  <responseDate>{escape(response_date)}</responseDate>",
+            request,
+            body,
+            "</OAI-PMH>",
+            "",
+        ]
     )
 
 
-def build_list_metadata_formats(
-    base_url: str, build_date: Optional[str] = None
-) -> str:
-    """``<ListMetadataFormats>`` — only ``oai_dc`` is supported."""
-    return _wrap_response(
-        verb="ListMetadataFormats",
-        base_url=base_url,
-        response_date=build_date or "",
-        body=(
-            "  <ListMetadataFormats>\n"
-            "    <metadataFormat>\n"
-            "      <metadataPrefix>oai_dc</metadataPrefix>\n"
-            "      <schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema>\n"
-            "      <metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace>\n"
-            "    </metadataFormat>\n"
-            "  </ListMetadataFormats>"
-        ),
+def _identify_body(base: str, outer: str = "", p: str = "") -> str:
+    """``outer`` prefixes the wrapper, ``p`` the OAI elements (Static Repository)."""
+    fields = (
+        ("repositoryName", escape(REPOSITORY_NAME)),
+        ("baseURL", escape(base)),
+        ("protocolVersion", PROTOCOL_VERSION),
+        ("adminEmail", escape(ADMIN_EMAIL)),
+        ("earliestDatestamp", EARLIEST_DATESTAMP),
+        ("deletedRecord", DELETED_RECORD),
+        ("granularity", GRANULARITY),
+    )
+    inner = [f"    <{p}{tag}>{value}</{p}{tag}>" for tag, value in fields]
+    return NL.join([f"  <{outer}Identify>", *inner, f"  </{outer}Identify>"])
+
+
+def _formats_body(outer: str = "", p: str = "") -> str:
+    lines = [f"  <{outer}ListMetadataFormats>"]
+    for prefix, (schema, ns) in FORMATS.items():
+        lines += [
+            f"    <{p}metadataFormat>",
+            f"      <{p}metadataPrefix>{prefix}</{p}metadataPrefix>",
+            f"      <{p}schema>{escape(schema)}</{p}schema>",
+            f"      <{p}metadataNamespace>{escape(ns)}</{p}metadataNamespace>",
+            f"    </{p}metadataFormat>",
+        ]
+    lines.append(f"  </{outer}ListMetadataFormats>")
+    return NL.join(lines)
+
+
+def _header(review: Review, p: str = "") -> str:
+    return NL.join(
+        [
+            f"    <{p}header>",
+            f"      <{p}identifier>{escape(oai_identifier(review))}</{p}identifier>",
+            f"      <{p}datestamp>{datestamp(review)}</{p}datestamp>",
+            f"    </{p}header>",
+        ]
     )
 
 
-def build_list_identifiers(
-    reviews: Sequence[Review], base_url: str, build_date: Optional[str] = None
-) -> str:
-    """``<ListIdentifiers>`` — header-only listing of every record."""
-    headers = "\n".join(_header_xml(r) for r in reviews)
-    return _wrap_response(
-        verb="ListIdentifiers",
-        base_url=base_url,
-        response_date=build_date or "",
-        body=f"  <ListIdentifiers>\n{headers}\n  </ListIdentifiers>",
+def _record(review: Review, prefix: str, page_url: str, stamp: str, p: str = "") -> str:
+    return NL.join(
+        [
+            f"    <{p}record>",
+            _header(review, p),
+            f"      <{p}metadata>",
+            metadata(prefix, review, page_url, stamp),
+            f"      </{p}metadata>",
+            f"    </{p}record>",
+        ]
     )
 
 
-def build_list_records(
-    reviews: Sequence[Review], base_url: str, build_date: Optional[str] = None
+def build_identify(oai_base: str, response_date: str = "") -> str:
+    return _wrap(oai_base, response_date, _request(oai_base, "Identify"), _identify_body(oai_base))
+
+
+def build_list_metadata_formats(oai_base: str, response_date: str = "") -> str:
+    return _wrap(
+        oai_base, response_date, _request(oai_base, "ListMetadataFormats"), _formats_body()
+    )
+
+
+def build_list_sets(oai_base: str, response_date: str = "") -> str:
+    """The live endpoint has no sets and answers ListSets with this error."""
+    return _wrap(
+        oai_base,
+        response_date,
+        _request(oai_base, "ListSets"),
+        '  <error code="noSetHierarchy">No set structure available</error>',
+    )
+
+
+def build_list(
+    verb: str,
+    reviews: Sequence[Review],
+    prefix: str,
+    oai_base: str,
+    site_base: str,
+    response_date: str = "",
+    stamp: str = "",
 ) -> str:
-    """``<ListRecords>`` — full Dublin Core records for every review."""
-    records = "\n".join(_record_xml(r, base_url) for r in reviews)
-    return _wrap_response(
-        verb="ListRecords",
-        base_url=base_url,
-        response_date=build_date or "",
-        body=f"  <ListRecords>\n{records}\n  </ListRecords>",
+    if verb == "ListIdentifiers":
+        items = [_header(r) for r in reviews]
+    else:
+        items = [_record(r, prefix, review_url(r, site_base), stamp) for r in reviews]
+    return _wrap(
+        oai_base,
+        response_date,
+        _request(oai_base, verb, metadataPrefix=prefix),
+        NL.join([f"  <{verb}>", *items, f"  </{verb}>"]),
     )
 
 
 def build_get_record(
-    review: Review, base_url: str, build_date: Optional[str] = None
+    review: Review,
+    prefix: str,
+    oai_base: str,
+    site_base: str,
+    response_date: str = "",
+    stamp: str = "",
 ) -> str:
-    """``<GetRecord>`` — one Dublin Core record."""
-    return _wrap_response(
-        verb="GetRecord",
-        base_url=base_url,
-        response_date=build_date or "",
-        body=(
-            "  <GetRecord>\n"
-            f"{_record_xml(review, base_url)}\n"
-            "  </GetRecord>"
-        ),
+    record = _record(review, prefix, review_url(review, site_base), stamp)
+    return _wrap(
+        oai_base,
+        response_date,
+        _request(oai_base, "GetRecord", identifier=oai_identifier(review), metadataPrefix=prefix),
+        NL.join(["  <GetRecord>", record, "  </GetRecord>"]),
     )
+
+
+def build_static_repository(
+    reviews: Sequence[Review], oai_base: str, site_base: str, stamp: str = ""
+) -> str:
+    """One file in the OAI Static Repository format (Identify, formats, records).
+
+    The specification asks for a MIME type GitHub Pages cannot set; a gateway
+    that reads this file is one of the router options, not part of the build.
+    """
+    blocks: list[str] = []
+    for prefix in PREFIXES:
+        blocks.append(f'  <sr:ListRecords metadataPrefix="{prefix}">')
+        blocks += [_record(r, prefix, review_url(r, site_base), stamp, "oai:") for r in reviews]
+        blocks.append("  </sr:ListRecords>")
+    return NL.join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<sr:Repository xmlns:sr="http://www.openarchives.org/OAI/2.0/static-repository"',
+            '               xmlns:oai="http://www.openarchives.org/OAI/2.0/"',
+            '               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">',
+            _identify_body(oai_base, "sr:", "oai:"),
+            _formats_body("sr:", "oai:"),
+            *blocks,
+            "</sr:Repository>",
+            "",
+        ]
+    )
+
+
+def routes(reviews: Sequence[Review]) -> dict:
+    """Request -> file mapping, the contract the request router implements."""
+    return {
+        "Identify": "identify.xml",
+        "ListMetadataFormats": "list-metadata-formats.xml",
+        "ListSets": "list-sets.xml",
+        "ListIdentifiers": {p: f"{p}/list-identifiers.xml" for p in PREFIXES},
+        "ListRecords": {p: f"{p}/list-records.xml" for p in PREFIXES},
+        "GetRecord": {p: f"{p}/records/{{identifier}}.xml" for p in PREFIXES},
+        "identifiers": {oai_identifier(r): datestamp(r) for r in reviews if r.id},
+    }
 
 
 def write_oai_pmh(
@@ -142,182 +230,46 @@ def write_oai_pmh(
     base_url: str,
     out_root: Path,
     build_date: Optional[str] = None,
+    oai_base_url: Optional[str] = None,
 ) -> int:
-    """Driver — writes the full snapshot under ``out_root/oai/``.
+    """Write the snapshot under ``out_root/oai/``; return the number of files.
 
-    Returns the number of files written. ``base_url`` must be set;
-    OAI-PMH identifiers and ``baseURL`` need an absolute origin.
+    ``oai_base_url`` is the address harvesters use, i.e. the request router
+    when one is deployed; it defaults to the snapshot directory.
     """
     if not base_url:
         raise ValueError("OAI-PMH snapshot requires an absolute base_url")
-
-    oai_dir = out_root / "oai"
-    oai_dir.mkdir(parents=True, exist_ok=True)
-    records_dir = oai_dir / "records"
-    records_dir.mkdir(parents=True, exist_ok=True)
-
-    written = 0
-    (oai_dir / "identify.xml").write_text(
-        build_identify(base_url, build_date), encoding="utf-8"
-    )
-    written += 1
-    (oai_dir / "list-metadata-formats.xml").write_text(
-        build_list_metadata_formats(base_url, build_date), encoding="utf-8"
-    )
-    written += 1
-    (oai_dir / "list-identifiers.xml").write_text(
-        build_list_identifiers(reviews, base_url, build_date), encoding="utf-8"
-    )
-    written += 1
-    (oai_dir / "list-records.xml").write_text(
-        build_list_records(reviews, base_url, build_date), encoding="utf-8"
-    )
-    written += 1
-    for review in reviews:
-        if not review.id:
-            continue
-        (records_dir / f"{review.id}.xml").write_text(
-            build_get_record(review, base_url, build_date), encoding="utf-8"
-        )
-        written += 1
-    return written
-
-
-# ── XML composition helpers ─────────────────────────────────────────
-
-
-def _wrap_response(*, verb: str, base_url: str, response_date: str, body: str) -> str:
-    """Wrap a verb body in the OAI-PMH envelope.
-
-    The envelope (root element ``<OAI-PMH>``) is mandatory in every
-    response; it carries the ``responseDate`` and the ``request`` echo
-    that lets a harvester correlate the response with its request.
-    """
-    response_date_clean = escape(response_date) if response_date else ""
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"\n'
-        '         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
-        '         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/\n'
-        '             http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">\n'
-        f"  <responseDate>{response_date_clean}</responseDate>\n"
-        f'  <request verb="{verb}">{escape(base_url)}/oai/</request>\n'
-        f"{body}\n"
-        "</OAI-PMH>\n"
-    )
-
-
-def _header_xml(review: Review) -> str:
-    identifier = oai_identifier(review)
-    # OAI-PMH datestamps must be YYYY-MM-DD; feed._date_parts is the single
-    # source for the corpus date-widening rule (empty/freeform -> earliest).
-    year, month, day = _date_parts(review.publication_date)
-    datestamp = f"{year:04d}-{month:02d}-{day:02d}"
-    return (
-        "    <header>\n"
-        f"      <identifier>{escape(identifier)}</identifier>\n"
-        f"      <datestamp>{escape(datestamp)}</datestamp>\n"
-        "    </header>"
-    )
-
-
-def _record_xml(review: Review, base_url: str) -> str:
-    """One ``<record>`` containing ``<header>`` + Dublin Core ``<metadata>``."""
-    return (
-        "    <record>\n"
-        f"{_header_xml(review)}\n"
-        f"{_metadata_xml(review, base_url)}\n"
-        "    </record>"
-    )
-
-
-def _metadata_xml(review: Review, base_url: str) -> str:
-    dc_lines: list[str] = []
-
-    if review.title:
-        dc_lines.append(f"          <dc:title>{escape(review.title)}</dc:title>")
-
-    for author in review.authors:
-        dc_lines.append(
-            f"          <dc:creator>{escape(author.person.full_name)}</dc:creator>"
-        )
-
-    for editor in review.editors:
-        dc_lines.append(
-            f"          <dc:contributor>{escape(editor.person.full_name)}</dc:contributor>"
-        )
-
-    if review.publication_date:
-        dc_lines.append(
-            f"          <dc:date>{escape(review.publication_date)}</dc:date>"
-        )
-
-    if review.language:
-        dc_lines.append(
-            f"          <dc:language>{escape(review.language)}</dc:language>"
-        )
-
-    if review.licence:
-        dc_lines.append(
-            f"          <dc:rights>{escape(review.licence)}</dc:rights>"
-        )
-
-    # Dublin Core allows multiple <dc:identifier> elements; emit DOI first
-    # (persistent) and the page URL second (mutable). When the DOI is
-    # missing (corpus in transition), the page URL stays the only one.
-    doi = doi_url(review.doi)
-    if doi:
-        dc_lines.append(f"          <dc:identifier>{escape(doi)}</dc:identifier>")
-    page_url = _page_url(review, base_url)
-    if page_url:
-        dc_lines.append(
-            f"          <dc:identifier>{escape(page_url)}</dc:identifier>"
-        )
-
-    for kw in review.keywords:
-        dc_lines.append(
-            f"          <dc:subject>{escape(kw)}</dc:subject>"
-        )
-
-    abstract = abstract_first_paragraph_text(review)
-    if abstract:
-        dc_lines.append(
-            f"          <dc:description>{escape(abstract)}</dc:description>"
-        )
-
-    dc_lines.append("          <dc:type>article</dc:type>")
-    dc_lines.append(f"          <dc:publisher>{escape(REPOSITORY_NAME)}</dc:publisher>")
-
-    if review.issue:
-        dc_lines.append(
-            f"          <dc:source>RIDE Issue {escape(review.issue)}</dc:source>"
-        )
-
-    for item in review.related_items:
-        if item.type != "reviewed_resource":
-            continue
-        for target in item.bibl_targets:
-            dc_lines.append(
-                f"          <dc:relation>{escape(target)}</dc:relation>"
+    oai_base = oai_base_url or f"{base_url}/oai/"
+    date = build_date or ""
+    stamp = "".join(ch for ch in date[:19] if ch.isdigit()) or "00000000000000"
+    reviews = [r for r in reviews if r.id]
+    files: dict[str, str] = {
+        "identify.xml": build_identify(oai_base, date),
+        "list-metadata-formats.xml": build_list_metadata_formats(oai_base, date),
+        "list-sets.xml": build_list_sets(oai_base, date),
+        "static-repository.xml": build_static_repository(reviews, oai_base, base_url, stamp),
+        "routes.json": json.dumps(routes(reviews), indent=2, ensure_ascii=False) + NL,
+    }
+    for prefix in PREFIXES:
+        for verb, name in (
+            ("ListIdentifiers", "list-identifiers"),
+            ("ListRecords", "list-records"),
+        ):
+            files[f"{prefix}/{name}.xml"] = build_list(
+                verb, reviews, prefix, oai_base, base_url, date, stamp
             )
-
-    dc_body = "\n".join(dc_lines)
-    return (
-        "      <metadata>\n"
-        '        <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"\n'
-        '                   xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
-        '                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
-        '                   xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/\n'
-        '                       http://www.openarchives.org/OAI/2.0/oai_dc.xsd">\n'
-        f"{dc_body}\n"
-        "        </oai_dc:dc>\n"
-        "      </metadata>"
-    )
-
-
-def _page_url(review: Review, base_url: str) -> Optional[str]:
-    if not review.id or not review.issue:
-        return None
-    return review_url(review, base_url)
-
-
+        for r in reviews:
+            files[f"{prefix}/records/{r.id}.xml"] = build_get_record(
+                r, prefix, oai_base, base_url, date, stamp
+            )
+    # Earlier oai_dc paths stay valid.
+    files["list-identifiers.xml"] = files["oai_dc/list-identifiers.xml"]
+    files["list-records.xml"] = files["oai_dc/list-records.xml"]
+    for r in reviews:
+        files[f"records/{r.id}.xml"] = files[f"oai_dc/records/{r.id}.xml"]
+    oai_dir = out_root / "oai"
+    for rel, text in files.items():
+        path = oai_dir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    return len(files)

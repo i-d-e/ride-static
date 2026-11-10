@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.openarchives.org/OAI/2.0/" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>2026-11-10T21:11:17.623+01:00</responseDate>
+    <request identifier="ride.4.2" metadataPrefix="oai_doajxml" verb="GetRecord">http://ride.i-d-e.de/apis/oai</request>
+    <GetRecord>
+        <record>
+            <header xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://purl.org/dc/elements/1.1/">
+                <identifier>ride.4.2</identifier>
+                <datestamp>2016-06-01</datestamp>
+            </header>
+            <metadata>
+                <record xmlns="https://doaj.org/static/doaj/doajArticles">
+                    <language>eng</language>
+                    <publisher>Institut für Dokumentologie und Editorik e.V.</publisher>
+                    <journalTitle>RIDE – A review journal for digital editions and resources</journalTitle>
+                    <eissn>2363-4952</eissn>
+                    <publicationDate>2016-06-01</publicationDate>
+                    <volume>4</volume>
+                    <doi>10.18716/ride.a.4.2</doi>
+                    <documentType>article</documentType>
+                    <title language="eng">Digital Thoreau</title>
+                    <authors>
+                        <author>
+                            <name>Aodhán Kelly</name>
+                            <affiliationId>1</affiliationId>
+                            <orcid_id>https://orcid.org/0000-0002-1387-751X</orcid_id>
+                        </author>
+                    </authors>
+                    <affiliationsList>
+                        <affiliationName affiliationId="1">University of Antwerp</affiliationName>
+                    </affiliationsList>
+                    <abstract language="eng">Digital Thoreau is a web resource comprising three digital projects related to the work of Henry David Thoreau created at SUNY Geneseo. The first of these is a fluid text edition of Thoreau’s most famous work Walden. This allows multiple versions of the text to be represented simultaneously in a dynamic environment, which can be a valuable resource to Thoreau scholars, particularly for those interested in researching the genetic aspect of the text. In the second project a very innovative and engaging social reading platform has been created in order to facilitate community and student driven annotation of both Walden and his 1849 essay Resistance to Civil Government. The third project is a student created digital archive of the papers of Thoreau scholar Walter Harding, which is primarily a pedagogical exercise in digital humanities for the students of SUNY Geneseo. Digital Thoreau as a whole is a multi-faceted web resource that offers interesting new opportunities for scholarly research as well as for teaching and public engagement with Thoreau’s influential works.</abstract>
+                    <fullTextUrl format="html">http://ride.i-d-e.de/issues/issue-4/digitalthoreau</fullTextUrl>
+                    <keywords language="eng">
+                        <keyword>19th century</keyword>
+                        <keyword>annotation</keyword>
+                        <keyword>archive</keyword>
+                        <keyword>collation</keyword>
+                        <keyword>fluid text</keyword>
+                        <keyword>genetic edition</keyword>
+                        <keyword>modern</keyword>
+                        <keyword>pedagogy</keyword>
+                        <keyword>reading edition</keyword>
+                        <keyword>social edition</keyword>
+                        <keyword>tei</keyword>
+                        <keyword>variant</keyword>
+                    </keywords>
+                </record>
+            </metadata>
+        </record>
+    </GetRecord>
+</OAI-PMH>

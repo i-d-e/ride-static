@@ -54,6 +54,7 @@ from urllib.parse import unquote, urljoin, urlsplit
 from lxml import etree, html
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import oai_contract  # noqa: E402
 from parity_fetch import CachedFetcher, Response  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -776,6 +777,27 @@ def check_interfaces(fetcher: CachedFetcher, static: StaticSite, sample: bool) -
             f"live {sorted(x.decode() for x in lf)} | static {sorted(x.decode() for x in sf)}",
         )
     )
+    # Record contract per format: every live record against the static list.
+    for prefix in sorted(x.decode() for x in lf):
+        live_list, _ = harvest_oai(fetcher, "ListRecords", prefix)
+        live_by_id = {r.findtext("o:header/o:identifier", namespaces=OAI_NS): r for r in live_list}
+        sresp = static.get(f"/oai/{prefix}/list-records.xml")
+        static_by_id = (
+            oai_contract.records_by_id(etree.fromstring(sresp.body)) if sresp.status == 200 else {}
+        )
+        for ident in sorted(live_by_id)[: (3 if sample else None)]:
+            if ident not in static_by_id:
+                out.append(Finding(f"oai_record_{prefix}", ident, "missing_static", ""))
+                continue
+            diff = oai_contract.differing_fields(live_by_id[ident], static_by_id[ident], prefix)
+            out.append(
+                Finding(
+                    f"oai_record_{prefix}",
+                    ident,
+                    "differs" if diff else "equal",
+                    "; ".join(f"{k}: live {v[0]} | static {v[1]}" for k, v in diff.items())[:400],
+                )
+            )
     # Records: the persistent address printed in each live record must resolve statically.
     live_records, _ = harvest_oai(fetcher, "ListRecords", "oai_dc")
     for rec in live_records[: (5 if sample else None)]:
@@ -788,12 +810,17 @@ def check_interfaces(fetcher: CachedFetcher, static: StaticSite, sample: bool) -
                 f = check_url(static, path, "")
                 out.append(Finding("oai_record_url", ident, f.status, f"{value}: {f.detail}"))
     # Verb-routed protocol requests cannot be served from files.
+    # Verb-routed protocol requests need the router (docs/oai-router/) on a
+    # host that runs code; the static files alone cannot answer them.
+    routes = static.get("/oai/routes.json")
     out.append(
         Finding(
             "oai_protocol",
             "/apis/oai?verb=…",
             "missing_static",
-            "query-string requests need a request-handling component (knowledge/oai-pmh-statisch.md)",
+            "routes.json served; protocol answers need the request router in front"
+            if routes.status == 200
+            else "no routes.json; query-string requests unanswerable",
         )
     )
     # Feeds: legacy paths and .xml endpoints parse and point at existing pages.

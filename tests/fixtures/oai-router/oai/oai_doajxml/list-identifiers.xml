@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2026-11-10T12:00:00Z</responseDate>
+  <request verb="ListIdentifiers" metadataPrefix="oai_doajxml">https://i-d-e.github.io/ride-static/oai/</request>
+  <ListIdentifiers>
+    <header>
+      <identifier>ride.4.2</identifier>
+      <datestamp>2016-06-01</datestamp>
+    </header>
+    <header>
+      <identifier>ride.16.0</identifier>
+      <datestamp>2023-03-01</datestamp>
+    </header>
+  </ListIdentifiers>
+</OAI-PMH>
