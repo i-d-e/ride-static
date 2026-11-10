@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-11-10 — Close the content, OAI and query-address gaps the parity check left
+
+**Ziel:** Take over the six published contributions missing from the corpus, serve OAI-PMH as the live endpoint does, and answer `/?s=` and `/?p=`.
+**Erledigt:** The five issue editorials and the OpenRefine review are in the corpus, copied unchanged from the issue folders of `i-d-e/ride`; the issue 21 editorial comes from its last well-formed revision ([[parity#Contributions taken over from i-d-e/ride (2026-11-10)]]). Editorials render with "By", without factsheet and outside the reviewer list. The OAI snapshot now holds all three live formats in the live identifier form, a routes table, a Static Repository file and the request router `docs/oai-router/` with tests ([[oai-pmh-statisch#Implementation of the snapshot and the router (2026-11-10)]]). The home page answers `/?s=` through the search and `/?p=` through the recorded post map. Against local builds the full check moved from 111 to 117 joined contributions, from 31 to 24 unanswered sitemap URLs, from one to three OAI formats, and now matches the field contract for 111, 108 and 108 of 116 live records per format; 268 of 291 recorded shortlinks resolve. The Pages deployment of 5dc0436 timed out while syncing files; the deploy step now waits thirty minutes.
+**Entscheidungen:** Editorials are recognised by the numbering `ride.{N}.0` instead of a new page type. Lists carry no `resumptionToken`, because they are complete. The router stays copy-ready in the repository, since running it needs a host outside GitHub Pages.
+**Offen:** Router deployment and the proxy in front of the domain (issue #6). The upstream issue 21 editorial is not well-formed. The live endpoint mislabels ride.21.1 as ride.1.1. Browser behaviour of the home-page scripts was checked by tests only, not in a browser.
+**Nächster Einstieg:** After the push and a successful deploy, run `uv run python scripts/parity.py --full` against the deployed site.
+
 ## 2026-11-10 — Measure parity with the live site and close what it found
 
 **Ziel:** Inventory what ride.i-d-e.de offers readers and machines, build a repeatable parity check against it and implement the technically clear gaps.
