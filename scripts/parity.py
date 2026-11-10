@@ -652,7 +652,9 @@ def run(
         target = f"/issues/{entry['issue']}/{entry['id']}/"
         report.legacy_paths.setdefault(doi, []).append(legacy)
         expected[legacy] = target
-        expected[f"{legacy}factsheet/"] = f"{target}factsheet/"
+        # Editorials (ride.{N}.0) have no factsheet; WordPress still lists one.
+        editorial = re.fullmatch(r"ride\.\d+\.0", entry["id"]) is not None
+        expected[f"{legacy}factsheet/"] = target if editorial else f"{target}factsheet/"
         sresp = static.get(target)
         if sresp.status != 200:
             report.add(Finding("review_join", doi, "missing_static", f"{target} -> {sresp.status}"))

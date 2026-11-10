@@ -12,6 +12,8 @@ cached without surprises. Use ``dataclasses.replace`` to derive variants.
 
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -219,3 +221,14 @@ class Review:
     @property
     def is_draft(self) -> bool:
         return self.publication_status == "draft"
+
+    @property
+    def is_editorial(self) -> bool:
+        """An issue editorial, identified by RIDE's numbering ``ride.{N}.0``.
+
+        Editorials are published like reviews (DOI ``10.18716/ride.a.{N}.0``,
+        OAI record, page under the issue) but review no resource: they carry
+        no questionnaire, their authors are the issue editors, and the live
+        site introduces them with "By" rather than "Reviewed by".
+        """
+        return bool(re.fullmatch(r"ride\.\d+\.0", self.id or ""))

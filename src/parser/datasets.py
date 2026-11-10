@@ -92,6 +92,9 @@ def aggregate_reviewers(reviews: tuple[Review, ...]) -> tuple[ReviewerAggregate,
     falling back to full_name when no surname is parsed out."""
     by_key: dict[str, dict] = {}
     for review in reviews:
+        if review.is_editorial:
+            # Issue editors write the editorials; they are not reviewers.
+            continue
         for author in review.authors:
             key = _reviewer_key(author)
             entry = by_key.setdefault(

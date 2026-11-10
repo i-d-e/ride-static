@@ -71,6 +71,7 @@ Bewusst nicht reproduziert: die generierten Überschriften-Anker `#hN` der Alt-A
 8. Seiten außerhalb des Menüs: Einzelne Calls for Reviews, archivierte Editorials, FAIR-Kriterien, Landingpages einzelner Issues und `/copyright/` haben keine statische Entsprechung. Welche davon sollen als TEI-Seite übernommen werden, welche entfallen?
 9. Antwortlabels der Fragebögen: Für Text Collections und Tools tragen die TEI-Dateien nur Kategorie-Identifier, die Live-Factsheets zeigen Labels aus den erweiterten Fragebogendateien in ride-tech. Sollen diese Labels als Tabelle in dieses Repository übernommen werden, und welche Fassung gilt als Quelle?
 10. OAI-Identifier: Der Snapshot schreibt `oai:ride.i-d-e.de:ride.1.1`, der laufende Endpunkt `ride.1.1`; er listet zudem die Issue-Editorials (`ride.{N}.0`) und die Formate MARCXML und DOAJ. Welche Form und welcher Umfang gelten, entscheidet sich mit Issue #6.
+11. Editorials: Die fünf Issue-Editorials erscheinen wie Reviews mit „By“ statt „Reviewed by“ und ohne Factsheet ([[parity#Contributions taken over from i-d-e/ride (2026-11-10)]]). Soll es eine eigene Seitenart oder Kennzeichnung auf der Issue-Seite geben, und soll die Quelle der Ausgabe 21 im Repository `i-d-e/ride` korrigiert werden (nicht wohlgeformt seit 2026-06-21)?
 
 
 ## Verified technical maintenance, 17 October 2026

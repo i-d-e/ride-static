@@ -178,6 +178,8 @@ def test_smoke_real_corpus_aggregate_bibl_count() -> None:
     no_back_count = 0
     for f in files:
         tree = etree.parse(str(f))
+        if (tree.getroot().get("{http://www.w3.org/XML/1998/namespace}id") or "").endswith(".0"):
+            continue  # issue editorials, not part of the seven no-back reviews
         text_el = tree.getroot().find(f"{{{TEI}}}text")
         entries = parse_bibliography(text_el)
         if entries == ():

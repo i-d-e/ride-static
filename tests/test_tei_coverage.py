@@ -97,6 +97,8 @@ KNOWN_ELEMENTS: dict[str, str] = {
     "orgName": "surfaced",
     "placeName": "surfaced",
     "affiliation": "passthrough",
+    # <country> occurs only in the affiliation of the issue 21 editorial.
+    "country": "header",
     "email": "surfaced",
     "author": "surfaced",
     "editor": "surfaced",

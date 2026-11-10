@@ -10,6 +10,7 @@
       <a href="{{ root }}">Review</a>
       {%- endif -%}
     </li>
+    {%- if not review.is_editorial %}
     <li>
       {%- if current == "factsheet" -%}
       <span class="ride-artifacts__current" aria-current="page">Factsheet</span>
@@ -17,6 +18,7 @@
       <a href="{{ root }}factsheet/">Factsheet</a>
       {%- endif -%}
     </li>
+    {%- endif %}
     <li><a href="{{ root }}{{ review.id }}.xml" type="application/tei+xml">TEI XML</a></li>
     <li>
       {%- if pdf_available -%}

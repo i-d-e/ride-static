@@ -77,7 +77,7 @@
           {%- if item.last_accessed %} ({{ site.strings.last_accessed | default('Last Accessed') }}: {{ item.last_accessed }}){% endif -%}.
         {%- endif %}
         {%- if review.authors %}
-          {{ site.strings.reviewed_by | default('Reviewed by') }}
+          {% if review.is_editorial %}{{ site.strings.by | default('By') }}{% else %}{{ site.strings.reviewed_by | default('Reviewed by') }}{% endif %}
           {%- for a in review.authors %}
             {%- if a.person.identifier_url %} <a class="ride-review__orcid" href="{{ a.person.identifier_url }}" rel="me" aria-label="{{ a.person.identifier_authority | upper }}">{{ a.person.identifier_authority | upper }}</a>{%- endif %}
             {{ a.person.full_name }}

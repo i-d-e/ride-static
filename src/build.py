@@ -108,6 +108,7 @@ STRING_KEYS: frozenset[str] = frozenset(
         "amendments",
         "apparate",
         "back_to_review",
+        "by",
         "cite",
         "cite_note",
         "contact",
@@ -290,17 +291,19 @@ def _render_review(
     (page_dir / "index.html").write_text(html, encoding="utf-8")
 
     # Factsheet full page (R18) — /issues/{N}/{id}/factsheet/index.html.
-    factsheet_dir = page_dir / "factsheet"
-    factsheet_dir.mkdir(parents=True, exist_ok=True)
-    (factsheet_dir / "index.html").write_text(
-        render_factsheet(
-            review,
-            site=site,
-            env=env,
-            pdf_available=pdf_available,
-        ),
-        encoding="utf-8",
-    )
+    # Editorials review no resource and carry no questionnaire.
+    if not review.is_editorial:
+        factsheet_dir = page_dir / "factsheet"
+        factsheet_dir.mkdir(parents=True, exist_ok=True)
+        (factsheet_dir / "index.html").write_text(
+            render_factsheet(
+                review,
+                site=site,
+                env=env,
+                pdf_available=pdf_available,
+            ),
+            encoding="utf-8",
+        )
 
     # Drop the original TEI alongside, per specification.md R3 (download).
     target_xml = page_dir / f"{review.id or path.stem}.xml"

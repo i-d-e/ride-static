@@ -291,7 +291,11 @@ def test_review_is_immutable(fixture_path: Path) -> None:
 @needs_corpus
 def test_smoke_real_corpus_smallest_file() -> None:
     """Parse the smallest review in the real corpus end-to-end without errors."""
-    smallest = min(iter_tei_files(), key=lambda p: p.stat().st_size)
+    # Issue editorials review no resource; the smallest review proper counts.
+    smallest = min(
+        (p for p in iter_tei_files() if p.name != "editorial-tei.xml"),
+        key=lambda p: p.stat().st_size,
+    )
     r = parse_review(smallest)
     assert r.id.startswith("ride.")
     assert r.issue.isdigit()

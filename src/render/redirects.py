@@ -150,8 +150,10 @@ def write_redirects(
         seen_issues.add(review.issue)
         for old in review_legacy_paths(review, table.reviews):
             write_at(old, f"/issues/{review.issue}/{review.id}/")
-            # Legacy factsheet URL (R18) → new factsheet sub-page.
-            write_at(f"{old}/factsheet", f"/issues/{review.issue}/{review.id}/factsheet/")
+            # Legacy factsheet URL (R18) → new factsheet sub-page; editorials
+            # have none, so their factsheet address lands on the editorial.
+            sub = "" if review.is_editorial else "factsheet/"
+            write_at(f"{old}/factsheet", f"/issues/{review.issue}/{review.id}/{sub}")
 
     # WordPress tag archives (/tag/{slug}/) -> the static tag pages.
     for old, target in tag_redirects(reviews, table.tags).items():

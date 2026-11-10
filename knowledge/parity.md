@@ -69,7 +69,6 @@ Review pages with numbered paragraphs, notes, figures, bibliography, list of fig
 
 ### Not yet present
 
-- The OpenRefine review (DOI 10.18716/ride.a.19.3) and the editorials of issues 6, 8, 9, 16 and 21 (`ride.{N}.0`), which the live site publishes as pages with DOI and OAI record. Their TEI files lie in `i-d-e/ride` but not in this corpus. Taking them over changes the journal content of this repository and therefore waits for the editors.
 - OAI-PMH `oai_marcxml` and `oai_doajxml` records, the editorial records `ride.{N}.0`, and the bare identifier form of the live endpoint (`ride.1.1`, the static snapshot writes `oai:ride.i-d-e.de:ride.1.1`).
 - Answer labels of the select questions in the text-collection and tools questionnaires. The TEI carries only category identifiers such as `tokens_gt10mio`. The live factsheets show labels from the extended questionnaire files in ride-tech, and the static factsheet falls back to the identifier.
 - Editorial pages outside the menu (individual calls for reviews, archived editorials, FAIR criteria, issue landing pages, copyright). Whether they move is part of the TEI conversion scope in issue #3.
@@ -107,6 +106,14 @@ uv run python scripts/parity.py --full --static-root site/ --write-legacy-urls c
 The check joins live and static reviews by DOI, the identifier both sides print and external services resolve. Per joined review it compares title, DOI, issue, publication month, authors (from the citation suggestion), the set of numbered paragraphs, the text of each paragraph, figure files, notes, bibliography, tags, licence, the reachability of TEI and PDF download, and the factsheet answers per criterion. Text equality means equal word sequences after Unicode compatibility folding and case folding. Quotes, dashes and whitespace runs therefore do not count, while a lost space between two words does. Every URL of the live sitemap, every tag URL seen on a live review and every address printed in the live OAI records is resolved on the static site through its stubs. Contract tests cover OAI-PMH (live endpoint harvested over all resumption tokens against the snapshot), the feeds, the sitemap and the entry counts of the eXist listings.
 
 The fixed sample (`SAMPLE` in the script) holds one review per feature the comparison has to see: figures in running text, footnotes, an amendment, `.PNG` figure files, a text-collection questionnaire, a compound review, a tools questionnaire in a rolling issue, a picture directory alias and the newest review. The full run then covers every review the live sitemap lists. `tests/test_parity.py` pins the comparison logic on trimmed copies of real pages.
+
+### Contributions taken over from i-d-e/ride (2026-11-10)
+
+The corpus was copied in May 2026 from `i-d-e/ride/tei_all/`, which holds the reviews but neither the issue editorials nor the OpenRefine review. The live site publishes all six with DOI and OAI record. Their TEI files were taken over unchanged from the issue folders of `i-d-e/ride` at revision 6e592d0 as `issues/{N}/reviews/editorial-tei.xml` and `issues/19/reviews/openrefine-tei.xml`; their pictures resolve from the sibling checkout like every historical review. One exception: the current revision of the issue 21 editorial is not well-formed XML (a typographic quotation mark closes two `placeName/@ref` attributes, commits of 2026-06-21). The corpus holds the last well-formed revision, 667fdb0, which differs only in the affiliation identifiers of three authors. The upstream file needs the correction.
+
+Editorials are recognised by RIDE's numbering `ride.{N}.0` (`Review.is_editorial`). They render like a review with "By" instead of "Reviewed by", without factsheet, and their authors stay out of the reviewer list. Their WordPress factsheet address redirects to the editorial. Whether editorials should get a page type of their own is an editorial question.
+
+The parity check finds these differences between TEI and WordPress for the six: the issue 21 editorial title lacks the prefix "EDITORIAL:" in TEI, the issue 16 editorial carries the keyword "digital scholarly editions" where WordPress tags "digital scholarly edition", and the paragraph numbering of the editorials of issues 8 and 9 differs by one paragraph. The OpenRefine factsheet has no live counterpart in the WordPress sitemap.
 
 ### Defects the check found in the static build
 

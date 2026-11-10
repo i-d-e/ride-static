@@ -109,6 +109,11 @@
       "occurrences": 1
     },
     {
+      "file": "issues/16/reviews/editorial-tei.xml",
+      "message": "Invalid attribute ref for element affiliation",
+      "occurrences": 3
+    },
+    {
       "file": "issues/18/reviews/catullus-tei.xml",
       "message": "Did not expect element p there",
       "occurrences": 1
@@ -161,6 +166,41 @@
     {
       "file": "issues/18/reviews/furnace-fugue-tei.xml",
       "message": "Invalid attribute style for element hi",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Did not expect element figure there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Did not expect element p there",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Element body has extra content: div",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Element p has extra content: text",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Element text failed to validate content",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Expecting an element head, got nothing",
+      "occurrences": 1
+    },
+    {
+      "file": "issues/19/reviews/openrefine-tei.xml",
+      "message": "Invalid attribute ref for element orgName",
       "occurrences": 1
     },
     {
@@ -259,6 +299,16 @@
       "occurrences": 1
     },
     {
+      "file": "issues/21/reviews/editorial-tei.xml",
+      "message": "Did not expect element country there",
+      "occurrences": 2
+    },
+    {
+      "file": "issues/21/reviews/editorial-tei.xml",
+      "message": "Invalid attribute ref for element orgName",
+      "occurrences": 1
+    },
+    {
       "file": "issues/22/reviews/arendt-tei.xml",
       "message": "Did not expect element p there",
       "occurrences": 2
@@ -284,6 +334,16 @@
       "occurrences": 1
     },
     {
+      "file": "issues/6/reviews/editorial-tei.xml",
+      "message": "Invalid attribute ref for element orgName",
+      "occurrences": 2
+    },
+    {
+      "file": "issues/8/reviews/editorial-tei.xml",
+      "message": "Invalid attribute ref for element affiliation",
+      "occurrences": 2
+    },
+    {
       "file": "issues/8/reviews/wikisource-tei.xml",
       "message": "Did not expect element p there",
       "occurrences": 1
@@ -307,6 +367,11 @@
       "file": "issues/8/reviews/wikisource-tei.xml",
       "message": "Element text failed to validate content",
       "occurrences": 1
+    },
+    {
+      "file": "issues/9/reviews/editorial-tei.xml",
+      "message": "Invalid attribute ref for element affiliation",
+      "occurrences": 2
     }
   ]
 }
