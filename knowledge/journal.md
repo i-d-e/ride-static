@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-11-10 — Repair the failed deployment check at the image resolver
+
+**Ziel:** Find the cause of the failed run for 36058ae and repair it at the root without weakening the legacy check.
+**Erledigt:** The run log names three unresolved figures (ride.9.5 picture-1/-2, ride.16.2 picture-6). The TEI cites `.png`, the picture checkout stores `.PNG`. Windows resolved them case-insensitively, so the local verification of 2026-10-17 passed while the Linux runner failed. The resolver now matches the directory listing, exact name first, an unambiguous case-only match second. A real-corpus regression fails against the previous resolver on Windows and passes now. Full suite, Ruff and the Pagefind bootstrap test pass. A build against an export of the CI picture revision 6e592d0 copies every figure and `scripts/check_legacy.py` passes. Compared with the deployed e9820fc, the delivery adds the figure files of eight historical reviews, which the deployed pages still hotlink from the old WordPress host.
+**Entscheidungen:** Correct the resolver rather than the TEI or the sibling repository, because both are outside this repository's write scope and the TEI keeps its published wording. The legacy check and its baseline stay unchanged.
+**Offen:** PDFs and the ODD/RNG synchronization step were not run locally (no GTK, no Java); the hosted run after the push is the remaining check. Directory-name case still relies on the filesystem; CI reports no such case.
+**Nächster Einstieg:** After the push by the coordination, confirm the run passes and the public build-info names the new commit.
+
 ## 2026-11-10 — Record the pushed maintenance and the failed deployment
 
 **Ziel:** Bring the publication state of the maintenance of 2026-10-17 up to date without rewriting the dated entries below.

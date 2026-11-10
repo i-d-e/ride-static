@@ -55,6 +55,36 @@ def test_legacy_image_paths_resolve_real_corpus(tmp_path: Path, slug: str, direc
     )
 
 
+@pytest.mark.parametrize(
+    ("slug", "uppercase"),
+    [
+        ("corlec", {"picture-1.png", "picture-2.png"}),
+        ("tagebuecher-christian-ii", {"picture-6.png"}),
+    ],
+)
+def test_legacy_image_case_follows_picture_checkout(
+    tmp_path: Path, slug: str, uppercase: set[str]
+) -> None:
+    """The i-d-e/ride checkout stores these files as ``.PNG`` while the TEI says
+    ``.png``. Resolution must match the directory listing, so a
+    case-insensitive Windows filesystem behaves like the Linux CI runner."""
+    review = parse_review(find_tei(slug))
+    pictures = tmp_path / "ride" / "issues" / f"issue{int(review.issue):02d}" / slug / "pictures"
+    pictures.mkdir(parents=True)
+    expected = set()
+    for figure in review.figures:
+        if not figure.graphic_url:
+            continue
+        name = figure.graphic_url.rsplit("/", 1)[-1]
+        on_disk = name[:-4] + ".PNG" if name in uppercase else name
+        (pictures / on_disk).write_bytes(b"resolver boundary fixture")
+        expected.add(on_disk)
+
+    _, report = rewrite_figure_assets(review, tmp_path / "ride", tmp_path / "site")
+    assert not report.missing
+    assert {relative.name for relative in report.copied} == expected
+
+
 @pytest.mark.parametrize("legacy", [False, True])
 @pytest.mark.parametrize(
     ("mutation", "rule"),

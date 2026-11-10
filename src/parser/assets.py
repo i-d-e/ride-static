@@ -177,17 +177,35 @@ def _legacy_asset_path(ride_root: Path, issue: str, slug: str, filename: str) ->
     """Resolve documented legacy aliases without guessing across directories."""
     issue_root = ride_root / "issues" / f"issue{int(issue):02d}"
     original = issue_root / slug / "pictures" / filename
-    if original.is_file():
-        return original
-    corrected = issue_root / _LEGACY_SLUGS.get(slug, slug) / "pictures" / filename
-    if corrected.is_file():
-        return corrected
+    for directory in (slug, _LEGACY_SLUGS.get(slug, slug)):
+        found = _checkout_entry(issue_root / directory / "pictures", filename)
+        if found is not None:
+            return found
     # Anemoskala's TEI omits .png, while every versioned image has it.
-    if issue == "8" and slug == "anemoskala" and not corrected.suffix:
-        png = corrected.with_suffix(".png")
-        if png.is_file():
-            return png
+    if issue == "8" and slug == "anemoskala" and not PurePosixPath(filename).suffix:
+        found = _checkout_entry(issue_root / slug / "pictures", filename + ".png")
+        if found is not None:
+            return found
     return original
+
+
+def _checkout_entry(directory: Path, filename: str) -> Optional[Path]:
+    """Return the file as the picture checkout spells it.
+
+    Some versioned pictures end in ``.PNG`` while the TEI cites ``.png``.
+    ``Path.is_file`` ignores case on Windows but not on the Linux CI runner,
+    so a local build resolved files that CI reported missing. Matching the
+    directory listing makes both platforms agree. An exact name wins; a
+    case-only difference resolves only when it is unambiguous.
+    """
+    try:
+        names = [entry.name for entry in directory.iterdir() if entry.is_file()]
+    except (FileNotFoundError, NotADirectoryError):
+        return None
+    if filename in names:
+        return directory / filename
+    folded = [name for name in names if name.casefold() == filename.casefold()]
+    return directory / folded[0] if len(folded) == 1 else None
 
 
 def _bundle_asset_path(url: str, source_path: Optional[Path]) -> Optional[Path]:
