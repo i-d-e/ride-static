@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-11-10 — Record the pushed maintenance and the failed deployment
+
+**Ziel:** Bring the publication state of the maintenance of 2026-10-17 up to date without rewriting the dated entries below.
+**Erledigt:** Checked git and the public preview. b009379 and 4ece614 reached origin/main with the merge 36058ae, pushed on 2026-10-31. The entries of 2026-10-17 that call the maintenance local and unpublished describe the state before that push.
+**Entscheidungen:** Keep the entries of 2026-10-17 unchanged as provenance.
+**Offen:** The build run for 36058ae on 2026-10-31 failed at the step "Check legacy diagnostics and resolved images", so the deploy job was skipped. On 2026-11-10 the preview at i-d-e.github.io/ride-static still served the build of e9820fc from 2026-10-23 (footer `data-commit`), which does not contain the maintenance commits. The cause is unexamined, because the run log needs an authenticated GitHub account.
+**Nächster Einstieg:** Unchanged, wait for a new explicit assignment.
+
 ## 2026-10-17 — Correct the remaining extension documentation
 
 **Ziel:** Close the confirmed YAML-only documentation contradiction within the bounded coordination assignment.
