@@ -193,3 +193,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        # The run for 5dc0436 timed out at "syncing_files" after the default
+        # ten minutes while the build itself passed; allow thirty.
+        with:
+          timeout: 1800000
