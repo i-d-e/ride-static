@@ -143,6 +143,13 @@ class Review:
     that ship a review without a DOI.
     """
 
+    publication_uri: Optional[str] = None
+    """Address of record from ``<publicationStmt>/<idno type="URI">``.
+
+    For historical reviews this is the WordPress address on ride.i-d-e.de;
+    the legacy-URL redirects (``src/render/redirects.py``) keep it working.
+    """
+
     publication_status: str = "published"
     """Workflow state from ``revisionDesc/@status``.
 

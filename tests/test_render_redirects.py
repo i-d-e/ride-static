@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src.model.review import Review
 from src.render.redirects import EDITORIAL_REDIRECTS, write_redirects
 
@@ -180,3 +182,66 @@ def test_real_corpus_every_review_gets_a_redirect(corpus_parsed, tmp_path: Path)
         assert legacy.exists(), f"missing redirect for {review.id} ({slug})"
         html = legacy.read_text(encoding="utf-8")
         assert f"/issues/{review.issue}/{review.id}/" in html
+
+
+# -- Legacy addresses beyond the file stem (parity check, 2026-11-10) -----
+
+
+def test_publication_uri_path_gets_a_stub(corpus_parsed, tmp_path: Path) -> None:
+    """carolingian_scholarship-tei.xml records its WordPress address as
+    ``…/issues/issue-1/carolingian-scholarship/`` (hyphen), which the file
+    stem (underscore) never reproduced; ediarum-tei.xml records
+    ``…/issue-11/ediarum/`` without the ``/issues/`` segment."""
+    from src.render.redirects import LegacyUrls
+
+    wanted = {"carolingian_scholarship-tei.xml", "ediarum-tei.xml"}
+    reviews = tuple(r for _, r in corpus_parsed if r.source_file in wanted)
+    if len(reviews) != 2:
+        pytest.skip("fixture reviews not in corpus")
+    write_redirects(reviews, tmp_path, legacy_urls=LegacyUrls())
+    caro = tmp_path / "issues" / "issue-1" / "carolingian-scholarship" / "index.html"
+    assert "/issues/1/ride.1.1/" in caro.read_text(encoding="utf-8")
+    fact = tmp_path / "issues" / "issue-1" / "carolingian-scholarship" / "factsheet" / "index.html"
+    assert "/issues/1/ride.1.1/factsheet/" in fact.read_text(encoding="utf-8")
+    assert (tmp_path / "issue-11" / "ediarum" / "index.html").exists()
+    # The historical file-stem stub stays.
+    assert (tmp_path / "issues" / "issue-1" / "carolingian_scholarship" / "index.html").exists()
+
+
+def test_recorded_live_path_gets_a_stub(tmp_path: Path) -> None:
+    """The live sitemap lists corlec under ``issue-9/corlec-2``; the table
+    recorded from it (config/legacy-urls.json) is keyed by DOI."""
+    from src.render.redirects import LegacyUrls
+
+    review = Review(
+        id="ride.9.5", issue="9", title="t", publication_date="", language="de",
+        licence="", doi="10.18716/ride.a.9.5", source_file="corlec-tei.xml",
+    )
+    table = LegacyUrls(reviews={"10.18716/ride.a.9.5": ["/issues/issue-9/corlec-2/"]})
+    write_redirects((review,), tmp_path, legacy_urls=table)
+    stub = tmp_path / "issues" / "issue-9" / "corlec-2" / "index.html"
+    assert "/issues/9/ride.9.5/" in stub.read_text(encoding="utf-8")
+
+
+def test_bundle_fallback_slug_is_the_directory(tmp_path: Path) -> None:
+    review = _stub_review("19", "ride.19.9", "example-bundle/review.xml")
+    write_redirects((review,), tmp_path, legacy_urls=None)
+    assert (tmp_path / "issues" / "issue-19" / "example-bundle" / "index.html").exists()
+    assert not (tmp_path / "issues" / "issue-19" / "example-bundle" / "review").exists()
+
+
+def test_tag_redirects_cover_wordpress_slugs_and_unconsolidated_tags() -> None:
+    from src.render.redirects import tag_redirects, wordpress_slug
+
+    assert wordpress_slug("tei/xml") == "tei-xml"
+    assert wordpress_slug("Österreich") == "osterreich"
+    review = Review(
+        id="ride.1.4", issue="1", title="t", publication_date="", language="en",
+        licence="", keywords=("collected works", "tei/xml"),
+    )
+    # "work critical edition" is a live WordPress tag of Nietzschesource that
+    # no TEI keyword carries yet (specification A2 consolidation pending).
+    out = tag_redirects((review,), {"tag/work-critical-edition": "work critical edition"})
+    assert out["tag/collected-works"] == "/tags/collected-works/"
+    assert out["tag/tei-xml"] == "/tags/teixml/"
+    assert out["tag/work-critical-edition"] == "/tags/"

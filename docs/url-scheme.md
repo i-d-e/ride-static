@@ -148,6 +148,14 @@ The dynamically generated WordPress listing pages redirect to their static repla
 /reviewers/list-of-reviewers/     ->  /reviewers/
 ```
 
+WordPress tag archives redirect to the static tag page of the same label, and a WordPress tag without a TEI keyword to the overview:
+
+```
+/tag/{wordpress_slug}/            ->  /tags/{tag_slug}/  (or /tags/)
+```
+
+Per-review stubs are written at every recorded WordPress address of a review: the path from the live sitemap (`config/legacy-urls.json`, keyed by DOI), the path of the TEI address of record, and the TEI file stem, each with its `factsheet/` sub-path.
+
 The legacy feed URLs cannot use meta-refresh stubs, feed readers fetch XML and ignore HTML redirect pages. Instead the build copies the feed XML itself to the legacy paths (`src/render/feed.py`, `LEGACY_FEED_ALIASES`):
 
 ```

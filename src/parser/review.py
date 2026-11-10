@@ -26,6 +26,7 @@ from src.parser.questionnaire import parse_questionnaires
 from src.parser.metadata import (
     parse_authors,
     parse_doi,
+    parse_publication_uri,
     parse_editors,
     parse_keywords,
     parse_related_items,
@@ -71,6 +72,7 @@ def parse_review(path: Path) -> Review:
         language=attr(find(profile_desc, "t:langUsage/t:language"), "ident") or "",
         licence=attr(find(file_desc, "t:publicationStmt/t:availability/t:licence"), "target") or "",
         doi=parse_doi(file_desc),
+        publication_uri=parse_publication_uri(file_desc),
         publication_status=(
             attr(find(root, "t:teiHeader/t:revisionDesc"), "status") or "published"
         ),

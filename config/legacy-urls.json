@@ -1,0 +1,708 @@
+{
+  "source": "https://ride.i-d-e.de/sitemap.xml, review pages joined to the corpus by DOI",
+  "recorded": "2026-11-10",
+  "generator": "scripts/parity.py --full --write-legacy-urls",
+  "reviews": {
+    "10.18716/ride.a.1.1": [
+      "/issues/issue-1/carolingian-scholarship/"
+    ],
+    "10.18716/ride.a.1.2": [
+      "/issues/issue-1/codex-sinaiticus/"
+    ],
+    "10.18716/ride.a.1.3": [
+      "/issues/issue-1/leal-conselheiro/"
+    ],
+    "10.18716/ride.a.1.4": [
+      "/issues/issue-1/nietzschesource/"
+    ],
+    "10.18716/ride.a.1.5": [
+      "/issues/issue-1/sandrart-net/"
+    ],
+    "10.18716/ride.a.10.1": [
+      "/issues/issue-10/erich-mendelsohn-archiv/"
+    ],
+    "10.18716/ride.a.10.2": [
+      "/issues/issue-10/mark-twain-letters/"
+    ],
+    "10.18716/ride.a.10.3": [
+      "/issues/issue-10/mozart-briefe-dokumente/"
+    ],
+    "10.18716/ride.a.10.4": [
+      "/issues/issue-10/post-scriptum-digital-archive/"
+    ],
+    "10.18716/ride.a.10.5": [
+      "/issues/issue-10/alfred-escher-briefedition/"
+    ],
+    "10.18716/ride.a.11.1": [
+      "/issues/issue-11/reledmac/"
+    ],
+    "10.18716/ride.a.11.2": [
+      "/issues/issue-11/tustep/"
+    ],
+    "10.18716/ride.a.11.3": [
+      "/issues/issue-11/omeka/"
+    ],
+    "10.18716/ride.a.11.4": [
+      "/issues/issue-11/ediarum/"
+    ],
+    "10.18716/ride.a.11.5": [
+      "/issues/issue-11/web-based-collation-tools/"
+    ],
+    "10.18716/ride.a.12.1": [
+      "/issues/issue-12/berliner-intellektuelle/"
+    ],
+    "10.18716/ride.a.12.2": [
+      "/issues/issue-12/darwin-correspondence/"
+    ],
+    "10.18716/ride.a.12.3": [
+      "/issues/issue-12/sauer-seuffert/"
+    ],
+    "10.18716/ride.a.12.4": [
+      "/issues/issue-12/wega/"
+    ],
+    "10.18716/ride.a.12.5": [
+      "/issues/issue-12/busoni-nachlass/"
+    ],
+    "10.18716/ride.a.13.1": [
+      "/issues/issue-13/ldm/"
+    ],
+    "10.18716/ride.a.13.2": [
+      "/issues/issue-13/koeppen-jugend/"
+    ],
+    "10.18716/ride.a.13.3": [
+      "/issues/issue-13/victorians/"
+    ],
+    "10.18716/ride.a.13.4": [
+      "/issues/issue-13/ehd/"
+    ],
+    "10.18716/ride.a.13.5": [
+      "/issues/issue-13/confessio/"
+    ],
+    "10.18716/ride.a.14.1": [
+      "/issues/issue-14/corema/"
+    ],
+    "10.18716/ride.a.14.2": [
+      "/issues/issue-14/galileo/"
+    ],
+    "10.18716/ride.a.14.3": [
+      "/issues/issue-14/baumeisterbuecher/"
+    ],
+    "10.18716/ride.a.14.4": [
+      "/issues/issue-14/decameron/"
+    ],
+    "10.18716/ride.a.14.5": [
+      "/issues/issue-14/carlyle-addams/"
+    ],
+    "10.18716/ride.a.15.1": [
+      "/issues/issue-15/digital-mappa/"
+    ],
+    "10.18716/ride.a.15.2": [
+      "/issues/issue-15/mei-friend/"
+    ],
+    "10.18716/ride.a.15.3": [
+      "/issues/issue-15/stylo/"
+    ],
+    "10.18716/ride.a.15.4": [
+      "/issues/issue-15/teicat/"
+    ],
+    "10.18716/ride.a.15.5": [
+      "/issues/issue-15/teitok/"
+    ],
+    "10.18716/ride.a.15.6": [
+      "/issues/issue-15/transkribus/"
+    ],
+    "10.18716/ride.a.15.7": [
+      "/issues/issue-15/lakomp/"
+    ],
+    "10.18716/ride.a.16.1": [
+      "/issues/issue-16/walter-benjamin-digital/"
+    ],
+    "10.18716/ride.a.16.2": [
+      "/issues/issue-16/tagebuecher-christian-ii/"
+    ],
+    "10.18716/ride.a.16.3": [
+      "/issues/issue-16/briefportal-leibniz/"
+    ],
+    "10.18716/ride.a.16.4": [
+      "/issues/issue-16/fontane-notebooks/"
+    ],
+    "10.18716/ride.a.16.5": [
+      "/issues/issue-16/koenigsfelden/"
+    ],
+    "10.18716/ride.a.17.1": [
+      "/issues/issue-17/okopenko/"
+    ],
+    "10.18716/ride.a.17.2": [
+      "/issues/issue-17/duerrenmatt/"
+    ],
+    "10.18716/ride.a.17.3": [
+      "/issues/issue-17/europaeische-religionsfrieden/"
+    ],
+    "10.18716/ride.a.17.4": [
+      "/issues/issue-17/austin-papers/"
+    ],
+    "10.18716/ride.a.17.5": [
+      "/issues/issue-17/semper-edition/"
+    ],
+    "10.18716/ride.a.18.1": [
+      "/issues/issue-18/spaengler/"
+    ],
+    "10.18716/ride.a.18.2": [
+      "/issues/issue-18/sturm/"
+    ],
+    "10.18716/ride.a.18.3": [
+      "/issues/issue-18/bufalini/"
+    ],
+    "10.18716/ride.a.18.4": [
+      "/issues/issue-18/furnace-fugue/"
+    ],
+    "10.18716/ride.a.18.5": [
+      "/issues/issue-18/catullus/"
+    ],
+    "10.18716/ride.a.19.1": [
+      "/issues/issue-19/tei-publisher/"
+    ],
+    "10.18716/ride.a.19.2": [
+      "/issues/issue-19/oxygen-framework/"
+    ],
+    "10.18716/ride.a.19.4": [
+      "/issues/issue-19/chatgpt/"
+    ],
+    "10.18716/ride.a.2.1": [
+      "/issues/issue-2/henry-machyn-diary/"
+    ],
+    "10.18716/ride.a.2.2": [
+      "/issues/issue-2/zurcher-sommer-1968/"
+    ],
+    "10.18716/ride.a.2.3": [
+      "/issues/issue-2/becerro-galicano/"
+    ],
+    "10.18716/ride.a.2.4": [
+      "/issues/issue-2/fleischmann-diaries/"
+    ],
+    "10.18716/ride.a.2.5": [
+      "/issues/issue-2/sga_frankenstein-notebooks/"
+    ],
+    "10.18716/ride.a.20.1": [
+      "/issues/issue-20/schopenhauer/"
+    ],
+    "10.18716/ride.a.20.2": [
+      "/issues/issue-20/jean-paul/"
+    ],
+    "10.18716/ride.a.20.3": [
+      "/issues/issue-20/bayeux/"
+    ],
+    "10.18716/ride.a.20.4": [
+      "/issues/issue-20/anne-frank/"
+    ],
+    "10.18716/ride.a.20.5": [
+      "/issues/issue-20/cupola/"
+    ],
+    "10.18716/ride.a.21.1": [
+      "/issues/issue-21/everynamecounts/"
+    ],
+    "10.18716/ride.a.21.2": [
+      "/issues/issue-21/papyrieditor/"
+    ],
+    "10.18716/ride.a.21.3": [
+      "/issues/issue-21/whatsonthemenu/"
+    ],
+    "10.18716/ride.a.21.4": [
+      "/issues/issue-21/makingandknowing/"
+    ],
+    "10.18716/ride.a.21.5": [
+      "/issues/issue-21/crowdsourcingwien/"
+    ],
+    "10.18716/ride.a.22.1": [
+      "/issues/issue-22/arendt/"
+    ],
+    "10.18716/ride.a.3.1": [
+      "/issues/issue-3/melville/"
+    ],
+    "10.18716/ride.a.3.2": [
+      "/issues/issue-3/commedia/"
+    ],
+    "10.18716/ride.a.3.3": [
+      "/issues/issue-3/petrus_plaoul/"
+    ],
+    "10.18716/ride.a.3.4": [
+      "/issues/issue-3/whistler/"
+    ],
+    "10.18716/ride.a.3.5": [
+      "/issues/issue-3/godwin/"
+    ],
+    "10.18716/ride.a.4.1": [
+      "/issues/issue-4/entretenida/"
+    ],
+    "10.18716/ride.a.4.2": [
+      "/issues/issue-4/digitalthoreau/"
+    ],
+    "10.18716/ride.a.4.3": [
+      "/issues/issue-4/montfort/"
+    ],
+    "10.18716/ride.a.4.4": [
+      "/issues/issue-4/klee/"
+    ],
+    "10.18716/ride.a.4.5": [
+      "/issues/issue-4/welschergast/"
+    ],
+    "10.18716/ride.a.5.1": [
+      "/issues/issue-5/jane-austens-fiction-manuscripts/"
+    ],
+    "10.18716/ride.a.5.2": [
+      "/issues/issue-5/beckettarchive/"
+    ],
+    "10.18716/ride.a.5.3": [
+      "/issues/issue-5/damaboba/"
+    ],
+    "10.18716/ride.a.5.4": [
+      "/issues/issue-5/1641-depositions/"
+    ],
+    "10.18716/ride.a.5.5": [
+      "/issues/issue-5/the-william-blake-archive/"
+    ],
+    "10.18716/ride.a.6.1": [
+      "/issues/issue-6/celt-corpus-of-electronic-texts/"
+    ],
+    "10.18716/ride.a.6.10": [
+      "/issues/issue-6/women-writers-in-review/"
+    ],
+    "10.18716/ride.a.6.2": [
+      "/issues/issue-6/litteraturbanken-the-swedish-literature-bank/"
+    ],
+    "10.18716/ride.a.6.3": [
+      "/issues/issue-6/varitext-und-das-corpus-des-varietes-nationales-du-francais/"
+    ],
+    "10.18716/ride.a.6.4": [
+      "/issues/issue-6/corpus-of-spanish-golden-age-sonnets/"
+    ],
+    "10.18716/ride.a.6.5": [
+      "/issues/issue-6/regesta-imperii-online/"
+    ],
+    "10.18716/ride.a.6.6": [
+      "/issues/issue-6/spectateurs/"
+    ],
+    "10.18716/ride.a.6.7": [
+      "/issues/issue-6/review-of-electronic-enlightenment-scholarly-edition-of-correspondence/"
+    ],
+    "10.18716/ride.a.6.8": [
+      "/issues/issue-6/deutsches-textarchiv/"
+    ],
+    "10.18716/ride.a.6.9": [
+      "/issues/issue-6/la-repubblica-corpus/"
+    ],
+    "10.18716/ride.a.7.1": [
+      "/issues/issue-7/crossing-brooklyn-ferry-an-online-critical-edition/"
+    ],
+    "10.18716/ride.a.7.2": [
+      "/issues/issue-7/hesperia/"
+    ],
+    "10.18716/ride.a.7.3": [
+      "/issues/issue-7/faustedition/"
+    ],
+    "10.18716/ride.a.7.4": [
+      "/issues/issue-7/the-casebooks-project/"
+    ],
+    "10.18716/ride.a.7.5": [
+      "/issues/issue-7/the-william-blake-archive-upgrade/"
+    ],
+    "10.18716/ride.a.8.1": [
+      "/issues/issue-8/anemoskala/"
+    ],
+    "10.18716/ride.a.8.2": [
+      "/issues/issue-8/phi/"
+    ],
+    "10.18716/ride.a.8.3": [
+      "/issues/issue-8/perseus/"
+    ],
+    "10.18716/ride.a.8.4": [
+      "/issues/issue-8/wikisource/"
+    ],
+    "10.18716/ride.a.8.5": [
+      "/issues/issue-8/theatre-classique/"
+    ],
+    "10.18716/ride.a.9.1": [
+      "/issues/issue-9/intercorp-2/"
+    ],
+    "10.18716/ride.a.9.2": [
+      "/issues/issue-9/europarl-2/"
+    ],
+    "10.18716/ride.a.9.3": [
+      "/issues/issue-9/shakespeare-plays/"
+    ],
+    "10.18716/ride.a.9.4": [
+      "/issues/issue-9/papyri-info/"
+    ],
+    "10.18716/ride.a.9.5": [
+      "/issues/issue-9/corlec-2/"
+    ]
+  },
+  "tags": {
+    "tag/11th-century": "11th century",
+    "tag/12th-century": "12th century",
+    "tag/13th-century": "13th century",
+    "tag/14th-century": "14th century",
+    "tag/15th-century": "15th century",
+    "tag/16th-century": "16th century",
+    "tag/17th-century": "17th century",
+    "tag/18th-century": "18th century",
+    "tag/19th-century": "19th century",
+    "tag/19th-century-literature": "19th century literature",
+    "tag/20th-century": "20th century",
+    "tag/3d": "3d",
+    "tag/account-books": "account books",
+    "tag/alexander-von-humboldt": "alexander von humboldt",
+    "tag/american": "american",
+    "tag/anne-frank": "anne frank",
+    "tag/annotated-corpora": "annotated corpora",
+    "tag/annotation": "annotation",
+    "tag/anthology": "anthology",
+    "tag/archival-collection": "archival collection",
+    "tag/archive": "archive",
+    "tag/art-history": "art history",
+    "tag/artificial-intelligence": "artificial intelligence",
+    "tag/astronomy": "astronomy",
+    "tag/authority-files": "authority files",
+    "tag/auxiliary-tool": "auxiliary tool",
+    "tag/avantgarde": "avantgarde",
+    "tag/bauhaus": "bauhaus",
+    "tag/bayeux-tapestry": "bayeux tapestry",
+    "tag/beta-status": "beta status",
+    "tag/blake": "blake",
+    "tag/books": "books",
+    "tag/brunelleschi": "brunelleschi",
+    "tag/canonical-text-services": "canonical text services",
+    "tag/cartulary": "cartulary",
+    "tag/casebook": "casebook",
+    "tag/castile": "castile",
+    "tag/cei": "cei",
+    "tag/celtic": "celtic",
+    "tag/charters": "charters",
+    "tag/citizen-science": "citizen science",
+    "tag/civilisation": "civilisation",
+    "tag/classical-age": "classical age",
+    "tag/classics": "classics",
+    "tag/cmif": "cmif",
+    "tag/cms": "cms",
+    "tag/code-editing": "code editing",
+    "tag/code-of-conduct": "code of conduct",
+    "tag/codex": "codex",
+    "tag/collaborative": "collaborative",
+    "tag/collaborative-edition": "collaborative edition",
+    "tag/collation": "collation",
+    "tag/collected-work": "collected work",
+    "tag/collected-works": "collected works",
+    "tag/commentary": "commentary",
+    "tag/community-management": "community management",
+    "tag/comparative-edition": "comparative edition",
+    "tag/concordances": "concordances",
+    "tag/conservation": "conservation",
+    "tag/corlec": "corlec",
+    "tag/corpus": "corpus",
+    "tag/corpus-analysis": "corpus analysis",
+    "tag/corpus-linguistics": "corpus linguistics",
+    "tag/correction": "correction",
+    "tag/correspondence": "correspondence",
+    "tag/correspondences": "correspondences",
+    "tag/court": "court",
+    "tag/critical-apparatus": "critical apparatus",
+    "tag/critical-digitization": "critical digitization",
+    "tag/critical-edition": "critical edition",
+    "tag/critical-text": "critical text",
+    "tag/cross-genre": "cross-genre",
+    "tag/crowd-editions": "crowd editions",
+    "tag/crowdsourcing": "crowdsourcing",
+    "tag/daily-press": "daily press",
+    "tag/dante": "dante",
+    "tag/data-exploration": "data exploration",
+    "tag/data-model": "data model",
+    "tag/data-modeling": "data modeling",
+    "tag/data-modelling": "data modelling",
+    "tag/data-visualization": "data visualization",
+    "tag/database": "database",
+    "tag/dcmi": "dcmi",
+    "tag/design-history": "design history",
+    "tag/diary": "diary",
+    "tag/digital-archive": "digital archive",
+    "tag/digital-collection": "digital collection",
+    "tag/digital-edition": "digital edition",
+    "tag/digital-first": "digital first",
+    "tag/digital-library": "digital library",
+    "tag/digital-music-edition": "digital music edition",
+    "tag/digital-scholarly-editing": "digital scholarly editing",
+    "tag/digital-scholarly-edition": "digital scholarly edition",
+    "tag/digital-text": "digital text",
+    "tag/digital-writing": "digital writing",
+    "tag/digitization": "digitization",
+    "tag/diplomatic-edition": "diplomatic edition",
+    "tag/diplomatic-transcription": "diplomatic transcription",
+    "tag/diplomatics": "diplomatics",
+    "tag/documentary-edition": "documentary edition",
+    "tag/documentary-editions": "documentary editions",
+    "tag/documentation": "documentation",
+    "tag/dossiers": "dossiers",
+    "tag/drama": "drama",
+    "tag/drupal": "drupal",
+    "tag/dublin-core": "dublin core",
+    "tag/early-editions": "early editions",
+    "tag/early-modern": "early modern",
+    "tag/early-modern-literature": "early modern literature",
+    "tag/economic-history": "economic history",
+    "tag/editing": "editing",
+    "tag/edition-series": "edition series",
+    "tag/editorial": "editorial",
+    "tag/educational-experience": "educational experience",
+    "tag/embedded-transcription": "embedded transcription",
+    "tag/english": "english",
+    "tag/enlightenment": "enlightenment",
+    "tag/enrichment": "enrichment",
+    "tag/entity-identification": "entity identification",
+    "tag/environment": "environment",
+    "tag/epidoc": "epidoc",
+    "tag/epigraphy": "epigraphy",
+    "tag/europe": "europe",
+    "tag/exist-db": "exist-db",
+    "tag/experiment": "experiment",
+    "tag/facsimile": "facsimile",
+    "tag/facsimiles": "facsimiles",
+    "tag/fair": "fair",
+    "tag/fair-data-principles": "fair data principles",
+    "tag/family-legacy": "family legacy",
+    "tag/filologia-dautore": "filologia d’autore",
+    "tag/fleischmann": "fleischmann",
+    "tag/fluid-text": "fluid text",
+    "tag/food": "food",
+    "tag/food-history": "food history",
+    "tag/frankenstein": "frankenstein",
+    "tag/french": "french",
+    "tag/frontend": "frontend",
+    "tag/full-text-corpus": "full text corpus",
+    "tag/full-texts": "full texts",
+    "tag/galileo-galilei": "galileo galilei",
+    "tag/generative-ai": "generative ai",
+    "tag/genesis": "genesis",
+    "tag/genesis-of-work": "genesis of work",
+    "tag/genetic-edition": "genetic edition",
+    "tag/german": "german",
+    "tag/german-philology": "german philology",
+    "tag/germanic-varieties": "germanic varieties",
+    "tag/glam": "glam",
+    "tag/glosses": "glosses",
+    "tag/gnd": "gnd",
+    "tag/godwin": "godwin",
+    "tag/handshift": "handshift",
+    "tag/help": "help",
+    "tag/historical-critical-edition": "historical critical edition",
+    "tag/historical-documents": "historical documents",
+    "tag/historical-linguistics": "historical linguistics",
+    "tag/history": "history",
+    "tag/history-of-alchemy": "history of alchemy",
+    "tag/history-of-ideas": "history of ideas",
+    "tag/history-of-knowledge": "history of knowledge",
+    "tag/history-of-medicine": "history of medicine",
+    "tag/history-of-science": "history of science",
+    "tag/htr": "htr",
+    "tag/hybrid-edition": "hybrid edition",
+    "tag/hypermedia": "hypermedia",
+    "tag/iconography": "iconography",
+    "tag/illustration-description": "illustration description",
+    "tag/illustrations": "illustrations",
+    "tag/image-search": "image search",
+    "tag/immersion": "immersion",
+    "tag/indices": "indices",
+    "tag/intellectual-history": "intellectual history",
+    "tag/interactive-edition": "interactive edition",
+    "tag/interface": "interface",
+    "tag/interlinkage": "interlinkage",
+    "tag/ireland": "ireland",
+    "tag/irish-history": "irish history",
+    "tag/italian": "italian",
+    "tag/klee": "klee",
+    "tag/language": "language",
+    "tag/language-technology": "language technology",
+    "tag/latin": "latin",
+    "tag/legacy": "legacy",
+    "tag/leibniz": "leibniz",
+    "tag/letters": "letters",
+    "tag/library": "library",
+    "tag/linguistic-search": "linguistic search",
+    "tag/linguistics": "linguistics",
+    "tag/linked-data": "linked data",
+    "tag/linked-open-data": "linked open data",
+    "tag/linking": "linking",
+    "tag/literary-review": "literary review",
+    "tag/literature": "literature",
+    "tag/lope-de-vega": "lope de vega",
+    "tag/machyn": "machyn",
+    "tag/manual-text-correction": "manual text correction",
+    "tag/manuscript": "manuscript",
+    "tag/manuscript-transmission": "manuscript transmission",
+    "tag/manuscripts": "manuscripts",
+    "tag/marginalia": "marginalia",
+    "tag/markdown": "markdown",
+    "tag/markup": "markup",
+    "tag/materiality": "materiality",
+    "tag/medadata": "medadata",
+    "tag/medieval": "medieval",
+    "tag/medieval-latin": "medieval latin",
+    "tag/mei-viewer-2": "mei viewer",
+    "tag/melville": "melville",
+    "tag/menu": "menu",
+    "tag/metadata": "metadata",
+    "tag/metrical-markup": "metrical markup",
+    "tag/middle-high-german": "middle high german",
+    "tag/miguel-de-cervantes": "miguel de cervantes",
+    "tag/minnesang": "minnesang",
+    "tag/minnesong": "minnesong",
+    "tag/modern": "modern",
+    "tag/modern-greek-literature": "modern greek literature",
+    "tag/modernism": "modernism",
+    "tag/moral": "moral",
+    "tag/multi-generic": "multi-generic",
+    "tag/multi-genre-corpus": "multi-genre corpus",
+    "tag/multilingual": "multilingual",
+    "tag/multimedia": "multimedia",
+    "tag/multimedia-edition": "multimedia edition",
+    "tag/music-analysis": "music analysis",
+    "tag/music-encoding-initiative": "music encoding initiative",
+    "tag/music-history": "music history",
+    "tag/music-score-visualization": "music score visualization",
+    "tag/musical-notation-rendering": "musical notation rendering",
+    "tag/named-entities": "named entities",
+    "tag/navigation": "navigation",
+    "tag/nazi-persecution": "nazi persecution",
+    "tag/new-york": "new york",
+    "tag/newspaper": "newspaper",
+    "tag/nietzsche": "nietzsche",
+    "tag/notebook": "notebook",
+    "tag/numismatics": "numismatics",
+    "tag/omeka": "omeka",
+    "tag/open-access": "open access",
+    "tag/open-source": "open-source",
+    "tag/orthographic-transcription": "orthographic transcription",
+    "tag/out-of-print-edition": "out-of-print edition",
+    "tag/oxygen-xml-editor": "oxygen xml editor",
+    "tag/palaeographic-annotations": "palaeographic annotations",
+    "tag/paleohispanic-languages": "paleohispanic languages",
+    "tag/papyrology": "papyrology",
+    "tag/parallel-corpus": "parallel corpus",
+    "tag/parallel-encoding": "parallel encoding",
+    "tag/participation": "participation",
+    "tag/pedagogy": "pedagogy",
+    "tag/periodical-essay": "periodical essay",
+    "tag/personography": "personography",
+    "tag/petrus-plaoul": "petrus plaoul",
+    "tag/philology": "philology",
+    "tag/philosophy": "philosophy",
+    "tag/phylogenetic-analysis": "phylogenetic analysis",
+    "tag/play-bill": "play bill",
+    "tag/plugin": "plugin",
+    "tag/plugins": "plugins",
+    "tag/poetry": "poetry",
+    "tag/political": "political",
+    "tag/portuguese": "portuguese",
+    "tag/pos-tagging": "pos-tagging",
+    "tag/pos-tagging-2": "pos tagging",
+    "tag/postcard": "postcard",
+    "tag/print-editions": "print editions",
+    "tag/prosopography": "prosopography",
+    "tag/publication": "publication",
+    "tag/quality-assurance": "quality assurance",
+    "tag/querying": "querying",
+    "tag/rdf": "rdf",
+    "tag/reading-edition": "reading edition",
+    "tag/recipes": "recipes",
+    "tag/reconstruction": "reconstruction",
+    "tag/redesign": "redesign",
+    "tag/religion": "religion",
+    "tag/religious-history": "religious history",
+    "tag/remembrance": "remembrance",
+    "tag/renaissance": "renaissance",
+    "tag/replication": "replication",
+    "tag/rest": "rest",
+    "tag/reusability": "reusability",
+    "tag/reuse": "reuse",
+    "tag/review": "review",
+    "tag/romantic": "romantic",
+    "tag/romanticism": "romanticism",
+    "tag/scholarly-digital-edition": "scholarly digital edition",
+    "tag/scholarly-edition": "scholarly edition",
+    "tag/scholarly-journal": "scholarly journal",
+    "tag/scholarly-research": "scholarly research",
+    "tag/search-functionalities": "search functionalities",
+    "tag/semantic-data": "semantic data",
+    "tag/semantic-web": "semantic web",
+    "tag/semi-automatic-annotation": "semi-automatic annotation",
+    "tag/sentiment-analysis": "sentiment analysis",
+    "tag/shakespeare": "shakespeare",
+    "tag/shared-canvas": "shared canvas",
+    "tag/shelley": "shelley",
+    "tag/siglo-de-oro": "siglo de oro",
+    "tag/single-manuscript": "single manuscript",
+    "tag/social-editing": "social editing",
+    "tag/social-edition": "social edition",
+    "tag/social-history": "social history",
+    "tag/sonnets": "sonnets",
+    "tag/source-material": "source material",
+    "tag/spanish": "spanish",
+    "tag/spanish-golden-age": "spanish golden age",
+    "tag/spoken-language": "spoken language",
+    "tag/sql": "sql",
+    "tag/standard-variety": "standard variety",
+    "tag/statistical-machine-translation": "statistical machine translation",
+    "tag/stemmata": "stemmata",
+    "tag/support": "support",
+    "tag/sustainability": "sustainability",
+    "tag/switzerland": "switzerland",
+    "tag/teaching-notes": "teaching notes",
+    "tag/technical-background": "technical background",
+    "tag/tei": "tei",
+    "tag/teixml": "tei/xml",
+    "tag/text": "Text+",
+    "tag/text-analysis": "text analysis",
+    "tag/text-as-graph": "text as graph",
+    "tag/text-collection": "text collection",
+    "tag/text-comparison": "text comparison",
+    "tag/text-edition": "text edition",
+    "tag/text-encoding": "text encoding",
+    "tag/text-manipulation": "text manipulation",
+    "tag/text-processing": "text processing",
+    "tag/text-synopsis": "text synopsis",
+    "tag/theatre": "theatre",
+    "tag/thematic-tagging": "thematic tagging",
+    "tag/theology": "theology",
+    "tag/toolbox": "toolbox",
+    "tag/transcription": "transcription",
+    "tag/translation": "translation",
+    "tag/transliteration": "transliteration",
+    "tag/transmedialization": "transmedialization",
+    "tag/travel-journals": "travel journals",
+    "tag/treatise": "treatise",
+    "tag/treebank": "treebank",
+    "tag/tustep": "tustep",
+    "tag/typesetting": "typesetting",
+    "tag/usability": "usability",
+    "tag/user-experience": "user experience",
+    "tag/user-interface": "user interface",
+    "tag/user-navigation": "user navigation",
+    "tag/variant": "variant",
+    "tag/victorian-era": "victorian era",
+    "tag/vienna": "Vienna",
+    "tag/virtual-reality": "virtual reality",
+    "tag/virtual-workspace": "virtual workspace",
+    "tag/visual-history": "visual history",
+    "tag/visualization": "visualization",
+    "tag/vocabulary": "vocabulary",
+    "tag/web-application": "web application",
+    "tag/web-presentation": "web presentation",
+    "tag/whitman": "whitman",
+    "tag/witness-accounts": "witness accounts",
+    "tag/women-writers": "women writers",
+    "tag/word-study-tool": "word study tool",
+    "tag/work-critical-edition": "work critical edition",
+    "tag/work-in-progress": "work in progress",
+    "tag/workflow": "workflow",
+    "tag/xml": "xml",
+    "tag/xslt": "xslt"
+  }
+}

@@ -122,6 +122,20 @@ def parse_doi(file_desc: Optional[etree._Element]) -> Optional[str]:
     return None
 
 
+def parse_publication_uri(file_desc: Optional[etree._Element]) -> Optional[str]:
+    """Read ``<publicationStmt>/<idno type="URI">``, the review's address of record.
+
+    For historical reviews this is the WordPress address on ride.i-d-e.de
+    that the OAI records and the DOI metadata were derived from. Its path does
+    not always equal the live WordPress path (issue 11 lacks the ``/issues/``
+    segment), so it is one redirect source among several, not the only one.
+    """
+    for idno_el in findall(file_desc, "t:publicationStmt/t:idno"):
+        if attr(idno_el, "type") == "URI":
+            return itertext(idno_el) or None
+    return None
+
+
 def parse_related_items(file_desc: Optional[etree._Element]) -> list[RelatedItem]:
     """Parse ``<notesStmt>/<relatedItem>`` entries.
 
