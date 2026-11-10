@@ -1,6 +1,6 @@
 ---
 status: befund
-updated: 2026-10-17
+updated: 2026-11-10
 ---
 
 # Publikationsworkflow — Zielbild und Ablösung des Alt-Stacks
@@ -9,7 +9,7 @@ Abgleich der Workflow-Skizze der Projektpartnerin (GitHub-Issue, Schritte 0 bis 
 
 ## Gesamtbefund zum Alt-Stack
 
-Die Live-Site ist für alle menschenlesbaren Seiten WordPress. eXist bedient öffentlich genau eine Funktion, den OAI-PMH-Endpoint `/apis/oai` (Formate `oai_dc`, `oai_marcxml`, `oai_doajxml`; Quelle ist die eXist-App `ride-oai` aus `ride-scripts/oai-api`). Alles andere, was dynamisch wirkt, ist entweder statisches WordPress, extern (TEI/PDF-Downloads über GitHub raw, LimeSurvey, Zenodo, Kriterienkataloge auf i-d-e.de) oder wurde offline aus dem eXist-Korpus generiert und in WordPress-Seiten eingebettet (Charts, Reviewer-Liste, Ressourcen-Liste, Wordclouds). „Weg von eXist" reduziert sich damit auf eine einzige bewusste Entscheidung, die Ablösung des OAI-Endpoints.
+Die Live-Site ist für alle menschenlesbaren Seiten WordPress. eXist bedient öffentlich den OAI-PMH-Endpoint `/apis/oai` (Formate `oai_dc`, `oai_marcxml`, `oai_doajxml`; Quelle ist die eXist-App `ride-oai` aus `ride-scripts/oai-api`) und, wie die Bestandsaufnahme vom 2026-11-10 an der laufenden Seite zeigt, über `<iframe>` auf exist.i-d-e.de auch die Ressourcen-Liste, die Reviewer-Liste und beide Chart-Seiten ([[parity#Function inventory of the live site]]). Die frühere Annahme, diese Listen seien offline erzeugt und eingebettet, ist damit korrigiert. Extern sind TEI/PDF-Downloads über GitHub, LimeSurvey, Zenodo und die Kriterienkataloge auf i-d-e.de. Der statische Build ersetzt die eXist-Listen und Charts bereits; „Weg von eXist" verlangt danach nur noch die Entscheidung über den OAI-Endpoint.
 
 ## Zielworkflow in der statischen Architektur
 
@@ -67,6 +67,10 @@ Bewusst nicht reproduziert: die generierten Überschriften-Anker `#hN` der Alt-A
 4. OAI-Endpoint: Die externe Nutzung des bisherigen Endpunkts ist ungeklärt. Soll er nach bestätigter Nutzungsklärung stillgelegt oder durch einen dünnen zustandslosen Proxy über den statischen Snapshot-Dateien ersetzt werden?
 5. Freischaltungs-Mechanik: PR-basierter Move von ride-editors, wer führt aus?
 6. Legacy-Bilder: Sollen die bestehenden Bilder aus dem Sibling-Repo `ride` schrittweise in Review-Bundles migriert werden?
+7. WordPress-Tags: Die Paritätsprüfung listet je Review die WordPress-Tags, die kein TEI-Keyword trägt. Sollen sie im Zuge der Konsolidierung nach A2 in die TEI übernommen werden, ganz oder ausgewählt?
+8. Seiten außerhalb des Menüs: Einzelne Calls for Reviews, archivierte Editorials, FAIR-Kriterien, Landingpages einzelner Issues und `/copyright/` haben keine statische Entsprechung. Welche davon sollen als TEI-Seite übernommen werden, welche entfallen?
+9. Antwortlabels der Fragebögen: Für Text Collections und Tools tragen die TEI-Dateien nur Kategorie-Identifier, die Live-Factsheets zeigen Labels aus den erweiterten Fragebogendateien in ride-tech. Sollen diese Labels als Tabelle in dieses Repository übernommen werden, und welche Fassung gilt als Quelle?
+10. OAI-Identifier: Der Snapshot schreibt `oai:ride.i-d-e.de:ride.1.1`, der laufende Endpunkt `ride.1.1`; er listet zudem die Issue-Editorials (`ride.{N}.0`) und die Formate MARCXML und DOAJ. Welche Form und welcher Umfang gelten, entscheidet sich mit Issue #6.
 
 
 ## Verified technical maintenance, 17 October 2026

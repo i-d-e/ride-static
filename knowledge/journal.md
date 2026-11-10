@@ -30,6 +30,14 @@ Three persistence layers run in parallel for this project: `CLAUDE.md` for proje
 
 ---
 
+## 2026-11-10 — Measure parity with the live site and close what it found
+
+**Ziel:** Inventory what ride.i-d-e.de offers readers and machines, build a repeatable parity check against it and implement the technically clear gaps.
+**Erledigt:** `scripts/parity.py` with a cached, one-request-per-second fetcher compares both sites by DOI, per review and per URL, and runs contract tests for OAI-PMH, feeds, sitemap and the eXist listings ([[parity]]). Its first full run against the deployed build 8125ba6 joined 111 of 117 live review pages and measured, among others, equal paragraph sets in 103 of 111 reviews, equal paragraph text in 63, and no static answer for 107 of 295 live sitemap URLs and all 357 live tag URLs. It exposed three parser defects: bodies opening with an epigraph or paragraph dropped every following `<div>`, leaving commedia, whistler, bdmp, wba and ps nearly empty; whitespace at the edges of `<emph>`, `<hi>` and `<ref>` was lost and fused words; paragraphs made only of a list or code figure lost their `#pN` anchor. All three are fixed with real-corpus tests. Review redirects now come from the live sitemap (`config/legacy-urls.json`, recorded by the check), the TEI address of record and the file stem, and WordPress tag archives redirect to the static tag pages. Against a local build with these changes the same run measures 109 equal paragraph sets, 83 equal paragraph texts, 31 unanswered sitemap URLs and 0 unanswered tag URLs.
+**Entscheidungen:** DOI is the join key, because external services resolve it and both sites print it. Text equality compares word sequences after Unicode and case folding, so typography does not count and a lost space does. The legacy URL table is committed evidence, because the live site will not stay available. Unconsolidated WordPress tags redirect to the tag overview instead of a 404.
+**Offen:** The remaining differences are classified in [[parity]] and the editorial questions in [[workflow#Offene Redaktionsentscheidungen]] (items 7–10). The OpenRefine review (ride.19.3) and five issue editorials are published live and present in `i-d-e/ride`, but not in this corpus. PDFs were not built locally; the deployed PDFs were checked for reachability only. The DOI landing URLs were not checked at DataCite.
+**Nächster Einstieg:** After the push, rerun `uv run python scripts/parity.py --full` against the deployed site and compare with the local measurement above.
+
 ## 2026-11-10 — Repair the failed deployment check at the image resolver
 
 **Ziel:** Find the cause of the failed run for 36058ae and repair it at the root without weakening the legacy check.

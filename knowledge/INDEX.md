@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-05-09
-updated: 2026-10-17
+updated: 2026-11-10
 version: 0.2
 language: en
 related:
@@ -22,6 +22,7 @@ related:
   - "[[data]]"
   - "[[schema]]"
   - "[[teicrafter-pilot]]"
+  - "[[parity]]"
 ---
 
 # knowledge/
@@ -43,6 +44,7 @@ Reading order follows the eight Promptotyping functions, not alphabetical order.
 | [[exploration]] | Form/Construction — proposal: interactive explore view and narrative story view, with implementation plan | when the two data views are scoped or built |
 | [[redirects-feeds]] | Construction — rationale and evidence for legacy-URL redirects and the syndication feeds | when redirect or feed decisions change |
 | [[oai-pmh-statisch]] | Construction — static exports, protocol limits and conditional endpoint decision | when institutional consumer requirements are confirmed |
+| [[parity]] | Evaluation — function inventory of the live site, static correspondence, required online data, parity check method | when the live site, an interface or the parity check changes |
 | [[workflow]] | Construction — target publication workflow, legacy-stack replacement inventory, parity gaps | when editorial decisions land or gaps close |
 | [[teicrafter-pilot]] | Evaluation — verified teiCrafter self-audit and end-to-end review-ingestion report | when the pilot workflow or its open boundaries change |
 | [Publication process review](../snapshots/process-review-report-2026-10-17.md) | Dated evidence and decision basis for publication and editorial operation | snapshot, 17 October 2026 |
