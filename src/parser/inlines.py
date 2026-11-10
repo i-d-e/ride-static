@@ -49,6 +49,7 @@ from src.parser.common import (
     locate_hint,
 )
 
+_SPACE_RUN = re.compile(r" {2,}")
 _WS_RUN = re.compile(r"\s+")
 
 # The four element-name sets and the three helper functions below are
@@ -135,11 +136,39 @@ def parse_inlines(host: etree._Element) -> tuple[Inline, ...]:
             for inline in parse_inlines(child):
                 raw.append(inline)
         else:
-            raw.append(parse_inline_element(child, local))
+            raw.extend(inline_with_edges(child, local))
         if child.tail:
             raw.append(collapse_whitespace(child.tail))
 
     return finalise_inlines(raw)
+
+
+# Inline containers whose edge whitespace is a word boundary of the host text:
+# ``of the<emph> Nietzsche Estate</emph>`` reads "of the Nietzsche Estate".
+# Notes, code and amendments are excluded: a space at the start of a note is
+# not a gap in the running text before the note call.
+_EDGE_SPACE_HOSTS = frozenset({"emph", "hi", "ref"})
+
+
+def inline_with_edges(el: etree._Element, local: str) -> list:
+    """Parse an inline child and keep its edge whitespace as host text.
+
+    ``finalise_inlines`` strips the edges of every inline's own children, so
+    whitespace just inside ``<emph>``, ``<hi>`` or ``<ref>`` would otherwise
+    vanish and fuse two words. The space moves outside the element instead,
+    where it separates the words and leaves the inline's content trimmed.
+    """
+    inline = parse_inline_element(el, local)
+    if local not in _EDGE_SPACE_HOSTS:
+        return [inline]
+    text = "".join(el.itertext())
+    out: list = []
+    if text[:1].isspace():
+        out.append(" ")
+    out.append(inline)
+    if text[-1:].isspace():
+        out.append(" ")
+    return out
 
 
 def parse_inline_element(el: etree._Element, local: str) -> Inline:
@@ -276,6 +305,9 @@ def finalise_inlines(raw: list) -> tuple[Inline, ...]:
         else:
             merged.append(item)
 
+    # A space hoisted out of an inline (inline_with_edges) can meet a space
+    # already present in the neighbouring text.
+    merged = [_SPACE_RUN.sub(" ", m) if isinstance(m, str) else m for m in merged]
     if merged and isinstance(merged[0], str):
         merged[0] = merged[0].lstrip()
     if merged and isinstance(merged[-1], str):

@@ -455,3 +455,48 @@ def test_smoke_real_corpus_inline_kinds_distribution() -> None:
     # parser, not parse_inlines, and are intentionally not counted here.
     for kind, count in seen.items():
         assert count > 0, f"no {kind} found across the corpus — kind has vanished?"
+
+
+@needs_corpus
+def test_real_corpus_space_inside_emph_keeps_words_apart() -> None:
+    """nietzschesource-tei.xml writes ``of the<emph> Nietzsche Estate</emph>``
+    and ``projects<emph>. </emph>Furthermore``. The edge spaces inside the
+    emphasis are word boundaries of the paragraph; the parity check against
+    the live site found them lost ("theNietzsche")."""
+    from src._corpus import find_tei
+    from src.parser.review import parse_review
+    from src.render.html import inlines_to_plain_text
+
+    review = parse_review(find_tei("nietzschesource"))
+    text = " ".join(
+        inlines_to_plain_text(block.inlines)
+        for section in review.body
+        for block in section.blocks
+        if getattr(block, "xml_id", None) in {"p1", "p3"}
+    )
+    assert "of the Nietzsche Estate" in text
+    assert "projects. Furthermore" in text
+    estate = [
+        i
+        for section in review.body
+        for block in section.blocks
+        if getattr(block, "xml_id", None) == "p1"
+        for i in block.inlines
+        if isinstance(i, Emphasis) and "Estate" in inlines_to_plain_text(i.children)
+    ]
+    # The emphasis itself stays trimmed; the space sits in the host text.
+    assert inlines_to_plain_text(estate[0].children) == "Nietzsche Estate"
+
+
+def test_space_hoisting_leaves_note_content_alone() -> None:
+    """Synthetic exception: a note whose content starts with a space must not
+    open a gap between the word and the note call."""
+    host = etree.fromstring(
+        f'<p xmlns="{TEI}">word<note> text</note> and<emph> x </emph>y</p>'
+    )
+    out = parse_inlines(host)
+    assert out[0] == Text(text="word")
+    assert isinstance(out[1], Note)
+    assert out[2] == Text(text=" and ")
+    assert isinstance(out[3], Emphasis)
+    assert out[4] == Text(text=" y")

@@ -173,11 +173,19 @@ def test_real_body_starting_with_p_gets_wrapped(ride_phi_body):
 
 @needs_corpus
 def test_real_body_starting_with_cit_gets_wrapped(ride_bdmp_body):
-    """bdmp-tei.xml starts <body> with <cit>; same wrap behaviour as <p>-start."""
+    """bdmp-tei.xml starts <body> with an epigraph <cit> followed by eleven
+    <div> sections. The epigraph goes into the synthesised wrapper and the
+    divs stay sections; before 2026-11-10 the wrapper alone was returned and
+    the review rendered without its text."""
     sections = parse_sections(ride_bdmp_body)
-    assert len(sections) == 1
+    divs = ride_bdmp_body.findall("{http://www.tei-c.org/ns/1.0}div")
+    assert len(divs) > 0
+    assert len(sections) == 1 + len(divs)
     assert sections[0].xml_id == "sec-1"
     assert sections[0].heading is None
+    assert [type(b).__name__ for b in sections[0].blocks] == ["Citation"]
+    assert [s.xml_id for s in sections[1:]] == [d.get("{http://www.w3.org/XML/1998/namespace}id") for d in divs]
+    assert all(s.heading is not None for s in sections[1:])
 
 
 @needs_corpus
@@ -299,12 +307,11 @@ def test_real_all_reviews_parse_without_error():
         assert isinstance(sections, tuple)
         for s in sections:
             assert isinstance(s, Section)
-        if (
-            len(sections) == 1
-            and sections[0].xml_id == "sec-1"
-            and sections[0].heading is None
-        ):
+        if sections and sections[0].xml_id == "sec-1" and sections[0].heading is None:
             wrap_count += 1
+            # No <div> after the leading blocks may be lost (2026-11-10 fix).
+            divs = body.findall(f"{{{TEI}}}div")
+            assert len(sections) == 1 + len(divs), f.name
     # 7 wrap reviews documented; the count is permissive (≥ 7) because
     # some non-wrap reviews may also yield this shape on edge cases.
     assert wrap_count >= 7

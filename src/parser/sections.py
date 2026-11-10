@@ -51,9 +51,18 @@ def parse_sections(host: Optional[etree._Element]) -> tuple[Section, ...]:
     """
     if host is None:
         return ()
-    if _is_body_wrap_case(host):
-        return (_synthesise_wrap_section(host),)
     divs = host.findall("t:div", NS)
+    if _is_body_wrap_case(host):
+        # Leading blocks (an epigraph <cit>, an opening <p>) can precede
+        # regular <div> sections. The wrapper holds those blocks; the divs
+        # after them stay sections. Until 2026-11-10 the wrap branch returned
+        # the wrapper alone and silently dropped every following <div>, which
+        # left five reviews (commedia, whistler, bdmp, wba, ps) almost empty;
+        # the parity check against the live site found it.
+        wrap = _synthesise_wrap_section(host)
+        return (wrap,) + tuple(
+            _parse_div(div, level=1, position=(i + 2,)) for i, div in enumerate(divs)
+        )
     return tuple(_parse_div(div, level=1, position=(i + 1,)) for i, div in enumerate(divs))
 
 

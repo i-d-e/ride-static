@@ -8,7 +8,7 @@ method:
   url: https://dhcraft.org/excellence/blog/Promptotyping
 status: active
 created: 2026-04-28
-updated: 2026-10-17
+updated: 2026-11-10
 version: 0.1
 topics:
   - "[[Static Site Generation]]"
@@ -187,7 +187,7 @@ The parser handles the known anomalies named in [[data]] and [[schema]] explicit
 | `<list rend="numbered"`>, `"unordered">` | normalise to `ordered` / `bulleted` |
 | `<ref type="crosssref">` | normalise to `crossref` |
 | `<sourceDesc>` duplicated (`wwr`) | not read by the parser, so the duplicate is inert |
-| `<body>` starting with `<p>` or `<cit>` (7 reviews) | wrap in implicit single section |
+| `<body>` starting with `<p>` or `<cit>` (7 reviews) | wrap the leading blocks in an implicit section `sec-1`; `<div>` sections that follow stay sections (before 2026-11-10 they were dropped, see [[parity]]) |
 | `<ref target="#K…">` — the dominant internal-prefix ref (counts in [[data#Reference resolution]]) | resolve against the criteria document at the taxonomy's `@xml:base`, not as local anchors |
 | `<ref target="#abb…">` and the other minor internal prefixes (counts in [[data#Reference resolution]]) | unresolved, emit a warning and render as plain text |
 

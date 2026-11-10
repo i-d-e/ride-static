@@ -37,7 +37,7 @@ from src.parser.inlines import (
     SOFT_SKIP,
     collapse_whitespace,
     finalise_inlines,
-    parse_inline_element,
+    inline_with_edges,
     parse_inlines,
 )
 
@@ -260,7 +260,8 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
     The first chunk inherits ``@xml:id`` and ``@n`` from the source ``<p>``;
     continuation chunks have ``xml_id=None`` and ``n=None`` because they are
     synthetic. Empty chunks (e.g. when the paragraph starts or ends with a
-    block) are dropped — there is no point in a Paragraph with no inlines.
+    block) are dropped, except that a paragraph consisting only of blocks
+    keeps one empty ``Paragraph`` carrying its ``@xml:id`` as anchor.
 
     The fast path (no block children) returns a single-element tuple
     containing one ``Paragraph``, identical to ``parse_paragraph(p)``.
@@ -304,7 +305,7 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
             if text:
                 raw_inlines.append(text)
         else:
-            raw_inlines.append(parse_inline_element(child, local))
+            raw_inlines.extend(inline_with_edges(child, local))
         if child.tail:
             raw_inlines.append(collapse_whitespace(child.tail))
 
@@ -317,6 +318,14 @@ def parse_paragraph_or_split(p: etree._Element) -> tuple[Block, ...]:
                 n=p_n if is_first_chunk else None,
             )
         )
+        is_first_chunk = False
+
+    if is_first_chunk and p_xml_id:
+        # A paragraph made only of blocks (a list, a code figure) still owns a
+        # paragraph number that readers cite as #pN. Keep it as an empty
+        # numbered paragraph in front of its blocks so the anchor survives;
+        # the live site numbers these paragraphs too (cupola p58-p63).
+        out.insert(0, Paragraph(inlines=(), xml_id=p_xml_id, n=p_n))
 
     return tuple(out)
 
@@ -367,7 +376,7 @@ def _walk_inline_with_blocks(
             if text:
                 raw_inlines.append(text)
         else:
-            raw_inlines.append(parse_inline_element(child, local))
+            raw_inlines.extend(inline_with_edges(child, local))
         if child.tail:
             raw_inlines.append(collapse_whitespace(child.tail))
 

@@ -649,3 +649,26 @@ def test_real_parse_cit_with_bibl_against_anemoskala():
     out = parse_cit(el)
     assert isinstance(out, Citation)
     assert out.bibl is not None
+
+
+@needs_corpus
+def test_real_block_only_paragraph_keeps_its_anchor() -> None:
+    """cupola-tei.xml p58 holds nothing but a bulleted list. The live site
+    numbers it, and readers cite paragraphs as #pN, so the parser keeps an
+    empty Paragraph with the id in front of the list (parity check 2026-11-10)."""
+    from src._corpus import find_tei
+    from src.model.block import List as ListBlock
+    from src.model.block import Paragraph as ParagraphBlock
+    from src.parser.review import parse_review
+
+    review = parse_review(find_tei("cupola"))
+
+    def walk(sections):
+        for s in sections:
+            yield from s.blocks
+            yield from walk(s.subsections)
+
+    blocks = list(walk(review.body))
+    idx = next(i for i, b in enumerate(blocks) if getattr(b, "xml_id", None) == "p58")
+    assert isinstance(blocks[idx], ParagraphBlock) and blocks[idx].inlines == ()
+    assert isinstance(blocks[idx + 1], ListBlock)
