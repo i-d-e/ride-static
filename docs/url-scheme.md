@@ -173,6 +173,10 @@ The legacy feed URLs cannot use meta-refresh stubs, feed readers fetch XML and i
 
 Only the `.xml` endpoints are published or linked, because the legacy directory copies carry a content-type ceiling on GitHub Pages; the rationale and the supporting evidence live in [../knowledge/redirects-feeds.md](../knowledge/redirects-feeds.md).
 
+## Query addresses of the former site
+
+GitHub Pages serves the home page for `/?s={term}` and `/?p={id}`. The home page answers both in the browser: `static/js/pagefind.js` runs the search for `s`, `static/js/legacy-query.js` replaces the location with the WordPress path recorded for post id `p` (`config/legacy-urls.json`, key `posts`), whose redirect stub then leads to the current page.
+
 ## What this scheme does not cover
 
 - Author profile pages independent of reviewer profiles. Out of scope per current requirements.

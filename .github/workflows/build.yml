@@ -114,9 +114,9 @@ jobs:
         working-directory: ride-static
         run: uv run python -m pytest -q
 
-      - name: Test search bootstrap and OAI router
+      - name: Test search bootstrap, legacy queries and OAI router
         working-directory: ride-static
-        run: node --test tests/pagefind.test.cjs tests/oai-router.test.mjs
+        run: node --test tests/pagefind.test.cjs tests/oai-router.test.mjs tests/legacy-query.test.mjs
 
       - name: Discovery scripts (Tier 1)
         working-directory: ride-static

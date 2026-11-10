@@ -170,11 +170,14 @@ class LegacyUrls:
     """Addresses recorded from the live WordPress site (``config/legacy-urls.json``).
 
     ``reviews`` maps a lower-case DOI to the WordPress paths of that review;
-    ``tags`` maps a WordPress tag path (``tag/{slug}``) to its tag label.
+    ``tags`` maps a WordPress tag path (``tag/{slug}``) to its tag label;
+    ``posts`` maps a WordPress post id (the ``/?p={id}`` shortlink) to the
+    page's WordPress path, which the home page resolves in the browser.
     """
 
     reviews: dict[str, list[str]] = field(default_factory=dict)
     tags: dict[str, str] = field(default_factory=dict)
+    posts: dict[str, str] = field(default_factory=dict)
 
 
 def load_legacy_urls(path: Path = LEGACY_URLS) -> LegacyUrls:
@@ -184,6 +187,7 @@ def load_legacy_urls(path: Path = LEGACY_URLS) -> LegacyUrls:
     return LegacyUrls(
         reviews={doi.lower(): paths for doi, paths in data.get("reviews", {}).items()},
         tags=dict(data.get("tags", {})),
+        posts=dict(data.get("posts", {})),
     )
 
 

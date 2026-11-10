@@ -131,10 +131,18 @@ def render_index(
         page_url=_abs_url(site, "/"),
         current_issue=current_issue,
         current_reviews=current_reviews,
-        total_reviews=len(reviews),
+        total_reviews=sum(1 for r in reviews if not r.is_editorial),
         total_issues=len(by_issue),
         home_widgets=home_widgets or [],
+        legacy_posts=_legacy_posts(),
     )
+
+
+def _legacy_posts() -> dict[str, str]:
+    """WordPress post id -> old path, for ``/?p={id}`` links (legacy-query.js)."""
+    from src.render.redirects import load_legacy_urls
+
+    return load_legacy_urls().posts
 
 
 def render_issues_overview(

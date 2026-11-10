@@ -22,6 +22,20 @@
 <div class="ride-page ride-page--wide" lang="{{ page_lang }}">
   <div class="ride-content ride-home">
 
+    {#- Addresses of the former WordPress site with a query string: /?s={term}
+        opens the search, /?p={id} leads to the page with that post id
+        (static/js/legacy-query.js). Without JavaScript only the notice shows. -#}
+    <p id="ride-legacy-notice" class="ride-home__legacy-notice" role="status" hidden></p>
+    <noscript>
+      <p class="ride-home__legacy-notice">
+        Links of the former site with <code>?s=</code> (search) or <code>?p=</code> (short link)
+        need JavaScript. <a href="{{ site.base_url }}/issues/">Browse all reviews</a> instead.
+      </p>
+    </noscript>
+    {%- if legacy_posts %}
+    <script type="application/json" id="ride-legacy-posts" data-base="{{ site.base_url }}">{{ legacy_posts | tojson }}</script>
+    {%- endif %}
+
     <header class="ride-home__lede-section">
       <h1 class="ride-sr-only">{{ site.title }}</h1>
       <p class="ride-home__lede">
@@ -73,4 +87,9 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="module" src="{{ static_path('js/legacy-query.js') }}"></script>
 {% endblock %}

@@ -560,6 +560,12 @@ REVIEW_RE = re.compile(r"^/issues/issue-(\d+)/([^/]+)/$")
 FACTSHEET_RE = re.compile(r"^/issues/issue-(\d+)/([^/]+)/factsheet/$")
 
 
+def shortlink_id(body: bytes) -> str | None:
+    """Post id from ``<link rel='shortlink' href='…/?p={id}'>`` in a WordPress head."""
+    m = re.search(rb"<link rel=.shortlink. href=.[^'\"]*\?p=(\d+)", body.split(b"</head>", 1)[0])
+    return m.group(1).decode() if m else None
+
+
 def live_sitemap_urls(fetcher: CachedFetcher) -> list[str]:
     index = fetcher.get(f"{LIVE_BASE}/sitemap.xml")
     urls: list[str] = []
@@ -599,6 +605,7 @@ class Report:
     inventory: dict = field(default_factory=dict)
     legacy_paths: dict[str, list[str]] = field(default_factory=dict)
     legacy_tags: dict[str, str] = field(default_factory=dict)
+    legacy_posts: dict[str, str] = field(default_factory=dict)
 
     def add(self, *items: Finding) -> None:
         self.findings.extend(items)
@@ -621,6 +628,13 @@ def run(
     report.inventory["live_sitemap_urls"] = len(urls)
     report.inventory["live_review_pages"] = len(review_paths)
     report.inventory["live_factsheet_pages"] = sum(1 for p in paths if FACTSHEET_RE.match(p))
+    # WordPress shortlinks (/?p={id}): every page names its post id in the head.
+    if not sample:
+        for path in paths:
+            post = shortlink_id(fetcher.get(f"{LIVE_BASE}{path}").body)
+            if post:
+                report.legacy_posts[post] = path
+        report.inventory["live_shortlinks"] = len(report.legacy_posts)
 
     corpus_resp = static.get("/api/corpus.json")
     corpus = json.loads(corpus_resp.body) if corpus_resp.status == 200 else {"reviews": []}
@@ -717,6 +731,7 @@ def run(
         report.add(check_url(static, path, expected.get(path, "")))
 
     report.add(*check_interfaces(fetcher, static, sample))
+    report.add(*check_query_addresses(static, report.legacy_posts))
     return report
 
 
@@ -731,6 +746,42 @@ def check_url(static: StaticSite, legacy_path: str, expected: str) -> Finding:
         return Finding(cat, legacy_path, "differs", f"lands on {final}, expected {expected}")
     how = "same path" if not hops else f"redirect -> {final}"
     return Finding(cat, legacy_path, "equal", how)
+
+
+def check_query_addresses(static: StaticSite, live_posts: dict[str, str]) -> list[Finding]:
+    """``/?p={id}`` and ``/?s={term}``: answered in the browser by the home page.
+
+    The check cannot run JavaScript; it verifies the data and code the browser
+    needs. Every live post id must be in the map the home page embeds, with the
+    same WordPress path, and that path must resolve on the static site. For the
+    search, the home page must load the search module that reads ``?s=``.
+    """
+    out: list[Finding] = []
+    home = _parse(static.get("/").body)
+    data = home.xpath("//script[@id='ride-legacy-posts']/text()")
+    posts = json.loads(data[0]) if data else {}
+    for post, path in sorted(live_posts.items(), key=lambda kv: int(kv[0])):
+        mapped = posts.get(post)
+        if mapped != path:
+            out.append(
+                Finding("query_p", f"?p={post}", "missing_static", f"live {path} | map {mapped}")
+            )
+            continue
+        f = check_url(static, path, "")
+        out.append(Finding("query_p", f"?p={post}", f.status, f"{path}: {f.detail}"))
+    scripts = home.xpath("//script[@type='module']/@src")
+    pagefind = next((s for s in scripts if s.endswith("js/pagefind.js")), None)
+    module = static.get(static.path_of(pagefind)).body if pagefind else b""
+    ok = b"get('s')" in module and b"triggerSearch" in module
+    out.append(
+        Finding(
+            "query_s",
+            "/?s={term}",
+            "equal" if ok else "missing_static",
+            "home page loads the search module that runs ?s=" if ok else "no ?s= hand-off",
+        )
+    )
+    return out
 
 
 def check_interfaces(fetcher: CachedFetcher, static: StaticSite, sample: bool) -> list[Finding]:
@@ -1009,6 +1060,7 @@ def write_legacy_table(report: Report, path: Path) -> None:
         "generator": "scripts/parity.py --full --write-legacy-urls",
         "reviews": {doi: sorted(set(p)) for doi, p in sorted(report.legacy_paths.items())},
         "tags": dict(sorted(report.legacy_tags.items())),
+        "posts": dict(sorted(report.legacy_posts.items(), key=lambda kv: int(kv[0]))),
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

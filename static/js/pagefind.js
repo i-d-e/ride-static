@@ -14,7 +14,7 @@ async function mount(container) {
       document.head.appendChild(script);
     });
     const baseUrl = new URL('../', base).pathname;
-    new window.PagefindUI({
+    const ui = new window.PagefindUI({
       element: '#ride-search',
       bundlePath: base.href,
       baseUrl,
@@ -27,6 +27,9 @@ async function mount(container) {
         zero_results: 'No reviews found for [SEARCH_TERM]',
       },
     });
+    // /?s={term} was the search address of the former WordPress site.
+    const term = new URLSearchParams(window.location ? window.location.search : '').get('s');
+    if (term && typeof ui.triggerSearch === 'function') ui.triggerSearch(term);
   } catch (err) {
     container.hidden = true;
     console.warn('Pagefind unavailable:', err);

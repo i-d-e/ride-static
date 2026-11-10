@@ -60,7 +60,7 @@ Review pages with numbered paragraphs, notes, figures, bibliography, list of fig
 
 ### Solved differently
 
-- Search runs client-side through Pagefind instead of `/?s=`.
+- Search runs client-side through Pagefind. The former search address `/?s={term}` lands on the home page, whose search module runs the term. The shortlinks `/?p={id}` resolve in the browser through the map of WordPress post ids recorded from the live pages (`posts` in `config/legacy-urls.json`, embedded in the home page by the build, `static/js/legacy-query.js`). Without JavaScript the home page shows a notice with a link to the review index. An unknown post id shows a notice on the home page. A known id whose page has no static counterpart (the pages outside the menu) leads to the former path, which the static site does not serve.
 - Old addresses resolve through meta-refresh stubs (see [[redirects-feeds]]). Review addresses come from the WordPress sitemap recorded in `config/legacy-urls.json`, from the TEI address of record and from the file stem. Tag archives `/tag/{slug}/` lead to `/tags/{slug}/`, and a WordPress tag that no TEI keyword carries yet leads to the tag overview.
 - The citation suggestion follows [[specification#R2 Rezension zitieren]] (title without "Review of", full editor list), so its wording differs from the live box by decision.
 - Downloads are served from the static site itself instead of GitHub raw URLs.
@@ -123,6 +123,10 @@ The first full run on 2026-11-10 found three parser defects, each now fixed with
 - A `<p>` holding only a list or a code figure lost its `xml:id`, so the cited paragraph number `#pN` had no anchor. An empty numbered paragraph now carries it.
 
 The redirect gaps it found (WordPress slugs differing from file stems, the tag archives) are described in [[redirects-feeds#Which old addresses get a stub (2026-11-10)]].
+
+### Differences in the OAI records
+
+The record contract (`scripts/oai_contract.py`) compares every live record in all three formats with the snapshot. The remaining differences come from the live side or from the TEI having moved on. The live endpoint lists the record of ride.21.1 under the identifier ride.1.1, so ride.1.1 appears twice there, ride.21.1 is missing, and `GetRecord` for ride.1.1 fails with a server error. Several live datestamps differ from the TEI publication date (the same divergence as the review pages), and ORCID identifiers added to the TEI in 2026 are absent from the older live records.
 
 ### What the check cannot establish
 

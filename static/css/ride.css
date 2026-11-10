@@ -948,6 +948,14 @@ main.ride-shell {
 }
 
 .ride-home__lede-section { /* nur sr-only h1 plus eine Zeile lede */ }
+/* Notice for /?s= and /?p= addresses of the former site (legacy-query.js). */
+.ride-home__legacy-notice {
+  margin: 0;
+  padding-left: var(--ride-space-3);
+  border-left: 1px solid var(--ride-rule);
+  color: var(--ride-fg-secondary);
+  max-width: 60ch;
+}
 .ride-home__lede {
   margin: 0;
   font-size: 1.25em;
