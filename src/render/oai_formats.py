@@ -144,7 +144,6 @@ def _marc_author(tag: str, author: Author) -> str:
     place = ", ".join(
         x for x in ((aff.org_name if aff else None), (aff.place_name if aff else None)) if x
     )
-    orcid = _orcid_id(author)
     return _datafield(
         tag,
         "1",
@@ -152,10 +151,22 @@ def _marc_author(tag: str, author: Author) -> str:
         [
             ("a", surname_first(author)),
             ("4", "aut"),
-            ("0", f"(orcid){orcid}" if orcid else ""),
+            ("0", _marc_authority(author)),
             ("u", place),
         ],
     )
+
+
+# MARC $0 source codes the live records use per authority.
+_MARC_SOURCE = {"orcid": "(orcid)", "viaf": "(viaf)", "gnd": "(DE-588)"}
+
+
+def _marc_authority(author: Author) -> str:
+    p = author.person
+    source = _MARC_SOURCE.get(p.identifier_authority or "")
+    if not source or not p.identifier_url:
+        return ""
+    return f"{source}{p.identifier_url.rstrip('/').rsplit('/', 1)[-1]}"
 
 
 def marc_metadata(review: Review, page_url: str, build_stamp: str) -> str:

@@ -39,7 +39,9 @@ def _abstract_head(text: str | None, words: int = 25) -> str:
 
 
 def _texts(el: etree._Element, xpath: str) -> list[str]:
-    return [_norm("".join(x.itertext())) for x in el.xpath(xpath, namespaces=NS)]
+    """Normalised texts; empty elements (the live endpoint writes some) drop out."""
+    values = (_norm("".join(x.itertext())) for x in el.xpath(xpath, namespaces=NS))
+    return [v for v in values if v]
 
 
 def record_fields(record: etree._Element, prefix: str) -> dict[str, tuple]:
